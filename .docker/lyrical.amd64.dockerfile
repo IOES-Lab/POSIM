@@ -22,6 +22,8 @@ ENV GZ_SIM_SYSTEM_PLUGIN_PATH=/opt/ardusub_ws/ardupilot_gazebo/build
 ENV GZ_SIM_RESOURCE_PATH=/opt/ardusub_ws/ardupilot_gazebo/models:/opt/ardusub_ws/ardupilot_gazebo/worlds
 ENV GEOGRAPHICLIB_GEOID_PATH=/usr/share/GeographicLib/geoids
 ENV POSIM_BRIDGE_UNDERLAY=/opt/posim_bridge_ws
+ENV POSIM_MAVROS_UNDERLAY=/opt/posim_mavros_ws
+RUN bash /tmp/dave-extras/build-image-mavros.sh
 RUN bash /tmp/dave-extras/build-image-bridge.sh
 
 # Install QGroundControl.

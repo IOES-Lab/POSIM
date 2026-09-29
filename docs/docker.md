@@ -94,12 +94,22 @@ camera, USBL, and pressure. CUDA sonar, WGPU, interactive GUI/RDP, joystick inpu
 and physical sensor accuracy are **not** established by this headless check.
 An installed inventory of 18 world files is not an execution test of all 18.
 
+MAVROS 2.15.1 and libmavconn are rebuilt together with the upstream
+`IoContextRunner` self-close lifetime fix (`3a1f39f1a0`, mavlink/mavros#2290).
+The base revision, fix revision, and patch checksum are recorded in the image.
+The inventory verifies the active package prefixes and dynamic linkage, then
+runs 100 self-close/destruction trials under AddressSanitizer and UBSan. This
+targets a reproduced use-after-free; it is not a claim that every possible
+MAVROS crash has the same cause.
+
 BlueROV checks additionally require a received `/mavros/state` message with
 `connected=true`, not just a spawned vehicle. The inventory check runs camera
 C++ regressions and verifies that ArduSub and its Gazebo plugin resolve in a
-non-interactive shell. The five previously failing shutdown cases (spherical
-coordinates, camera, REXROV/waves, current, pressure) each run ten times including
-their initial matrix trial. All 45 additional trials are saved individually.
+non-interactive shell. Seven targeted cases (spherical coordinates, camera,
+REXROV/waves, current, pressure, and both BlueROV variants) each run ten times
+including their initial matrix trial. All 63 additional trials are saved
+individually. The overall CI step budget allows these additional SITL trials;
+individual startup and shutdown deadlines are unchanged.
 Any failed trial fails the job; these are not retries that select a later pass.
 Ten clean trials are regression evidence, not a zero population failure rate.
 

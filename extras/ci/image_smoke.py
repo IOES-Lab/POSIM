@@ -149,6 +149,36 @@ def inventory(out):
     )
     if code:
         raise RuntimeError("Bridge ownership regression check failed")
+    mavros_ws = Path(os.environ["POSIM_MAVROS_UNDERLAY"])
+    for package in ("mavros", "libmavconn"):
+        if Path(get_package_prefix(package)) != mavros_ws / "install":
+            raise RuntimeError(f"The pinned {package} overlay is not active")
+    for filename, expected in (
+        ("upstream-revision.txt", "22ae5b7cc7cdb4cb9c2070a8213c72dae445a23e"),
+        ("upstream-fix.txt", "3a1f39f1a033d39d9e7c34d9ba7cb28cd3dbcd5f"),
+    ):
+        actual = (mavros_ws / filename).read_text().strip()
+        if actual != expected:
+            raise RuntimeError(f"Unexpected MAVROS provenance: {filename}={actual}")
+        (out / f"mavros_{filename}").write_text(actual + "\n")
+    mavconn_patch = patch.with_name("mavconn-self-close-lifetime.patch")
+    expected_mavconn_patch = hashlib.sha256(mavconn_patch.read_bytes()).hexdigest()
+    if (mavros_ws / "self-close-patch.sha256").read_text().strip() != expected_mavconn_patch:
+        raise RuntimeError("MAVConn patch does not match the validation source")
+    (out / "mavconn_patch.sha256").write_text(expected_mavconn_patch + "\n")
+    code, dependencies = capture(
+        out, "mavros_linkage", ["ldd", str(mavros_ws / "install/lib/mavros/mavros_node")]
+    )
+    if code or str(mavros_ws / "install/lib/libmavconn.so") not in dependencies:
+        raise RuntimeError("MAVROS is not linked to the patched MAVConn overlay")
+    code, _ = capture(
+        out,
+        "mavconn_self_close",
+        [str(mavros_ws / "probe/bin/posim_mavconn_self_close_check")],
+        60,
+    )
+    if code:
+        raise RuntimeError("MAVConn self-close sanitizer regression failed")
     if not shutil.which("ardusub"):
         raise RuntimeError("ArduSub is not available in the noninteractive image PATH")
     plugin_paths = os.environ.get("GZ_SIM_SYSTEM_PLUGIN_PATH", "").split(":")

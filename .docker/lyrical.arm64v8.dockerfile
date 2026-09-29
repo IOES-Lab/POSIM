@@ -109,12 +109,17 @@ RUN export ROS_APT_SOURCE_VERSION=$(curl -s https://api.github.com/repos/ros-inf
     apt install -y --no-install-recommends \
       ros-${ROS_DISTRO}-desktop ros-${ROS_DISTRO}-ros-gz \
       ros-${ROS_DISTRO}-image-view \
+      ros-${ROS_DISTRO}-mavros ros-${ROS_DISTRO}-mavros-msgs \
       python3-rosdep python3-vcstool python3-colcon-common-extensions
 
 ENV POSIM_BRIDGE_UNDERLAY=/opt/posim_bridge_ws
+ENV POSIM_MAVROS_UNDERLAY=/opt/posim_mavros_ws
 COPY extras/build-image-bridge.sh /tmp/build-image-bridge.sh
+COPY extras/build-image-mavros.sh /tmp/build-image-mavros.sh
 COPY extras/patches /tmp/patches
 COPY extras/ci/bridge_ownership /tmp/ci/bridge_ownership
+COPY extras/ci/mavconn_self_close /tmp/ci/mavconn_self_close
+RUN bash /tmp/build-image-mavros.sh
 RUN bash /tmp/build-image-bridge.sh
 
 # --- DAVE workspace ---

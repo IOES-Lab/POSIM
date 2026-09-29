@@ -28,7 +28,7 @@ CASES="inventory $(awk -F '\t' '!/^#/ && NF {print $1}' "$CHECKS/quickstarts.tsv
 # Ten trials per previously failing lifecycle case, counting the matrix run.
 # Every trial is retained; a later pass never cancels an earlier failure.
 for REPEAT in $(seq 2 10); do
-  for CASE in spherical_world camera rexrov_waves ocean_current sea_pressure; do
+  for CASE in spherical_world camera rexrov_waves ocean_current sea_pressure bluerov2 bluerov2_heavy; do
     CASES="$CASES ${CASE}:r${REPEAT}"
   done
 done

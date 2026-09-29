@@ -19,6 +19,9 @@ git -C "$WS/src/ros_gz" apply --check "$PATCH"
 git -C "$WS/src/ros_gz" apply "$PATCH"
 # shellcheck disable=SC1090
 source "/opt/ros/$ROS_DISTRO/setup.bash"
+# Chain the matching MAVROS/libmavconn overlay into subsequent workspaces.
+# shellcheck disable=SC1090
+source "${POSIM_MAVROS_UNDERLAY:?MAVROS underlay required}/install/setup.bash"
 cd "$WS"
 # All build dependencies are supplied by the installed ros_gz packages.
 export CMAKE_BUILD_PARALLEL_LEVEL=2 MAKEFLAGS=-j2

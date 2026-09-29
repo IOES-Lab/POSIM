@@ -77,7 +77,8 @@ jobs:
             ROS_DISTRO=${{ env.ROS_DISTRO }}
 
       - name: Validate installed image and Quickstarts
-        timeout-minutes: 45
+        # 14 initial paths + 63 additional trials, including two SITL vehicles.
+        timeout-minutes: 75
         run: |
           bash extras/ci/docker_quickstarts.sh "$VALIDATION_IMAGE" linux/amd64 \
             "$RUNNER_TEMP/posim-validation-${{ github.run_id }}-${{ github.run_attempt }}"
