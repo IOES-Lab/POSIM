@@ -91,7 +91,9 @@ void UsblTransponder::Configure(
 
   if (!rclcpp::ok())
   {
-    rclcpp::init(0, nullptr);
+    // Gazebo owns process signals. A plugin must not replace its handlers or
+    // invalidate ROS while Gazebo is still running update/transport callbacks.
+    rclcpp::init(0, nullptr, rclcpp::InitOptions(), rclcpp::SignalHandlerOptions::None);
   }
 
   this->dataPtr->ecm = &_ecm;

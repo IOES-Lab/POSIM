@@ -15,6 +15,15 @@ COPY extras /tmp/dave-extras
 RUN DAVE_EXTRAS_DIR=/tmp/dave-extras \
     bash /tmp/dave-extras/ros-lyrical-gz-jetty-install.sh
 
+# docker run/exec do not necessarily start an interactive shell. Keep these
+# paths in the image environment, not just the installer's ~/.bashrc hook.
+ENV PATH=/opt/ardusub_ws/ardupilot/build/sitl/bin:/opt/ardusub_ws/ardupilot/Tools/autotest:${PATH}
+ENV GZ_SIM_SYSTEM_PLUGIN_PATH=/opt/ardusub_ws/ardupilot_gazebo/build
+ENV GZ_SIM_RESOURCE_PATH=/opt/ardusub_ws/ardupilot_gazebo/models:/opt/ardusub_ws/ardupilot_gazebo/worlds
+ENV GEOGRAPHICLIB_GEOID_PATH=/usr/share/GeographicLib/geoids
+ENV POSIM_BRIDGE_UNDERLAY=/opt/posim_bridge_ws
+RUN bash /tmp/dave-extras/build-image-bridge.sh
+
 # Install QGroundControl.
 RUN mkdir -p /opt/QGC && cd /opt/QGC && \
     wget -O QGroundControl-x86_64.AppImage \
@@ -46,7 +55,7 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 WORKDIR $DAVE_WS
-RUN . "/opt/ros/${ROS_DISTRO}/setup.sh" && \
+RUN . "$POSIM_BRIDGE_UNDERLAY/install/setup.sh" && \
     colcon build --merge-install --executor sequential --symlink-install
 
 RUN echo "source /opt/ros/${ROS_DISTRO}/setup.bash" >> /root/.bashrc && \

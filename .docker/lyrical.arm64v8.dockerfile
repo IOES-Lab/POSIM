@@ -111,6 +111,10 @@ RUN export ROS_APT_SOURCE_VERSION=$(curl -s https://api.github.com/repos/ros-inf
       ros-${ROS_DISTRO}-image-view \
       python3-rosdep python3-vcstool python3-colcon-common-extensions
 
+ENV POSIM_BRIDGE_UNDERLAY=/opt/posim_bridge_ws
+COPY extras/build-image-bridge.sh /tmp/build-image-bridge.sh
+RUN bash /tmp/build-image-bridge.sh
+
 # --- DAVE workspace ---
 # Build the exact checked-out revision supplied as the Docker build context.
 ENV DAVE_UNDERLAY=/home/$USER/dave_ws
@@ -132,7 +136,7 @@ RUN apt-get update && \
 
 USER $USER
 WORKDIR $DAVE_UNDERLAY
-RUN . "/opt/ros/${ROS_DISTRO}/setup.sh" && \
+RUN . "$POSIM_BRIDGE_UNDERLAY/install/setup.sh" && \
     colcon build --merge-install --executor sequential --symlink-install
 
 # --- ArduSub SITL (BlueROV2) — Python 3.14 compatibility shims required, see notes/ardusub-sitl-setup.md ---

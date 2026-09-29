@@ -10,6 +10,7 @@ import platform
 import re
 import shlex
 import signal
+import shutil
 import subprocess
 import time
 
@@ -66,7 +67,7 @@ def capture(out, name, args, timeout=15):
 
 
 def inventory(out):
-    from ament_index_python.packages import get_package_share_directory
+    from ament_index_python.packages import get_package_prefix, get_package_share_directory
 
     shares = {name: Path(get_package_share_directory(name)) for name in PACKAGES}
     for share in shares.values():
@@ -93,6 +94,26 @@ def inventory(out):
     capture(out, "deb_versions", ["dpkg-query", "-W", "ros-lyrical-*"], 30)
     capture(out, "gazebo_version", ["gz", "sim", "--versions"])
     ws = Path(os.environ["POSIM_WORKSPACE"])
+    bridge_ws = Path(os.environ["POSIM_BRIDGE_UNDERLAY"])
+    if Path(get_package_prefix("ros_gz_bridge")) != bridge_ws / "install":
+        raise RuntimeError("The pinned bridge overlay is not active")
+    revision = (bridge_ws / "upstream-revision.txt").read_text().strip()
+    if revision != "54a2e78a41c623173608cdd8eef2e049ee3ee3b0":
+        raise RuntimeError(f"Unexpected bridge source revision: {revision}")
+    (out / "bridge_source_revision.txt").write_text(revision + "\n")
+    if not shutil.which("ardusub"):
+        raise RuntimeError("ArduSub is not available in the noninteractive image PATH")
+    plugin_paths = os.environ.get("GZ_SIM_SYSTEM_PLUGIN_PATH", "").split(":")
+    if not any((Path(p) / "libArduPilotPlugin.so").is_file() for p in plugin_paths if p):
+        raise RuntimeError("ArduPilotPlugin is not on GZ_SIM_SYSTEM_PLUGIN_PATH")
+    code, _ = capture(
+        out,
+        "camera_unit_tests",
+        [str(ws / "build/dave_gz_sensor_plugins/test_underwater_camera")],
+        60,
+    )
+    if code:
+        raise RuntimeError("Camera C++ regression tests failed")
     for companion in ("dockwater", "rocker"):
         code, _ = capture(
             out,
@@ -151,6 +172,31 @@ def camera_payload(out):
             and msg.step > 0
             and len(payload) == msg.step * msg.height
         )
+    finally:
+        node.destroy_node()
+        rclpy.shutdown()
+
+
+def mavros_connected(out):
+    import rclpy
+    from mavros_msgs.msg import State
+    from rclpy.qos import qos_profile_sensor_data
+
+    rclpy.init()
+    node = rclpy.create_node("posim_mavros_connection_check")
+    states = []
+    node.create_subscription(State, "/mavros/state", states.append, qos_profile_sensor_data)
+    try:
+        deadline = time.monotonic() + 60
+        while time.monotonic() < deadline:
+            rclpy.spin_once(node, timeout_sec=1)
+            if any(state.connected for state in states):
+                break
+        connected = any(state.connected for state in states)
+        (out / "mavros_state.json").write_text(
+            json.dumps({"topic": "/mavros/state", "connected": connected, "messages": len(states)})
+        )
+        return connected
     finally:
         node.destroy_node()
         rclpy.shutdown()
@@ -245,6 +291,8 @@ def exercise(out, case):
                         40,
                     )
                     checks["ros_payload"] = code == 0 and "header:" in payload
+                if case[0] in ("bluerov2", "bluerov2_heavy"):
+                    checks["mavros_connected"] = mavros_connected(out)
                 capture(out, "ros_topics", ["ros2", "topic", "list", "-t"], 20)
                 checks["launch_alive"] = proc.poll() is None
         finally:
@@ -275,8 +323,9 @@ def exercise(out, case):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("case")
+    parser.add_argument("--record", help="Unique evidence directory for a repeat trial")
     args = parser.parse_args()
-    out = Path("/results") / args.case
+    out = Path("/results") / (args.record or args.case)
     out.mkdir(parents=True, exist_ok=True)
     result = {"case": args.case, "architecture": platform.machine(), "status": "FAIL"}
     try:

@@ -14,8 +14,19 @@ docker run --rm -it posim:dev-amd64 bash
 The workspace remains at `/opt/dave_ws`. In an interactive Bash shell its setup
 is loaded through `.bashrc`. For a non-interactive command, source
 `/opt/ros/lyrical/setup.bash` and `/opt/dave_ws/install/setup.bash` explicitly.
+ArduSub and ArduPilot Gazebo resource/plugin paths are also set in Docker `ENV`,
+so they do not depend on an interactive `.bashrc` being loaded.
 GUI forwarding and GPU passthrough must be configured for the host before using
 graphical or GPU-dependent scenarios.
+
+Both images build `ros_gz_bridge` from the fixed Lyrical upstream commit
+`54a2e78a41c623173608cdd8eef2e049ee3ee3b0` into `/opt/posim_bridge_ws`.
+This is the one-commit ownership-cycle backport after tag 3.0.10, not a local
+patch to the installed Debian files. The DAVE workspace setup chains that
+underlay. `ros2 pkg prefix ros_gz_bridge` must resolve to
+`/opt/posim_bridge_ws/install`. The image check records the upstream revision
+alongside the installed Debian package versions; those version numbers alone
+do not identify the bridge executable being used.
 
 ## ARM64 / Apple Silicon
 
@@ -73,6 +84,15 @@ waves, a bimanual scene, REXROV, BlueROV variants, a glider, ocean current, DVL,
 camera, USBL, and pressure. CUDA sonar, WGPU, interactive GUI/RDP, joystick input,
 and physical sensor accuracy are **not** established by this headless check.
 An installed inventory of 18 world files is not an execution test of all 18.
+
+BlueROV checks additionally require a received `/mavros/state` message with
+`connected=true`, not just a spawned vehicle. The inventory check runs camera
+C++ regressions and verifies that ArduSub and its Gazebo plugin resolve in a
+non-interactive shell. The five previously failing shutdown cases (spherical
+coordinates, camera, REXROV/waves, current, pressure) each run ten times including
+their initial matrix trial. All 45 additional trials are saved individually.
+Any failed trial fails the job; these are not retries that select a later pass.
+Ten clean trials are regression evidence, not a zero population failure rate.
 
 CI first loads the built image locally, then runs these checks. Publication uses
 the tested image ID without rebuilding it. A failed build or runtime check
