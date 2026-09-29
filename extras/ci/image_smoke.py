@@ -66,6 +66,42 @@ def capture(out, name, args, timeout=15):
     return code, stdout
 
 
+def wait_for_entity(out, world, entity, proc, deadline):
+    """Observe the spawned model within the original 90-second startup budget.
+
+    The world control service can appear before the create service/model. A
+    fixed sleep followed by one pose sample tests that race, not model loading.
+    Every observation is retained; this does not restart a failed scene.
+    """
+    attempts = []
+    present = False
+    while proc.poll() is None:
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            break
+        code, poses = capture(
+            out,
+            "poses",
+            ["gz", "topic", "-e", "-t", f"/world/{world}/pose/info", "-n", "1"],
+            min(8, remaining),
+        )
+        present = (
+            code == 0 and re.search(r'name:\s*"' + re.escape(entity) + r'"', poses) is not None
+        )
+        attempts.append({"returncode": code, "entity_present": present})
+        for suffix in ("txt", "stderr", "json"):
+            source = out / f"poses.{suffix}"
+            if source.exists():
+                shutil.copyfile(source, out / f"poses-attempt-{len(attempts):03d}.{suffix}")
+        if present:
+            break
+        time.sleep(min(1, max(0, deadline - time.monotonic())))
+    (out / "entity_readiness.json").write_text(
+        json.dumps({"entity": entity, "present": present, "attempts": attempts}, indent=2)
+    )
+    return present
+
+
 def inventory(out):
     from ament_index_python.packages import get_package_prefix, get_package_share_directory
 
@@ -239,6 +275,9 @@ def exercise(out, case):
                 time.sleep(1)
             checks["world_ready"] = world is not None
             if world:
+                checks["entity_present"] = entity == "__NONE__" or wait_for_entity(
+                    out, world, entity, proc, deadline
+                )
                 time.sleep(8)
                 code, stats = capture(
                     out,
@@ -249,16 +288,6 @@ def exercise(out, case):
                 iterations = [int(n) for n in re.findall(r"iterations:\s*(\d+)", stats)]
                 checks["simulation_advances"] = (
                     code == 0 and len(iterations) >= 2 and iterations[-1] > iterations[0]
-                )
-                code, poses = capture(
-                    out,
-                    "poses",
-                    ["gz", "topic", "-e", "-t", f"/world/{world}/pose/info", "-n", "1"],
-                    20,
-                )
-                checks["entity_present"] = entity == "__NONE__" or (
-                    code == 0
-                    and re.search(r'name:\s*"' + re.escape(entity) + r'"', poses) is not None
                 )
                 # A topic listing is not sufficient: obtain a real message.
                 if case[0] == "camera":

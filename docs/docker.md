@@ -83,6 +83,11 @@ Gazebo payloads, selected ROS payloads, and shutdown status. Logs and JSON/CSV
 results are saved beside the tested image ID. Companion repository revisions
 and installed ROS package versions are included.
 
+For spawned models, readiness requires the exact model name in a received pose
+message within the original 90-second startup budget. A world control service
+alone does not establish model readiness. All pose observations are retained;
+the check does not restart the scene or waive missing-model failures.
+
 The cases cover the world, object, robot, and sensor launch entries, including
 waves, a bimanual scene, REXROV, BlueROV variants, a glider, ocean current, DVL,
 camera, USBL, and pressure. CUDA sonar, WGPU, interactive GUI/RDP, joystick input,

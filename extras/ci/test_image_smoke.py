@@ -1,8 +1,12 @@
 """Regression tests for failures hidden by launch or Gazebo wrapper exit codes."""
 
 import unittest
+import json
+from pathlib import Path
+from tempfile import TemporaryDirectory
+from unittest.mock import Mock, patch
 
-from image_smoke import fatal_log_lines
+from image_smoke import fatal_log_lines, wait_for_entity
 
 
 class FatalLogTests(unittest.TestCase):
@@ -43,6 +47,48 @@ class FatalLogTests(unittest.TestCase):
         for code in (1, 2, 127, 137, 143, -9):
             with self.subTest(code=code):
                 self.assertTrue(fatal_log_lines(f"process has died [exit code {code}, cmd='gz']"))
+
+
+class EntityReadinessTests(unittest.TestCase):
+    def test_waits_for_model_not_just_world_control(self):
+        proc = Mock()
+        proc.poll.return_value = None
+        with TemporaryDirectory() as directory:
+            out = Path(directory)
+            with (
+                patch("image_smoke.time.monotonic", return_value=1),
+                patch("image_smoke.time.sleep"),
+                patch(
+                    "image_smoke.capture",
+                    side_effect=[(124, ""), (0, 'name: "ground"'), (0, 'name: "camera"')],
+                ) as read,
+            ):
+                self.assertTrue(wait_for_entity(out, "world", "camera", proc, 90))
+                self.assertEqual(read.call_count, 3)
+            result = json.loads((out / "entity_readiness.json").read_text())
+            self.assertEqual(len(result["attempts"]), 3)
+            self.assertFalse(result["attempts"][0]["entity_present"])
+
+    def test_absent_model_still_fails_at_original_deadline(self):
+        proc = Mock()
+        proc.poll.return_value = None
+        with TemporaryDirectory() as directory:
+            with (
+                patch("image_smoke.time.monotonic", side_effect=[89, 90, 90]),
+                patch("image_smoke.time.sleep"),
+                patch("image_smoke.capture", return_value=(0, 'name: "other"')) as read,
+            ):
+                self.assertFalse(wait_for_entity(Path(directory), "world", "camera", proc, 90))
+                self.assertEqual(read.call_count, 1)
+                self.assertEqual(read.call_args.args[-1], 1)
+
+    def test_terminated_launch_is_not_retried(self):
+        proc = Mock()
+        proc.poll.return_value = 1
+        with TemporaryDirectory() as directory:
+            with patch("image_smoke.capture") as read:
+                self.assertFalse(wait_for_entity(Path(directory), "world", "camera", proc, 90))
+                read.assert_not_called()
 
 
 if __name__ == "__main__":
