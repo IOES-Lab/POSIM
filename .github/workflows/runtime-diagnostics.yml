@@ -1,0 +1,39 @@
+---
+name: Diagnose an existing POSIM image (no publication)
+
+# yamllint disable-line rule:truthy
+on:
+  workflow_dispatch:
+    inputs:
+      architecture:
+        type: choice
+        options: [arm64, amd64]
+        required: true
+      image_id:
+        description: Exact locally retained sha256 image ID from validation
+        type: string
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: [self-hosted, "${{ inputs.architecture == 'arm64' && 'ARM64' || 'x64' }}"]
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - name: Capture MAVROS shutdown backtrace
+        env:
+          IMAGE_ID: ${{ inputs.image_id }}
+          ARCHITECTURE: ${{ inputs.architecture }}
+        run: |
+          bash tools/runtime-diagnostics.sh "$IMAGE_ID" "$ARCHITECTURE" \
+            "$RUNNER_TEMP/posim-diagnostics-${{ github.run_id }}"
+      - name: Preserve diagnostic evidence (not acceptance results)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: posim-runtime-diagnostics-${{ inputs.architecture }}
+          path: ${{ runner.temp }}/posim-diagnostics-${{ github.run_id }}
+          retention-days: 14
