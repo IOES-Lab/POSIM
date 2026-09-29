@@ -96,6 +96,50 @@ def inventory(out):
     return {"shares": {k: str(v) for k, v in shares.items()}, "counts": counts}
 
 
+def camera_payload(out):
+    import rclpy
+    from rclpy.qos import qos_profile_sensor_data
+    from sensor_msgs.msg import Image
+
+    rclpy.init()
+    node = rclpy.create_node("posim_camera_image_check")
+    messages = []
+    node.create_subscription(
+        Image, "/underwater_camera/simulated_image", messages.append, qos_profile_sensor_data
+    )
+    try:
+        deadline = time.monotonic() + 45
+        while not messages and time.monotonic() < deadline:
+            rclpy.spin_once(node, timeout_sec=1)
+        if not messages:
+            return False
+        msg = messages[0]
+        payload = bytes(msg.data)
+        (out / "ros_image.json").write_text(
+            json.dumps(
+                {
+                    "topic": "/underwater_camera/simulated_image",
+                    "width": msg.width,
+                    "height": msg.height,
+                    "step": msg.step,
+                    "encoding": msg.encoding,
+                    "data_bytes": len(payload),
+                    "data_sha256": hashlib.sha256(payload).hexdigest(),
+                },
+                indent=2,
+            )
+        )
+        return (
+            msg.width > 0
+            and msg.height > 0
+            and msg.step > 0
+            and len(payload) == msg.step * msg.height
+        )
+    finally:
+        node.destroy_node()
+        rclpy.shutdown()
+
+
 def exercise(out, case):
     _, launch_command, entity, topic_pattern = case
     checks = {}
@@ -143,7 +187,10 @@ def exercise(out, case):
                     and re.search(r'name:\s*"' + re.escape(entity) + r'"', poses) is not None
                 )
                 # A topic listing is not sufficient: obtain a real message.
-                if topic_pattern.startswith("/world/") and topic_pattern.endswith("/"):
+                if case[0] == "camera":
+                    # This plugin publishes its transformed image to ROS, not Gazebo.
+                    checks["ros_image_payload"] = camera_payload(out)
+                elif topic_pattern.startswith("/world/") and topic_pattern.endswith("/"):
                     checks["expected_world"] = (
                         re.search(topic_pattern, f"/world/{world}/stats") is not None
                     )
