@@ -119,6 +119,7 @@ COPY extras/build-image-mavros.sh /tmp/build-image-mavros.sh
 COPY extras/patches /tmp/patches
 COPY extras/ci/bridge_ownership /tmp/ci/bridge_ownership
 COPY extras/ci/mavconn_self_close /tmp/ci/mavconn_self_close
+COPY extras/ci/mavros_ownership /tmp/ci/mavros_ownership
 RUN bash /tmp/build-image-mavros.sh
 RUN bash /tmp/build-image-bridge.sh
 

@@ -1,6 +1,6 @@
 # id<TAB>launch command<TAB>expected entity regex<TAB>expected topic regex
 world_ocean	ros2 launch dave_demos dave_world.launch.py world_name:=dave_ocean_waves headless:=true	__NONE__	/world/oceans_waves/
-spherical_world	ros2 launch dave_demos dave_world.launch.py world_name:=dave_bimanual_example headless:=true	__NONE__	/world/dave_bimanual_example/
+spherical_world	ros2 launch dave_demos dave_world.launch.py world_name:=dave_bimanual_example headless:=true	grabbapole	/world/dave_bimanual_example/
 object_mossy	ros2 launch dave_demos dave_object.launch.py namespace:=mossy_cinder_block paused:=false gui:=false headless:=true	mossy_cinder_block	/world/empty/
 bluerov2	ros2 launch dave_demos dave_robot.launch.py z:=-0.5 namespace:=bluerov2 world_name:=dave_ocean_waves paused:=false gui:=false headless:=true use_teleop:=false use_web_joystick:=false open_qgc:=false open_virtual_joystick:=false	bluerov2	/world/oceans_waves/model/bluerov2/link/base_link/sensor/imu_sensor/imu|/model/bluerov2/imu
 bluerov2_heavy	ros2 launch dave_demos dave_robot.launch.py z:=-0.5 namespace:=bluerov2_heavy world_name:=dave_ocean_waves paused:=false gui:=false headless:=true use_teleop:=false use_web_joystick:=false open_qgc:=false open_virtual_joystick:=false	bluerov2_heavy	/world/oceans_waves/model/bluerov2_heavy/link/base_link/sensor/imu_sensor/imu

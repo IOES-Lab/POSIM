@@ -88,6 +88,15 @@ message within the original 90-second startup budget. A world control service
 alone does not establish model readiness. All pose observations are retained;
 the check does not restart the scene or waive missing-model failures.
 
+The four launch entries default to `wait_for_assets:=true` (Gazebo Jetty's
+`--wait-for-assets`). Jetty can otherwise advance an empty world while Fuel
+downloads continue in a background thread; shutdown joins that thread. Waiting
+for assets keeps normal ready-scene shutdown from racing a cold download. It
+does not repair cancellation of an in-progress download or guarantee network
+availability. Explicit `wait_for_assets:=false` retains asynchronous startup.
+The bimanual-world check now requires its `grabbapole` model and an actual
+spherical-coordinate service response, not only a world clock.
+
 The cases cover the world, object, robot, and sensor launch entries, including
 waves, a bimanual scene, REXROV, BlueROV variants, a glider, ocean current, DVL,
 camera, USBL, and pressure. CUDA sonar, WGPU, interactive GUI/RDP, joystick input,
@@ -101,6 +110,14 @@ The inventory verifies the active package prefixes and dynamic linkage, then
 runs 100 self-close/destruction trials under AddressSanitizer and UBSan. This
 targets a reproduced use-after-free; it is not a claim that every possible
 MAVROS crash has the same cause.
+
+A separate, hash-recorded local patch makes each Router endpoint's parent a
+weak reference. The Router owns the endpoints; a strong reverse link kept its
+ROS node and I/O thread alive into middleware-library unloading at process exit.
+A native-image GDB trace and a failing ownership reproducer motivated this
+patch. Build and inventory checks require release of both the Router and its
+endpoints for empty, ROS-only, and ROS-plus-UDP configurations. Passing this
+focused probe is not a substitute for the full image runtime matrix.
 
 BlueROV checks additionally require a received `/mavros/state` message with
 `connected=true`, not just a spawned vehicle. The inventory check runs camera

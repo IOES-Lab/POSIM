@@ -116,11 +116,13 @@ def inventory(out):
     for launch in launches:
         if not launch.is_file():
             raise RuntimeError(f"Installed launch missing: {launch}")
-        code, _ = capture(
+        code, launch_args = capture(
             out, launch.stem, ["ros2", "launch", "dave_demos", launch.name, "--show-args"], 30
         )
         if code:
             raise RuntimeError(f"Cannot resolve launch arguments: {launch.name}")
+        if "wait_for_assets" not in launch_args:
+            raise RuntimeError(f"Asset readiness argument missing: {launch.name}")
     worlds = sorted((shares["dave_worlds"] / "worlds").glob("*.world"))
     robots = sorted((shares["dave_robot_models"] / "description").glob("*/model.sdf"))
     sensors = sorted((shares["dave_sensor_models"] / "description").glob("*/model.sdf"))
@@ -166,6 +168,19 @@ def inventory(out):
     if (mavros_ws / "self-close-patch.sha256").read_text().strip() != expected_mavconn_patch:
         raise RuntimeError("MAVConn patch does not match the validation source")
     (out / "mavconn_patch.sha256").write_text(expected_mavconn_patch + "\n")
+    router_patch = patch.with_name("mavros-router-parent-lifetime.patch")
+    expected_router_patch = hashlib.sha256(router_patch.read_bytes()).hexdigest()
+    if (mavros_ws / "router-parent-patch.sha256").read_text().strip() != expected_router_patch:
+        raise RuntimeError("MAVROS Router patch does not match the validation source")
+    (out / "mavros_router_patch.sha256").write_text(expected_router_patch + "\n")
+    code, _ = capture(
+        out,
+        "mavros_ownership",
+        [str(mavros_ws / "probe/bin/posim_mavros_ownership_check")],
+        60,
+    )
+    if code:
+        raise RuntimeError("MAVROS Router ownership regression failed")
     code, dependencies = capture(
         out, "mavros_linkage", ["ldd", str(mavros_ws / "install/lib/mavros/mavros_node")]
     )
@@ -319,6 +334,29 @@ def exercise(out, case):
                 checks["simulation_advances"] = (
                     code == 0 and len(iterations) >= 2 and iterations[-1] > iterations[0]
                 )
+                if case[0] == "spherical_world":
+                    code, origin = capture(
+                        out,
+                        "spherical_origin",
+                        [
+                            "ros2",
+                            "service",
+                            "call",
+                            "/gz/get_origin_spherical_coordinates",
+                            "dave_interfaces/srv/GetOriginSphericalCoord",
+                            "{}",
+                        ],
+                        20,
+                    )
+                    coords = re.search(
+                        r"latitude_deg=([0-9.eE+-]+), longitude_deg=([0-9.eE+-]+)", origin
+                    )
+                    checks["spherical_service"] = (
+                        code == 0
+                        and coords is not None
+                        and abs(float(coords[1]) - 35.074823) < 1e-6
+                        and abs(float(coords[2]) - 129.084798) < 1e-6
+                    )
                 # A topic listing is not sufficient: obtain a real message.
                 if case[0] == "camera":
                     # This plugin publishes its transformed image to ROS, not Gazebo.

@@ -27,6 +27,17 @@ if [[ "${POSIM_DIAGNOSTIC_MODE:-}" == gazebo-fresh ]]; then
     > "$RESULTS/diagnostic-outcome.txt"
   exit 0
 fi
+if [[ "${POSIM_DIAGNOSTIC_MODE:-}" == assets-fresh ]]; then
+  failures=0
+  for n in $(seq 1 10); do
+    POSIM_DIAGNOSTIC_MODE=asset-ready bash "$0" "$IMAGE_ID" "$ARCH" "$RESULTS/fresh-$n" \
+      || failures=$((failures + 1))
+  done
+  printf 'Asset readiness candidate, 10 fresh containers, %s failures; not release acceptance.\n' \
+    "$failures" > "$RESULTS/diagnostic-outcome.txt"
+  test "$failures" = 0
+  exit
+fi
 CONTAINER="posim-diagnose-${GITHUB_RUN_ID:-$$}"
 trap 'docker rm -f "$CONTAINER" >/dev/null 2>&1 || true' EXIT
 docker run --rm --init --name "$CONTAINER" --platform "linux/$ARCH" \
@@ -49,6 +60,12 @@ docker run --rm --init --name "$CONTAINER" --platform "linux/$ARCH" \
     fi
     if [[ "$POSIM_DIAGNOSTIC_MODE" == gazebo-shutdown ]]; then
       exec python3 /diagnostics/diagnose-gazebo-shutdown.py
+    fi
+    if [[ "$POSIM_DIAGNOSTIC_MODE" == asset-ready ]]; then
+      share="$(ros2 pkg prefix --share dave_demos)"
+      cp /candidate/examples/dave_demos/launch/dave_*.launch.py "$share/launch/"
+      cd /tmp
+      exec python3 /checks/image_smoke.py spherical_world --record asset-ready
     fi
     python3 /diagnostics/instrument-mavros-gdb.py
     cd /tmp
