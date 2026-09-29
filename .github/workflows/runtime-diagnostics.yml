@@ -30,15 +30,17 @@ jobs:
       vars.POSIM_ENABLE_RUNTIME_DIAGNOSTICS == 'true' &&
       (github.event_name != 'pull_request' ||
        github.event.pull_request.head.repo.full_name == github.repository)
-    runs-on: [self-hosted, "${{ inputs.architecture != 'amd64' && 'ARM64' || 'x64' }}"]
+    runs-on:
+      - self-hosted
+      - "${{ (inputs.architecture || vars.POSIM_DIAGNOSTIC_ARCH) != 'amd64' && 'ARM64' || 'x64' }}"
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
-      - name: Capture MAVROS shutdown backtrace
+      - name: Run explicitly selected runtime diagnostic
         env:
           POSIM_DIAGNOSTIC_MODE: ${{ vars.POSIM_DIAGNOSTIC_MODE }}
           IMAGE_ID: ${{ inputs.image_id || vars.POSIM_DIAGNOSTIC_IMAGE_ID }}
-          ARCHITECTURE: ${{ inputs.architecture || 'arm64' }}
+          ARCHITECTURE: ${{ inputs.architecture || vars.POSIM_DIAGNOSTIC_ARCH || 'arm64' }}
         run: |
           bash tools/runtime-diagnostics.sh "$IMAGE_ID" "$ARCHITECTURE" \
             "$RUNNER_TEMP/posim-diagnostics-${{ github.run_id }}"
@@ -46,6 +48,6 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: posim-runtime-diagnostics-${{ inputs.architecture || 'arm64' }}
+          name: posim-runtime-diagnostics-${{ inputs.architecture || vars.POSIM_DIAGNOSTIC_ARCH || 'arm64' }}
           path: ${{ runner.temp }}/posim-diagnostics-${{ github.run_id }}
           retention-days: 14

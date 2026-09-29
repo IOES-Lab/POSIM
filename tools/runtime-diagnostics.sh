@@ -67,6 +67,24 @@ docker run --rm --init --name "$CONTAINER" --platform "linux/$ARCH" \
       cd /tmp
       exec python3 /checks/image_smoke.py spherical_world --record asset-ready
     fi
+    if [[ "$POSIM_DIAGNOSTIC_MODE" == gazebo-segfault ]]; then
+      export DEBUGINFOD_URLS=https://debuginfod.ubuntu.com
+      python3 /diagnostics/instrument-gazebo-gdb.py
+      cd /tmp
+      for n in $(seq 1 20); do
+        record="gazebo-segfault-$n"
+        python3 /checks/image_smoke.py rexrov_waves --record "$record" || true
+        if grep -Eq "received signal SIGSEGV|Program terminated with signal SIGSEGV" \
+          "/results/$record/launch.log"; then
+          printf "Captured Gazebo SIGSEGV in %s; diagnostic only.\n" "$record" \
+            > /results/diagnostic-outcome.txt
+          exit 0
+        fi
+      done
+      printf "No GDB-captured Gazebo SIGSEGV in 20 trials; original failure remains unresolved.\n" \
+        > /results/diagnostic-outcome.txt
+      exit 0
+    fi
     python3 /diagnostics/instrument-mavros-gdb.py
     cd /tmp
     for n in $(seq 1 20); do
