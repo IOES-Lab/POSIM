@@ -147,6 +147,7 @@ RUN set -eu; \
     retry_git() { \
       for attempt in 1 2 3; do \
         if git -c http.version=HTTP/1.1 "$@"; then return 0; fi; \
+        echo "Git transfer attempt $attempt/3 failed" >&2; \
         sleep 5; \
       done; \
       return 1; \
