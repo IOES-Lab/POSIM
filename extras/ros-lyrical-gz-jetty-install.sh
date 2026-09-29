@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Install the ROS 2 Lyrical / Gazebo Jetty development stack used by DAVE.
+# Install the ROS 2 Lyrical / Gazebo Jetty development stack used by POSIM (formerly DAVE).
 set -euo pipefail
 
 DIST="${ROS_DISTRO:-lyrical}"
@@ -99,7 +99,7 @@ sudo mkdir -p /opt/ardusub_ws && cd /opt/ardusub_ws || exit
 if [[ -n "${DAVE_EXTRAS_DIR:-}" && -f "${DAVE_EXTRAS_DIR}/ardusub-ubuntu-install.sh" ]]; then
     sudo cp "${DAVE_EXTRAS_DIR}/ardusub-ubuntu-install.sh" ./ardusub-ubuntu-install.sh
 else
-    sudo wget https://raw.githubusercontent.com/IOES-Lab/dave/ros2/extras/ardusub-ubuntu-install.sh
+    sudo wget https://raw.githubusercontent.com/IOES-Lab/POSIM/main/extras/ardusub-ubuntu-install.sh
 fi
 sudo chmod +x ardusub-ubuntu-install.sh && sudo bash ./ardusub-ubuntu-install.sh
 

@@ -1,5 +1,5 @@
 ---
-# Compatibility filename; repository entries match posim.lyrical.repos.
+# POSIM repositories. Keep the dave checkout key for existing workspace paths.
 repositories:
   dockwater:
     type: git

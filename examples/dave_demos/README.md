@@ -1,107 +1,84 @@
-# Examples
+# POSIM scene examples
 
-## Launching a Dave Object Model using Fuel URI
-
-To launch a Dave model directly from a Fuel URI, follow these steps:
-
-1. Build and source the workspace:
-
-   ```bash
-   colcon build && source install/setup.bash
-   ```
-
-2. Launch the model using the specified launch file:
-
-   ```bash
-   ros2 launch dave_demos dave_object.launch.py namespace:='mossy_cinder_block' paused:=false
-   ```
-
-This method simplifies the process by pulling the model directly from Fuel, ensuring you always have the latest version without needing to manage local files.
-
-## Launching a Dave Sensor Model using Downloaded Model Files
-
-If you prefer to use model files downloaded from Fuel, proceed as follows:
-
-1. Add a hook within the `dave_sensor_models` package to configure the necessary environment variables for Gazebo model lookup.
-
-   ```bash
-   cd <path-to-dave_ws>/src/dave/models/dave_sensor_models
-   mkdir hooks && cd hooks
-   touch dave_sensor_models.dsv.in
-   echo "prepend-non-duplicate;GZ_SIM_RESOURCE_PATH;@CMAKE_INSTALL_PREFIX@/share/@PROJECT_NAME@" >> dave_sensor_models.dsv.in
-   ```
-
-2. Append the following line to the CMakeLists.txt file in the `dave_sensor_models` package:
-
-   ```bash
-   ament_environment_hooks("${CMAKE_CURRENT_SOURCE_DIR}/hooks/${PROJECT_NAME}.dsv.in")
-   ```
-
-3. Build and source the workspace:
-
-   ```bash
-   cd <path-to-dave_ws>
-   colcon build && source install/setup.bash
-   ```
-
-4. Launch the model using the provided launch file:
-
-   ```bash
-   ros2 launch dave_demos dave_sensor.launch.py namespace:='nortek_dvl500_300' world_name:=dvl_world paused:=false z:=-30
-   ```
-
-This approach gives you more control over the models you use, allowing for offline use and customization. It's especially useful when working in environments with limited internet connectivity or when specific model versions are required.
-
-## Launching a Dave Robot Model
-
-Before launching, ensure to build and source the workspace:
+Build POSIM using the [installation guide](../../docs/installation.md), then
+source the ROS environment and your workspace in each new terminal:
 
 ```bash
-colcon build && source install/setup.bash
+source /opt/ros/lyrical/setup.bash
+source ~/posim_ws/install/setup.bash
 ```
 
-1. Launching REXROV in dave_ocean_waves.world:
+The package remains named `dave_demos` for compatibility. Its four entry points
+compose installed world, robot, sensor, and object descriptions. Existing
+resource hooks are installed by the packages; no manual CMake or hook edits are
+needed for the examples below.
+
+## World
 
 ```bash
-ros2 launch dave_demos dave_robot.launch.py z:=-5 namespace:=rexrov world_name:=dave_ocean_waves paused:=false
+ros2 launch dave_demos dave_world.launch.py world_name:=dave_ocean_waves
 ```
 
-2. Launching BlueROV2 in dave_ocean_waves.world:
+Append `headless:=true` for server-only execution. World names correspond to
+files in `models/dave_worlds/worlds`, without the `.world` suffix.
+
+## Object
 
 ```bash
-ros2 launch dave_demos dave_robot.launch.py z:=-5 namespace:=bluerov2 world_name:=dave_ocean_waves paused:=false
+ros2 launch dave_demos dave_object.launch.py \
+  namespace:=mossy_cinder_block paused:=false
 ```
 
-3. Launching BlueROV2 Heavy in dave_ocean_waves.world:
+The object descriptor resolves its model resources, including any Fuel URIs.
+Remote assets may be downloaded on first use and cached by Gazebo.
+
+## Sensor
 
 ```bash
-ros2 launch dave_demos dave_robot.launch.py z:=-5 namespace:=bluerov2_heavy world_name:=dave_ocean_waves paused:=false
+ros2 launch dave_demos dave_sensor.launch.py \
+  namespace:=nortek_dvl500_300 world_name:=dvl_world paused:=false z:=-30
 ```
 
-4. Launching Slocum Glider in dave_ocean_waves.world:
+Use `gui:=false headless:=true` for a server-only run. Rendering sensors may
+still need a working render context when the graphical client is disabled.
+The [CUDA sonar](../../gazebo/dave_gz_multibeam_sonar/README.md) has additional
+hardware and toolkit requirements.
+
+## Robot
+
+REXROV:
 
 ```bash
-ros2 launch dave_demos dave_robot.launch.py x:=4 z:=-1.5 namespace:=glider_slocum world_name:=dave_ocean_waves paused:=false
+ros2 launch dave_demos dave_robot.launch.py \
+  namespace:=rexrov world_name:=dave_ocean_waves z:=-5 paused:=false
 ```
 
-## Launching a World File
-
-To launch a specific world file, you can specify the world name without the `.world` extension. Follow these steps:
-
-1. Build and source the workspace:
+BlueROV2, with the ArduSub/MAVROS dependencies from the installation guide:
 
 ```bash
-colcon build && source install/setup.bash
+ros2 launch dave_demos dave_robot.launch.py \
+  namespace:=bluerov2 world_name:=dave_ocean_waves z:=-0.5 paused:=false
 ```
 
-2. Launch the world using the specified launch file
+Use `namespace:=bluerov2_heavy` for the heavy configuration. The
+`bluerov2_heavy_multibeam_sonar` configuration also needs the CUDA sonar backend.
+
+Slocum glider:
 
 ```bash
-ros2 launch dave_demos dave_world.launch.py world_name:='dave_ocean_waves'
+ros2 launch dave_demos dave_robot.launch.py \
+  namespace:=glider_slocum world_name:=dave_ocean_waves x:=4 z:=-1.5 paused:=false
 ```
 
-To check which worlds are available to launch, refer to `models/dave_worlds/worlds` directory.
+For non-interactive robot runs, append:
 
-The world files are linked to use models at https://app.gazebosim.org/ which means you need an internet connection to download the models and it takes some time to download at first launch. The files are saved in temporary directories and are reused in subsequent launches.
+```text
+gui:=false headless:=true use_teleop:=false use_web_joystick:=false
+```
 
-In this setup, you can dynamically specify different world files by changing the `world_name` argument in the launch command.
+BlueROV runs can additionally use `open_qgc:=false open_virtual_joystick:=false`
+to prevent those applications from opening. To inspect the available arguments:
+
+```bash
+ros2 launch dave_demos dave_robot.launch.py --show-args
+```

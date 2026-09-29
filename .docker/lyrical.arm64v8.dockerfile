@@ -1,5 +1,5 @@
-# DAVE development image for ROS 2 Lyrical / Gazebo Jetty on ARM64.
-# Validated on Apple Silicon with Ubuntu 26.04, XFCE, and xrdp.
+# POSIM development image for ROS 2 Lyrical / Gazebo Jetty on ARM64.
+# Retains the DAVE Ubuntu 26.04, XFCE, and xrdp configuration.
 #
 # Design notes:
 # - FROM arm64v8/ubuntu:26.04 directly instead of a prebuilt personal base image — the RDP/xrdp
@@ -118,10 +118,10 @@ WORKDIR $DAVE_UNDERLAY/src
 COPY . dave
 RUN chown -R $USER:$USER $DAVE_UNDERLAY/src/dave
 
-# Keep the companion repositories from the official DAVE workspace, while
-# preserving the exact DAVE checkout copied above.
+# Keep the companion repositories from the inherited DAVE workspace, while
+# preserving the exact POSIM checkout copied above.
 RUN vcs import --shallow --skip-existing \
-      --input dave/extras/repos/dave.lyrical.repos && \
+      --input dave/extras/repos/posim.lyrical.repos && \
     chown -R $USER:$USER $DAVE_UNDERLAY
 
 RUN apt-get update && \
@@ -221,9 +221,14 @@ RUN echo "source /opt/ros/${ROS_DISTRO}/setup.bash" >> /home/$USER/.bashrc && \
     echo "export GST_PLUGIN_PATH=/usr/lib/aarch64-linux-gnu/gstreamer-1.0:\${GST_PLUGIN_PATH:-}" >> /home/$USER/.bashrc && \
     echo "export QML2_IMPORT_PATH=/usr/lib/aarch64-linux-gnu/qt6/qml:\${QML2_IMPORT_PATH:-}" >> /home/$USER/.bashrc && \
     echo "export LD_LIBRARY_PATH=/usr/lib/aarch64-linux-gnu:\${LD_LIBRARY_PATH:-}" >> /home/$USER/.bashrc && \
-    echo "export PS1='\[\e[1;36m\]\u@lyrical_docker\[\e[0m\]:\[\e[1;34m\]\w\[\e[0m\]\$ '" >> /home/$USER/.bashrc
+    echo "export PS1='\[\e[1;36m\]\u@POSIM_docker\[\e[0m\]:\[\e[1;34m\]\w\[\e[0m\]\$ '" >> /home/$USER/.bashrc
 
 # --- Run (no systemd inside this container) ---
 COPY extras/docker-arm64-entrypoint.sh /usr/local/bin/dave-rdp-entrypoint
 RUN chmod 0755 /usr/local/bin/dave-rdp-entrypoint
 CMD ["/usr/local/bin/dave-rdp-entrypoint"]
+
+LABEL org.opencontainers.image.title="POSIM" \
+      org.opencontainers.image.description="Platform for Ocean Simulation" \
+      org.opencontainers.image.source="https://github.com/IOES-Lab/POSIM" \
+      org.opencontainers.image.licenses="Apache-2.0"
