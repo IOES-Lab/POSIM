@@ -32,6 +32,9 @@ docker run --rm --init --name "$CONTAINER" --platform "linux/$ARCH" \
     if [[ "$POSIM_DIAGNOSTIC_MODE" == router-lifetime ]]; then
       exec bash /diagnostics/diagnose-router-lifetime.sh
     fi
+    if [[ "$POSIM_DIAGNOSTIC_MODE" == gazebo-shutdown ]]; then
+      exec python3 /diagnostics/diagnose-gazebo-shutdown.py
+    fi
     python3 /diagnostics/instrument-mavros-gdb.py
     cd /tmp
     for n in $(seq 1 20); do
