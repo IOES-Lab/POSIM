@@ -13,11 +13,26 @@ RESULTS="$(cd "$RESULTS" && pwd)"
 chmod 777 "$RESULTS"
 docker image inspect "$IMAGE_ID" > "$RESULTS/base-image-inspect.json"
 test "$(docker image inspect --format '{{.Architecture}}' "$IMAGE_ID")" = "$ARCH"
+if [[ "${POSIM_DIAGNOSTIC_MODE:-}" == gazebo-fresh ]]; then
+  for n in $(seq 1 20); do
+    POSIM_DIAGNOSTIC_MODE=gazebo-shutdown POSIM_DIAGNOSTIC_TRIALS=1 \
+      bash "$0" "$IMAGE_ID" "$ARCH" "$RESULTS/fresh-$n"
+    if grep -q '"pid"' "$RESULTS/fresh-$n/gazebo-stack-captures.json"; then
+      printf 'Slow-shutdown evidence captured in fresh container %s; diagnostic only.\n' "$n" \
+        > "$RESULTS/diagnostic-outcome.txt"
+      exit 0
+    fi
+  done
+  printf 'No slow-shutdown stack in 20 fresh containers; earlier failures remain unresolved.\n' \
+    > "$RESULTS/diagnostic-outcome.txt"
+  exit 0
+fi
 CONTAINER="posim-diagnose-${GITHUB_RUN_ID:-$$}"
 trap 'docker rm -f "$CONTAINER" >/dev/null 2>&1 || true' EXIT
 docker run --rm --init --name "$CONTAINER" --platform "linux/$ARCH" \
   --user root --shm-size=1g --cap-add SYS_PTRACE --security-opt seccomp=unconfined \
   --entrypoint bash -e ROS_DOMAIN_ID=123 -e GZ_IP=127.0.0.1 \
+  -e POSIM_DIAGNOSTIC_TRIALS="${POSIM_DIAGNOSTIC_TRIALS:-20}" \
   -e POSIM_DIAGNOSTIC_MODE="${POSIM_DIAGNOSTIC_MODE:-gdb}" \
   -v "$ROOT:/candidate:ro" \
   -e LIBGL_ALWAYS_SOFTWARE=1 -e QT_QPA_PLATFORM=offscreen \

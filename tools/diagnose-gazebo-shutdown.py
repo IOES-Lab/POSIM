@@ -120,7 +120,7 @@ smoke = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(smoke)
 os.killpg = traced_killpg
 subprocess.Popen.wait = traced_wait
-for n in range(1, 21):
+for n in range(1, int(os.environ.get("POSIM_DIAGNOSTIC_TRIALS", "20")) + 1):
     record = f"gazebo-shutdown-{n}"
     current_output = Path("/results") / record
     sys.argv = ["image_smoke.py", "spherical_world", "--record", record]
