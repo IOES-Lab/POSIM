@@ -23,6 +23,7 @@ on:
 env:
   IMAGE_NAME: ioeslab/posim
   ROS_DISTRO: lyrical
+  VALIDATION_IMAGE: posim-validation:arm64-${{ github.run_id }}-${{ github.run_attempt }}
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -43,6 +44,13 @@ jobs:
     steps:
       - name: Configure non-interactive Docker credentials
         run: |
+          # Preserve Desktop's user socket before isolating credentials.
+          docker_host="${DOCKER_HOST:-$(docker context inspect "$(docker context show)" \
+            --format '{{.Endpoints.docker.Host}}')}"
+          test -n "$docker_host"
+          echo "DOCKER_HOST=$docker_host" >> "$GITHUB_ENV"
+          echo "DOCKER_CONTEXT=" >> "$GITHUB_ENV"
+          docker --host "$docker_host" info --format '{{.ServerVersion}} {{.Architecture}}'
           docker_config="$RUNNER_TEMP/docker-config"
           mkdir -p "$docker_config"
           printf '{}\n' > "$docker_config/config.json"
@@ -60,8 +68,52 @@ jobs:
           # ARM64 build and works with Docker Desktop's containerd image store.
           driver: docker
 
+      - name: Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE_NAME }}
+          flavor: |
+            latest=false
+            suffix=-arm64-rdp
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: false
+          load: true
+          tags: ${{ env.VALIDATION_IMAGE }}
+          labels: ${{ steps.meta.outputs.labels }}
+          file: .docker/lyrical.arm64v8.dockerfile
+          platforms: linux/arm64/v8
+          build-args: |
+            ROS_DISTRO=${{ env.ROS_DISTRO }}
+
+      - name: Validate installed image and Quickstarts
+        timeout-minutes: 45
+        run: |
+          bash extras/ci/docker_quickstarts.sh "$VALIDATION_IMAGE" linux/arm64/v8 \
+            "$RUNNER_TEMP/posim-validation-${{ github.run_id }}-${{ github.run_attempt }}"
+
+      - name: Preserve runtime evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: posim-arm64-runtime-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/posim-validation-${{ github.run_id }}-${{ github.run_attempt }}
+          if-no-files-found: warn
+          retention-days: 14
+
       - name: Configure Docker Hub authentication
-        if: vars.POSIM_PUBLISH_IMAGES == 'true' && github.event_name != 'pull_request'
+        if: >-
+          vars.POSIM_PUBLISH_IMAGES == 'true' && github.event_name != 'pull_request' &&
+          (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
         env:
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
           DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
@@ -82,32 +134,24 @@ jobs:
           path.chmod(0o600)
           PY
 
-      - name: Docker metadata
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.IMAGE_NAME }}
-          flavor: |
-            latest=false
-            suffix=-arm64-rdp
-          tags: |
-            type=ref,event=branch
-            type=ref,event=pr
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-
-      - name: Build Docker image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          push: ${{ vars.POSIM_PUBLISH_IMAGES == 'true' && github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          file: .docker/lyrical.arm64v8.dockerfile
-          platforms: linux/arm64/v8
-          build-args: |
-            ROS_DISTRO=${{ env.ROS_DISTRO }}
+      - name: Publish the tested image
+        if: >-
+          vars.POSIM_PUBLISH_IMAGES == 'true' && github.event_name != 'pull_request' &&
+          (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
+        env:
+          PUBLISH_TAGS: ${{ steps.meta.outputs.tags }}
+        run: |
+          results="$RUNNER_TEMP/posim-validation-${{ github.run_id }}-${{ github.run_attempt }}"
+          tested_id="$(cat "$results/tested-image-id.txt")"
+          test "$(docker image inspect --format '{{.Id}}' "$VALIDATION_IMAGE")" = "$tested_id"
+          while IFS= read -r tag; do
+            test -n "$tag" || continue
+            docker tag "$tested_id" "$tag"
+            docker push "$tag"
+          done <<< "$PUBLISH_TAGS"
 
       - name: Clear Docker Hub credentials
-        if: always() && vars.POSIM_PUBLISH_IMAGES == 'true' && github.event_name != 'pull_request'
+        if: >-
+          always() && vars.POSIM_PUBLISH_IMAGES == 'true' && github.event_name != 'pull_request' &&
+          (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
         run: printf '{}\n' > "$DOCKER_CONFIG/config.json"

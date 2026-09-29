@@ -50,3 +50,30 @@ setup and successful publication. The workflows use architecture-specific tags:
 Do not assume these tags exist until the corresponding publication has
 completed. This initial configuration does not create a combined multi-platform
 manifest. See [maintainer setup](maintainer-setup.md).
+
+## Installed-image validation
+
+From the same source revision used to build the image:
+
+```bash
+bash extras/ci/docker_quickstarts.sh posim:dev-arm64-rdp linux/arm64 ./validation-arm64
+# On a native AMD64 host:
+bash extras/ci/docker_quickstarts.sh posim:dev-amd64 linux/amd64 ./validation-amd64
+```
+
+The check starts a fresh container for each of 14 headless Quickstart paths and
+sources only the workspace inside the image. It records installed package and
+resource inventories, launch arguments, simulation progress, model presence,
+Gazebo payloads, selected ROS payloads, and shutdown status. Logs and JSON/CSV
+results are saved beside the tested image ID. Companion repository revisions
+and installed ROS package versions are included.
+
+The cases cover the world, object, robot, and sensor launch entries, including
+waves, a bimanual scene, REXROV, BlueROV variants, a glider, ocean current, DVL,
+camera, USBL, and pressure. CUDA sonar, WGPU, interactive GUI/RDP, joystick input,
+and physical sensor accuracy are **not** established by this headless check.
+An installed inventory of 18 world files is not an execution test of all 18.
+
+CI first loads the built image locally, then runs these checks. Publication uses
+the tested image ID without rebuilding it. A failed build or runtime check
+prevents publication. PR and non-main branch runs do not publish.

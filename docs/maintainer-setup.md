@@ -19,15 +19,17 @@ The image build uses the checked-out source as its Docker context.
 
 ## Enable publication
 
-After builds work, create or authorize the `ioeslab/posim` Docker Hub repository
+After builds and installed-image Quickstart checks pass, create or authorize the `ioeslab/posim` Docker Hub repository
 and configure these **repository secrets**:
 
 - `DOCKERHUB_USERNAME`
 - `DOCKERHUB_TOKEN` with permission to push to `ioeslab/posim`
 
 Set repository variable `POSIM_PUBLISH_IMAGES` to `true` to enable login and
-publication for non-PR builds. With that variable unset, the workflows build
-without logging in or publishing. PR builds never publish images.
+publication for successful `main` or version-tag builds. The workflow validates
+the local image before logging in and pushing that same image ID. With the
+variable unset, it builds and tests without publishing. PR builds never publish
+images. Runtime evidence is uploaded as a workflow artifact (14-day retention).
 
 The inherited DAVE PR-image publisher is omitted from the initial POSIM setup:
 the imported Docker build workflows do not produce the image archives that it
