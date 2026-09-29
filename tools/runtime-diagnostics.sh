@@ -68,8 +68,26 @@ docker run --rm --init --name "$CONTAINER" --platform "linux/$ARCH" \
       exec python3 /checks/image_smoke.py spherical_world --record asset-ready
     fi
     if [[ "$POSIM_DIAGNOSTIC_MODE" == gazebo-segfault ]]; then
-      export DEBUGINFOD_URLS=https://debuginfod.ubuntu.com
+      # Preserve the exact crashing library and its build ID for symbolization.
+      zmq="$(ldconfig -p | awk '\''/libzmq.so.5 / {print $NF}'\'')"
+      cp -L "$zmq" /results/libzmq.so.5
+      readelf -n "$zmq" > /results/libzmq-build-id.txt
+      build_id="$(sed -n '\''s/.*Build ID: //p'\'' /results/libzmq-build-id.txt)"
+      if [[ "$build_id" =~ ^[0-9a-f]+$ ]] &&
+         curl -fL --connect-timeout 10 --max-time 120 \
+           "https://debuginfod.ubuntu.com/buildid/$build_id/debuginfo" \
+           -o /results/libzmq.debuginfo 2> /results/symbol-download.log; then
+        mkdir -p "/usr/lib/debug/.build-id/${build_id:0:2}"
+        cp /results/libzmq.debuginfo "/usr/lib/debug/.build-id/${build_id:0:2}/${build_id:2}.debug"
+      else
+        printf "Symbol download unavailable; use the retained binary/build ID.\n" \
+          >> /results/symbol-download.log
+      fi
+      unset DEBUGINFOD_URLS
+      gz sim --version > /results/gazebo-version-before.txt
       python3 /diagnostics/instrument-gazebo-gdb.py
+      timeout 10 gz sim --version > /results/gazebo-version-after.txt
+      cmp /results/gazebo-version-before.txt /results/gazebo-version-after.txt
       cd /tmp
       for n in $(seq 1 20); do
         record="gazebo-segfault-$n"
@@ -79,6 +97,12 @@ docker run --rm --init --name "$CONTAINER" --platform "linux/$ARCH" \
           printf "Captured Gazebo SIGSEGV in %s; diagnostic only.\n" "$record" \
             > /results/diagnostic-outcome.txt
           exit 0
+        fi
+        if ! python3 -c '\''import json,sys; sys.exit(not json.load(open(sys.argv[1]))["checks"].get("world_ready", False))'\'' \
+            "/results/$record/result.json"; then
+          printf "Diagnostic invalid: world was not ready in %s; stopping instead of repeating.\n" \
+            "$record" > /results/diagnostic-outcome.txt
+          exit 1
         fi
       done
       printf "No GDB-captured Gazebo SIGSEGV in 20 trials; original failure remains unresolved.\n" \
