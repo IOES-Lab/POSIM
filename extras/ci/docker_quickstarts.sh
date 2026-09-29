@@ -51,4 +51,6 @@ for CASE in $CASES; do
   fi
 done
 cat "$RESULTS/summary.csv"
+cleanup
+trap - EXIT
 exit "$FAILED"

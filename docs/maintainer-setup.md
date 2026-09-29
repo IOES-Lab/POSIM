@@ -19,8 +19,8 @@ The image build uses the checked-out source as its Docker context.
 
 ## Enable publication
 
-After builds and installed-image Quickstart checks pass, create or authorize the `ioeslab/posim` Docker Hub repository
-and configure these **repository secrets**:
+After builds and installed-image Quickstart checks pass, create or authorize
+the `ioeslab/posim` Docker Hub repository and configure these **repository secrets**:
 
 - `DOCKERHUB_USERNAME`
 - `DOCKERHUB_TOKEN` with permission to push to `ioeslab/posim`
