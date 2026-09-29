@@ -101,6 +101,18 @@ def inventory(out):
     if revision != "54a2e78a41c623173608cdd8eef2e049ee3ee3b0":
         raise RuntimeError(f"Unexpected bridge source revision: {revision}")
     (out / "bridge_source_revision.txt").write_text(revision + "\n")
+    patch = (
+        Path(__file__).resolve().parent.parent / "patches/ros-gz-bridge-callback-lifetime.patch"
+    )
+    expected_patch = hashlib.sha256(patch.read_bytes()).hexdigest()
+    if (bridge_ws / "callback-patch.sha256").read_text().strip() != expected_patch:
+        raise RuntimeError("Bridge callback patch does not match the validation source")
+    (out / "bridge_callback_patch.sha256").write_text(expected_patch + "\n")
+    code, _ = capture(
+        out, "bridge_ownership", [str(bridge_ws / "probe/bin/posim_bridge_ownership_check")], 60
+    )
+    if code:
+        raise RuntimeError("Bridge ownership regression check failed")
     if not shutil.which("ardusub"):
         raise RuntimeError("ArduSub is not available in the noninteractive image PATH")
     plugin_paths = os.environ.get("GZ_SIM_SYSTEM_PLUGIN_PATH", "").split(":")

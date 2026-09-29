@@ -87,6 +87,8 @@ TEST(UnderwaterCamera, ConfigurePreservesSignalHandlerAndMissingDepthIsSafe)
     config.SetFarClip(100);
     config.SetLensIntrinsicsFx(2);
     config.SetLensIntrinsicsFy(2);
+    config.SetLensIntrinsicsCx(1);
+    config.SetLensIntrinsicsCy(1);
     sdf::Sensor sensor;
     sensor.SetName("test_camera");
     sensor.SetType(sdf::SensorType::RGBD_CAMERA);

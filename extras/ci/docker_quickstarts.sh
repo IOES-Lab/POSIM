@@ -40,7 +40,8 @@ for RECORD in $CASES; do
   if docker run --rm --init --name "$CURRENT_CONTAINER" --platform "$PLATFORM" --shm-size=1g \
     --entrypoint bash -e ROS_DOMAIN_ID=121 -e GZ_IP=127.0.0.1 \
     -e LIBGL_ALWAYS_SOFTWARE=1 -e QT_QPA_PLATFORM=offscreen \
-    -e "CASE=$CASE" -e "RECORD=$RECORD" -v "$CHECKS:/checks:ro" -v "$RESULTS:/results" \
+    -e "CASE=$CASE" -e "RECORD=$RECORD" \
+    -v "$CHECKS:/checks:ro" -v "$CHECKS/../patches:/patches:ro" -v "$RESULTS:/results" \
     "$IMAGE_ID" -c '
       set -eo pipefail
       source /opt/ros/lyrical/setup.bash

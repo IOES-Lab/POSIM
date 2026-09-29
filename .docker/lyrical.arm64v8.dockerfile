@@ -113,6 +113,8 @@ RUN export ROS_APT_SOURCE_VERSION=$(curl -s https://api.github.com/repos/ros-inf
 
 ENV POSIM_BRIDGE_UNDERLAY=/opt/posim_bridge_ws
 COPY extras/build-image-bridge.sh /tmp/build-image-bridge.sh
+COPY extras/patches /tmp/patches
+COPY extras/ci/bridge_ownership /tmp/ci/bridge_ownership
 RUN bash /tmp/build-image-bridge.sh
 
 # --- DAVE workspace ---

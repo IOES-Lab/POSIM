@@ -21,8 +21,12 @@ graphical or GPU-dependent scenarios.
 
 Both images build `ros_gz_bridge` from the fixed Lyrical upstream commit
 `54a2e78a41c623173608cdd8eef2e049ee3ee3b0` into `/opt/posim_bridge_ws`.
-This is the one-commit ownership-cycle backport after tag 3.0.10, not a local
-patch to the installed Debian files. The DAVE workspace setup chains that
+This is the one-commit handle-ownership backport after tag 3.0.10. An additional,
+explicit patch in `extras/patches` removes a strong node capture in the ROS
+subscription callback and an unnecessary factory pointer in the Gazebo
+callback. Its SHA-256 is recorded in the image. A weak-reference probe verifies
+node destruction for all three bridge directions. Debian files remain intact.
+The DAVE workspace setup chains that
 underlay. `ros2 pkg prefix ros_gz_bridge` must resolve to
 `/opt/posim_bridge_ws/install`. The image check records the upstream revision
 alongside the installed Debian package versions; those version numbers alone
