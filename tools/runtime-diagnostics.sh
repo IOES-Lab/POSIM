@@ -18,6 +18,8 @@ trap 'docker rm -f "$CONTAINER" >/dev/null 2>&1 || true' EXIT
 docker run --rm --init --name "$CONTAINER" --platform "linux/$ARCH" \
   --user root --shm-size=1g --cap-add SYS_PTRACE --security-opt seccomp=unconfined \
   --entrypoint bash -e ROS_DOMAIN_ID=123 -e GZ_IP=127.0.0.1 \
+  -e POSIM_DIAGNOSTIC_MODE="${POSIM_DIAGNOSTIC_MODE:-gdb}" \
+  -v "$ROOT:/candidate:ro" \
   -e LIBGL_ALWAYS_SOFTWARE=1 -e QT_QPA_PLATFORM=offscreen \
   -v "$ROOT/extras/ci:/checks:ro" -v "$ROOT/tools:/diagnostics:ro" -v "$RESULTS:/results" "$IMAGE_ID" -c '
     set -eo pipefail
@@ -27,6 +29,9 @@ docker run --rm --init --name "$CONTAINER" --platform "linux/$ARCH" \
     dpkg-query -W > /results/packages-after.tsv
     source /opt/ros/lyrical/setup.bash
     source "${DAVE_WS:-$DAVE_UNDERLAY}/install/setup.bash"
+    if [[ "$POSIM_DIAGNOSTIC_MODE" == router-lifetime ]]; then
+      exec bash /diagnostics/diagnose-router-lifetime.sh
+    fi
     python3 /diagnostics/instrument-mavros-gdb.py
     cd /tmp
     for n in $(seq 1 20); do

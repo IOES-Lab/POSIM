@@ -36,6 +36,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Capture MAVROS shutdown backtrace
         env:
+          POSIM_DIAGNOSTIC_MODE: ${{ vars.POSIM_DIAGNOSTIC_MODE }}
           IMAGE_ID: ${{ inputs.image_id || vars.POSIM_DIAGNOSTIC_IMAGE_ID }}
           ARCHITECTURE: ${{ inputs.architecture || 'arm64' }}
         run: |

@@ -1,0 +1,83 @@
+--- a/mavros/include/mavros/mavros_router.hpp
++++ b/mavros/include/mavros/mavros_router.hpp
+@@ -94,7 +94,8 @@
+     remote_addrs.emplace(broadcast_addr);
+   }
+ 
+-  std::shared_ptr<Router> parent;
++  // The router owns its endpoints; the reverse link must not keep it alive.
++  std::weak_ptr<Router> parent;
+ 
+   uint32_t id;                           // id of the endpoint
+   Type link_type;                        // class of the endpoint
+--- a/mavros/src/lib/mavros_router.cpp
++++ b/mavros/src/lib/mavros_router.cpp
+@@ -445,7 +445,10 @@
+ void Endpoint::recv_message(const mavlink_message_t * msg, const Framing framing)
+ {
+   rcpputils::assert_true(msg, "msg not nullptr");
+-  // rcpputils::assert_true(this->parent, "parent not nullptr");
++  auto nh = this->parent.lock();
++  if (!nh) {
++    return;
++  }
+ 
+   const addr_t sysid_addr = msg->sysid << 8;
+   const addr_t sysid_compid_addr = (msg->sysid << 8) | msg->compid;
+@@ -464,7 +467,6 @@
+     this->stale_addrs.erase(sysid_compid_addr);
+   }
+ 
+-  auto & nh = this->parent;
+   if (new_sysid_addr || new_sysid_compid_addr) {
+     // A new remote was learned: flag the router's reverse index so the next
+     // routed message rebuilds. A relaxed store is enough -- the flag is just a
+@@ -494,7 +496,7 @@
+ 
+ std::pair<bool, std::string> MAVConnEndpoint::open()
+ {
+-  auto nh = this->parent;
++  auto nh = this->parent.lock();
+   if (!nh) {
+     return {false, "parent not set"};
+   }
+@@ -599,7 +601,7 @@
+ 
+ std::pair<bool, std::string> ROSEndpoint::open()
+ {
+-  auto & nh = this->parent;
++  auto nh = this->parent.lock();
+   if (!nh) {
+     return {false, "parent not set"};
+   }
+@@ -644,7 +646,11 @@
+     return;
+   }
+ 
+-  rmsg->header.stamp = this->parent->now();
++  auto nh = this->parent.lock();
++  if (!nh) {
++    return;
++  }
++  rmsg->header.stamp = nh->now();
+   rmsg->header.frame_id = from_frame_id;
+ 
+   if (ok) {
+@@ -652,7 +658,7 @@
+-  } else if (auto & nh = this->parent) {
++  } else {
+     RCLCPP_ERROR(nh->get_logger(), "message conversion error");
+   }
+ }
+ 
+ void ROSEndpoint::ros_recv_message(mavros_msgs::msg::Mavlink::UniquePtr rmsg)
+ {
+@@ -668,7 +674,7 @@
+-  } else if (auto & nh = this->parent) {
++  } else if (auto nh = this->parent.lock()) {
+     RCLCPP_ERROR(nh->get_logger(), "message conversion error");
+   }
+ }
+ 
+ void ROSEndpoint::diag_run(diagnostic_updater::DiagnosticStatusWrapper & stat)
+ {
