@@ -3,6 +3,12 @@ name: Diagnose an existing POSIM image (no publication)
 
 # yamllint disable-line rule:truthy
 on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/runtime-diagnostics.yml"
+      - "tools/runtime-diagnostics.sh"
+      - "tools/instrument-mavros-gdb.py"
   workflow_dispatch:
     inputs:
       architecture:
@@ -19,14 +25,19 @@ permissions:
 
 jobs:
   diagnose:
-    runs-on: [self-hosted, "${{ inputs.architecture == 'arm64' && 'ARM64' || 'x64' }}"]
+    # Explicit opt-in, and never execute fork code on the self-hosted runner.
+    if: >-
+      vars.POSIM_ENABLE_RUNTIME_DIAGNOSTICS == 'true' &&
+      (github.event_name != 'pull_request' ||
+       github.event.pull_request.head.repo.full_name == github.repository)
+    runs-on: [self-hosted, "${{ inputs.architecture != 'amd64' && 'ARM64' || 'x64' }}"]
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
       - name: Capture MAVROS shutdown backtrace
         env:
-          IMAGE_ID: ${{ inputs.image_id }}
-          ARCHITECTURE: ${{ inputs.architecture }}
+          IMAGE_ID: ${{ inputs.image_id || vars.POSIM_DIAGNOSTIC_IMAGE_ID }}
+          ARCHITECTURE: ${{ inputs.architecture || 'arm64' }}
         run: |
           bash tools/runtime-diagnostics.sh "$IMAGE_ID" "$ARCHITECTURE" \
             "$RUNNER_TEMP/posim-diagnostics-${{ github.run_id }}"
@@ -34,6 +45,6 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: posim-runtime-diagnostics-${{ inputs.architecture }}
+          name: posim-runtime-diagnostics-${{ inputs.architecture || 'arm64' }}
           path: ${{ runner.temp }}/posim-diagnostics-${{ github.run_id }}
           retention-days: 14
