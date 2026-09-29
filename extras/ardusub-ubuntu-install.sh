@@ -13,10 +13,22 @@ export GZ_VERSION="${GZ_VERSION:-jetty}"
 ARDUPILOT_COMMIT="${ARDUPILOT_COMMIT:-30257f01185471ab4c1ac544e47d1b4437e44c98}"
 ARDUPILOT_GAZEBO_COMMIT="${ARDUPILOT_GAZEBO_COMMIT:-082a0fe231f6e63bc8d1598f1cba461d9e2ea7f5}"
 mkdir -p "/opt/ardusub_ws" && cd "/opt/ardusub_ws" || exit
-git clone https://github.com/ArduPilot/ardupilot.git --recurse-submodules
+# Fetch only the pinned tree and submodule commits. Bound network retries.
+retry_git() {
+  local attempt
+  for attempt in 1 2 3; do
+    if git -c http.version=HTTP/1.1 "$@"; then return 0; fi
+    sleep 5
+  done
+  return 1
+}
+git init ardupilot
 cd "/opt/ardusub_ws/ardupilot" || exit
-git checkout --detach "$ARDUPILOT_COMMIT"
-git submodule update --init --recursive
+git remote add origin https://github.com/ArduPilot/ardupilot.git
+retry_git fetch --depth 1 origin "$ARDUPILOT_COMMIT"
+git checkout --detach FETCH_HEAD
+test "$(git rev-parse HEAD)" = "$ARDUPILOT_COMMIT"
+retry_git submodule update --init --recursive --depth 1 --jobs 2
 
 # ArduPilot's waf extras still import Python modules removed in 3.12/3.13.
 # These minimal compatibility shims were used in the verified Ubuntu 26.04 build.

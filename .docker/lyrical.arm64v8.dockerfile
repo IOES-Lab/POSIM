@@ -141,9 +141,22 @@ USER root
 ARG ARDUSUB_COMMIT="30257f01185471ab4c1ac544e47d1b4437e44c98"
 ARG ARDUPILOT_GAZEBO_COMMIT="082a0fe231f6e63bc8d1598f1cba461d9e2ea7f5"
 WORKDIR /home/$USER
-RUN git clone --recurse-submodules https://github.com/ArduPilot/ardupilot.git && \
-    cd ardupilot && git fetch --tags && git checkout --detach "$ARDUSUB_COMMIT" && \
-    git submodule update --init --recursive
+# Fetch the pinned tree directly: cloning current HEAD and all history first
+# caused HTTP/2 early-EOF failures on the ARM64 runner.
+RUN set -eu; \
+    retry_git() { \
+      for attempt in 1 2 3; do \
+        if git -c http.version=HTTP/1.1 "$@"; then return 0; fi; \
+        sleep 5; \
+      done; \
+      return 1; \
+    }; \
+    git init ardupilot && cd ardupilot && \
+    git remote add origin https://github.com/ArduPilot/ardupilot.git && \
+    retry_git fetch --depth 1 origin "$ARDUSUB_COMMIT" && \
+    git checkout --detach FETCH_HEAD && \
+    test "$(git rev-parse HEAD)" = "$ARDUSUB_COMMIT" && \
+    retry_git submodule update --init --recursive --depth 1 --jobs 2
 
 RUN mkdir -p /home/$USER/imp_shim && \
     printf 'import types\ndef new_module(name):\n    return types.ModuleType(name)\n' > /home/$USER/imp_shim/imp.py && \

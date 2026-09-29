@@ -154,4 +154,6 @@ jobs:
         if: >-
           always() && vars.POSIM_PUBLISH_IMAGES == 'true' && github.event_name != 'pull_request' &&
           (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
-        run: printf '{}\n' > "$DOCKER_CONFIG/config.json"
+        run: |
+          config="$RUNNER_TEMP/docker-config/config.json"
+          if [[ -f "$config" ]]; then printf '{}\n' > "$config"; fi
