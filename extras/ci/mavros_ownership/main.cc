@@ -18,7 +18,7 @@ public:
     auto request = std::make_shared<mavros_msgs::srv::EndpointAdd::Request>();
     auto response = std::make_shared<mavros_msgs::srv::EndpointAdd::Response>();
     request->type = ros ? request->TYPE_UAS : request->TYPE_FCU;
-    request->url = ros ? "/posim_ownership" : "udp://127.0.0.1:0@127.0.0.1:19999";
+    request->url = ros ? "/posim_ownership" : "udp://127.0.0.1:19998@127.0.0.1:19999";
     router->add_endpoint(request, response);
     if (!response->successful)
     {
@@ -35,7 +35,7 @@ int main(int argc, char ** argv)
   int failures = 0;
   for (int mode = 0; mode < 3; ++mode)
   {
-    auto router = std::make_shared<mavros::router::Router>();
+    auto router = std::make_shared<mavros::router::Router>("ownership_" + std::to_string(mode));
     std::vector<std::weak_ptr<mavros::router::Endpoint>> endpoints;
     if (mode >= 1)
     {
