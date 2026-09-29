@@ -22,6 +22,22 @@ PACKAGES = (
 ).split()
 
 
+def fatal_log_lines(log_text):
+    """Find child failures even when the launch/gz wrapper exits on SIGINT."""
+    faults = re.findall(
+        r".*(?:Segmentation fault|exit code (?:-11|-6|134|139)\b|"
+        r"\bAborted\b|terminate called|rclcpp::exceptions::RCLError|"
+        r"Traceback \(most recent call last\)|"
+        r"Failed to load system plugin|error while loading shared libraries).*",
+        log_text,
+    )
+    for line in log_text.splitlines():
+        match = re.search(r"process has died .*exit code (-?\d+)\b", line)
+        if match and int(match[1]) not in (0, 130, -signal.SIGINT) and line not in faults:
+            faults.append(line)
+    return faults
+
+
 def command(args, timeout=15):
     try:
         result = subprocess.run(args, capture_output=True, text=True, timeout=timeout)
@@ -246,11 +262,7 @@ def exercise(out, case):
                     returncode = proc.wait(timeout=10)
     checks["clean_shutdown"] = not forced and returncode in (0, 130, -signal.SIGINT)
     log_text = (out / "launch.log").read_text(errors="replace")
-    faults = re.findall(
-        r".*(?:Segmentation fault|exit code -11|exit code -6|Traceback \(most recent call last\)|"
-        r"Failed to load system plugin|error while loading shared libraries).*",
-        log_text,
-    )
+    faults = fatal_log_lines(log_text)
     checks["no_fatal_log"] = not faults
     return {
         "checks": checks,
