@@ -5,8 +5,10 @@ REF="${1:?repository@digest required}"
 ARCH="${2:?architecture required}"
 IMAGE_ID="${3:?prevalidated image ID required}"
 RESULTS="${4:?results directory required}"
+CONFIG_ID="${5:?registry-verified configuration digest required}"
 [[ "$REF" =~ ^ioeslab/posim@sha256:[0-9a-f]{64}$ ]]
 [[ "$IMAGE_ID" =~ ^sha256:[0-9a-f]{64}$ ]]
+[[ "$CONFIG_ID" =~ ^sha256:[0-9a-f]{64}$ ]]
 [[ "$ARCH" == arm64 || "$ARCH" == amd64 ]]
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 CHECKS="$ROOT/extras/ci"
@@ -45,7 +47,13 @@ for RECORD in $CASES; do
     ' > "$RESULTS/$RECORD/container-id.txt"
   docker inspect --format '{{json .HostConfig.NetworkMode}}' "$CURRENT" \
     > "$RESULTS/$RECORD/docker-network-mode.json"
-  test "$(docker inspect --format '{{.Image}}' "$CURRENT")" = "$IMAGE_ID"
+  container_image="$(docker inspect --format '{{.Image}}' "$CURRENT")"
+  printf '%s\n' "$container_image" > "$RESULTS/$RECORD/container-image-id.txt"
+  requested_image="$(docker inspect --format '{{.Config.Image}}' "$CURRENT")"
+  printf '%s\n' "$requested_image" > "$RESULTS/$RECORD/container-requested-image.txt"
+  test "$requested_image" = "$REF"
+  # Both digests were verified against the same registry manifest before create.
+  [[ "$container_image" == "$IMAGE_ID" || "$container_image" == "$CONFIG_ID" ]]
   test "$(docker inspect --format '{{.HostConfig.NetworkMode}}' "$CURRENT")" = "$NETWORK"
   docker start -a "$CURRENT" || true
   CODE="$(docker inspect --format '{{.State.ExitCode}}' "$CURRENT")"

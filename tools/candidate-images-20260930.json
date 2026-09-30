@@ -9,14 +9,16 @@
       "run_id": 36670174461,
       "attempt": 2,
       "tag": "validation-pr5-abad9d70-arm64-rdp",
-      "artifact": "posim-arm64-runtime-2"
+      "artifact": "posim-arm64-runtime-2",
+      "image_identity": "index_digest"
     },
     "amd64": {
       "image_id": "sha256:72d00bb8e32725bd8e4fe91b8f21de770d4e4f4753f93d596bce4cc97d018cc5",
       "run_id": 36670174383,
       "attempt": 1,
       "tag": "validation-pr5-abad9d70-amd64",
-      "artifact": "posim-amd64-runtime-1"
+      "artifact": "posim-amd64-runtime-1",
+      "image_identity": "config_digest"
     }
   }
 }

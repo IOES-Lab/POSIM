@@ -1,4 +1,4 @@
-"""Publication must never overwrite a different image or accept an ambiguous index."""
+"""Use the recorded store identity; never overwrite another candidate image."""
 
 import importlib.util
 from pathlib import Path
@@ -14,11 +14,26 @@ SPEC.loader.exec_module(publication)
 
 
 class CandidatePublicationTests(unittest.TestCase):
-    def resolve(self, responses, **kwargs):
+    def resolve(self, responses, arch="amd64", **kwargs):
         with patch.object(
             publication, "request_json", return_value=({"token": "test-pull-token"}, {})
         ), patch.object(publication, "registry_manifest", side_effect=responses):
-            return publication.registry_image("arm64", **kwargs)
+            return publication.registry_image(arch, **kwargs)
+
+    def index_responses(self):
+        top = publication.LOCK["images"]["arm64"]["image_id"]
+        platform = "sha256:" + "2" * 64
+        config = "sha256:" + "4" * 64
+        index = {
+            "manifests": [
+                {"digest": platform, "platform": {"os": "linux", "architecture": "arm64"}},
+                {
+                    "digest": "sha256:" + "3" * 64,
+                    "platform": {"os": "unknown", "architecture": "unknown"},
+                },
+            ]
+        }
+        return [(index, top), ({"config": {"digest": config}}, platform)]
 
     def test_tags_are_validation_only(self):
         for arch, entry in publication.LOCK["images"].items():
@@ -43,35 +58,39 @@ class CandidatePublicationTests(unittest.TestCase):
             with self.subTest(status=status), self.assertRaises(urllib.error.HTTPError):
                 self.resolve([error], allow_missing=True)
 
-    def test_matching_image_permits_idempotent_reuse(self):
-        expected = publication.LOCK["images"]["arm64"]["image_id"]
+    def test_matching_legacy_config_permits_idempotent_reuse(self):
+        expected = publication.LOCK["images"]["amd64"]["image_id"]
         r = self.resolve([({"config": {"digest": expected}}, "sha256:" + "1" * 64)])
         self.assertTrue(r["exists"])
         self.assertEqual(r["image_id"], expected)
+        self.assertEqual(r["config_digest"], expected)
+        self.assertEqual(r["image_identity"], "config_digest")
 
-    def test_different_image_refuses_overwrite(self):
+    def test_different_legacy_config_refuses_overwrite(self):
         with self.assertRaisesRegex(RuntimeError, "another image"):
             self.resolve(
                 [({"config": {"digest": "sha256:" + "0" * 64}}, "sha256:" + "1" * 64)],
                 allow_missing=True,
             )
 
+    def test_containerd_index_is_not_the_config_digest(self):
+        r = self.resolve(self.index_responses(), arch="arm64")
+        self.assertEqual(r["tag_digest"], r["image_id"])
+        self.assertNotEqual(r["config_digest"], r["image_id"])
+        self.assertEqual(r["image_identity"], "index_digest")
+
     def test_platform_selection_ignores_attestation(self):
+        r = self.resolve(self.index_responses(), arch="arm64")
+        self.assertEqual(r["platform_digest"], "sha256:" + "2" * 64)
+
+    def test_wrong_index_refuses_even_when_config_matches_old_assumption(self):
         expected = publication.LOCK["images"]["arm64"]["image_id"]
-        digest = "sha256:" + "2" * 64
-        index = {
-            "manifests": [
-                {"digest": digest, "platform": {"os": "linux", "architecture": "arm64"}},
-                {
-                    "digest": "sha256:" + "3" * 64,
-                    "platform": {"os": "unknown", "architecture": "unknown"},
-                },
-            ]
-        }
-        r = self.resolve(
-            [(index, "sha256:" + "1" * 64), ({"config": {"digest": expected}}, digest)]
-        )
-        self.assertEqual(r["platform_digest"], digest)
+        with self.assertRaisesRegex(RuntimeError, "another image"):
+            self.resolve(
+                [({"config": {"digest": expected}}, "sha256:" + "1" * 64)],
+                arch="arm64",
+                allow_missing=True,
+            )
 
     def test_ambiguous_platform_is_rejected(self):
         descriptor = {
@@ -79,25 +98,22 @@ class CandidatePublicationTests(unittest.TestCase):
             "platform": {"os": "linux", "architecture": "arm64"},
         }
         with self.assertRaisesRegex(RuntimeError, "ambiguous"):
-            self.resolve([({"manifests": [descriptor, descriptor]}, "sha256:" + "1" * 64)])
+            self.resolve(
+                [({"manifests": [descriptor, descriptor]}, "sha256:" + "1" * 64)],
+                arch="arm64",
+            )
 
     def test_wrong_platform_digest_is_rejected(self):
-        expected = publication.LOCK["images"]["arm64"]["image_id"]
-        index = {
-            "manifests": [
-                {
-                    "digest": "sha256:" + "2" * 64,
-                    "platform": {"os": "linux", "architecture": "arm64"},
-                }
-            ]
-        }
+        responses = self.index_responses()
+        responses[1] = (responses[1][0], "sha256:" + "3" * 64)
         with self.assertRaisesRegex(RuntimeError, "digest mismatch"):
-            self.resolve(
-                [
-                    (index, "sha256:" + "1" * 64),
-                    ({"config": {"digest": expected}}, "sha256:" + "3" * 64),
-                ]
-            )
+            self.resolve(responses, arch="arm64")
+
+    def test_missing_config_digest_is_rejected(self):
+        responses = self.index_responses()
+        responses[1] = ({}, responses[1][1])
+        with self.assertRaisesRegex(RuntimeError, "Invalid config"):
+            self.resolve(responses, arch="arm64")
 
 
 if __name__ == "__main__":

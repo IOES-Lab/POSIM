@@ -99,8 +99,18 @@ def registry_image(arch, allow_missing=False):
         platform_digest = selected[0]["digest"]
         manifest, actual = registry_manifest(platform_digest, token)
         require(actual == platform_digest, "Platform manifest digest mismatch")
+    config_digest = manifest.get("config", {}).get("digest", "")
+    require(re.fullmatch(r"sha256:[0-9a-f]{64}", config_digest), "Invalid config digest")
+    # Docker's containerd store reports the index/manifest digest as image Id;
+    # the legacy image store reports the config digest. Compare the recorded kind.
+    if target["image_identity"] == "index_digest":
+        observed_id = top_digest
+    elif target["image_identity"] == "config_digest":
+        observed_id = config_digest
+    else:
+        raise RuntimeError("Unknown image identity kind")
     require(
-        manifest.get("config", {}).get("digest") == target["image_id"],
+        observed_id == target["image_id"],
         "Registry tag contains another image; refuse overwrite or validation",
     )
     return {
@@ -110,6 +120,8 @@ def registry_image(arch, allow_missing=False):
         "tag_digest": top_digest,
         "platform_digest": platform_digest,
         "image_id": target["image_id"],
+        "image_identity": target["image_identity"],
+        "config_digest": config_digest,
         "architecture": arch,
         "anonymous_read": True,
     }
@@ -173,6 +185,11 @@ def verify_evidence(arch, evidence):
             info["Id"] == image["image_id"] and info["Architecture"] == arch,
             "Local/artifact image mismatch",
         )
+        if image["image_identity"] == "index_digest":
+            require(
+                info.get("Descriptor", {}).get("digest") == image["image_id"],
+                "Containerd index identity differs",
+            )
         require(
             info["Config"]["Labels"]["org.opencontainers.image.revision"]
             == LOCK["image_revision"],

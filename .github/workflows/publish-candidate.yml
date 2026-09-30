@@ -18,6 +18,12 @@ on:
         required: true
         type: choice
         options: [publish-pr5-abad9d70]
+      architecture:
+        description: Validated image architecture to publish and recheck
+        required: true
+        type: choice
+        default: both
+        options: [both, arm64, amd64]
 
 permissions:
   contents: read
@@ -25,13 +31,13 @@ permissions:
 
 jobs:
   validate-tooling:
-    if: github.event_name == 'pull_request'
     runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@v4
       - run: python3 -m unittest discover -s tools -p 'test_candidate_publication.py'
 
   publish:
+    needs: validate-tooling
     if: >-
       github.event_name == 'workflow_dispatch' && github.repository == 'IOES-Lab/POSIM' &&
       github.ref == 'refs/heads/ci/posim-image-validation-20260929' &&
@@ -39,16 +45,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - architecture: arm64
-            runner: [self-hosted, ARM64]
-            run_id: 36670174461
-            artifact: posim-arm64-runtime-2
-          - architecture: amd64
-            runner: [self-hosted, x64]
-            run_id: 36670174383
-            artifact: posim-amd64-runtime-1
-    runs-on: ${{ matrix.runner }}
+        architecture: >-
+          ${{ fromJSON(inputs.architecture == 'arm64' && '["arm64"]' ||
+          inputs.architecture == 'amd64' && '["amd64"]' || '["arm64","amd64"]') }}
+    runs-on: >-
+      ${{ fromJSON(matrix.architecture == 'arm64' && '["self-hosted","ARM64"]' ||
+      '["self-hosted","x64"]') }}
     timeout-minutes: 180
     concurrency:
       group: posim-validation-tag-${{ matrix.architecture }}
@@ -79,8 +81,10 @@ jobs:
         with:
           github-token: ${{ github.token }}
           repository: IOES-Lab/POSIM
-          run-id: ${{ matrix.run_id }}
-          name: ${{ matrix.artifact }}
+          run-id: ${{ matrix.architecture == 'arm64' && 36670174461 || 36670174383 }}
+          name: >-
+            ${{ matrix.architecture == 'arm64' && 'posim-arm64-runtime-2' ||
+            'posim-amd64-runtime-1' }}
           path: ${{ env.PUB_RESULTS }}/prepublication-evidence
       - name: Verify source, exact retained image, and all prior acceptance records
         env:
@@ -140,8 +144,10 @@ jobs:
           set -euo pipefail
           image="$(python3 -c 'import json,os;
           print(json.load(open(os.environ["PUB_RESULTS"]+"/pulled-image.json"))["image_id"])')"
+          config_id="$(python3 -c 'import json,os;
+          print(json.load(open(os.environ["PUB_RESULTS"]+"/pulled-image.json"))["config_digest"])')"
           bash tools/check-published-candidate.sh "$PULLED_REF" '${{ matrix.architecture }}' \
-            "$image" "$PUB_RESULTS/repull-quickstarts"
+            "$image" "$PUB_RESULTS/repull-quickstarts" "$config_id"
       - name: Preserve publication and re-pull evidence
         if: always()
         uses: actions/upload-artifact@v4
