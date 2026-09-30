@@ -23,6 +23,8 @@ ENV GZ_SIM_RESOURCE_PATH=/opt/ardusub_ws/ardupilot_gazebo/models:/opt/ardusub_ws
 ENV GEOGRAPHICLIB_GEOID_PATH=/usr/share/GeographicLib/geoids
 ENV POSIM_BRIDGE_UNDERLAY=/opt/posim_bridge_ws
 ENV POSIM_MAVROS_UNDERLAY=/opt/posim_mavros_ws
+ENV POSIM_TRANSPORT_UNDERLAY=/opt/posim_transport_ws
+RUN bash /tmp/dave-extras/build-image-transport.sh
 RUN bash /tmp/dave-extras/build-image-mavros.sh
 RUN bash /tmp/dave-extras/build-image-bridge.sh
 

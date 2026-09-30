@@ -102,6 +102,79 @@ def wait_for_entity(out, world, entity, proc, deadline):
     return present
 
 
+def linked_library(ldd_output, name):
+    """Require an absolute resolved path, not an unresolved or partial match."""
+    entries = re.findall(r"^\s*" + re.escape(name) + r"\s+=>\s+(/\S+)\s", ldd_output, re.M)
+    if len(entries) != 1:
+        raise RuntimeError(f"Missing or ambiguous linkage for {name}")
+    return Path(entries[0]).resolve()
+
+
+def transport_inventory(out, get_package_prefix):
+    ws = Path(os.environ["POSIM_TRANSPORT_UNDERLAY"])
+    if Path(get_package_prefix("gz_transport_vendor")) != ws / "install":
+        raise RuntimeError("The pinned Gazebo Transport overlay is not active")
+    for filename, expected in (
+        ("upstream-revision.txt", "82b10bdff114f77655c7f0cc856835179a674d6d"),
+        ("vendor-revision.txt", "bc048aec33d25d73e651b86e2858339885dfab87"),
+    ):
+        actual = (ws / filename).read_text().strip()
+        if actual != expected:
+            raise RuntimeError(f"Unexpected transport provenance: {filename}={actual}")
+        (out / f"transport_{filename}").write_text(actual + "\n")
+    patches = Path(__file__).resolve().parent.parent / "patches"
+    for patch_name, recorded_name in (
+        ("gz-transport-poll-serialization.patch", "poll-patch.sha256"),
+        ("gz-transport-vendor-poll.patch", "vendor-patch.sha256"),
+    ):
+        expected = hashlib.sha256((patches / patch_name).read_bytes()).hexdigest()
+        if (ws / recorded_name).read_text().strip() != expected:
+            raise RuntimeError(f"Transport patch differs from validation source: {patch_name}")
+        (out / f"transport_{recorded_name}").write_text(expected + "\n")
+    prefix = ws / "install/opt/gz_transport_vendor"
+    library = (prefix / "lib/libgz-transport.so.15").resolve()
+    expected_hash = (ws / "library.sha256").read_text().strip()
+    if hashlib.sha256(library.read_bytes()).hexdigest() != expected_hash:
+        raise RuntimeError("Installed Transport library differs from the build record")
+    (out / "transport_library.sha256").write_text(expected_hash + "\n")
+    config_path = "include/gz/transport15/gz/transport/config.hh"
+    vendor_prefix = Path("/opt/ros/lyrical/opt/gz_transport_vendor")
+    if (prefix / config_path).read_bytes() != (vendor_prefix / config_path).read_bytes():
+        raise RuntimeError("Transport public build configuration differs from the ROS vendor")
+    # Check both the regression binary and the installed Gazebo simulator DSO.
+    probe = ws / "probe/bin/posim_transport_churn"
+    sim_prefix = Path(get_package_prefix("gz_sim_vendor")) / "opt/gz_sim_vendor"
+    for name, binary in (
+        ("transport_probe_linkage", probe),
+        ("sim_transport_linkage", sim_prefix / "lib/libgz-sim.so.10"),
+    ):
+        code, dependencies = capture(out, name, ["ldd", str(binary)])
+        if code or linked_library(dependencies, "libgz-transport.so.15") != library:
+            raise RuntimeError(f"{name} is not using the patched Transport overlay")
+    # Do not force LD_LIBRARY_PATH here: the installed setup chain must work.
+    code, _ = capture(
+        out,
+        "transport_churn",
+        [
+            "python3",
+            str(Path(__file__).parent / "transport_shutdown/run_pairs.py"),
+            "--executable",
+            str(probe),
+            "--variant",
+            "patched:",
+            "--trials",
+            "5",
+            "--seconds",
+            "20",
+            "--output",
+            str(out / "transport_churn"),
+        ],
+        240,
+    )
+    if code:
+        raise RuntimeError("Installed Transport churn regression failed")
+
+
 def inventory(out):
     from ament_index_python.packages import get_package_prefix, get_package_share_directory
 
@@ -131,6 +204,7 @@ def inventory(out):
         raise RuntimeError(f"Unexpected installed resource inventory: {counts}")
     capture(out, "deb_versions", ["dpkg-query", "-W", "ros-lyrical-*"], 30)
     capture(out, "gazebo_version", ["gz", "sim", "--versions"])
+    transport_inventory(out, get_package_prefix)
     ws = Path(os.environ["POSIM_WORKSPACE"])
     bridge_ws = Path(os.environ["POSIM_BRIDGE_UNDERLAY"])
     if Path(get_package_prefix("ros_gz_bridge")) != bridge_ws / "install":

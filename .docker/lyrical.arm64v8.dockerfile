@@ -114,12 +114,16 @@ RUN export ROS_APT_SOURCE_VERSION=$(curl -s https://api.github.com/repos/ros-inf
 
 ENV POSIM_BRIDGE_UNDERLAY=/opt/posim_bridge_ws
 ENV POSIM_MAVROS_UNDERLAY=/opt/posim_mavros_ws
+ENV POSIM_TRANSPORT_UNDERLAY=/opt/posim_transport_ws
+COPY extras/build-image-transport.sh /tmp/build-image-transport.sh
 COPY extras/build-image-bridge.sh /tmp/build-image-bridge.sh
 COPY extras/build-image-mavros.sh /tmp/build-image-mavros.sh
 COPY extras/patches /tmp/patches
 COPY extras/ci/bridge_ownership /tmp/ci/bridge_ownership
 COPY extras/ci/mavconn_self_close /tmp/ci/mavconn_self_close
 COPY extras/ci/mavros_ownership /tmp/ci/mavros_ownership
+COPY extras/ci/transport_shutdown /tmp/ci/transport_shutdown
+RUN bash /tmp/build-image-transport.sh
 RUN bash /tmp/build-image-mavros.sh
 RUN bash /tmp/build-image-bridge.sh
 

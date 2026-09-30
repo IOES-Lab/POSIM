@@ -6,7 +6,33 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest.mock import Mock, patch
 
-from image_smoke import fatal_log_lines, wait_for_entity
+from image_smoke import fatal_log_lines, linked_library, wait_for_entity
+
+
+class LibraryLinkageTests(unittest.TestCase):
+    def test_resolved_path(self):
+        self.assertEqual(
+            linked_library(
+                "  libgz-transport.so.15 => /opt/patched/lib.so (0x123)\n", "libgz-transport.so.15"
+            ),
+            Path("/opt/patched/lib.so").resolve(),
+        )
+
+    def test_missing_library(self):
+        with self.assertRaises(RuntimeError):
+            linked_library("libgz-transport.so.15 => not found\n", "libgz-transport.so.15")
+
+    def test_wrong_soname(self):
+        with self.assertRaises(RuntimeError):
+            linked_library(
+                "libgz-transport.so.150 => /opt/wrong.so (0x123)\n", "libgz-transport.so.15"
+            )
+
+    def test_ambiguous_library(self):
+        with self.assertRaises(RuntimeError):
+            linked_library(
+                "libgz-transport.so.15 => /opt/a.so (0x123)\n" * 2, "libgz-transport.so.15"
+            )
 
 
 class FatalLogTests(unittest.TestCase):

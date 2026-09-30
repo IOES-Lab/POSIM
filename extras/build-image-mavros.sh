@@ -26,6 +26,9 @@ git -C "$WS/src/mavros" apply --check "$ROUTER_PATCH"
 git -C "$WS/src/mavros" apply "$ROUTER_PATCH"
 # shellcheck disable=SC1090
 source "/opt/ros/$ROS_DISTRO/setup.bash"
+# Keep the matching Gazebo Transport overlay in the workspace setup chain.
+# shellcheck disable=SC1090,SC1091
+source "${POSIM_TRANSPORT_UNDERLAY:?Transport underlay required}/install/setup.bash"
 cd "$WS"
 export CMAKE_BUILD_PARALLEL_LEVEL=2 MAKEFLAGS=-j2
 # Router also includes IoContextRunner; rebuild MAVROS, not only libmavconn.
