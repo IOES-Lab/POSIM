@@ -73,7 +73,7 @@ struct UnderwaterCamera::PrivateData
   gz::msgs::Image lastImage;
 
   /// \brief Depth to range lookup table (LUT)
-  float * depth2rangeLUT;
+  float * depth2rangeLUT = nullptr;
 
   /// \brief Attenuation constants per channel (RGB)
   float attenuation[3];
@@ -87,10 +87,34 @@ struct UnderwaterCamera::PrivateData
   float max_range;
 };
 
-UnderwaterCamera::UnderwaterCamera() : dataPtr(std::make_unique<PrivateData>()) {}
+struct UnderwaterCamera::CallbackState
+{
+  std::mutex mutex;
+  UnderwaterCamera * owner = nullptr;
+};
+
+UnderwaterCamera::UnderwaterCamera()
+: dataPtr(std::make_unique<PrivateData>()), callbackState(std::make_shared<CallbackState>())
+{
+  this->callbackState->owner = this;
+}
 
 UnderwaterCamera::~UnderwaterCamera()
 {
+  // Drain an active callback before freeing the LUT, and make already-queued
+  // callbacks harmless. Do not hold this lock while calling transport APIs.
+  {
+    std::lock_guard<std::mutex> lock(this->callbackState->mutex);
+    this->callbackState->owner = nullptr;
+  }
+  if (!this->dataPtr->image_topic.empty())
+  {
+    this->dataPtr->gz_node.Unsubscribe(this->dataPtr->image_topic);
+  }
+  if (!this->dataPtr->depth_image_topic.empty())
+  {
+    this->dataPtr->gz_node.Unsubscribe(this->dataPtr->depth_image_topic);
+  }
   if (this->dataPtr->depth2rangeLUT)
   {
     delete[] this->dataPtr->depth2rangeLUT;
@@ -128,7 +152,9 @@ void UnderwaterCamera::Configure(
 
   if (!rclcpp::ok())
   {
-    rclcpp::init(0, nullptr);
+    // Gazebo owns process signals. A plugin must not replace its handlers or
+    // invalidate ROS while Gazebo is still running update/transport callbacks.
+    rclcpp::init(0, nullptr, rclcpp::InitOptions(), rclcpp::SignalHandlerOptions::None);
   }
 
   std::string rosNodeName = sensorSdf.Name() + "_node";
@@ -276,21 +302,36 @@ void UnderwaterCamera::Configure(
     this->dataPtr->background[0] = (unsigned char)_sdf->Get<int>("backgroundB");
   }
 
-  // Gazebo camera subscriber
+  // Construct the publisher before making callbacks visible to transport.
+  this->dataPtr->image_pub = this->ros_node_->create_publisher<sensor_msgs::msg::Image>(
+    this->dataPtr->simulated_image_topic, 1);
+
+  // Capture the lifetime gate, not an unguarded `this` pointer.
+  const auto state = this->callbackState;
   std::function<void(const gz::msgs::Image &)> camera_callback =
-    std::bind(&UnderwaterCamera::CameraCallback, this, std::placeholders::_1);
+    [state](const gz::msgs::Image & image)
+  {
+    std::lock_guard<std::mutex> lock(state->mutex);
+    if (state->owner)
+    {
+      state->owner->CameraCallback(image);
+    }
+  };
 
   this->dataPtr->gz_node.Subscribe(this->dataPtr->image_topic, camera_callback);
 
   // Gazebo depth image subscriber
   std::function<void(const gz::msgs::Image &)> depth_callback =
-    std::bind(&UnderwaterCamera::DepthImageCallback, this, std::placeholders::_1);
+    [state](const gz::msgs::Image & image)
+  {
+    std::lock_guard<std::mutex> lock(state->mutex);
+    if (state->owner)
+    {
+      state->owner->DepthImageCallback(image);
+    }
+  };
 
   this->dataPtr->gz_node.Subscribe(this->dataPtr->depth_image_topic, depth_callback);
-
-  // ROS2 publisher
-  this->dataPtr->image_pub = this->ros_node_->create_publisher<sensor_msgs::msg::Image>(
-    this->dataPtr->simulated_image_topic, 1);
 }
 
 cv::Mat UnderwaterCamera::ConvertGazeboToOpenCV(const gz::msgs::Image & gz_image)
@@ -317,10 +358,19 @@ cv::Mat UnderwaterCamera::ConvertGazeboToOpenCV(const gz::msgs::Image & gz_image
       throw std::runtime_error("Unsupported pixel format");
   }
 
-  // Create OpenCV Mat header that uses the same memory as the Gazebo image data
+  const size_t rowBytes = static_cast<size_t>(gz_image.width()) * CV_ELEM_SIZE(cv_type);
+  const size_t stride = gz_image.step();
+  if (
+    gz_image.width() == 0 || gz_image.height() == 0 || stride < rowBytes ||
+    static_cast<uint64_t>(stride) * gz_image.height() > gz_image.data().size())
+  {
+    return {};
+  }
+
+  // Respect Gazebo's row stride, including padded depth images.
   cv::Mat cv_image(
     gz_image.height(), gz_image.width(), cv_type,
-    const_cast<void *>(reinterpret_cast<const void *>(gz_image.data().data())));
+    const_cast<void *>(reinterpret_cast<const void *>(gz_image.data().data())), stride);
 
   // Optionally convert color space if needed (e.g., RGB to BGR)
   if (gz_image.pixel_format_type() == gz::msgs::PixelFormatType::RGB_INT8)
@@ -339,6 +389,10 @@ void UnderwaterCamera::CameraCallback(const gz::msgs::Image & msg)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex_);
 
+  if (!this->ros_node_ || !rclcpp::ok(this->ros_node_->get_node_base_interface()->get_context()))
+  {
+    return;
+  }
   if (!this->dataPtr->depth2rangeLUT)
   {
     gzerr << "Depth2range LUT not initialized" << std::endl;
@@ -355,14 +409,29 @@ void UnderwaterCamera::CameraCallback(const gz::msgs::Image & msg)
     }
     else
     {
+      // RGB and depth arrive independently. Do not index a missing, truncated,
+      // or differently-sized depth frame (including during startup/teardown).
+      const auto & depth = this->dataPtr->lastDepth;
+      if (
+        depth.pixel_format_type() != gz::msgs::PixelFormatType::R_FLOAT32 ||
+        depth.width() != this->dataPtr->width || depth.height() != this->dataPtr->height ||
+        msg.width() != this->dataPtr->width || msg.height() != this->dataPtr->height)
+      {
+        return;
+      }
       // Convert Gazebo image to OpenCV image
       cv::Mat image = this->ConvertGazeboToOpenCV(msg);
 
       // Convert depth image to OpenCV image using the ConvertGazeboToOpenCV function
       cv::Mat depth_image = this->ConvertGazeboToOpenCV(this->dataPtr->lastDepth);
 
-      // Create output image
-      cv::Mat output_image = this->ConvertGazeboToOpenCV(this->dataPtr->lastImage);
+      if (image.empty() || image.type() != CV_8UC3 || depth_image.empty())
+      {
+        return;
+      }
+
+      // Own the output buffer instead of writing through a protobuf const view.
+      cv::Mat output_image(image.rows, image.cols, CV_8UC3);
 
       // Simulate underwater
       cv::Mat simulated_image = this->SimulateUnderwater(image, depth_image, output_image);
@@ -440,9 +509,31 @@ cv::Mat UnderwaterCamera::SimulateUnderwater(
 void UnderwaterCamera::PostUpdate(
   const gz::sim::UpdateInfo & _info, const gz::sim::EntityComponentManager & _ecm)
 {
+  if (!this->ros_node_)
+  {
+    return;
+  }
+  const auto context = this->ros_node_->get_node_base_interface()->get_context();
+  if (!rclcpp::ok(context))
+  {
+    return;
+  }
   if (!_info.paused)
   {
-    rclcpp::spin_some(this->ros_node_);
+    try
+    {
+      rclcpp::spin_some(this->ros_node_);
+    }
+    catch (const rclcpp::exceptions::RCLError &)
+    {
+      // Another embedded ROS component may shut down the shared context.
+      // Do not mask an error while the context is still valid.
+      if (rclcpp::ok(context))
+      {
+        throw;
+      }
+      return;
+    }
 
     if (_info.iterations % 1000 == 0)
     {

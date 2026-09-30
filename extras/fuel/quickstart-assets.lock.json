@@ -1,0 +1,326 @@
+{
+  "schema": 1,
+  "scope": "External Fuel assets used by the 14 headless Quickstart paths, including the version-3 Sunken Vase material dependency. Not all 18 worlds.",
+  "normalization": "Downloaded with Gazebo Fuel Tools 11. Its normal model:// to Fuel file-URI normalization is retained; geometry and textures are not edited.",
+  "assets": [
+    {
+      "url": "https://fuel.gazebosim.org/1.0/hmoyen/models/North East Down frame/1",
+      "cache_path": "fuel.gazebosim.org/hmoyen/models/north east down frame/1",
+      "title": "North East Down frame",
+      "uploader": "hmoyen",
+      "authors": [
+        {
+          "name": "Musa Marcusso",
+          "email": "musa.marcusso@de.bosch.com"
+        }
+      ],
+      "license": {
+        "name": "Creative Commons Attribution 4.0 International",
+        "url": "http://creativecommons.org/licenses/by/4.0/"
+      },
+      "files": {
+        "model.config": "b1526f2ecadfa50e9a8f3fb6dcbfe036015b991b6d4db06df4273b7cb2fde5e3",
+        "model.sdf": "e7b7037bfb95d4f7ce527fa833422115063b20a87f09fffbf88181bf106d9a65",
+        "thumbnails/Screenshot from 2024-06-21 14-41-53.png": "e88b8d04b1ad89ceeffc3e640ad60aad4f49bf1c96b1c7bd49b8555a654fe98b"
+      }
+    },
+    {
+      "url": "https://fuel.gazebosim.org/1.0/OpenRobotics/models/Coast Water/3",
+      "cache_path": "fuel.gazebosim.org/openrobotics/models/coast water/3",
+      "title": "Coast Water",
+      "uploader": "OpenRobotics",
+      "authors": [],
+      "license": {
+        "name": "Creative Commons Attribution 4.0 International",
+        "url": "http://creativecommons.org/licenses/by/4.0/"
+      },
+      "files": {
+        "materials/programs/GerstnerWaves_fs.metal": "c163ed1c8b628e04dcf49f2ea168819b769824af8c95e51ee4ce5d036dff8f6f",
+        "materials/programs/GerstnerWaves_fs_330.glsl": "e99714172fe768273512078a7cbab4b1f5439a597105108c1f3a6f8e57ba131a",
+        "materials/programs/GerstnerWaves_vs.metal": "2f7d864919d28e29da0d9eedcdf7adf3a417bc9eecfde111a9b742cd5075c097",
+        "materials/programs/GerstnerWaves_vs_330.glsl": "2b9be7918f3793c0453a9627ff8605c7d030c0157dbfde608905f9ccbd36ad7c",
+        "materials/textures/skybox_lowres.dds": "62cbed0ceaa102620bd0857ec8e17b72ca1c7f364870c407cacdbe99c470fc0c",
+        "materials/textures/wave_normals.dds": "943b5d189997f460ff8d4a35f5259d36809a5c6669a440d99b4f8b5abe0d8e4b",
+        "meshes/waterlow.dae": "91e96edd71fde67753adedf6d103b6c803c74011be6ec3cf41202cf963db99b5",
+        "model.config": "576d467f1d18ba9bef9c018e741ce56f2386f9ba2c5a3a180d49fc209331dd71",
+        "model.sdf": "a306e63650d1375189f924f8be17d875dbd465b273279078469a6291fd568116",
+        "thumbnails/1.png": "d8fc5890f032dc0d46970fb2ce2d78352cc497ae998223e5029b0c65b27bcffd"
+      }
+    },
+    {
+      "url": "https://fuel.gazebosim.org/1.0/hmoyen/models/Sand Heightmap/1",
+      "cache_path": "fuel.gazebosim.org/hmoyen/models/sand heightmap/1",
+      "title": "Sand Heightmap",
+      "uploader": "hmoyen",
+      "authors": [
+        {
+          "name": "Sebastian Scherer",
+          "email": "sebastian.scherer2@de.bosch.com"
+        }
+      ],
+      "license": {
+        "name": "Creative Commons Attribution 4.0 International",
+        "url": "http://creativecommons.org/licenses/by/4.0/"
+      },
+      "files": {
+        "materials/scripts/sand.material": "7c4b5fc22b55abeaa0446aa84a2f82c099a00456ce5d526ac99527a9294d4f13",
+        "materials/textures/soil_sand_0045_01.jpg": "21915cc33c85f803602d6914b4d4614f5a288559dffe2aef0e89b30615eb5b87",
+        "meshes/heightmap.dae": "1faf98feef0674dd299c9a17f9f8536e52d0bf2b295ea20bc418c57f23647ef3",
+        "model.config": "f013d286f5e0bffab09b9483351f52f5b2ad3c536dae0b80df18541a87c249cc",
+        "model.sdf": "9737b8ae0010b3881428df2184be097ec16fc0fa72c38f5df6423e9558dc533f",
+        "thumbnails/1.png": "a601cb5d27743c1c171de33014c7a51a364f8ec4542fb040d1d4ce981b0a46f5",
+        "thumbnails/2.png": "ff06732921aa7635f06dbe672ee6e4cc460060e8c3154c52c908c2cf06f56248"
+      }
+    },
+    {
+      "url": "https://fuel.ignitionrobotics.org/1.0/Cole/models/Sunken Vase/4",
+      "cache_path": "fuel.ignitionrobotics.org/cole/models/sunken vase/4",
+      "title": "Sunken Vase",
+      "uploader": "Cole",
+      "authors": [
+        {
+          "name": "Cole Biesemeyer",
+          "email": "cole@openrobotics.org"
+        }
+      ],
+      "license": {
+        "name": "Creative Commons Attribution 4.0 International",
+        "url": "http://creativecommons.org/licenses/by/4.0/"
+      },
+      "files": {
+        "materials/scripts/model.material": "953311859570ace387e1ffc16c16e7cae9a394f1bca1123bde0c2fe1975274ee",
+        "materials/textures/Pot01_Albedo.png": "fae3b9f037b971476e8655503186481190ece486aa62c82c7c4c3cf020a6bc15",
+        "materials/textures/Pot01_Normal.png": "65221adffadcf157aa9252eb9e8a546e5b44bff55e6846d11dfacdd696061fa2",
+        "materials/textures/Pot01_Roughness.png": "f50d9a104bc141dfa9e9eda4668fe27dfd2599a1b4f8915f2adb16372fd8ebfa",
+        "meshes/Pot01.dae": "e36d7bdd21eb3c3df559a71642a98e1ecccb5a8bb573b3e1cc7877a835b22a6e",
+        "meshes/Pot01.obj": "a31e02092891eb0a5502d5e9de5080c5abe3e0699b108cd30cfb0249883f8430",
+        "model.config": "288e89a6caaff0e491e73b88389e8c016dfec61ac319a3451c50afc65ddcbce3",
+        "model.sdf": "2a7959e2a60ccb3a6090974415970add7038fb621e7acb6f894a7f506ccd82cb",
+        "thumbnails/1.png": "658e8529affee50d23c3627fe9a39aef9a199be71bea08e45679d203cd23d10a",
+        "thumbnails/2.png": "63b1fafae8bb3e2b59f0fb589983cc949332a9be7dd4310284fc7b980342c440",
+        "thumbnails/3.png": "c611011e837a8e134a9718298f767919585884d74e8ab75650fc297cb9ac01a7",
+        "thumbnails/4.png": "fd98f9362660e578b2f831556c18185d10c0e1a3ece6d92c484b2c1f3dc3cc70",
+        "thumbnails/5.png": "93ff6fdb642a3f9627490a3650e9e99e72b337a4cc1aa94943f2fcb8875e24ac"
+      }
+    },
+    {
+      "url": "https://fuel.ignitionrobotics.org/1.0/Cole/models/Sunken Vase/3",
+      "cache_path": "fuel.ignitionrobotics.org/cole/models/sunken vase/3",
+      "title": "Sunken Vase",
+      "uploader": "Cole",
+      "authors": [
+        {
+          "name": "Cole Biesemeyer",
+          "email": "cole@openrobotics.org"
+        }
+      ],
+      "license": {
+        "name": "Creative Commons Attribution 4.0 International",
+        "url": "http://creativecommons.org/licenses/by/4.0/"
+      },
+      "files": {
+        "materials/scripts/model.material": "953311859570ace387e1ffc16c16e7cae9a394f1bca1123bde0c2fe1975274ee",
+        "materials/textures/Pot01_Albedo.png": "fae3b9f037b971476e8655503186481190ece486aa62c82c7c4c3cf020a6bc15",
+        "materials/textures/Pot01_Normal.png": "65221adffadcf157aa9252eb9e8a546e5b44bff55e6846d11dfacdd696061fa2",
+        "materials/textures/Pot01_Roughness.png": "f50d9a104bc141dfa9e9eda4668fe27dfd2599a1b4f8915f2adb16372fd8ebfa",
+        "meshes/Pot01.dae": "e36d7bdd21eb3c3df559a71642a98e1ecccb5a8bb573b3e1cc7877a835b22a6e",
+        "model.config": "288e89a6caaff0e491e73b88389e8c016dfec61ac319a3451c50afc65ddcbce3",
+        "model.sdf": "1d5ef4716828ca306f6c4d169960416e4cdfcfa6b06bc61be5687e872a9c4879",
+        "thumbnails/1.png": "658e8529affee50d23c3627fe9a39aef9a199be71bea08e45679d203cd23d10a",
+        "thumbnails/2.png": "63b1fafae8bb3e2b59f0fb589983cc949332a9be7dd4310284fc7b980342c440",
+        "thumbnails/3.png": "c611011e837a8e134a9718298f767919585884d74e8ab75650fc297cb9ac01a7",
+        "thumbnails/4.png": "fd98f9362660e578b2f831556c18185d10c0e1a3ece6d92c484b2c1f3dc3cc70",
+        "thumbnails/5.png": "93ff6fdb642a3f9627490a3650e9e99e72b337a4cc1aa94943f2fcb8875e24ac"
+      }
+    },
+    {
+      "url": "https://fuel.gazebosim.org/1.0/hmoyen/models/Sunken Vase Distorted/1",
+      "cache_path": "fuel.gazebosim.org/hmoyen/models/sunken vase distorted/1",
+      "title": "Sunken Vase Distorted",
+      "uploader": "hmoyen",
+      "authors": [
+        {
+          "name": "Cole Biesemeyer",
+          "email": "cole@openrobotics.org"
+        }
+      ],
+      "license": {
+        "name": "Creative Commons Attribution 4.0 International",
+        "url": "http://creativecommons.org/licenses/by/4.0/"
+      },
+      "files": {
+        "meshes/Pot01_distort.dae": "56c3766df05945922ab4adfe0a463bdac61d041c4ad57b90ef00231f6aa6192b",
+        "model.config": "288e89a6caaff0e491e73b88389e8c016dfec61ac319a3451c50afc65ddcbce3",
+        "model.sdf": "3e1dbfeb0118970a7d6af82b38fed57d3c178b56bb779acc44ed3007acec06b9",
+        "thumbnails/Screenshot from 2024-06-13 18-06-42.png": "88ea8654fca9112f47a3848d7c2448caacdbabc50d31821f04eefb68cbd1f68b",
+        "thumbnails/Screenshot from 2024-06-13 18-07-31.png": "427e27b8c9cc003d4d0e02ca6314d56964e3675d44ca123e749b0d932cdbfa77",
+        "thumbnails/Screenshot from 2024-06-13 18-08-24.png": "7ecb698a2dd9ceb46109d7f5c4bb218a54882dde3022a8e49869bb3f085cac6d",
+        "thumbnails/Screenshot from 2024-06-13 18-09-17.png": "93addef38f4cfa3472c4bf25c7134e41e105cde9a2127aec71c42924ada8b84f"
+      }
+    },
+    {
+      "url": "https://fuel.ignitionrobotics.org/1.0/Cole/models/Coral01/2",
+      "cache_path": "fuel.ignitionrobotics.org/cole/models/coral01/2",
+      "title": "Coral01",
+      "uploader": "Cole",
+      "authors": [
+        {
+          "name": "Cole Biesemeyer",
+          "email": "cole@openrobotics.org"
+        }
+      ],
+      "license": {
+        "name": "Creative Commons Attribution 4.0 International",
+        "url": "http://creativecommons.org/licenses/by/4.0/"
+      },
+      "files": {
+        "materials/scripts/model.material": "1546be4696f1d11e07b068017afb87782c8de92701dad98c95b4a1078ad2dce2",
+        "materials/textures/Coral01_Albedo.png": "7afc2afbdb845dbbbebaa33fbbc8b9e8f9cc436d948d796af8aab1d27d88e462",
+        "materials/textures/Coral01_Normal.png": "1ddb85c44384badb1aca803ffe5afb2fef277f6967e327cd77016a02c40f5da8",
+        "materials/textures/Coral01_Roughness.png": "0f86650753b125218df8af0278cb63b67134c2a9a52c6a671723e443ca875c07",
+        "meshes/coral01.dae": "97c0ad01310408082dbd700aeea2daf8fdc53a354a3ba84a190ff9225bc9029b",
+        "model.config": "d99d9289741899b1039e09c2a7a6683682e8dab421d88e30a34c47a7dbbc3cba",
+        "model.sdf": "7ffd2ef2949a201de38f411f99a5018cf7ff72191ca24f612b753115bc62042e",
+        "thumbnails/1.png": "c4b98b4da86e272e47c2e80b2c090c663d470887ed86915d7f51dca05f2dadd8",
+        "thumbnails/2.png": "9ff1709a4dcff314139b32a7c7d303403f60a4b8a938438688aeaaae62d2ef5d",
+        "thumbnails/3.png": "206cd69fed2fb17c89bb74804bfca3dff639b2a262035ee64f743b1ff7099569",
+        "thumbnails/4.png": "3f3ecc78ea11ecda60e5b068b5b0647536751ec756aebd37ddab04860f22a69b",
+        "thumbnails/5.png": "9683a96a70902799e7f0748899e86e9be796ac2c5a96347720954bc20e90e925"
+      }
+    },
+    {
+      "url": "https://fuel.gazebosim.org/1.0/OpenRobotics/models/Waves/5",
+      "cache_path": "fuel.gazebosim.org/openrobotics/models/waves/5",
+      "title": "Waves",
+      "uploader": "OpenRobotics",
+      "authors": [],
+      "license": {
+        "name": "Creative Commons Attribution 4.0 International",
+        "url": "http://creativecommons.org/licenses/by/4.0/"
+      },
+      "files": {
+        "materials/programs/GerstnerWaves_fs.metal": "d27bcf731967004ead0c11305820430f140eeb9a81eec00200fb0f0f66ff1b42",
+        "materials/programs/GerstnerWaves_fs_330.glsl": "44091c3b037f4ff8d36fde0bfe7ed15b34a33163915e053bdf66e10e728e8510",
+        "materials/programs/GerstnerWaves_vs.metal": "2f7d864919d28e29da0d9eedcdf7adf3a417bc9eecfde111a9b742cd5075c097",
+        "materials/programs/GerstnerWaves_vs_330.glsl": "2b9be7918f3793c0453a9627ff8605c7d030c0157dbfde608905f9ccbd36ad7c",
+        "materials/textures/skybox_lowres.dds": "62cbed0ceaa102620bd0857ec8e17b72ca1c7f364870c407cacdbe99c470fc0c",
+        "materials/textures/wave_normals.dds": "943b5d189997f460ff8d4a35f5259d36809a5c6669a440d99b4f8b5abe0d8e4b",
+        "meshes/mesh.dae": "91f51d619e7d5efdd725761bbe3d55a4e7968593f9f05d97bf1f62e826638592",
+        "model.config": "8bf08c240426999c42d3e5b54bb61b43faf558f62fe24f03b8b3fa8f79c3f2aa",
+        "model.sdf": "df507706daf80dc527ce6ee87a67ccd72ca4333a09a64f228cebffd6c083babb",
+        "thumbnails/1.png": "186934bc6e5035f91aeb7a095dfae6c9866cde51a756d1bb36bf694ff0e38e61"
+      }
+    },
+    {
+      "url": "https://fuel.gazebosim.org/1.0/hmoyen/models/Sunken Vase with Inertia/1",
+      "cache_path": "fuel.gazebosim.org/hmoyen/models/sunken vase with inertia/1",
+      "title": "Sunken Vase with Inertia",
+      "uploader": "hmoyen",
+      "authors": [
+        {
+          "name": "Cole Biesemeyer",
+          "email": "cole@openrobotics.org"
+        }
+      ],
+      "license": {
+        "name": "Creative Commons Attribution 4.0 International",
+        "url": "http://creativecommons.org/licenses/by/4.0/"
+      },
+      "files": {
+        "model.config": "288e89a6caaff0e491e73b88389e8c016dfec61ac319a3451c50afc65ddcbce3",
+        "model.sdf": "648543c10fc4e1dc3ce904df24620bd7687c9e59f7a22a46e3d5f70123468671",
+        "thumbnails/Screenshot from 2024-06-13 17-59-27.png": "675082297e9d55732d1c5ef78137a37d0ced8a45e91024f1df9cddb11cab4abc",
+        "thumbnails/Screenshot from 2024-06-13 17-59-52.png": "4c3653840c8cd98bde3ea6762f656c0ccafe143db2b6a5fafa9c122f4f7ae51a",
+        "thumbnails/Screenshot from 2024-06-13 18-00-55.png": "fe64e9f0bbc64dfd53554327323df7654c261804e8599240817641a2f69679e6",
+        "thumbnails/Screenshot from 2024-06-13 18-01-42.png": "634c399fb67c04a872ab1be3b1957d59d1bff41357b08498680188b3be3b695c"
+      }
+    },
+    {
+      "url": "https://fuel.gazebosim.org/1.0/OpenRobotics/models/Ground Plane/5",
+      "cache_path": "fuel.gazebosim.org/openrobotics/models/ground plane/5",
+      "title": "Ground Plane",
+      "uploader": "OpenRobotics",
+      "authors": [
+        {
+          "name": "Nate Koenig",
+          "email": "nate@osrfoundation.org"
+        }
+      ],
+      "license": {
+        "name": "Creative Commons Zero v1.0 Universal",
+        "url": "https://creativecommons.org/publicdomain/zero/1.0/"
+      },
+      "files": {
+        "model-1_2.sdf": "a099ecca53ba1d0af3babacb31a4e802099d896926ea9109d38f2e14e40a28d9",
+        "model-1_3.sdf": "cc2bf63d600f382bbbe81dbd3cd9363ee0436de6bda1c273cae47dfd8ea65bcf",
+        "model-1_4.sdf": "de8e04148a6b58735b63ea7500811ca1a1bae174d6da3a20f861c679534ddc99",
+        "model.config": "4fefe57461ff15dd0b8931e249616eb719cf6760767a85db84762d85186ca94b",
+        "model.sdf": "73be59778d84e631dd0996a0adc461af5e4c8717b93da7ee9151b9ae43e3ca25",
+        "thumbnails/1.png": "19a31ae622180052518cf40518579f7bb1ce74cd1a2dd2e38fa260e821dd99c7",
+        "thumbnails/2.png": "3fa42da84beeb517daa91494f1ef1b18265dbf4c04b387e4c45682d9096be35a",
+        "thumbnails/3.png": "c423f7a4b11bfaf8db92cbe832f7fcfec1c5869edd9d974ea7e445425680c790",
+        "thumbnails/4.png": "c423f7a4b11bfaf8db92cbe832f7fcfec1c5869edd9d974ea7e445425680c790",
+        "thumbnails/5.png": "c423f7a4b11bfaf8db92cbe832f7fcfec1c5869edd9d974ea7e445425680c790"
+      }
+    },
+    {
+      "url": "https://fuel.gazebosim.org/1.0/OpenRobotics/models/Sun/3",
+      "cache_path": "fuel.gazebosim.org/openrobotics/models/sun/3",
+      "title": "Sun",
+      "uploader": "OpenRobotics",
+      "authors": [
+        {
+          "name": "Nate Koenig",
+          "email": "nate@osrfoundation.org"
+        }
+      ],
+      "license": {
+        "name": "Creative Commons Zero v1.0 Universal",
+        "url": "https://creativecommons.org/publicdomain/zero/1.0/"
+      },
+      "files": {
+        "model-1_2.sdf": "ec06c2561585112e6acdc77f20ce827541ea0cb1bcf1d2eab08040f34ebddc3c",
+        "model-1_3.sdf": "609613ac8ce6a38dbe6be5e2e1f7a43fa557696c5d4a4a48fa246957573d84a9",
+        "model-1_4.sdf": "9ecf9281ed55a951e97b2fcb494a6d0e5a7247abff5208b2d53a06acb62b714a",
+        "model.config": "f6d1f0e4b3919c21fc56ad24763275838944ec9acfc60bb86e2d31f23976688c",
+        "model.sdf": "b10a6631cfac7340ad09c2fdfeb6d950afd3ec4daf1e7d0262c14adcf612d15a"
+      }
+    },
+    {
+      "url": "https://fuel.gazebosim.org/1.0/hmoyen/models/mossy_cinder_block/1",
+      "cache_path": "fuel.gazebosim.org/hmoyen/models/mossy_cinder_block/1",
+      "title": "mossy_cinder_block",
+      "uploader": "hmoyen",
+      "authors": [
+        {
+          "name": "Cole Biesemeyer",
+          "email": "cole.bsmr@gmail.com"
+        },
+        {
+          "name": "Nate Koenig",
+          "email": "natekoenig@gmail.com"
+        },
+        {
+          "name": "Duane Davis",
+          "email": "dtdavi1@nps.edu"
+        }
+      ],
+      "license": {
+        "name": "Creative Commons Attribution 4.0 International",
+        "url": "http://creativecommons.org/licenses/by/4.0/"
+      },
+      "files": {
+        "materials/textures/cinder_block_diffuse.png": "4fcebe7ff087552302039e513bf462f9d46df67acce4ee82939efad66b4c3c38",
+        "materials/textures/grass.png": "2fd3ccbcb63928ced1477f60e8ccc7046f665bbbd3859d39820781d6f6041fbf",
+        "meshes/mossy_cinder_block.dae": "8d8789047645f04ae2890b884aa21f521088fa15a2203291256a9b8cee4debe7",
+        "model-1_4.sdf": "9e136e78ed7ea86c289a6747df1eea3fb67d7c1ef0864a6c4a61095630e1d078",
+        "model.config": "b73f2d3404c4cbf3caddce46db11a997999b0c62ceb4999c87ac402cf54c8ace",
+        "model.sdf": "9f164e807bcdf00994010f042d978f51b3137ae0706fb7db20b4986c4a506347",
+        "thumbnails/Screenshot from 2024-06-07 11-32-21.png": "94b59a0ffbf278b72d392b736f848e303f5a7baf585008b6230596573233e395",
+        "thumbnails/Screenshot from 2024-06-07 11-32-31.png": "6317a34b73c53f2b96eae74a05fb2a730847476df524a46b38d15fb5c2ee2e1b",
+        "thumbnails/Screenshot from 2024-06-07 11-32-41.png": "dc59984bbeb48134c6dae2406e9c5f5e1470203e888e9c7ee8dadbd7824429aa",
+        "thumbnails/Screenshot from 2024-06-07 11-33-02.png": "77e3005cce17dae1771ec93853475136e66da937df84d15d62b150e773653c0e"
+      }
+    }
+  ]
+}

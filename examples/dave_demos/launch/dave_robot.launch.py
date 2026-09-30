@@ -57,6 +57,9 @@ def launch_setup(context, *args, **kwargs):
     run_server_only = (
         headless.perform(context).lower() == "true" or gui.perform(context).lower() == "false"
     )
+    # Jetty can advance an empty world while its visual assets still download.
+    if LaunchConfiguration("wait_for_assets").perform(context).lower() == "true":
+        gz_args.append(" --wait-for-assets")
     if run_server_only:
         gz_args.append(" -s")
     if paused.perform(context) == "false":
@@ -130,6 +133,11 @@ def generate_launch_description():
 
     # Declare the launch arguments with default values
     args = [
+        DeclareLaunchArgument(
+            "wait_for_assets",
+            default_value="true",
+            description="Finish world asset downloads before simulation starts (Gazebo Jetty)",
+        ),
         DeclareLaunchArgument(
             "paused",
             default_value="true",

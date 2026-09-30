@@ -1,0 +1,59 @@
+---
+name: Diagnose an existing POSIM image (no publication)
+
+# yamllint disable-line rule:truthy
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/runtime-diagnostics.yml"
+      - "tools/runtime-diagnostics.sh"
+      - "tools/instrument-mavros-gdb.py"
+  workflow_dispatch:
+    inputs:
+      architecture:
+        type: choice
+        options: [arm64, amd64]
+        required: true
+      mode:
+        description: Diagnostic only; never publishes an image
+        type: choice
+        options: [gdb, router-lifetime, gazebo-shutdown, gazebo-segfault, transport-poll, camera-fresh]
+        default: gdb
+        required: true
+      image_id:
+        description: Exact locally retained sha256 image ID from validation
+        type: string
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    # Explicit opt-in, and never execute fork code on the self-hosted runner.
+    if: >-
+      (github.event_name == 'workflow_dispatch' || vars.POSIM_ENABLE_RUNTIME_DIAGNOSTICS == 'true') &&
+      (github.event_name != 'pull_request' ||
+       github.event.pull_request.head.repo.full_name == github.repository)
+    runs-on:
+      - self-hosted
+      - "${{ (inputs.architecture || vars.POSIM_DIAGNOSTIC_ARCH) != 'amd64' && 'ARM64' || 'x64' }}"
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run explicitly selected runtime diagnostic
+        env:
+          POSIM_DIAGNOSTIC_MODE: ${{ inputs.mode || vars.POSIM_DIAGNOSTIC_MODE }}
+          IMAGE_ID: ${{ inputs.image_id || vars.POSIM_DIAGNOSTIC_IMAGE_ID }}
+          ARCHITECTURE: ${{ inputs.architecture || vars.POSIM_DIAGNOSTIC_ARCH || 'arm64' }}
+        run: |
+          bash tools/runtime-diagnostics.sh "$IMAGE_ID" "$ARCHITECTURE" \
+            "$RUNNER_TEMP/posim-diagnostics-${{ github.run_id }}"
+      - name: Preserve diagnostic evidence (not acceptance results)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: posim-runtime-diagnostics-${{ inputs.architecture || vars.POSIM_DIAGNOSTIC_ARCH || 'arm64' }}
+          path: ${{ runner.temp }}/posim-diagnostics-${{ github.run_id }}
+          retention-days: 14

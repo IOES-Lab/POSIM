@@ -1,0 +1,6 @@
+cmake_minimum_required(VERSION 3.22)
+project(posim_transport_shutdown LANGUAGES CXX)
+set(CMAKE_CXX_STANDARD 17)
+find_package(gz-transport 15 REQUIRED)
+add_executable(posim_transport_churn main.cc)
+target_link_libraries(posim_transport_churn PRIVATE gz-transport::gz-transport)

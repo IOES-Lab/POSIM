@@ -55,7 +55,9 @@ void SphericalCoords::Configure(
 
   if (!rclcpp::ok())
   {
-    rclcpp::init(0, nullptr);
+    // Gazebo owns process signals. A plugin must not replace its handlers or
+    // invalidate ROS while Gazebo is still running update/transport callbacks.
+    rclcpp::init(0, nullptr, rclcpp::InitOptions(), rclcpp::SignalHandlerOptions::None);
   }
 
   this->ros_node_ = std::make_shared<rclcpp::Node>("sc_node");
@@ -225,9 +227,29 @@ bool SphericalCoords::SetOriginSphericalCoord(
 void SphericalCoords::PostUpdate(
   const gz::sim::UpdateInfo & _info, const gz::sim::EntityComponentManager & _ecm)
 {
+  if (!this->ros_node_)
+  {
+    return;
+  }
+  const auto context = this->ros_node_->get_node_base_interface()->get_context();
+  if (!rclcpp::ok(context))
+  {
+    return;
+  }
   if (!_info.paused)
   {
-    rclcpp::spin_some(this->ros_node_);
+    try
+    {
+      rclcpp::spin_some(this->ros_node_);
+    }
+    catch (const rclcpp::exceptions::RCLError &)
+    {
+      if (rclcpp::ok(context))
+      {
+        throw;
+      }
+      return;
+    }
 
     if (_info.iterations % 1000 == 0)
     {

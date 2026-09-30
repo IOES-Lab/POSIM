@@ -102,7 +102,9 @@ void OceanCurrentPlugin::Configure(
 {
   if (!rclcpp::ok())
   {
-    rclcpp::init(0, nullptr);
+    // Gazebo owns process signals. A plugin must not replace its handlers or
+    // invalidate ROS while Gazebo is still running update/transport callbacks.
+    rclcpp::init(0, nullptr, rclcpp::InitOptions(), rclcpp::SignalHandlerOptions::None);
     // gzerr << "ROS 2 has not been properly initialized. Please make sure you have initialized your
     // ROS 2 environment.";
   }

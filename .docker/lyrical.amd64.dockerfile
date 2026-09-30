@@ -15,6 +15,19 @@ COPY extras /tmp/dave-extras
 RUN DAVE_EXTRAS_DIR=/tmp/dave-extras \
     bash /tmp/dave-extras/ros-lyrical-gz-jetty-install.sh
 
+# docker run/exec do not necessarily start an interactive shell. Keep these
+# paths in the image environment, not just the installer's ~/.bashrc hook.
+ENV PATH=/opt/ardusub_ws/ardupilot/build/sitl/bin:/opt/ardusub_ws/ardupilot/Tools/autotest:${PATH}
+ENV GZ_SIM_SYSTEM_PLUGIN_PATH=/opt/ardusub_ws/ardupilot_gazebo/build
+ENV GZ_SIM_RESOURCE_PATH=/opt/ardusub_ws/ardupilot_gazebo/models:/opt/ardusub_ws/ardupilot_gazebo/worlds
+ENV GEOGRAPHICLIB_GEOID_PATH=/usr/share/GeographicLib/geoids
+ENV POSIM_BRIDGE_UNDERLAY=/opt/posim_bridge_ws
+ENV POSIM_MAVROS_UNDERLAY=/opt/posim_mavros_ws
+ENV POSIM_TRANSPORT_UNDERLAY=/opt/posim_transport_ws
+RUN bash /tmp/dave-extras/build-image-transport.sh
+RUN bash /tmp/dave-extras/build-image-mavros.sh
+RUN bash /tmp/dave-extras/build-image-bridge.sh
+
 # Install QGroundControl.
 RUN mkdir -p /opt/QGC && cd /opt/QGC && \
     wget -O QGroundControl-x86_64.AppImage \
@@ -46,7 +59,7 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 WORKDIR $DAVE_WS
-RUN . "/opt/ros/${ROS_DISTRO}/setup.sh" && \
+RUN . "$POSIM_BRIDGE_UNDERLAY/install/setup.sh" && \
     colcon build --merge-install --executor sequential --symlink-install
 
 RUN echo "source /opt/ros/${ROS_DISTRO}/setup.bash" >> /root/.bashrc && \
@@ -59,6 +72,15 @@ RUN touch /root/.dave_entrypoint && \
     echo 'cat /root/.dave_entrypoint' >> /root/.bashrc
 
 WORKDIR /root
+
+# Resolve the Quickstart Fuel dependency closure during the build, not startup.
+ENV GZ_FUEL_CACHE_PATH=/opt/posim_fuel/cache
+COPY extras/fuel /opt/posim_fuel
+COPY extras/prepare-image-assets.py /opt/posim_fuel/prepare-image-assets.py
+RUN . "/opt/ros/${ROS_DISTRO}/setup.sh" && \
+    python3 /opt/posim_fuel/prepare-image-assets.py \
+      --cache "$GZ_FUEL_CACHE_PATH" --lock /opt/posim_fuel/quickstart-assets.lock.json \
+      --receipt /opt/posim_fuel/build-receipt.json
 
 LABEL org.opencontainers.image.title="POSIM" \
       org.opencontainers.image.description="Platform for Ocean Simulation" \

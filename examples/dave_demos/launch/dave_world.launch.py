@@ -20,6 +20,8 @@ def launch_setup(context, *args, **kwargs):
 
     # Gazebo simulation launch
     gz_args = f"-r {world_path}"
+    if LaunchConfiguration("wait_for_assets").perform(context).lower() == "true":
+        gz_args += " --wait-for-assets"
     if verbose_flag.lower() == "true":
         gz_args += " --verbose"
     if headless_flag.lower() == "true":
@@ -36,6 +38,11 @@ def launch_setup(context, *args, **kwargs):
 def generate_launch_description():
     return LaunchDescription(
         [
+            DeclareLaunchArgument(
+                "wait_for_assets",
+                default_value="true",
+                description="Finish world asset downloads before simulation starts (Gazebo Jetty)",
+            ),
             DeclareLaunchArgument(
                 "world_name",
                 default_value="dave_bimanual_example",

@@ -1,0 +1,166 @@
+---
+name: Publish and re-pull validated PR 5 candidate (manual only)
+
+# yamllint disable-line rule:truthy
+on:
+  # Register the workflow without granting PR events any publication capability.
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/publish-candidate.yml"
+      - "tools/candidate-*"
+      - "tools/check-published-candidate.sh"
+      - "tools/test_candidate_publication.py"
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: Publish only validation-pr5-abad9d70 tags; never main/latest/release tags
+        required: true
+        type: choice
+        options: [publish-pr5-abad9d70]
+      architecture:
+        description: Validated image architecture to publish and recheck
+        required: true
+        type: choice
+        default: both
+        options: [both, arm64, amd64]
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  validate-tooling:
+    runs-on: ubuntu-26.04
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 -m unittest discover -s tools -p 'test_candidate_publication.py'
+
+  publish:
+    needs: validate-tooling
+    if: >-
+      github.event_name == 'workflow_dispatch' && github.repository == 'IOES-Lab/POSIM' &&
+      github.ref == 'refs/heads/ci/posim-image-validation-20260929' &&
+      inputs.confirmation == 'publish-pr5-abad9d70'
+    strategy:
+      fail-fast: false
+      matrix:
+        architecture: >-
+          ${{ fromJSON(inputs.architecture == 'arm64' && '["arm64"]' ||
+          inputs.architecture == 'amd64' && '["amd64"]' || '["arm64","amd64"]') }}
+    runs-on: >-
+      ${{ fromJSON(matrix.architecture == 'arm64' && '["self-hosted","ARM64"]' ||
+      '["self-hosted","x64"]') }}
+    timeout-minutes: 180
+    concurrency:
+      group: posim-validation-tag-${{ matrix.architecture }}
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Isolate temporary credentials and preserve Docker endpoint
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker_host="${DOCKER_HOST:-$(docker context inspect "$(docker context show)" \
+            --format '{{.Endpoints.docker.Host}}')}"
+          test -n "$docker_host"
+          echo "DOCKER_HOST=$docker_host" >> "$GITHUB_ENV"
+          echo "DOCKER_CONTEXT=" >> "$GITHUB_ENV"
+          config="$(mktemp -d "$RUNNER_TEMP/posim-publish-config.XXXXXX")"
+          chmod 700 "$config"
+          printf '{}\n' > "$config/config.json"
+          chmod 600 "$config/config.json"
+          echo "DOCKER_CONFIG=$config" >> "$GITHUB_ENV"
+          results="$RUNNER_TEMP/posim-publish-${{ github.run_id }}-${{ matrix.architecture }}"
+          mkdir -p "$results"
+          echo "PUB_RESULTS=$results" >> "$GITHUB_ENV"
+      - name: Download the completed validation artifact
+        uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.token }}
+          repository: IOES-Lab/POSIM
+          run-id: ${{ matrix.architecture == 'arm64' && 36670174461 || 36670174383 }}
+          name: >-
+            ${{ matrix.architecture == 'arm64' && 'posim-arm64-runtime-2' ||
+            'posim-amd64-runtime-1' }}
+          path: ${{ env.PUB_RESULTS }}/prepublication-evidence
+      - name: Verify source, exact retained image, and all prior acceptance records
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 tools/candidate-publication.py evidence '${{ matrix.architecture }}' \
+            --evidence "$PUB_RESULTS/prepublication-evidence" \
+            --output "$PUB_RESULTS/publication-gate.json"
+          python3 tools/candidate-publication.py registry-before '${{ matrix.architecture }}' \
+            --output "$PUB_RESULTS/registry-before.json"
+      - name: Publish only the locked candidate tag
+        shell: bash
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+          CANDIDATE_ARCH: ${{ matrix.architecture }}
+        run: |
+          set -euo pipefail
+          tag="$(python3 -c 'import json,os;
+          d=json.load(open("tools/candidate-images-20260930.json"));
+          print(d["repository"]+":"+d["images"][os.environ["CANDIDATE_ARCH"]]["tag"])')"
+          image="$(python3 -c 'import json,os;
+          d=json.load(open("tools/candidate-images-20260930.json"));
+          print(d["images"][os.environ["CANDIDATE_ARCH"]]["image_id"])')"
+          exists="$(python3 -c 'import json,os;
+          print(json.load(open(os.environ["PUB_RESULTS"]+"/registry-before.json"))["exists"])')"
+          if [[ "$exists" == False ]]; then
+            test -n "$DOCKERHUB_USERNAME" && test -n "$DOCKERHUB_TOKEN"
+            printf '%s' "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+            docker tag "$image" "$tag"
+            docker push "$tag" | tee "$PUB_RESULTS/push.log"
+          else
+            echo 'Identical candidate already exists; no overwrite.' | tee "$PUB_RESULTS/push.log"
+          fi
+          python3 tools/candidate-publication.py registry-after "$CANDIDATE_ARCH" \
+            --output "$PUB_RESULTS/registry-after.json"
+      - name: Clear credentials before anonymous re-pull
+        if: always() && env.DOCKER_CONFIG != ''
+        shell: bash
+        run: printf '{}\n' > "$DOCKER_CONFIG/config.json"
+      - name: Pull the public registry digest and verify image identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          ref="$(python3 -c 'import json,os;
+          d=json.load(open(os.environ["PUB_RESULTS"]+"/registry-after.json"));
+          print(d["repository"]+"@"+d["tag_digest"])')"
+          docker pull --platform 'linux/${{ matrix.architecture }}' "$ref" \
+            | tee "$PUB_RESULTS/pull.log"
+          python3 tools/candidate-publication.py pulled '${{ matrix.architecture }}' \
+            --output "$PUB_RESULTS/pulled-image.json"
+          echo "PULLED_REF=$ref" >> "$GITHUB_ENV"
+      - name: Revalidate all 14 Quickstarts from the pulled image
+        shell: bash
+        timeout-minutes: 45
+        run: |
+          set -euo pipefail
+          image="$(python3 -c 'import json,os;
+          print(json.load(open(os.environ["PUB_RESULTS"]+"/pulled-image.json"))["image_id"])')"
+          config_id="$(python3 -c 'import json,os;
+          print(json.load(open(os.environ["PUB_RESULTS"]+"/pulled-image.json"))["config_digest"])')"
+          bash tools/check-published-candidate.sh "$PULLED_REF" '${{ matrix.architecture }}' \
+            "$image" "$PUB_RESULTS/repull-quickstarts" "$config_id"
+      - name: Preserve publication and re-pull evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: posim-candidate-publication-${{ matrix.architecture }}-${{ github.run_attempt }}
+          path: ${{ env.PUB_RESULTS }}
+          if-no-files-found: warn
+          retention-days: 30
+      - name: Remove this job's credential directory
+        if: always() && env.DOCKER_CONFIG != ''
+        shell: bash
+        run: |
+          case "$DOCKER_CONFIG" in
+            "$RUNNER_TEMP"/posim-publish-config.*) rm -rf -- "$DOCKER_CONFIG" ;;
+            *) exit 1 ;;
+          esac

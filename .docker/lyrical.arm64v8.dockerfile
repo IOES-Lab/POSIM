@@ -109,7 +109,23 @@ RUN export ROS_APT_SOURCE_VERSION=$(curl -s https://api.github.com/repos/ros-inf
     apt install -y --no-install-recommends \
       ros-${ROS_DISTRO}-desktop ros-${ROS_DISTRO}-ros-gz \
       ros-${ROS_DISTRO}-image-view \
+      ros-${ROS_DISTRO}-mavros ros-${ROS_DISTRO}-mavros-msgs \
       python3-rosdep python3-vcstool python3-colcon-common-extensions
+
+ENV POSIM_BRIDGE_UNDERLAY=/opt/posim_bridge_ws
+ENV POSIM_MAVROS_UNDERLAY=/opt/posim_mavros_ws
+ENV POSIM_TRANSPORT_UNDERLAY=/opt/posim_transport_ws
+COPY extras/build-image-transport.sh /tmp/build-image-transport.sh
+COPY extras/build-image-bridge.sh /tmp/build-image-bridge.sh
+COPY extras/build-image-mavros.sh /tmp/build-image-mavros.sh
+COPY extras/patches /tmp/patches
+COPY extras/ci/bridge_ownership /tmp/ci/bridge_ownership
+COPY extras/ci/mavconn_self_close /tmp/ci/mavconn_self_close
+COPY extras/ci/mavros_ownership /tmp/ci/mavros_ownership
+COPY extras/ci/transport_shutdown /tmp/ci/transport_shutdown
+RUN bash /tmp/build-image-transport.sh
+RUN bash /tmp/build-image-mavros.sh
+RUN bash /tmp/build-image-bridge.sh
 
 # --- DAVE workspace ---
 # Build the exact checked-out revision supplied as the Docker build context.
@@ -132,7 +148,7 @@ RUN apt-get update && \
 
 USER $USER
 WORKDIR $DAVE_UNDERLAY
-RUN . "/opt/ros/${ROS_DISTRO}/setup.sh" && \
+RUN . "$POSIM_BRIDGE_UNDERLAY/install/setup.sh" && \
     colcon build --merge-install --executor sequential --symlink-install
 
 # --- ArduSub SITL (BlueROV2) — Python 3.14 compatibility shims required, see notes/ardusub-sitl-setup.md ---
@@ -141,9 +157,23 @@ USER root
 ARG ARDUSUB_COMMIT="30257f01185471ab4c1ac544e47d1b4437e44c98"
 ARG ARDUPILOT_GAZEBO_COMMIT="082a0fe231f6e63bc8d1598f1cba461d9e2ea7f5"
 WORKDIR /home/$USER
-RUN git clone --recurse-submodules https://github.com/ArduPilot/ardupilot.git && \
-    cd ardupilot && git fetch --tags && git checkout --detach "$ARDUSUB_COMMIT" && \
-    git submodule update --init --recursive
+# Fetch the pinned tree directly: cloning current HEAD and all history first
+# caused HTTP/2 early-EOF failures on the ARM64 runner.
+RUN set -eu; \
+    retry_git() { \
+      for attempt in 1 2 3; do \
+        if git -c http.version=HTTP/1.1 "$@"; then return 0; fi; \
+        echo "Git transfer attempt $attempt/3 failed" >&2; \
+        sleep 5; \
+      done; \
+      return 1; \
+    }; \
+    git init ardupilot && cd ardupilot && \
+    git remote add origin https://github.com/ArduPilot/ardupilot.git && \
+    retry_git fetch --depth 1 origin "$ARDUSUB_COMMIT" && \
+    git checkout --detach FETCH_HEAD && \
+    test "$(git rev-parse HEAD)" = "$ARDUSUB_COMMIT" && \
+    retry_git submodule update --init --recursive --depth 1 --jobs 2
 
 RUN mkdir -p /home/$USER/imp_shim && \
     printf 'import types\ndef new_module(name):\n    return types.ModuleType(name)\n' > /home/$USER/imp_shim/imp.py && \
@@ -227,6 +257,16 @@ RUN echo "source /opt/ros/${ROS_DISTRO}/setup.bash" >> /home/$USER/.bashrc && \
 COPY extras/docker-arm64-entrypoint.sh /usr/local/bin/dave-rdp-entrypoint
 RUN chmod 0755 /usr/local/bin/dave-rdp-entrypoint
 CMD ["/usr/local/bin/dave-rdp-entrypoint"]
+
+# Shared by the root Quickstart session and the unprivileged RDP desktop user.
+ENV GZ_FUEL_CACHE_PATH=/opt/posim_fuel/cache
+COPY extras/fuel /opt/posim_fuel
+COPY extras/prepare-image-assets.py /opt/posim_fuel/prepare-image-assets.py
+RUN . "/opt/ros/${ROS_DISTRO}/setup.sh" && \
+    python3 /opt/posim_fuel/prepare-image-assets.py \
+      --cache "$GZ_FUEL_CACHE_PATH" --lock /opt/posim_fuel/quickstart-assets.lock.json \
+      --receipt /opt/posim_fuel/build-receipt.json && \
+    chown -R $USER:$USER "$GZ_FUEL_CACHE_PATH"
 
 LABEL org.opencontainers.image.title="POSIM" \
       org.opencontainers.image.description="Platform for Ocean Simulation" \
