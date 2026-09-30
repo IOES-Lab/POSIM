@@ -13,6 +13,19 @@ RESULTS="$(cd "$RESULTS" && pwd)"
 chmod 777 "$RESULTS"
 docker image inspect "$IMAGE_ID" > "$RESULTS/base-image-inspect.json"
 test "$(docker image inspect --format '{{.Architecture}}' "$IMAGE_ID")" = "$ARCH"
+if [[ "${POSIM_DIAGNOSTIC_MODE:-}" == camera-fresh ]]; then
+  for n in $(seq 1 10); do
+    if ! POSIM_DIAGNOSTIC_MODE=camera-readiness \
+      bash "$0" "$IMAGE_ID" "$ARCH" "$RESULTS/fresh-$n"; then
+      printf 'Camera diagnostic failed in fresh container %s; inspect the retained logs and stacks. Not acceptance.\n' "$n" \
+        > "$RESULTS/diagnostic-outcome.txt"
+      exit 1
+    fi
+  done
+  printf 'No readiness failure reproduced in 10 instrumented fresh containers. The original failure remains unresolved.\n' \
+    > "$RESULTS/diagnostic-outcome.txt"
+  exit 0
+fi
 if [[ "${POSIM_DIAGNOSTIC_MODE:-}" == gazebo-fresh ]]; then
   for n in $(seq 1 20); do
     POSIM_DIAGNOSTIC_MODE=gazebo-shutdown POSIM_DIAGNOSTIC_TRIALS=1 \
@@ -55,6 +68,10 @@ docker run --rm --init --name "$CONTAINER" --platform "linux/$ARCH" \
     dpkg-query -W > /results/packages-after.tsv
     source /opt/ros/lyrical/setup.bash
     source "${DAVE_WS:-$DAVE_UNDERLAY}/install/setup.bash"
+    if [[ "$POSIM_DIAGNOSTIC_MODE" == camera-readiness ]]; then
+      cd /tmp
+      exec python3 /diagnostics/diagnose-camera-readiness.py
+    fi
     if [[ "$POSIM_DIAGNOSTIC_MODE" == transport-poll ]]; then
       exec bash /diagnostics/diagnose-transport-poll.sh
     fi

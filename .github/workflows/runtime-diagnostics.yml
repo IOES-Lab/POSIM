@@ -18,7 +18,7 @@ on:
       mode:
         description: Diagnostic only; never publishes an image
         type: choice
-        options: [gdb, router-lifetime, gazebo-shutdown, gazebo-segfault, transport-poll]
+        options: [gdb, router-lifetime, gazebo-shutdown, gazebo-segfault, transport-poll, camera-fresh]
         default: gdb
         required: true
       image_id:
