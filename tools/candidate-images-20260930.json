@@ -1,0 +1,22 @@
+{
+  "repository": "ioeslab/posim",
+  "source_commit": "abad9d70de843474478de5ef55371c049e40deef",
+  "image_revision": "32eedbacf781a0fd1e517481571e76bfaab73c51",
+  "fuel_lock_sha256": "9776a35839f1797769f7ba3a80dfe046366493889838d8e78cd40c16c9ab31fa",
+  "images": {
+    "arm64": {
+      "image_id": "sha256:72179187c96a801184a15ab9cdaf3ca9714d3717ce04e97cd2ec60f34d83edb8",
+      "run_id": 36670174461,
+      "attempt": 2,
+      "tag": "validation-pr5-abad9d70-arm64-rdp",
+      "artifact": "posim-arm64-runtime-2"
+    },
+    "amd64": {
+      "image_id": "sha256:72d00bb8e32725bd8e4fe91b8f21de770d4e4f4753f93d596bce4cc97d018cc5",
+      "run_id": 36670174383,
+      "attempt": 1,
+      "tag": "validation-pr5-abad9d70-amd64",
+      "artifact": "posim-amd64-runtime-1"
+    }
+  }
+}
