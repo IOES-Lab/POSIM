@@ -5,13 +5,23 @@ name: Build Lyrical / Jetty Docker image (ARM64)
 on:
   workflow_dispatch:
   pull_request:
-    branches: [ros2]
+    branches: [main]
+    paths:
+      - ".docker/**"
+      - ".dockerignore"
+      - ".github/workflows/docker-arm64v8.yml"
+      - "dave_interfaces/**"
+      - "examples/**"
+      - "extras/**"
+      - "gazebo/**"
+      - "models/**"
+      - "README.md"
   push:
-    tags: ["*"]
-    branches: [ros2, dockertest]
+    tags: ["v*"]
+    branches: [main]
 
 env:
-  IMAGE_NAME: ioeslab/dave
+  IMAGE_NAME: ioeslab/posim
   ROS_DISTRO: lyrical
 
 concurrency:
@@ -20,56 +30,38 @@ concurrency:
 
 jobs:
   build-and-push-to-docker-hub:
-    # Validate all PRs on disposable hosted runners, including fork PRs.
-    # Keep publishing builds on the existing self-hosted runner.
-    runs-on: >-
-      ${{ fromJSON(github.event_name == 'pull_request'
-          && '["ubuntu-26.04-arm"]' || '["self-hosted", "ARM64"]') }}
-    timeout-minutes: ${{ github.event_name == 'pull_request' && 360 || 1440 }}
+    # Never execute untrusted fork code on a self-hosted runner.
+    if: >-
+      vars.POSIM_ENABLE_DOCKER_CI == 'true' &&
+      (github.event_name != 'pull_request' ||
+       github.event.pull_request.head.repo.full_name == github.repository)
+    runs-on: [self-hosted, ARM64]
+    timeout-minutes: 1440
     permissions:
       contents: read
+      packages: write
     steps:
-      - name: Configure Docker connection and credentials
-        shell: bash
+      - name: Configure non-interactive Docker credentials
         run: |
-          set -euo pipefail
-
-          export DOCKER_CONFIG="$RUNNER_TEMP/docker-config"
-
-          mkdir -p "$DOCKER_CONFIG"
-          chmod 700 "$DOCKER_CONFIG"
-          printf '{}\n' > "$DOCKER_CONFIG/config.json"
-          chmod 600 "$DOCKER_CONFIG/config.json"
-
-          echo "DOCKER_CONFIG=$DOCKER_CONFIG" >> "$GITHUB_ENV"
-
-          # Hosted Linux PR runners use their existing Docker connection.
-          if [ "$RUNNER_OS" = "macOS" ]; then
-            export DOCKER_HOST="unix://$HOME/.docker/run/docker.sock"
-            echo "DOCKER_HOST=$DOCKER_HOST" >> "$GITHUB_ENV"
-            if [ ! -S "$HOME/.docker/run/docker.sock" ]; then
-              echo "::error::Docker Desktop socket not found. Start Docker Desktop as the runner user."
-              exit 1
-            fi
-          fi
-
-          docker version
-          docker info
+          docker_config="$RUNNER_TEMP/docker-config"
+          mkdir -p "$docker_config"
+          printf '{}\n' > "$docker_config/config.json"
+          echo "DOCKER_CONFIG=$docker_config" >> "$GITHUB_ENV"
 
       - name: Checkout repository
-        uses: actions/checkout@v7.0.1
+        uses: actions/checkout@v4
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4.4.1
+        uses: docker/setup-buildx-action@v3
         with:
           # On a macOS launchd runner, the docker-container driver can try to
           # open Docker Desktop's interactive Keychain credential helper.
           # The native driver avoids that dependency for this single-platform
           # ARM64 build and works with Docker Desktop's containerd image store.
-          driver: ${{ github.event_name == 'pull_request' && 'docker-container' || 'docker' }}
+          driver: docker
 
       - name: Configure Docker Hub authentication
-        if: github.event_name != 'pull_request'
+        if: vars.POSIM_PUBLISH_IMAGES == 'true' && github.event_name != 'pull_request'
         env:
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
           DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
@@ -92,21 +84,23 @@ jobs:
 
       - name: Docker metadata
         id: meta
-        uses: docker/metadata-action@v6.2.0
+        uses: docker/metadata-action@v5
         with:
           images: ${{ env.IMAGE_NAME }}
+          flavor: |
+            latest=false
+            suffix=-arm64-rdp
           tags: |
-            type=raw,value=ros2-arm-rdp,enable=${{ github.event_name != 'pull_request' }}
+            type=ref,event=branch
             type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
 
       - name: Build Docker image
-        uses: docker/build-push-action@v7.4.0
+        uses: docker/build-push-action@v5
         with:
           context: .
-          push: ${{ github.event_name != 'pull_request' }}
-          outputs: >-
-            ${{ github.event_name == 'pull_request'
-                && format('type=oci,dest={0}/pr-image.tar', runner.temp) || '' }}
+          push: ${{ vars.POSIM_PUBLISH_IMAGES == 'true' && github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           file: .docker/lyrical.arm64v8.dockerfile
@@ -114,16 +108,6 @@ jobs:
           build-args: |
             ROS_DISTRO=${{ env.ROS_DISTRO }}
 
-      - name: Upload PR image for trusted publishing
-        if: github.event_name == 'pull_request'
-        uses: actions/upload-artifact@v7.0.1
-        with:
-          name: dave-pr-image-arm64
-          path: ${{ runner.temp }}/pr-image.tar
-          if-no-files-found: error
-          compression-level: 0
-          retention-days: 3
-
       - name: Clear Docker Hub credentials
-        if: always() && github.event_name != 'pull_request'
+        if: always() && vars.POSIM_PUBLISH_IMAGES == 'true' && github.event_name != 'pull_request'
         run: printf '{}\n' > "$DOCKER_CONFIG/config.json"
