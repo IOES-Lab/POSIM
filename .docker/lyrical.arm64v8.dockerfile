@@ -6,7 +6,7 @@
 #   setup below is the adapted version of what that base image contained, plus the xrdp
 #   group-permission fix required by the verified Apple Silicon build.
 # - ROS_DISTRO=lyrical; ros-lyrical-ros-gz supplies the Gazebo Jetty vendor packages.
-# - The current CUDA sonar remains disabled on ARM64; the open WGPU PR is intentionally excluded.
+# - The sonar uses the portable WGPU backend when CUDA is unavailable on ARM64.
 # - ArduSub SITL includes the Python 3.14 compatibility shims validated on Ubuntu 26.04
 #   (imp/pipes modules, python-argparse removal, and PEP 668 handling).
 
@@ -96,13 +96,15 @@ EXPOSE 22/tcp
 
 # --- ROS 2 Lyrical + Gazebo Jetty ---
 ARG ROS_DISTRO="lyrical"
+ARG ROS_APT_SOURCE_VERSION="1.3.0"
 ENV GZ_VERSION=jetty
 
 RUN apt update && apt full-upgrade -y && apt autoremove -y
 
 # Gazebo Jetty is vendored by ros-lyrical-ros-gz on apt already — no separate Gazebo source build
-RUN export ROS_APT_SOURCE_VERSION=$(curl -s https://api.github.com/repos/ros-infrastructure/ros-apt-source/releases/latest | grep -F "tag_name" | awk -F\" '{print $4}') && \
-    curl -L -o /tmp/ros2-apt-source.deb \
+# Pin the bootstrap package to avoid unauthenticated GitHub API rate limits.
+RUN curl --fail --show-error --location --retry 5 --retry-delay 2 \
+      -o /tmp/ros2-apt-source.deb \
       "https://github.com/ros-infrastructure/ros-apt-source/releases/download/${ROS_APT_SOURCE_VERSION}/ros2-apt-source_${ROS_APT_SOURCE_VERSION}.$(. /etc/os-release && echo ${UBUNTU_CODENAME:-${VERSION_CODENAME}})_all.deb" && \
     dpkg -i /tmp/ros2-apt-source.deb && \
     apt update && \
@@ -141,9 +143,25 @@ USER root
 ARG ARDUSUB_COMMIT="30257f01185471ab4c1ac544e47d1b4437e44c98"
 ARG ARDUPILOT_GAZEBO_COMMIT="082a0fe231f6e63bc8d1598f1cba461d9e2ea7f5"
 WORKDIR /home/$USER
-RUN git clone --recurse-submodules https://github.com/ArduPilot/ardupilot.git && \
-    cd ardupilot && git fetch --tags && git checkout --detach "$ARDUSUB_COMMIT" && \
-    git submodule update --init --recursive
+# Fetch only the pinned revision before its submodules, avoiding a full-history
+# clone of the default branch. Retry interrupted transfers without changing pins.
+RUN set -eu; \
+    retry() { \
+      for attempt in 1 2 3; do \
+        if "$@"; then return 0; fi; \
+        if [ "$attempt" -lt 3 ]; then \
+          echo "Git transfer failed (attempt $attempt/3); retrying..." >&2; \
+          sleep "$((attempt * 5))"; \
+        fi; \
+      done; \
+      return 1; \
+    }; \
+    git init ardupilot; \
+    cd ardupilot; \
+    git remote add origin https://github.com/ArduPilot/ardupilot.git; \
+    retry git fetch --depth 1 --no-tags origin "$ARDUSUB_COMMIT"; \
+    git checkout --detach "$ARDUSUB_COMMIT"; \
+    retry git submodule update --init --recursive --depth 1
 
 RUN mkdir -p /home/$USER/imp_shim && \
     printf 'import types\ndef new_module(name):\n    return types.ModuleType(name)\n' > /home/$USER/imp_shim/imp.py && \
