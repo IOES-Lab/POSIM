@@ -1,0 +1,59 @@
+--- a/src/NodeShared.cc
++++ b/src/NodeShared.cc
+@@ -358,19 +358,47 @@
+ //////////////////////////////////////////////////
+ void NodeShared::RunReceptionTask()
+ {
++  // ZMQ socket polling reads the subscription trie. Serialize that access
++  // with subscribe/unsubscribe, but never hold the node mutex while waiting.
++  zmq::pollitem_t items[] =
++  {
++    {static_cast<void*>(*this->dataPtr->subscriber), 0, ZMQ_POLLIN, 0},
++    {static_cast<void*>(*this->dataPtr->replier), 0, ZMQ_POLLIN, 0},
++    {static_cast<void*>(*this->dataPtr->responseReceiver), 0, ZMQ_POLLIN, 0}
++  };
++  constexpr auto count = sizeof(items) / sizeof(items[0]);
++  zmq::pollitem_t notifications[count] = {};
++  {
++    std::lock_guard<std::recursive_mutex> lock(this->mutex);
++    for (size_t i = 0; i < count; ++i)
++    {
++      size_t size = sizeof(notifications[i].fd);
++      if (zmq_getsockopt(items[i].socket, ZMQ_FD, &notifications[i].fd,
++          &size) != 0)
++      {
++        std::cerr << "Unable to obtain transport notification descriptor"
++                  << std::endl;
++        return;
++      }
++      notifications[i].events = ZMQ_POLLIN;
++    }
++  }
+   while (!this->dataPtr->exit)
+   {
+-    // Poll socket for a reply, with timeout.
+-    zmq::pollitem_t items[] =
+-    {
+-      {static_cast<void*>(*this->dataPtr->subscriber), 0, ZMQ_POLLIN, 0},
+-      {static_cast<void*>(*this->dataPtr->replier), 0, ZMQ_POLLIN, 0},
+-      {static_cast<void*>(*this->dataPtr->responseReceiver), 0, ZMQ_POLLIN, 0}
+-    };
+     try
+     {
+-      zmq::poll(&items[0], sizeof(items) / sizeof(items[0]),
+-          std::chrono::milliseconds(NodeSharedPrivate::Timeout));
++      {
++        std::lock_guard<std::recursive_mutex> lock(this->mutex);
++        zmq::poll(items, count, std::chrono::milliseconds(0));
++      }
++      if (!(items[0].revents || items[1].revents || items[2].revents))
++      {
++        // These are OS descriptors, not ZMQ sockets. Recheck ZMQ_EVENTS at
++        // the top of every loop to respect the edge-triggered ZMQ_FD API.
++        zmq::poll(notifications, count,
++            std::chrono::milliseconds(NodeSharedPrivate::Timeout));
++        continue;
++      }
+     }
+     catch(...)
+     {

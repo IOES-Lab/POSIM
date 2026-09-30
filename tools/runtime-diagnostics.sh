@@ -55,6 +55,9 @@ docker run --rm --init --name "$CONTAINER" --platform "linux/$ARCH" \
     dpkg-query -W > /results/packages-after.tsv
     source /opt/ros/lyrical/setup.bash
     source "${DAVE_WS:-$DAVE_UNDERLAY}/install/setup.bash"
+    if [[ "$POSIM_DIAGNOSTIC_MODE" == transport-poll ]]; then
+      exec bash /diagnostics/diagnose-transport-poll.sh
+    fi
     if [[ "$POSIM_DIAGNOSTIC_MODE" == router-lifetime ]]; then
       exec bash /diagnostics/diagnose-router-lifetime.sh
     fi

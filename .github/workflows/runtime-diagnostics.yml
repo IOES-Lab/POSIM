@@ -15,6 +15,12 @@ on:
         type: choice
         options: [arm64, amd64]
         required: true
+      mode:
+        description: Diagnostic only; never publishes an image
+        type: choice
+        options: [gdb, router-lifetime, gazebo-shutdown, gazebo-segfault, transport-poll]
+        default: gdb
+        required: true
       image_id:
         description: Exact locally retained sha256 image ID from validation
         type: string
@@ -27,7 +33,7 @@ jobs:
   diagnose:
     # Explicit opt-in, and never execute fork code on the self-hosted runner.
     if: >-
-      vars.POSIM_ENABLE_RUNTIME_DIAGNOSTICS == 'true' &&
+      (github.event_name == 'workflow_dispatch' || vars.POSIM_ENABLE_RUNTIME_DIAGNOSTICS == 'true') &&
       (github.event_name != 'pull_request' ||
        github.event.pull_request.head.repo.full_name == github.repository)
     runs-on:
@@ -38,7 +44,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Run explicitly selected runtime diagnostic
         env:
-          POSIM_DIAGNOSTIC_MODE: ${{ vars.POSIM_DIAGNOSTIC_MODE }}
+          POSIM_DIAGNOSTIC_MODE: ${{ inputs.mode || vars.POSIM_DIAGNOSTIC_MODE }}
           IMAGE_ID: ${{ inputs.image_id || vars.POSIM_DIAGNOSTIC_IMAGE_ID }}
           ARCHITECTURE: ${{ inputs.architecture || vars.POSIM_DIAGNOSTIC_ARCH || 'arm64' }}
         run: |
