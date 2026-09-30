@@ -1,3 +1,5 @@
+---
+# Compatibility filename; repository entries match posim.lyrical.repos.
 repositories:
   dockwater:
     type: git
@@ -11,6 +13,5 @@ repositories:
 
   dave:
     type: git
-    url: https://github.com/IOES-Lab/dave.git
-    version: ros2
-
+    url: https://github.com/IOES-Lab/POSIM.git
+    version: main

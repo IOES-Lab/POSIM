@@ -1,0 +1,17 @@
+---
+# POSIM repositories. Keep the dave checkout key for existing workspace paths.
+repositories:
+  dockwater:
+    type: git
+    url: https://github.com/IOES-Lab/dockwater.git
+    version: main
+
+  rocker:
+    type: git
+    url: https://github.com/IOES-Lab/rocker.git
+    version: main
+
+  dave:
+    type: git
+    url: https://github.com/IOES-Lab/POSIM.git
+    version: main
