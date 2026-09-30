@@ -73,6 +73,15 @@ RUN touch /root/.dave_entrypoint && \
 
 WORKDIR /root
 
+# Resolve the Quickstart Fuel dependency closure during the build, not startup.
+ENV GZ_FUEL_CACHE_PATH=/opt/posim_fuel/cache
+COPY extras/fuel /opt/posim_fuel
+COPY extras/prepare-image-assets.py /opt/posim_fuel/prepare-image-assets.py
+RUN . "/opt/ros/${ROS_DISTRO}/setup.sh" && \
+    python3 /opt/posim_fuel/prepare-image-assets.py \
+      --cache "$GZ_FUEL_CACHE_PATH" --lock /opt/posim_fuel/quickstart-assets.lock.json \
+      --receipt /opt/posim_fuel/build-receipt.json
+
 LABEL org.opencontainers.image.title="POSIM" \
       org.opencontainers.image.description="Platform for Ocean Simulation" \
       org.opencontainers.image.source="https://github.com/IOES-Lab/POSIM" \

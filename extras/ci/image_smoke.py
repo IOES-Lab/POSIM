@@ -204,6 +204,31 @@ def inventory(out):
         raise RuntimeError(f"Unexpected installed resource inventory: {counts}")
     capture(out, "deb_versions", ["dpkg-query", "-W", "ros-lyrical-*"], 30)
     capture(out, "gazebo_version", ["gz", "sim", "--versions"])
+    fuel = Path("/opt/posim_fuel")
+    expected_lock = Path(__file__).resolve().parent.parent / "fuel/quickstart-assets.lock.json"
+    if (
+        hashlib.sha256(expected_lock.read_bytes()).digest()
+        != hashlib.sha256((fuel / "quickstart-assets.lock.json").read_bytes()).digest()
+    ):
+        raise RuntimeError("Installed Fuel asset lock differs from validation source")
+    code, _ = capture(
+        out,
+        "fuel_assets",
+        [
+            "python3",
+            str(fuel / "prepare-image-assets.py"),
+            "--verify",
+            "--cache",
+            os.environ["GZ_FUEL_CACHE_PATH"],
+            "--lock",
+            str(fuel / "quickstart-assets.lock.json"),
+            "--receipt",
+            str(out / "fuel-assets-receipt.json"),
+        ],
+        60,
+    )
+    if code:
+        raise RuntimeError("Installed Fuel asset integrity/dependency verification failed")
     transport_inventory(out, get_package_prefix)
     ws = Path(os.environ["POSIM_WORKSPACE"])
     bridge_ws = Path(os.environ["POSIM_BRIDGE_UNDERLAY"])

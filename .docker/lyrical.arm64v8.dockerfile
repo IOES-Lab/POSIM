@@ -258,6 +258,16 @@ COPY extras/docker-arm64-entrypoint.sh /usr/local/bin/dave-rdp-entrypoint
 RUN chmod 0755 /usr/local/bin/dave-rdp-entrypoint
 CMD ["/usr/local/bin/dave-rdp-entrypoint"]
 
+# Shared by the root Quickstart session and the unprivileged RDP desktop user.
+ENV GZ_FUEL_CACHE_PATH=/opt/posim_fuel/cache
+COPY extras/fuel /opt/posim_fuel
+COPY extras/prepare-image-assets.py /opt/posim_fuel/prepare-image-assets.py
+RUN . "/opt/ros/${ROS_DISTRO}/setup.sh" && \
+    python3 /opt/posim_fuel/prepare-image-assets.py \
+      --cache "$GZ_FUEL_CACHE_PATH" --lock /opt/posim_fuel/quickstart-assets.lock.json \
+      --receipt /opt/posim_fuel/build-receipt.json && \
+    chown -R $USER:$USER "$GZ_FUEL_CACHE_PATH"
+
 LABEL org.opencontainers.image.title="POSIM" \
       org.opencontainers.image.description="Platform for Ocean Simulation" \
       org.opencontainers.image.source="https://github.com/IOES-Lab/POSIM" \

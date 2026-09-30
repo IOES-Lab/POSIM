@@ -41,7 +41,8 @@ for RECORD in $CASES; do
     --entrypoint bash -e ROS_DOMAIN_ID=121 -e GZ_IP=127.0.0.1 \
     -e LIBGL_ALWAYS_SOFTWARE=1 -e QT_QPA_PLATFORM=offscreen \
     -e "CASE=$CASE" -e "RECORD=$RECORD" \
-    -v "$CHECKS:/checks:ro" -v "$CHECKS/../patches:/patches:ro" -v "$RESULTS:/results" \
+    -v "$CHECKS:/checks:ro" -v "$CHECKS/../patches:/patches:ro" \
+    -v "$CHECKS/../fuel:/fuel:ro" -v "$RESULTS:/results" \
     "$IMAGE_ID" -c '
       set -eo pipefail
       source /opt/ros/lyrical/setup.bash
@@ -60,7 +61,44 @@ for RECORD in $CASES; do
     FAILED=1
   fi
 done
+# Additional acceptance evidence, not retries of connected camera failures.
+printf 'case,status\n' > "$RESULTS/offline-summary.csv"
+for REPEAT in $(seq 1 5); do
+  RECORD="camera-offline-$REPEAT"
+  mkdir -p "$RESULTS/$RECORD"
+  chmod 777 "$RESULTS/$RECORD"
+  CURRENT_CONTAINER="posim-offline-${GITHUB_RUN_ID:-$$}-${GITHUB_RUN_ATTEMPT:-1}-$REPEAT"
+  docker create --init --name "$CURRENT_CONTAINER" --platform "$PLATFORM" --shm-size=1g \
+    --network none --entrypoint bash -e ROS_DOMAIN_ID=121 -e GZ_IP=127.0.0.1 \
+    -e LIBGL_ALWAYS_SOFTWARE=1 -e QT_QPA_PLATFORM=offscreen -e "RECORD=$RECORD" \
+    -v "$CHECKS:/checks:ro" -v "$RESULTS:/results" "$IMAGE_ID" -c '
+      set -eo pipefail
+      source /opt/ros/lyrical/setup.bash
+      source "${DAVE_WS:-$DAVE_UNDERLAY}/install/setup.bash"
+      cd /tmp
+      exec python3 /checks/image_smoke.py camera --record "$RECORD"
+    ' > "$RESULTS/$RECORD/container-id.txt"
+  docker inspect --format '{{json .HostConfig.NetworkMode}}' "$CURRENT_CONTAINER" \
+    > "$RESULTS/$RECORD/docker-network-mode.json"
+  test "$(docker inspect --format '{{.HostConfig.NetworkMode}}' "$CURRENT_CONTAINER")" = none
+  docker start -a "$CURRENT_CONTAINER" || true
+  CODE="$(docker inspect --format '{{.State.ExitCode}}' "$CURRENT_CONTAINER")"
+  STATE="$(docker inspect --format '{{.State.Status}}' "$CURRENT_CONTAINER")"
+  printf '%s\n' "$CODE" > "$RESULTS/$RECORD/container-exit-code.txt"
+  printf '%s\n' "$STATE" > "$RESULTS/$RECORD/container-state.txt"
+  if [[ "$CODE" == 0 && "$STATE" == exited ]] && \
+      python3 -c 'import json,sys; sys.exit(json.load(open(sys.argv[1]))["status"] != "PASS")' \
+        "$RESULTS/$RECORD/result.json"; then
+    printf '%s,PASS\n' "$RECORD" >> "$RESULTS/offline-summary.csv"
+  else
+    printf '%s,FAIL\n' "$RECORD" >> "$RESULTS/offline-summary.csv"
+    FAILED=1
+  fi
+  cleanup
+  CURRENT_CONTAINER=""
+done
 cat "$RESULTS/summary.csv"
+cat "$RESULTS/offline-summary.csv"
 cleanup
 trap - EXIT
 exit "$FAILED"
