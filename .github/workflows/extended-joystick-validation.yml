@@ -1,0 +1,48 @@
+name: Additional simulated joystick validation (no publication)
+on:
+  push:
+    branches: [test/posim-world-runtime-20261001]
+    paths:
+      - .github/workflows/extended-joystick-validation.yml
+      - tools/joystick-validation/**
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  joystick-sitl:
+    runs-on: [self-hosted, ARM64]
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Exercise isolated browser-input protocol and vehicle response
+        env:
+          IMAGE: ioeslab/posim@sha256:72179187c96a801184a15ab9cdaf3ca9714d3717ce04e97cd2ec60f34d83edb8
+        run: |
+          set -euo pipefail
+          export DOCKER_HOST="$(docker context inspect "$(docker context show)" --format '{{.Endpoints.docker.Host}}')"
+          export DOCKER_CONTEXT= DOCKER_CONFIG="$RUNNER_TEMP/posim-joy-docker-$GITHUB_RUN_ID"
+          mkdir -p "$DOCKER_CONFIG"
+          printf '{}\n' > "$DOCKER_CONFIG/config.json"
+          docker image inspect "$IMAGE" >/dev/null 2>&1 || docker pull "$IMAGE"
+          out="$RUNNER_TEMP/posim-joystick-$GITHUB_RUN_ID"
+          mkdir -p "$out"
+          docker image inspect "$IMAGE" > "$out/image-inspect.json"
+          cp tools/joystick-validation/probe.py "$out/"
+          name="posim-joystick-$GITHUB_RUN_ID"
+          trap 'docker rm -f "$name" >/dev/null 2>&1 || true' EXIT
+          docker run --rm --init --name "$name" --platform linux/arm64 --shm-size=1g \
+            --entrypoint bash -e ROS_DOMAIN_ID=136 -e GZ_IP=127.0.0.1 \
+            -e "GZ_PARTITION=$name" -e LIBGL_ALWAYS_SOFTWARE=1 -e QT_QPA_PLATFORM=offscreen \
+            -v "$out:/results" "$IMAGE" -lc '
+              source /opt/ros/lyrical/setup.bash
+              source /home/docker/dave_ws/install/setup.bash
+              cd /tmp
+              python3 /results/probe.py
+            '
+      - name: Upload all evidence including failures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: posim-joystick-arm64-${{ github.run_id }}
+          path: ${{ runner.temp }}/posim-joystick-${{ github.run_id }}
+          retention-days: 14
