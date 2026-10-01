@@ -19,15 +19,17 @@ POSIM 1.0 has not been released.
 Existing ROS package names and launch commands remain available. For example,
 the demonstration package is still called `dave_demos`. The initial import
 contains the CUDA sonar implementation; the WGPU work in
-[DAVE PR #44](https://github.com/IOES-Lab/dave/pull/44) is not included in `main`.
+[POSIM PR #6](https://github.com/IOES-Lab/POSIM/pull/6) (moved from DAVE #44) is not included in `main`.
 Without a CUDA toolkit, the CUDA-specific sonar targets are skipped during
 configuration. A successful build on ARM64 therefore does not establish sonar
 availability.
 
 ## Get started
 
-1. Follow the [Ubuntu installation guide](docs/installation.md), or build a
-   [Docker image from this checkout](docs/docker.md).
+1. Start with the [documentation index](docs/README.md). Follow the
+   [Ubuntu source guide](docs/installation.md), or use a
+   [published validation image](docs/docker.md). The PR #5 images are not a
+   POSIM release and include fixes not yet merged into `main`.
 2. Open a terminal with the installed ROS and workspace environments loaded.
 3. Start a world:
 
@@ -56,7 +58,8 @@ More examples are in [the demo guide](examples/dave_demos/README.md).
 
 The [legacy DAVE Wiki](https://dave-ros2.notion.site) remains available for
 background material. Follow this repository's installation instructions for
-POSIM; the legacy Wiki is not a POSIM release manual.
+POSIM; the legacy Wiki is not a POSIM release manual. See the
+[migration notice](docs/migration.md) and [CUDA/WGPU support limits](docs/support.md).
 
 ## Contributing
 

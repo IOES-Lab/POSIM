@@ -1,8 +1,13 @@
 # Install POSIM from source
 
 These instructions target **Ubuntu 26.04, ROS 2 Lyrical, and Gazebo Jetty**.
-For macOS, use the [ARM64 Docker image build](docker.md); this page does not
+For macOS, use the [ARM64 Docker candidate](docker.md); this page does not
 describe a native macOS installation.
+
+This procedure builds the current **development `main`**, not the published
+PR #5 candidate. Native source installation was reviewed against the scripts,
+but was not rerun from a clean Ubuntu host during this documentation update.
+For the previously verified image and its limits, see [Docker](docker.md).
 
 ## 1. Check out the source
 
@@ -22,13 +27,16 @@ Review `src/dave/extras/ros-lyrical-gz-jetty-install.sh`, then run it on the tar
 Ubuntu machine:
 
 ```bash
-DAVE_EXTRAS_DIR="$PWD/src/dave/extras" \
+ROS_DISTRO=lyrical DAVE_EXTRAS_DIR="$PWD/src/dave/extras" \
   bash src/dave/extras/ros-lyrical-gz-jetty-install.sh
 ```
 
 This helper performs an apt system upgrade, installs ROS/Gazebo and the
 ArduSub/MAVROS dependencies, and adds environment setup to the user's shell
-configuration. The explicit `DAVE_EXTRAS_DIR` selects the helper files from the
+configuration. Read it before running, and use a fresh Bash shell rather than
+one already sourced for another ROS distribution. Do not run this Ubuntu apt
+installer on macOS or execute a remote script directly through `sudo`.
+The explicit `DAVE_EXTRAS_DIR` selects the helper files from the
 same checkout. It is a retained compatibility variable.
 
 ## 3. Import companion repositories and build
@@ -38,6 +46,7 @@ In a Bash terminal:
 ```bash
 cd ~/posim_ws
 source /opt/ros/lyrical/setup.bash
+source "$HOME/.ros_ardusub_env/env"
 vcs import src --shallow --skip-existing \
   --input src/dave/extras/repos/posim.lyrical.repos
 rosdep update --rosdistro lyrical
@@ -75,9 +84,22 @@ For a server-only REXROV run with interactive controls disabled:
 ```bash
 ros2 launch dave_demos dave_robot.launch.py \
   namespace:=rexrov world_name:=dave_ocean_waves z:=-5 paused:=false \
-  gui:=false use_teleop:=false use_web_joystick:=false
+  gui:=false headless:=true use_teleop:=false use_web_joystick:=false
 ```
 
 Some sensors still require a rendering context during server-only execution.
 First use may also need network access to Gazebo Fuel. See the
 [demo guide](../examples/dave_demos/README.md) for other launch entries.
+
+Open each new Bash terminal with both the ROS/ArduSub environment and the
+workspace sourced before launching:
+
+```bash
+source /opt/ros/lyrical/setup.bash
+source "$HOME/.ros_ardusub_env/env"
+source ~/posim_ws/install/setup.bash
+```
+
+See [Quickstart](quickstart.md) for received-data and shutdown checks and
+[support](support.md) before attempting CUDA or WGPU sonar. A native `main`
+build does not inherit the validation status of the candidate Docker image.
