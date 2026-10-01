@@ -1,0 +1,43 @@
+name: Additional installed-world validation (no merge or publication)
+on:
+  push:
+    branches: [test/posim-world-runtime-20261001]
+    paths:
+      - .github/workflows/extended-world-validation.yml
+      - tools/extended-validation/**
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  world-files:
+    runs-on: [self-hosted, ARM64]
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use the published candidate without rebuilding
+        env:
+          IMAGE: ioeslab/posim@sha256:72179187c96a801184a15ab9cdaf3ca9714d3717ce04e97cd2ec60f34d83edb8
+        run: |
+          set -euo pipefail
+          host="$(docker context inspect "$(docker context show)" --format '{{.Endpoints.docker.Host}}')"
+          echo "DOCKER_HOST=$host" >> "$GITHUB_ENV"
+          echo 'DOCKER_CONTEXT=' >> "$GITHUB_ENV"
+          config="$RUNNER_TEMP/posim-extended-docker-$GITHUB_RUN_ID"
+          mkdir -p "$config"
+          printf '{}\n' > "$config/config.json"
+          echo "DOCKER_CONFIG=$config" >> "$GITHUB_ENV"
+          export DOCKER_HOST="$host" DOCKER_CONTEXT= DOCKER_CONFIG="$config"
+          docker image inspect "$IMAGE" >/dev/null 2>&1 || docker pull "$IMAGE"
+          mkdir -p "$RUNNER_TEMP/posim-extended-$GITHUB_RUN_ID"
+          cp tools/extended-validation/*.py "$RUNNER_TEMP/posim-extended-$GITHUB_RUN_ID/"
+          docker image inspect "$IMAGE" > "$RUNNER_TEMP/posim-extended-$GITHUB_RUN_ID/image-inspect.json"
+      - name: Check every installed world file
+        run: |
+          python3 "$RUNNER_TEMP/posim-extended-$GITHUB_RUN_ID/run_worlds.py"
+      - name: Upload all results including failures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: posim-world-files-arm64-${{ github.run_id }}
+          path: ${{ runner.temp }}/posim-extended-${{ github.run_id }}
+          retention-days: 14
