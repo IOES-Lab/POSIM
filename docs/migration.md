@@ -34,16 +34,16 @@ See [compatibility](compatibility.md). Do not globally replace `dave` with
 The old PR discussions remain linked from the new PRs. New issues and review
 belong in POSIM. These development checkpoints do not announce POSIM 1.0.
 
-## Notice for the original DAVE Wiki maintainer
+## Original Wiki transition notice
 
 The original public Wiki and the working personal Wiki are different sites.
-This notice is prepared for the original site's editor; its presence here
-does **not** mean that the original Wiki has already been updated:
+On 2026-10-01, the [original Wiki home](https://dave-ros2.notion.site/?v=d54cc8422868455888cc629d8e6117a9)
+was updated with an **OUTDATED — Development has moved to POSIM** notice,
+a link to this repository and the
+[working installation/Quickstart/backend guide](https://caring-dibble-be5.notion.site/3ecc941998988150ad59f75d5bd105cf).
+The notice also distinguishes validation images from an official POSIM 1.0
+release and identifies WGPU as unmerged development work.
 
-> This DAVE documentation is outdated for new installations. Development now
-> continues as **POSIM — Platform for Ocean Simulation** at
-> [IOES-Lab/POSIM](https://github.com/IOES-Lab/POSIM). Please start with the
-> [POSIM installation guide](https://github.com/IOES-Lab/POSIM/blob/main/docs/installation.md)
-> and [working Quickstart/backend guide](https://caring-dibble-be5.notion.site/3ecc941998988150ad59f75d5bd105cf).
-> The existing pages are retained as historical DAVE documentation. Published
-> validation images are not an official POSIM 1.0 release.
+The original site's remaining pages are historical DAVE material. Adding the
+home-page notice does not mean that all legacy tutorials have been rewritten
+or executed against POSIM.
