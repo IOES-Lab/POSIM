@@ -13,6 +13,7 @@ import websockets
 
 out=Path('/results');rows=[];phase='startup';state={'connected':False,'armed':False}
 result={'scope':'Published ARM64 candidate, headless websocket -> ROS Joy -> MAVROS -> ArduSub SITL; NOT browser UI or physical joystick','checks':{}}
+result['oracle_note']='The installed controller maps forward=-Joy.axes[1]*1000*0.5. Negative stick Y is forward. The first harness incorrectly assumed the opposite and is retained as run 36833689620.'
 cmd=['ros2','launch','dave_demos','dave_robot.launch.py','z:=-0.5','namespace:=bluerov2','world_name:=dave_ocean_waves','paused:=false','gui:=false','headless:=true','use_teleop:=true','use_web_joystick:=true','open_qgc:=false','open_virtual_joystick:=false']
 result['command']=cmd
 f=(out/'messages.jsonl').open('w',buffering=1)
@@ -47,24 +48,27 @@ async def exercise(node):
             phase='arm';await tick(ws,.5,button=9);await tick(ws,5)
             result['checks']['armed']=state['armed']
             if not state['armed']:raise RuntimeError('Normal arm request was not accepted; no force-arming attempted')
-            phase='forward';await tick(ws,8,[0,1,0,0,0,0])
+            phase='forward';await tick(ws,8,[0,-1,0,0,0,0])
             phase='neutral_after';await tick(ws,4)
-            phase='reverse';await tick(ws,8,[0,-1,0,0,0,0])
+            phase='reverse';await tick(ws,8,[0,1,0,0,0,0])
             phase='neutral_end';await tick(ws,4)
         finally:
             phase='disarm';await tick(ws,.5,button=8);await tick(ws,3)
             result['checks']['disarmed']=not state['armed']
     joys=[r for r in rows if r['kind']=='joy']
     controls=[r for r in rows if r['kind']=='manual']
-    result['checks']['forward_joy']=any(r['phase']=='forward' and len(r['axes'])>1 and r['axes'][1]>.9 for r in joys)
-    result['checks']['reverse_joy']=any(r['phase']=='reverse' and len(r['axes'])>1 and r['axes'][1]<-.9 for r in joys)
+    result['checks']['forward_joy']=any(r['phase']=='forward' and len(r['axes'])>1 and r['axes'][1]<-.9 for r in joys)
+    result['checks']['reverse_joy']=any(r['phase']=='reverse' and len(r['axes'])>1 and r['axes'][1]>.9 for r in joys)
     result['checks']['forward_manual']=any(r['phase']=='forward' and r['x']>100 for r in controls)
     result['checks']['reverse_manual']=any(r['phase']=='reverse' and r['x']<-100 for r in controls)
+    vectors=[]
     for stage in ['forward','reverse']:
         obs=[r for r in rows if r['kind']=='odom' and r['phase']==stage]
         displacement=math.dist(obs[0]['position'][:2],obs[-1]['position'][:2]) if len(obs)>1 else 0
         result[stage+'_planar_displacement_m']=displacement
         result['checks'][stage+'_vehicle_motion']=len(obs)>1 and displacement>.05
+        if len(obs)>1:vectors.append([obs[-1]['position'][i]-obs[0]['position'][i] for i in (0,1)])
+    result['checks']['motion_reversed']=len(vectors)==2 and sum(a*b for a,b in zip(*vectors))<0
     end=[r for r in controls if r['phase']=='neutral_end']
     result['checks']['neutral_command']=len(end)>5 and all(abs(r['x'])<1e-5 and abs(r['y'])<1e-5 and abs(r['r'])<1e-5 for r in end[-5:])
 
