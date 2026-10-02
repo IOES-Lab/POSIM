@@ -2,6 +2,10 @@
 # Install the ROS 2 Lyrical / Gazebo Jetty development stack used by POSIM (formerly DAVE).
 set -euo pipefail
 
+# A local checkout supplies the companion installers from the same revision.
+LOCAL_EXTRAS_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]:-.}")" && pwd)"
+DAVE_EXTRAS_DIR="${DAVE_EXTRAS_DIR:-$LOCAL_EXTRAS_DIR}"
+
 DIST="${ROS_DISTRO:-lyrical}"
 echo
 echo -e "\033[94m============================================================\033[0m"
