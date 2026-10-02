@@ -80,3 +80,7 @@ before enabling Docker builds or publication in this new repository.
 
 [Apache License 2.0](LICENSE). Existing third-party notices remain with their
 source files and assets.
+
+## Optional surface drones
+
+[WAM-V / ArduRover and external wave dependency](extras/surface/README.md) provides an opt-in integration redesign of PR #7. The regular BlueROV2 defaults remain unchanged.

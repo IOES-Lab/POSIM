@@ -1,0 +1,25 @@
+# Parent-owned navigation overlay. Upstream POSIM config remains unchanged.
+mavros:
+  ros__parameters:
+    system_id: 255
+    plugin_allowlist:
+      - sys_status
+      - command
+      - manual_control
+      - imu
+      - rc_io
+      - param
+      - local_position
+      - global_position
+      - vision_pose
+      - vision_speed
+      - setpoint_raw
+mavros_node:
+  ros__parameters:
+    fcu_url: "tcp://127.0.0.1:5760"
+    gcs_url: "udp://@localhost:14550"
+mavros/local_position:
+  ros__parameters:
+    frame_id: "map"
+    tf:
+      send: false

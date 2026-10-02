@@ -1,0 +1,6 @@
+{
+  "repository": "https://github.com/srmainwaring/asv_wave_sim.git",
+  "commit": "ca8629df4e191235753dfae92ef725d30b923364",
+  "license": "GPL-3.0-or-later",
+  "scope": "external build dependency; source and notices retained alongside binaries"
+}
