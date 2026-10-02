@@ -3,6 +3,14 @@
 Build images from the repository root so that Docker uses the exact checkout.
 These are local development tags; they do not imply a published POSIM release.
 
+Both image recipes automatically build the pinned external Wave Sim dependency
+with `extras/install-waves.sh`. No separate plugin installation or recursive
+clone is required. Libraries install under `/opt/waves`; upstream source,
+license notices and POSIM build adaptations remain under `/opt/asv_wave_sim`.
+Plugin and resource paths are configured in the image. Existing worlds must
+still explicitly select the external wave/hydrodynamics systems. See
+[wave integration and distribution](../extras/surface/README.md).
+
 ## AMD64
 
 ```bash

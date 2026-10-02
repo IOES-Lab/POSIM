@@ -1,8 +1,10 @@
 # Validation of the external dependency redesign
 
-This optional surface integration is based on POSIM main `e05a9fb7d25ec21399f897e9bddfcabc4493b703`; it redesigns the wave/WAM-V portion of [PR #7](https://github.com/IOES-Lab/POSIM/pull/7) without importing its copied wave solver. Existing BlueROV launch, base image recipes, repository license and CI configuration are unchanged.
+This optional surface integration is based on POSIM main `e05a9fb7d25ec21399f897e9bddfcabc4493b703`; it redesigns the wave/WAM-V portion of [PR #7](https://github.com/IOES-Lab/POSIM/pull/7) without importing its copied wave solver. Existing BlueROV launch, repository source license and CI configuration are unchanged. Standard Docker recipes and the Ubuntu stack installer now build Wave Sim automatically.
 
 ## Actual local checks
+
+The shared `extras/install-waves.sh` was additionally tested in a fresh Docker layer on `wwos-runtime:e05a9fb-arm64` (before any Wave Sim dependency was installed). It fetched the pinned SHA, applied the compatibility edits, compiled/installed all libraries, retained source/notices and correctly reused the result on a second invocation. `gz plugin --info --plugin` loaded the newly installed WavesModel and Hydrodynamics shared objects and enumerated their Gazebo interfaces. This validates the shared installer; it does not claim a fresh rebuild of every standard POSIM image layer or an AMD64 run.
 
 On ARM64 Ubuntu 26.04 / ROS 2 Lyrical / Gazebo Jetty:
 
@@ -21,4 +23,4 @@ No native GPU or AMD64 result is inferred from software-rendered ARM64. Hull/pro
 
 High SR0 rates in Rover boot defaults produced a startup floating-point exception in one test; defaults now avoid those changes and navigation message intervals are requested after FCU connection. The post-connection standalone run completed. A shutdown regression remains: some MAVROS exits report `-11` and Gazebo may require supervisor termination during cleanup. Sessions are still reaped and ownership released, but clean library/process teardown needs follow-up before production use. This is a draft integration, not a calibrated or production-ready maritime stack.
 
-Externalizing Wave Sim does not automatically exempt combined/distributed software from GPL obligations. The optional image retains modified upstream source/notices; review its full intended distribution, including CGAL/FFTW. Nothing here changes POSIM's Apache-2.0 license or asserts a legal conclusion about every possible distribution.
+Externalizing Wave Sim does not automatically exempt combined/distributed software from GPL obligations. The normal and optional images retain modified upstream source/notices; review its full intended distribution, including CGAL/FFTW. Nothing here changes POSIM's Apache-2.0 license or asserts a legal conclusion about every possible distribution.

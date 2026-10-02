@@ -109,6 +109,21 @@ sudo mkdir -p /opt/mavros_ws && cd /opt/mavros_ws || exit
 sudo wget https://raw.githubusercontent.com/mavlink/mavros/master/mavros/scripts/install_geographiclib_datasets.sh
 sudo chmod +x install_geographiclib_datasets.sh && sudo bash ./install_geographiclib_datasets.sh
 
+# Fetch and build the pinned external waves during the same POSIM install.
+if [[ -n "${DAVE_EXTRAS_DIR:-}" && -f "${DAVE_EXTRAS_DIR}/install-waves.sh" ]]; then
+    sudo bash "${DAVE_EXTRAS_DIR}/install-waves.sh"
+else
+    # The one-liner installer may run without a local POSIM checkout.
+    WAVE_HELPERS="$(mktemp -d)"
+    mkdir -p "$WAVE_HELPERS/surface"
+    for WAVE_HELPER in install-waves.sh surface/dependency.json surface/patch_external_waves.py; do
+        curl -fsSL "https://raw.githubusercontent.com/IOES-Lab/POSIM/main/extras/$WAVE_HELPER" \
+            -o "$WAVE_HELPERS/$WAVE_HELPER"
+    done
+    sudo bash "$WAVE_HELPERS/install-waves.sh"
+    rm -rf "$WAVE_HELPERS"
+fi
+
 # Environment variables setup (write to ~/.dave/env and source from shell rc)
 TARGET_USER="${SUDO_USER:-${USER:-}}"
 if [[ -z "$TARGET_USER" ]]; then
@@ -136,8 +151,9 @@ export PATH=/opt/ardusub_ws/ardupilot/Tools/autotest:\$PATH
 export PATH=/opt/ardusub_ws/ardupilot/build/sitl/bin:\$PATH
 export GEOGRAPHICLIB_GEOID_PATH=/usr/share/GeographicLib/geoids
 export GZ_VERSION=jetty
-export GZ_SIM_SYSTEM_PLUGIN_PATH=/opt/ardusub_ws/ardupilot_gazebo/build:\${GZ_SIM_SYSTEM_PLUGIN_PATH:-}
-export GZ_SIM_RESOURCE_PATH=/opt/ardusub_ws/ardupilot_gazebo/models:/opt/ardusub_ws/ardupilot_gazebo/worlds:\${GZ_SIM_RESOURCE_PATH:-}
+export LD_LIBRARY_PATH=/opt/waves/lib:\${LD_LIBRARY_PATH:-}
+export GZ_SIM_SYSTEM_PLUGIN_PATH=/opt/waves/lib:/opt/ardusub_ws/ardupilot_gazebo/build:\${GZ_SIM_SYSTEM_PLUGIN_PATH:-}
+export GZ_SIM_RESOURCE_PATH=/opt/asv_wave_sim/gz-waves-models/models:/opt/asv_wave_sim/gz-waves-models/world_models:/opt/ardusub_ws/ardupilot_gazebo/models:/opt/ardusub_ws/ardupilot_gazebo/worlds:\${GZ_SIM_RESOURCE_PATH:-}
 EOF
 
 if ! grep -q "^source \$HOME/.ros_ardusub_env/env$" "$RC_FILE" 2>/dev/null; then

@@ -178,8 +178,12 @@ RUN git clone --depth 1 https://github.com/ArduPilot/ardupilot_gazebo.git \
     cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo && \
     make -j2
 
-ENV GZ_SIM_SYSTEM_PLUGIN_PATH=/home/$USER/ardupilot_gazebo/build
-ENV GZ_SIM_RESOURCE_PATH=/home/$USER/ardupilot_gazebo/models:/home/$USER/ardupilot_gazebo/worlds
+# Waves are built during the normal POSIM image build. The upstream checkout
+# and GPL notices stay separate from POSIM under /opt/asv_wave_sim.
+RUN bash $DAVE_UNDERLAY/src/dave/extras/install-waves.sh
+ENV LD_LIBRARY_PATH=/opt/waves/lib
+ENV GZ_SIM_SYSTEM_PLUGIN_PATH=/opt/waves/lib:/home/$USER/ardupilot_gazebo/build
+ENV GZ_SIM_RESOURCE_PATH=/opt/asv_wave_sim/gz-waves-models/models:/opt/asv_wave_sim/gz-waves-models/world_models:/home/$USER/ardupilot_gazebo/models:/home/$USER/ardupilot_gazebo/worlds
 
 # --- QGroundControl, Firefox, environment ---
 RUN usermod -aG dialout $USER && apt -y remove modemmanager || true
@@ -231,4 +235,4 @@ CMD ["/usr/local/bin/dave-rdp-entrypoint"]
 LABEL org.opencontainers.image.title="POSIM" \
       org.opencontainers.image.description="Platform for Ocean Simulation" \
       org.opencontainers.image.source="https://github.com/IOES-Lab/POSIM" \
-      org.opencontainers.image.licenses="Apache-2.0"
+      org.opencontainers.image.licenses="Apache-2.0 AND GPL-3.0-or-later"

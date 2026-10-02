@@ -4,11 +4,9 @@ FROM ${POSIM_BASE_IMAGE}
 USER root
 SHELL ["/bin/bash", "-c"]
 RUN apt-get update && apt-get install -y --no-install-recommends libcgal-dev libfftw3-dev libboost-iostreams-dev libboost-system-dev python3-scipy ros-lyrical-mavros-extras && rm -rf /var/lib/apt/lists/*
-ARG ASV_WAVE_SIM_COMMIT=ca8629df4e191235753dfae92ef725d30b923364
-RUN git clone https://github.com/srmainwaring/asv_wave_sim.git /opt/asv_wave_sim && cd /opt/asv_wave_sim && git checkout ${ASV_WAVE_SIM_COMMIT}
-COPY extras/surface/patch_external_waves.py /tmp/patch_external_waves.py
-RUN python3 /tmp/patch_external_waves.py /opt/asv_wave_sim
-RUN source /opt/ros/lyrical/setup.bash && export PKG_CONFIG_PATH=/opt/ros/lyrical/opt/gz_ogre_next_vendor/lib/pkgconfig:${PKG_CONFIG_PATH:-} && GZ_VERSION=jetty cmake -S /opt/asv_wave_sim/gz-waves -B /opt/asv_wave_sim/build -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF -DCMAKE_INSTALL_PREFIX=/opt/waves && cmake --build /opt/asv_wave_sim/build -j 2 && cmake --install /opt/asv_wave_sim/build
+COPY extras/install-waves.sh /tmp/posim-extras/install-waves.sh
+COPY extras/surface/dependency.json extras/surface/patch_external_waves.py /tmp/posim-extras/surface/
+RUN bash /tmp/posim-extras/install-waves.sh
 RUN su docker -c 'cd /home/docker/ardupilot && python3 modules/waf/waf-light build --target bin/ardurover -j2' && cp /home/docker/ardupilot/build/sitl/bin/ardurover /usr/local/bin/ardurover
 # Retain upstream GPL source and notices. No code is copied into POSIM.
 ENV LD_LIBRARY_PATH=/opt/waves/lib
