@@ -49,8 +49,17 @@ More examples are in [the demo guide](examples/posim_demos/README.md).
 - `posim_interfaces/`: ROS messages and services used by the library.
 - `extras/`: dependency installation, repository manifests, and development tools.
 
-Documentation is maintained separately in Notion by IOES-Lab.
-The repository contains executable examples and dependency build instructions.
+## Documentation
+
+Read the [English guide](website/content/en/index.md) or
+[한국어 가이드](website/content/ko/index.md) for installation, examples, custom
+models and plugin references. The guides adapt the IOES-Lab Notion Wiki to
+the current source layout.
+
+The [documentation website](website/README.md) uses the WWW-POSIM documentation
+design and provides search, command copying and mobile navigation. It builds
+to static HTML and can be deployed independently on Vercel or another static
+host. Building it does not build or run Gazebo.
 
 ## Contributing
 

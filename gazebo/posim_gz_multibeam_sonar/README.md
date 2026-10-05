@@ -18,7 +18,7 @@ the implementation actually merged and tested here.
 
 ## Documentation
 
-See the [legacy DAVE sonar tutorial](https://dave-ros2.notion.site/Multibeam-Sonar-Plugin-223661362ab2803b873bda4878fc55a8)
-for the inherited model and configuration. Use the
-[POSIM installation guide](../../docs/installation.md) for current repository
+See the [POSIM sonar guide](../../website/content/en/sonar.md)
+for the model and configuration. Use the
+[POSIM installation guide](../../website/content/en/install.md) for current repository
 and workspace setup.
