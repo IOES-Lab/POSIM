@@ -24,10 +24,10 @@ The package provides:
 The controller is designed to run with the DAVE BlueROV2 simulator in direct-control mode:
 
 ```bash
-ros2 launch dave_demos dave_robot.launch.py \
+ros2 launch posim_demos posim_robot.launch.py \
   z:=-0.5 \
   namespace:=bluerov2 \
-  world_name:=dave_ocean_waves \
+  world_name:=posim_ocean_waves \
   paused:=false \
   use_ardusub:=false \
   use_teleop:=false

@@ -7,7 +7,7 @@ manipulation tasks for ROS 2 and Gazebo.
 POSIM continues the [DAVE](https://github.com/IOES-Lab/dave) codebase, originally
 developed as [Project DAVE](https://github.com/Field-Robotics-Lab/dave). This
 repository preserves the source history, existing copyright notices, and
-Apache-2.0 license. See [origin and compatibility](docs/compatibility.md).
+Apache-2.0 license.
 
 ## Current development version
 
@@ -16,47 +16,41 @@ The initial POSIM import is based on DAVE `ros2` commit
 [`8a3f6ab`](https://github.com/IOES-Lab/dave/commit/8a3f6abc2ba14ced787aff8befa0201f6c80ca8c).
 POSIM 1.0 has not been released.
 
-Existing ROS package names and launch commands remain available. For example,
-the demonstration package is still called `dave_demos`. The initial import
-contains the CUDA sonar implementation; the WGPU work in
-[DAVE PR #44](https://github.com/IOES-Lab/dave/pull/44) is not included in `main`.
-Without a CUDA toolkit, the CUDA-specific sonar targets are skipped during
-configuration. A successful build on ARM64 therefore does not establish sonar
-availability.
+ROS packages, plugin namespaces and launch files use the `posim_` prefix.
+Rebuild in a clean workspace when migrating from the earlier `dave_` names.
+Existing third-party source attribution is retained.
 
 ## Get started
 
-1. Follow the [Ubuntu installation guide](docs/installation.md), or build a
-   [Docker image from this checkout](docs/docker.md).
+1. Run `extras/ros-lyrical-gz-jetty-install.sh`, or build `.docker/lyrical.amd64.dockerfile` / `.docker/lyrical.arm64v8.dockerfile` from this checkout.
 2. Open a terminal with the installed ROS and workspace environments loaded.
 3. Start a world:
 
    ```bash
-   ros2 launch dave_demos dave_world.launch.py world_name:=dave_ocean_waves
+   ros2 launch posim_demos posim_world.launch.py world_name:=posim_ocean_waves
    ```
 
 For a server-only run, append `headless:=true`. On a desktop with rendering
 available, start REXROV with:
 
 ```bash
-ros2 launch dave_demos dave_robot.launch.py \
-  namespace:=rexrov world_name:=dave_ocean_waves z:=-5 paused:=false
+ros2 launch posim_demos posim_robot.launch.py \
+  namespace:=rexrov world_name:=posim_ocean_waves z:=-5 paused:=false
 ```
 
 World and model references may download assets from Gazebo Fuel on first use.
-More examples are in [the demo guide](examples/dave_demos/README.md).
+More examples are in [the demo guide](examples/posim_demos/README.md).
 
 ## Library contents
 
 - `models/`: world, vehicle, sensor, and object descriptions and their resources.
 - `gazebo/`: model, sensor, world, ROS bridge, and multibeam sonar plugins.
-- `examples/dave_demos/`: world, robot, sensor, and object launch entry points.
-- `dave_interfaces/`: ROS messages and services used by the library.
+- `examples/posim_demos/`: world, robot, sensor, and object launch entry points.
+- `posim_interfaces/`: ROS messages and services used by the library.
 - `extras/`: dependency installation, repository manifests, and development tools.
 
-The [legacy DAVE Wiki](https://dave-ros2.notion.site) remains available for
-background material. Follow this repository's installation instructions for
-POSIM; the legacy Wiki is not a POSIM release manual.
+Documentation is maintained separately in Notion by IOES-Lab.
+The repository contains executable examples and dependency build instructions.
 
 ## Contributing
 
@@ -73,8 +67,6 @@ pre-commit install
 pre-commit run --all-files
 ```
 
-Maintainers should read [CI and image configuration](docs/maintainer-setup.md)
-before enabling Docker builds or publication in this new repository.
 
 ## License
 

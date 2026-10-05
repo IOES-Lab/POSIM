@@ -111,18 +111,18 @@ RUN export ROS_APT_SOURCE_VERSION=$(curl -s https://api.github.com/repos/ros-inf
       ros-${ROS_DISTRO}-image-view \
       python3-rosdep python3-vcstool python3-colcon-common-extensions
 
-# --- DAVE workspace ---
+# --- POSIM workspace ---
 # Build the exact checked-out revision supplied as the Docker build context.
-ENV DAVE_UNDERLAY=/home/$USER/dave_ws
-WORKDIR $DAVE_UNDERLAY/src
-COPY . dave
-RUN chown -R $USER:$USER $DAVE_UNDERLAY/src/dave
+ENV POSIM_UNDERLAY=/home/$USER/posim_ws
+WORKDIR $POSIM_UNDERLAY/src
+COPY . posim
+RUN chown -R $USER:$USER $POSIM_UNDERLAY/src/posim
 
 # Keep the companion repositories from the inherited DAVE workspace, while
 # preserving the exact POSIM checkout copied above.
 RUN vcs import --shallow --skip-existing \
-      --input dave/extras/repos/posim.lyrical.repos && \
-    chown -R $USER:$USER $DAVE_UNDERLAY
+      --input posim/extras/repos/posim.lyrical.repos && \
+    chown -R $USER:$USER $POSIM_UNDERLAY
 
 RUN apt-get update && \
     (rosdep init 2>/dev/null || true) && \
@@ -131,7 +131,7 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 USER $USER
-WORKDIR $DAVE_UNDERLAY
+WORKDIR $POSIM_UNDERLAY
 RUN . "/opt/ros/${ROS_DISTRO}/setup.sh" && \
     colcon build --merge-install --executor sequential --symlink-install
 
@@ -180,7 +180,7 @@ RUN git clone --depth 1 https://github.com/ArduPilot/ardupilot_gazebo.git \
 
 # Waves are built during the normal POSIM image build. The upstream checkout
 # and GPL notices stay separate from POSIM under /opt/asv_wave_sim.
-RUN bash $DAVE_UNDERLAY/src/dave/extras/install-waves.sh
+RUN bash $POSIM_UNDERLAY/src/posim/extras/install-waves.sh
 ENV LD_LIBRARY_PATH=/opt/waves/lib
 ENV GZ_SIM_SYSTEM_PLUGIN_PATH=/opt/waves/lib:/home/$USER/ardupilot_gazebo/build
 ENV GZ_SIM_RESOURCE_PATH=/opt/asv_wave_sim/gz-waves-models/models:/opt/asv_wave_sim/gz-waves-models/world_models:/home/$USER/ardupilot_gazebo/models:/home/$USER/ardupilot_gazebo/worlds
@@ -217,7 +217,7 @@ RUN curl -L "https://download.mozilla.org/?product=firefox-latest-ssl&os=linux64
 
 USER root
 RUN echo "source /opt/ros/${ROS_DISTRO}/setup.bash" >> /home/$USER/.bashrc && \
-    echo "source $DAVE_UNDERLAY/install/setup.bash" >> /home/$USER/.bashrc && \
+    echo "source $POSIM_UNDERLAY/install/setup.bash" >> /home/$USER/.bashrc && \
     echo "export PATH=/home/$USER/.local/bin:/usr/local/bin:\$PATH" >> /home/$USER/.bashrc && \
     echo "export GZ_SIM_SYSTEM_PLUGIN_PATH=/home/$USER/ardupilot_gazebo/build:\${GZ_SIM_SYSTEM_PLUGIN_PATH:-}" >> /home/$USER/.bashrc && \
     echo "export GZ_SIM_RESOURCE_PATH=/home/$USER/ardupilot_gazebo/models:/home/$USER/ardupilot_gazebo/worlds:\${GZ_SIM_RESOURCE_PATH:-}" >> /home/$USER/.bashrc && \
@@ -228,9 +228,9 @@ RUN echo "source /opt/ros/${ROS_DISTRO}/setup.bash" >> /home/$USER/.bashrc && \
     echo "export PS1='\[\e[1;36m\]\u@POSIM_docker\[\e[0m\]:\[\e[1;34m\]\w\[\e[0m\]\$ '" >> /home/$USER/.bashrc
 
 # --- Run (no systemd inside this container) ---
-COPY extras/docker-arm64-entrypoint.sh /usr/local/bin/dave-rdp-entrypoint
-RUN chmod 0755 /usr/local/bin/dave-rdp-entrypoint
-CMD ["/usr/local/bin/dave-rdp-entrypoint"]
+COPY extras/docker-arm64-entrypoint.sh /usr/local/bin/posim-rdp-entrypoint
+RUN chmod 0755 /usr/local/bin/posim-rdp-entrypoint
+CMD ["/usr/local/bin/posim-rdp-entrypoint"]
 
 LABEL org.opencontainers.image.title="POSIM" \
       org.opencontainers.image.description="Platform for Ocean Simulation" \

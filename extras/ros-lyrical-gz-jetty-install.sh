@@ -4,7 +4,7 @@ set -euo pipefail
 
 # A local checkout supplies the companion installers from the same revision.
 LOCAL_EXTRAS_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]:-.}")" && pwd)"
-DAVE_EXTRAS_DIR="${DAVE_EXTRAS_DIR:-$LOCAL_EXTRAS_DIR}"
+POSIM_EXTRAS_DIR="${POSIM_EXTRAS_DIR:-$LOCAL_EXTRAS_DIR}"
 
 DIST="${ROS_DISTRO:-lyrical}"
 echo
@@ -100,8 +100,8 @@ sudo apt update && sudo apt install -y \
 # Install ArduSub. The helper sources the Lyrical environment so the
 # ardupilot_gazebo build resolves Jetty's vendored CMake packages.
 sudo mkdir -p /opt/ardusub_ws && cd /opt/ardusub_ws || exit
-if [[ -n "${DAVE_EXTRAS_DIR:-}" && -f "${DAVE_EXTRAS_DIR}/ardusub-ubuntu-install.sh" ]]; then
-    sudo cp "${DAVE_EXTRAS_DIR}/ardusub-ubuntu-install.sh" ./ardusub-ubuntu-install.sh
+if [[ -n "${POSIM_EXTRAS_DIR:-}" && -f "${POSIM_EXTRAS_DIR}/ardusub-ubuntu-install.sh" ]]; then
+    sudo cp "${POSIM_EXTRAS_DIR}/ardusub-ubuntu-install.sh" ./ardusub-ubuntu-install.sh
 else
     sudo wget https://raw.githubusercontent.com/IOES-Lab/POSIM/main/extras/ardusub-ubuntu-install.sh
 fi
@@ -114,8 +114,8 @@ sudo wget https://raw.githubusercontent.com/mavlink/mavros/master/mavros/scripts
 sudo chmod +x install_geographiclib_datasets.sh && sudo bash ./install_geographiclib_datasets.sh
 
 # Fetch and build the pinned external waves during the same POSIM install.
-if [[ -n "${DAVE_EXTRAS_DIR:-}" && -f "${DAVE_EXTRAS_DIR}/install-waves.sh" ]]; then
-    sudo bash "${DAVE_EXTRAS_DIR}/install-waves.sh"
+if [[ -n "${POSIM_EXTRAS_DIR:-}" && -f "${POSIM_EXTRAS_DIR}/install-waves.sh" ]]; then
+    sudo bash "${POSIM_EXTRAS_DIR}/install-waves.sh"
 else
     # The one-liner installer may run without a local POSIM checkout.
     WAVE_HELPERS="$(mktemp -d)"
@@ -128,7 +128,7 @@ else
     rm -rf "$WAVE_HELPERS"
 fi
 
-# Environment variables setup (write to ~/.dave/env and source from shell rc)
+# Environment variables setup (write to ~/.posim/env and source from shell rc)
 TARGET_USER="${SUDO_USER:-${USER:-}}"
 if [[ -z "$TARGET_USER" ]]; then
     TARGET_USER="$(id -un)"
