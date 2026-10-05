@@ -1,0 +1,49 @@
+---
+name: Documentation
+
+# yamllint disable-line rule:truthy
+on:
+  pull_request:
+    paths:
+      - "website/**"
+      - "models/**"
+      - "examples/**"
+      - "posim_interfaces/**"
+      - ".github/workflows/documentation.yml"
+  push:
+    branches: [main]
+    paths:
+      - "website/**"
+      - "models/**"
+      - "examples/**"
+      - "posim_interfaces/**"
+      - ".github/workflows/documentation.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  static-site:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: website
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - name: Install pinned dependencies
+        run: npx --yes pnpm@10.11.0 install --frozen-lockfile --ignore-scripts
+      - name: Build and check both languages against source
+        run: |
+          node scripts/build.mjs
+          node scripts/check.mjs
+      - name: Verify website-only deployment
+        run: |
+          mkdir -p "$RUNNER_TEMP/posim-documentation"
+          cp -R . "$RUNNER_TEMP/posim-documentation/website"
+          cd "$RUNNER_TEMP/posim-documentation/website"
+          node scripts/build.mjs
+          node scripts/check.mjs

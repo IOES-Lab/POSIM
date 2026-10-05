@@ -1,0 +1,112 @@
+{
+  "sourceRevision": "144d55e4cf183bdbce58a5f4fba780b2d5f39459",
+  "reviewedAt": "2026-10-06",
+  "wiki": "https://caring-dibble-be5.notion.site/d24c9419989882cfa6498152ad4c840c?v=b42c941998988252a89588ad58631495&pvs=74",
+  "notion": {
+    "requirements": {
+      "title": "POSIM System Requirements",
+      "url": "https://caring-dibble-be5.notion.site/p/POSIM-System-Requirements-e78c941998988260a9b78153f3efda9b?pvs=24",
+      "lastEdited": "2026-10-01T08:38:47.661Z"
+    },
+    "installation": {
+      "title": "POSIM Installation",
+      "url": "https://caring-dibble-be5.notion.site/p/POSIM-Installation-21fc94199898838082ea812e2ac516c0?pvs=24",
+      "lastEdited": "2026-10-01T04:23:03.320Z"
+    },
+    "native": {
+      "title": "POSIM Native Installation",
+      "url": "https://caring-dibble-be5.notion.site/p/POSIM-Native-Installation-bfec9419989882c893ba01fbef337fcd?pvs=24",
+      "lastEdited": "2026-10-01T04:46:16.461Z"
+    },
+    "docker": {
+      "title": "POSIM Docker Guide",
+      "url": "https://caring-dibble-be5.notion.site/p/POSIM-Docker-Guide-9e9c9419989883ba9d180148b969c136?pvs=24",
+      "lastEdited": "2026-10-01T08:38:46.699Z"
+    },
+    "quickstart": {
+      "title": "POSIM Quickstart & Backend Support",
+      "url": "https://caring-dibble-be5.notion.site/p/POSIM-Quickstart-Backend-Support-3ecc941998988150ad59f75d5bd105cf?pvs=24",
+      "lastEdited": "2026-10-01T08:40:00.723Z"
+    },
+    "add-robot": {
+      "title": "POSIM — Add a Robot Model",
+      "url": "https://caring-dibble-be5.notion.site/p/POSIM-Add-a-Robot-Model-5fac941998988280a1aa01203a87c607?pvs=24",
+      "lastEdited": "2026-10-01T02:15:26.373Z"
+    },
+    "rovs": {
+      "title": "POSIM ROV Models",
+      "url": "https://caring-dibble-be5.notion.site/p/POSIM-ROV-Models-768c941998988311b58a01a8dc246628?pvs=24",
+      "lastEdited": "2026-10-01T04:23:06.995Z"
+    },
+    "gliders": {
+      "title": "POSIM Glider Models",
+      "url": "https://caring-dibble-be5.notion.site/p/POSIM-Glider-Models-fe4c941998988326838f8199a73c15c5?pvs=24",
+      "lastEdited": "2026-10-01T02:15:22.065Z"
+    },
+    "worlds": {
+      "title": "POSIM World Library",
+      "url": "https://caring-dibble-be5.notion.site/p/POSIM-World-Library-d6fc941998988302b38d81d8e73b1490?pvs=24",
+      "lastEdited": "2026-10-01T08:38:48.536Z"
+    },
+    "heightmaps": {
+      "title": "POSIM — Heightmap World Reference",
+      "url": "https://caring-dibble-be5.notion.site/p/POSIM-Heightmap-World-Reference-dcec94199898825d9d2f0131eadec5e2?pvs=24",
+      "lastEdited": "2026-10-01T02:15:28.080Z"
+    },
+    "objects": {
+      "title": "POSIM Object Models",
+      "url": "https://caring-dibble-be5.notion.site/p/POSIM-Object-Models-2c9c941998988216b7a1816fce54894d?pvs=24",
+      "lastEdited": "2026-10-01T04:23:06.094Z"
+    },
+    "currents": {
+      "title": "POSIM Ocean Current Plugins",
+      "url": "https://caring-dibble-be5.notion.site/p/POSIM-Ocean-Current-Plugins-523c941998988354b05581f66d943a99?pvs=24",
+      "lastEdited": "2026-10-01T02:19:03.799Z"
+    },
+    "usbl": {
+      "title": "POSIM USBL Plugin",
+      "url": "https://caring-dibble-be5.notion.site/p/POSIM-USBL-Plugin-7b8c9419989882b5ad1981cde0349c35?pvs=24",
+      "lastEdited": "2026-10-01T04:24:56.979Z"
+    },
+    "coordinates": {
+      "title": "POSIM Spherical Coordinates Plugin",
+      "url": "https://caring-dibble-be5.notion.site/p/POSIM-Spherical-Coordinates-Plugin-4c9c9419989882528ec9010caaf0c696?pvs=24",
+      "lastEdited": "2026-10-01T02:24:56.615Z"
+    },
+    "pressure": {
+      "title": "POSIM SeaPressure Plugin",
+      "url": "https://caring-dibble-be5.notion.site/p/POSIM-SeaPressure-Plugin-3ffc94199898832da3b881f9962ec3bf?pvs=24",
+      "lastEdited": "2026-10-01T02:24:55.913Z"
+    },
+    "sonar": {
+      "title": "POSIM Multibeam Sonar — CUDA & WGPU",
+      "url": "https://caring-dibble-be5.notion.site/p/POSIM-Multibeam-Sonar-CUDA-WGPU-2e6c94199898822a8905817e53dc6447?pvs=24",
+      "lastEdited": "2026-10-01T04:23:08.090Z"
+    },
+    "dvl": {
+      "title": "POSIM DVL Plugin",
+      "url": "https://caring-dibble-be5.notion.site/p/POSIM-DVL-Plugin-045c941998988221995c0130ae637b13?pvs=24",
+      "lastEdited": "2026-10-01T02:18:17.569Z"
+    },
+    "camera": {
+      "title": "POSIM Underwater Camera Plugin",
+      "url": "https://caring-dibble-be5.notion.site/p/POSIM-Underwater-Camera-Plugin-d79c9419989883b8812681042f90cfa0?pvs=24",
+      "lastEdited": "2026-10-01T02:24:55.147Z"
+    },
+    "sonar-optimization": {
+      "title": "POSIM CUDA Sonar — Optimization Reference",
+      "url": "https://caring-dibble-be5.notion.site/p/POSIM-CUDA-Sonar-Optimization-Reference-ab3c941998988356a7b481b10d998268?pvs=24",
+      "lastEdited": "2026-10-01T04:23:12.062Z"
+    },
+    "sonar-build": {
+      "title": "POSIM Sonar — Build & Troubleshooting",
+      "url": "https://caring-dibble-be5.notion.site/p/POSIM-Sonar-Build-Troubleshooting-c58c9419989883c2ba0e813bb07de84b?pvs=24",
+      "lastEdited": "2026-10-01T04:23:12.865Z"
+    },
+    "development": {
+      "title": "POSIM Development & Release Status",
+      "url": "https://caring-dibble-be5.notion.site/p/POSIM-Development-Release-Status-d7bc9419989883cdbb8d8169b62717c4?pvs=24",
+      "lastEdited": "2026-10-01T08:38:43.423Z"
+    }
+  }
+}

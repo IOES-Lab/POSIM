@@ -1,6 +1,6 @@
 # POSIM scene examples
 
-Build POSIM using the [installation guide](../../docs/installation.md), then
+Build POSIM using the [installation guide](../../website/content/en/install.md), then
 source the ROS environment and your workspace in each new terminal:
 
 ```bash
