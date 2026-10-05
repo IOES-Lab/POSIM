@@ -1,0 +1,5 @@
+---
+Language: Json
+BasedOnStyle: Google
+ColumnLimit: 99
+...

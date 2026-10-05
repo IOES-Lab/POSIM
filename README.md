@@ -78,5 +78,12 @@ before enabling Docker builds or publication in this new repository.
 
 ## License
 
-[Apache License 2.0](LICENSE). Existing third-party notices remain with their
-source files and assets.
+POSIM-authored source uses [Apache License 2.0](LICENSE). Existing third-party
+notices remain with their source files and assets. Docker builds also install
+external Wave Sim under its upstream GPL terms, retaining corresponding source
+and notices; the whole image is not licensed under Apache-2.0 alone. See
+[dependency and distribution details](extras/surface/README.md#submodules-and-licensing).
+
+## Waves and optional surface drones
+
+The normal Docker image builds and Ubuntu stack installer automatically fetch and build the pinned external wave plugin. [WAM-V / ArduRover](extras/surface/README.md) remains an opt-in vehicle overlay. This redesign references PR #7 while keeping the wave solver in its upstream repository and preserving the regular BlueROV2 launch defaults.

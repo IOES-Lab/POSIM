@@ -14,6 +14,9 @@ RUN apt-get update && \
 COPY extras /tmp/dave-extras
 RUN DAVE_EXTRAS_DIR=/tmp/dave-extras \
     bash /tmp/dave-extras/ros-lyrical-gz-jetty-install.sh
+ENV LD_LIBRARY_PATH=/opt/waves/lib
+ENV GZ_SIM_SYSTEM_PLUGIN_PATH=/opt/waves/lib:/opt/ardusub_ws/ardupilot_gazebo/build
+ENV GZ_SIM_RESOURCE_PATH=/opt/asv_wave_sim/gz-waves-models/models:/opt/asv_wave_sim/gz-waves-models/world_models:/opt/ardusub_ws/ardupilot_gazebo/models:/opt/ardusub_ws/ardupilot_gazebo/worlds
 
 # Install QGroundControl.
 RUN mkdir -p /opt/QGC && cd /opt/QGC && \
@@ -63,4 +66,4 @@ WORKDIR /root
 LABEL org.opencontainers.image.title="POSIM" \
       org.opencontainers.image.description="Platform for Ocean Simulation" \
       org.opencontainers.image.source="https://github.com/IOES-Lab/POSIM" \
-      org.opencontainers.image.licenses="Apache-2.0"
+      org.opencontainers.image.licenses="Apache-2.0 AND GPL-3.0-or-later"
