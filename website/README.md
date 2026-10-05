@@ -19,7 +19,24 @@ pnpm preview
 Open `http://127.0.0.1:4174` for English, or
 `http://127.0.0.1:4174/ko/` for Korean. Output is in `dist/`.
 
-## Deploy on Vercel
+## Publish on GitHub Pages
+
+The public documentation is published at
+<https://ioes-lab.github.io/POSIM/> (English) and
+<https://ioes-lab.github.io/POSIM/ko/> (Korean).
+
+The repository's Pages publishing source is **GitHub Actions**. The
+`Documentation` workflow builds and checks both languages, then uploads only
+`website/dist` and publishes it on pushes to `main`. Pull requests build and
+check the site without publishing. The workflow can also be run manually.
+No Vercel account, simulator, server secret or paid hosting plan is needed.
+
+Links, assets, search and language switching use relative paths so they work
+under `/POSIM/`. `SITE_URL=https://ioes-lab.github.io/POSIM` retains that path
+in the generated sitemap. Publish only the built `dist/`, never the repository
+root or internal validation records.
+
+## Optional Vercel deployment
 
 1. Import `IOES-Lab/POSIM` as a new Vercel project and select the documentation
    branch for a preview, or `main` after the documentation is merged.

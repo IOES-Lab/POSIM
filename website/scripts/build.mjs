@@ -78,7 +78,9 @@ for (const lang of ['en', 'ko']) {
 const urls = pages.flatMap(page => [`/${page.slug === 'index' ? '' : page.slug + '.html'}`, `/ko/${page.slug === 'index' ? '' : page.slug + '.html'}`]);
 const siteUrl = process.env.SITE_URL;
 if (siteUrl) {
-  const origin = new URL(siteUrl).origin;
+  const site = new URL(siteUrl);
+  if (!['https:', 'http:'].includes(site.protocol)) throw new Error('SITE_URL must be an HTTP(S) address');
+  const origin = site.origin + site.pathname.replace(/\/$/, '');
   await writeFile(path.join(output, 'sitemap.xml'), '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' + urls.map(url => `<url><loc>${esc(origin + url)}</loc></url>`).join('') + '</urlset>');
   await writeFile(path.join(output, 'robots.txt'), `User-agent: *\nAllow: /\nSitemap: ${origin}/sitemap.xml\n`);
 }
