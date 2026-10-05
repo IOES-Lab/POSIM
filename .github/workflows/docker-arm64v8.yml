@@ -43,9 +43,17 @@ jobs:
     steps:
       - name: Configure non-interactive Docker credentials
         run: |
+          # Read the selected daemon before isolating credentials. A new
+          # DOCKER_CONFIG otherwise loses Docker Desktop's desktop-linux context
+          # and falls back to the absent /var/run/docker.sock on macOS.
+          docker_host="${DOCKER_HOST:-$(docker context inspect --format '{{.Endpoints.docker.Host}}')}"
           docker_config="$RUNNER_TEMP/docker-config"
           mkdir -p "$docker_config"
+          chmod 700 "$docker_config"
           printf '{}\n' > "$docker_config/config.json"
+          chmod 600 "$docker_config/config.json"
+          echo "DOCKER_HOST=$docker_host" >> "$GITHUB_ENV"
+          echo "DOCKER_CONTEXT=" >> "$GITHUB_ENV"
           echo "DOCKER_CONFIG=$docker_config" >> "$GITHUB_ENV"
 
       - name: Checkout repository

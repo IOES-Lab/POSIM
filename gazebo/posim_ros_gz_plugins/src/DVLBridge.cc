@@ -24,7 +24,8 @@
 #include "posim_ros_gz_plugins/DVLBridge.hh"
 
 GZ_ADD_PLUGIN(
-  posim_ros_gz_plugins::DVLBridge, gz::sim::System, posim_ros_gz_plugins::DVLBridge::ISystemConfigure,
+  posim_ros_gz_plugins::DVLBridge, gz::sim::System,
+  posim_ros_gz_plugins::DVLBridge::ISystemConfigure,
   posim_ros_gz_plugins::DVLBridge::ISystemPostUpdate)
 
 namespace posim_ros_gz_plugins

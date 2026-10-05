@@ -87,7 +87,8 @@ void UsblTransponder::Configure(
   const gz::sim::Entity & _entity, const std::shared_ptr<const sdf::Element> & _sdf,
   gz::sim::EntityComponentManager & _ecm, gz::sim::EventManager & _eventManager)
 {
-  gzdbg << "posim_gz_sensor_plugins::UsblTransponder::Configure on entity: " << _entity << std::endl;
+  gzdbg << "posim_gz_sensor_plugins::UsblTransponder::Configure on entity: " << _entity
+        << std::endl;
 
   if (!rclcpp::ok())
   {
