@@ -10,7 +10,7 @@ on:
       - ".docker/**"
       - ".dockerignore"
       - ".github/workflows/docker-arm64v8.yml"
-      - "dave_interfaces/**"
+      - "posim_interfaces/**"
       - "examples/**"
       - "extras/**"
       - "gazebo/**"

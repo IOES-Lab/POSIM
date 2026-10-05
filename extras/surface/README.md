@@ -4,11 +4,11 @@ This redesign follows [POSIM PR #7](https://github.com/IOES-Lab/POSIM/pull/7). W
 
 ## Build and run
 
-This optional Dockerfile currently targets the ARM64 base layout (`docker` user, `/home/docker/ardupilot`, `/home/docker/dave_ws`). Build the ARM64 image as described in `docs/docker.md`; Wave Sim is included by default, with no separate wave installation command. The optional surface overlay adds ArduRover and the WAM-V launch, reusing the wave installation when its recipe matches. From the repository root:
+This optional Dockerfile currently targets the ARM64 base layout (`docker` user, `/home/docker/ardupilot`, `/home/docker/posim_ws`). Build the ARM64 image as described in `docs/docker.md`; Wave Sim is included by default, with no separate wave installation command. The optional surface overlay adds ArduRover and the WAM-V launch, reusing the wave installation when its recipe matches. From the repository root:
 
 ```sh
 docker build -f extras/surface/Dockerfile --build-arg POSIM_BASE_IMAGE=posim:dev-arm64-rdp -t posim:surface .
-docker run --rm -it --entrypoint bash posim:surface -lc 'source /opt/ros/lyrical/setup.bash; source /home/docker/dave_ws/install/setup.bash; ros2 launch /opt/posim-surface/wamv.launch.py headless:=true'
+docker run --rm -it --entrypoint bash posim:surface -lc 'source /opt/ros/lyrical/setup.bash; source /home/docker/posim_ws/install/setup.bash; ros2 launch /opt/posim-surface/wamv.launch.py headless:=true'
 ```
 
 The same image contains **ArduSub and ArduRover** as separate binaries. Select one controller per vehicle/session; running both on the same ports is not supported by this single-vehicle example. Rover's `FRAME_CLASS=2` selects a boat. Independent left/right servo outputs 1/3 drive the aft propellers, with fixed engine steering joints. The demo starts on the surface. Native GUI use requires the usual display/GPU configuration.
