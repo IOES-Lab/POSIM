@@ -2,6 +2,10 @@
 
 POSIM은 해양 로봇 실험을 위한 ROS 2·Gazebo 라이브러리입니다. 해양 환경, 로봇 모델, 모의 센서와 제어 인터페이스를 조합하여 같은 조건의 실험을 반복할 수 있습니다.
 
+## WWW-POSIM 체험하기
+
+[WWW-POSIM — World Wide Web Platform for Ocean Simulation](https://www-posim.vercel.app/)은 POSIM, ROS 2, Gazebo와 ArduPilot을 기반으로 웹 브라우저와 설치형 앱에서 해양 로봇 시뮬레이션을 제공하는 플랫폼입니다. 위도·경도로 시작 위치를 정하고 실제 지형에서 수상·수중 로봇을 운항하며, 실시간 센서 데이터를 확인하고 웨이포인트 임무나 직접 작성한 ROS 2 자율운항 코드를 시험할 수 있습니다. 플랫폼에서 세계 일주 라이브 항해와 주요 기능을 살펴보고, 설치 파일과 튜토리얼을 확인해 보세요.
+
 ## 여기서 시작하세요
 
 <div class="docs-architecture"><a href="install.html"><strong>설치</strong><span>Ubuntu에 ROS 2·Gazebo 작업 공간을 구성합니다.</span></a><a href="quickstart.html"><strong>실행</strong><span>해양 월드를 띄우고 첫 센서 데이터를 받습니다.</span></a><a href="custom-robots.html"><strong>확장</strong><span>자신의 로봇, 지형과 제어 코드를 추가합니다.</span></a></div>
@@ -22,7 +26,7 @@ Linux에 직접 설치하려면 [Ubuntu 설치](install.md)를, 독립된 실행
 
 월드 SDF에는 환경과 월드 시스템을 정의합니다. 모델 SDF에는 링크, 충돌 형상, 관성, 센서와 모델 시스템을 정의합니다. Launch 파일이 Gazebo를 시작하고 선택한 모델을 배치한 뒤 ROS 브리지를 연결합니다. 사용자의 ROS 노드는 관측값을 받아 설정된 인터페이스로 제어 명령을 보냅니다.
 
-POSIM은 시뮬레이션 라이브러리입니다. 계정 관리, 온라인 세션과 WWW-POSIM 웹 플랫폼은 이 라이브러리를 사용하는 별도 응용 프로그램입니다. ROS 작업 공간에서 라이브러리를 직접 사용할 때는 해당 서비스가 필요하지 않습니다.
+POSIM은 ROS 작업 공간에서 직접 사용할 수 있습니다. WWW-POSIM은 이 시뮬레이션 라이브러리에 지리 좌표 기반 월드 생성, 브라우저 화면, 계정 관리와 온라인 세션을 더한 플랫폼입니다.
 
 ## 필요한 문서 찾기
 
