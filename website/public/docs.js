@@ -2,7 +2,8 @@
 const ko = document.documentElement.lang === 'ko';
 let searchIndex;
 const indexPromise = () => searchIndex ||= fetch(document.body.dataset.searchIndex)
-  .then(response => { if (!response.ok) throw new Error('Search unavailable'); return response.json(); });
+  .then(response => { if (!response.ok) throw new Error('Search unavailable'); return response.json(); })
+  .catch(error => { searchIndex = undefined; throw error; });
 
 document.querySelectorAll('.docs-search input').forEach(input => {
   const container = input.closest('.docs-sidebar, .docs-mobile-menu');
