@@ -141,9 +141,24 @@ USER root
 ARG ARDUSUB_COMMIT="30257f01185471ab4c1ac544e47d1b4437e44c98"
 ARG ARDUPILOT_GAZEBO_COMMIT="082a0fe231f6e63bc8d1598f1cba461d9e2ea7f5"
 WORKDIR /home/$USER
-RUN git clone --recurse-submodules https://github.com/ArduPilot/ardupilot.git && \
-    cd ardupilot && git fetch --tags && git checkout --detach "$ARDUSUB_COMMIT" && \
-    git submodule update --init --recursive
+# Fetch only the pinned revision before downloading its submodules. Use HTTP/1.1
+# and bounded retries for interrupted GitHub transfers during CI builds.
+RUN set -eu; \
+    retry() { \
+      attempt=1; \
+      until "$@"; do \
+        if [ "$attempt" -ge 3 ]; then return 1; fi; \
+        echo "Git transfer failed; retrying in $((attempt * 5)) seconds" >&2; \
+        sleep "$((attempt * 5))"; \
+        attempt=$((attempt + 1)); \
+      done; \
+    }; \
+    git init ardupilot; \
+    cd ardupilot; \
+    git remote add origin https://github.com/ArduPilot/ardupilot.git; \
+    retry git -c http.version=HTTP/1.1 fetch --depth 1 --no-tags origin "$ARDUSUB_COMMIT"; \
+    git checkout --detach "$ARDUSUB_COMMIT"; \
+    retry git -c http.version=HTTP/1.1 submodule update --init --recursive --depth 1 --jobs 2
 
 RUN mkdir -p /home/$USER/imp_shim && \
     printf 'import types\ndef new_module(name):\n    return types.ModuleType(name)\n' > /home/$USER/imp_shim/imp.py && \
