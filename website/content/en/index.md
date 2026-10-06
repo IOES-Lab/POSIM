@@ -2,6 +2,10 @@
 
 POSIM is a ROS 2 and Gazebo library for maritime robotics. Combine ocean environments, vehicle descriptions, simulated sensors and control interfaces to build repeatable experiments.
 
+## Try WWW-POSIM
+
+[WWW-POSIM — World Wide Web Platform for Ocean Simulation](https://www-posim.vercel.app/) builds on POSIM, ROS 2, Gazebo and ArduPilot to bring maritime simulation to a web browser and a standalone application. Choose a geographic starting point, explore real terrain with surface or underwater robots, inspect live sensor data, and test waypoint missions or your own ROS 2 autonomy code. Visit the platform to watch the live voyage, explore its features, and find downloads and tutorials.
+
 ## Start here
 
 <div class="docs-architecture"><a href="install.html"><strong>Install</strong><span>Build the ROS 2 and Gazebo workspace on Ubuntu.</span></a><a href="quickstart.html"><strong>Run</strong><span>Start an ocean world and receive your first sensor data.</span></a><a href="custom-robots.html"><strong>Extend</strong><span>Add your robot, terrain and control code.</span></a></div>
@@ -22,7 +26,7 @@ Use [Ubuntu installation](install.md) for a native Linux workspace, or [Docker](
 
 A world SDF defines the environment and world systems. A model SDF defines links, collisions, inertia, sensors and model systems. Launch files start Gazebo, spawn the selected description and configure ROS bridges. Your ROS node reads observations and publishes commands through the configured interface.
 
-POSIM is the simulation library. Account management, online sessions and the WWW-POSIM web platform are separate applications built around it. You can use this library directly from a ROS workspace without either service.
+You can use POSIM directly from a ROS workspace. WWW-POSIM adds geographic world generation, a browser interface, account management and online sessions around the simulation library.
 
 ## Find the right guide
 
