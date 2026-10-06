@@ -11,22 +11,12 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 # Install ROS 2 Lyrical, Gazebo Jetty, ArduSub, and MAVROS from this checkout.
-COPY extras /tmp/dave-extras
-RUN DAVE_EXTRAS_DIR=/tmp/dave-extras \
-    bash /tmp/dave-extras/ros-lyrical-gz-jetty-install.sh
-
-# docker run/exec do not necessarily start an interactive shell. Keep these
-# paths in the image environment, not just the installer's ~/.bashrc hook.
-ENV PATH=/opt/ardusub_ws/ardupilot/build/sitl/bin:/opt/ardusub_ws/ardupilot/Tools/autotest:${PATH}
-ENV GZ_SIM_SYSTEM_PLUGIN_PATH=/opt/ardusub_ws/ardupilot_gazebo/build
-ENV GZ_SIM_RESOURCE_PATH=/opt/ardusub_ws/ardupilot_gazebo/models:/opt/ardusub_ws/ardupilot_gazebo/worlds
-ENV GEOGRAPHICLIB_GEOID_PATH=/usr/share/GeographicLib/geoids
-ENV POSIM_BRIDGE_UNDERLAY=/opt/posim_bridge_ws
-ENV POSIM_MAVROS_UNDERLAY=/opt/posim_mavros_ws
-ENV POSIM_TRANSPORT_UNDERLAY=/opt/posim_transport_ws
-RUN bash /tmp/dave-extras/build-image-transport.sh
-RUN bash /tmp/dave-extras/build-image-mavros.sh
-RUN bash /tmp/dave-extras/build-image-bridge.sh
+COPY extras /tmp/posim-extras
+RUN POSIM_EXTRAS_DIR=/tmp/posim-extras \
+    bash /tmp/posim-extras/ros-lyrical-gz-jetty-install.sh
+ENV LD_LIBRARY_PATH=/opt/waves/lib
+ENV GZ_SIM_SYSTEM_PLUGIN_PATH=/opt/waves/lib:/opt/ardusub_ws/ardupilot_gazebo/build
+ENV GZ_SIM_RESOURCE_PATH=/opt/asv_wave_sim/gz-waves-models/models:/opt/asv_wave_sim/gz-waves-models/world_models:/opt/ardusub_ws/ardupilot_gazebo/models:/opt/ardusub_ws/ardupilot_gazebo/worlds
 
 # Install QGroundControl.
 RUN mkdir -p /opt/QGC && cd /opt/QGC && \
@@ -47,42 +37,33 @@ RUN curl -L "https://download.mozilla.org/?product=firefox-latest-ssl&os=linux64
 
 # Build the exact POSIM revision supplied as the Docker build context. Import the
 # companion repositories, but never replace the checked-out POSIM source.
-ENV DAVE_WS=/opt/dave_ws
-WORKDIR $DAVE_WS/src
-COPY . dave
+ENV POSIM_WS=/opt/posim_ws
+WORKDIR $POSIM_WS/src
+COPY . posim
 RUN vcs import --shallow --skip-existing \
-      --input dave/extras/repos/posim.lyrical.repos
+      --input posim/extras/repos/posim.lyrical.repos
 
 RUN apt-get update && \
     rosdep update --rosdistro "$ROS_DISTRO" && \
     rosdep install --rosdistro "$ROS_DISTRO" -iy --from-paths . && \
     rm -rf /var/lib/apt/lists/*
 
-WORKDIR $DAVE_WS
-RUN . "$POSIM_BRIDGE_UNDERLAY/install/setup.sh" && \
+WORKDIR $POSIM_WS
+RUN . "/opt/ros/${ROS_DISTRO}/setup.sh" && \
     colcon build --merge-install --executor sequential --symlink-install
 
 RUN echo "source /opt/ros/${ROS_DISTRO}/setup.bash" >> /root/.bashrc && \
-    echo "source $DAVE_WS/install/setup.bash" >> /root/.bashrc && \
+    echo "source $POSIM_WS/install/setup.bash" >> /root/.bashrc && \
     echo "export PS1='\[\e[1;36m\]\u@POSIM_docker\[\e[0m\]\[\e[1;34m\](\$(hostname | cut -c1-12))\[\e[0m\]:\[\e[1;34m\]\w\[\e[0m\]\$ '" >> /root/.bashrc
 
-RUN touch /root/.dave_entrypoint && \
-    printf '\033[1;36mPOSIM - Platform for Ocean Simulation\033[0m\n' >> /root/.dave_entrypoint && \
-    printf '\033[1;33mROS 2 Lyrical · Gazebo Jetty · ArduSub · MAVROS\033[0m\n\n' >> /root/.dave_entrypoint && \
-    echo 'cat /root/.dave_entrypoint' >> /root/.bashrc
+RUN touch /root/.posim_entrypoint && \
+    printf '\033[1;36mPOSIM - Platform for Ocean Simulation\033[0m\n' >> /root/.posim_entrypoint && \
+    printf '\033[1;33mROS 2 Lyrical · Gazebo Jetty · ArduSub · MAVROS\033[0m\n\n' >> /root/.posim_entrypoint && \
+    echo 'cat /root/.posim_entrypoint' >> /root/.bashrc
 
 WORKDIR /root
-
-# Resolve the Quickstart Fuel dependency closure during the build, not startup.
-ENV GZ_FUEL_CACHE_PATH=/opt/posim_fuel/cache
-COPY extras/fuel /opt/posim_fuel
-COPY extras/prepare-image-assets.py /opt/posim_fuel/prepare-image-assets.py
-RUN . "/opt/ros/${ROS_DISTRO}/setup.sh" && \
-    python3 /opt/posim_fuel/prepare-image-assets.py \
-      --cache "$GZ_FUEL_CACHE_PATH" --lock /opt/posim_fuel/quickstart-assets.lock.json \
-      --receipt /opt/posim_fuel/build-receipt.json
 
 LABEL org.opencontainers.image.title="POSIM" \
       org.opencontainers.image.description="Platform for Ocean Simulation" \
       org.opencontainers.image.source="https://github.com/IOES-Lab/POSIM" \
-      org.opencontainers.image.licenses="Apache-2.0"
+      org.opencontainers.image.licenses="Apache-2.0 AND GPL-3.0-or-later"

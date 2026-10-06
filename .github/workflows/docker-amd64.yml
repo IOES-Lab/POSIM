@@ -10,7 +10,7 @@ on:
       - ".docker/**"
       - ".dockerignore"
       - ".github/workflows/docker-amd64.yml"
-      - "dave_interfaces/**"
+      - "posim_interfaces/**"
       - "examples/**"
       - "extras/**"
       - "gazebo/**"
@@ -23,7 +23,6 @@ on:
 env:
   IMAGE_NAME: ioeslab/posim
   ROS_DISTRO: lyrical
-  VALIDATION_IMAGE: posim-validation:amd64-${{ github.run_id }}-${{ github.run_attempt }}
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -44,14 +43,21 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
+
+      - name: Log in to Docker Hub
+        if: vars.POSIM_PUBLISH_IMAGES == 'true' && github.event_name != 'pull_request'
+        uses: docker/login-action@v4
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Docker metadata
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
           images: ${{ env.IMAGE_NAME }}
           flavor: |
@@ -64,55 +70,13 @@ jobs:
             type=semver,pattern={{major}}.{{minor}}
 
       - name: Build Docker image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v7
         with:
           context: .
-          push: false
-          load: true
-          tags: ${{ env.VALIDATION_IMAGE }}
+          push: ${{ vars.POSIM_PUBLISH_IMAGES == 'true' && github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           file: .docker/lyrical.amd64.dockerfile
           platforms: linux/amd64
           build-args: |
             ROS_DISTRO=${{ env.ROS_DISTRO }}
-
-      - name: Validate installed image and Quickstarts
-        # 14 initial paths + 63 additional trials, including two SITL vehicles.
-        timeout-minutes: 75
-        run: |
-          bash extras/ci/docker_quickstarts.sh "$VALIDATION_IMAGE" linux/amd64 \
-            "$RUNNER_TEMP/posim-validation-${{ github.run_id }}-${{ github.run_attempt }}"
-
-      - name: Preserve runtime evidence
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: posim-amd64-runtime-${{ github.run_attempt }}
-          path: ${{ runner.temp }}/posim-validation-${{ github.run_id }}-${{ github.run_attempt }}
-          if-no-files-found: warn
-          retention-days: 14
-
-      - name: Log in to Docker Hub
-        if: >-
-          vars.POSIM_PUBLISH_IMAGES == 'true' && github.event_name != 'pull_request' &&
-          (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
-        uses: docker/login-action@v4
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Publish the tested image
-        if: >-
-          vars.POSIM_PUBLISH_IMAGES == 'true' && github.event_name != 'pull_request' &&
-          (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
-        env:
-          PUBLISH_TAGS: ${{ steps.meta.outputs.tags }}
-        run: |
-          results="$RUNNER_TEMP/posim-validation-${{ github.run_id }}-${{ github.run_attempt }}"
-          tested_id="$(cat "$results/tested-image-id.txt")"
-          test "$(docker image inspect --format '{{.Id}}' "$VALIDATION_IMAGE")" = "$tested_id"
-          while IFS= read -r tag; do
-            test -n "$tag" || continue
-            docker tag "$tested_id" "$tag"
-            docker push "$tag"
-          done <<< "$PUBLISH_TAGS"

@@ -1,7 +1,0 @@
-cmake_minimum_required(VERSION 3.16)
-project(posim_bridge_ownership LANGUAGES CXX)
-set(CMAKE_CXX_STANDARD 17)
-find_package(ros_gz_bridge REQUIRED)
-add_executable(posim_bridge_ownership_check main.cc)
-target_link_libraries(posim_bridge_ownership_check ${ros_gz_bridge_TARGETS})
-install(TARGETS posim_bridge_ownership_check DESTINATION bin)

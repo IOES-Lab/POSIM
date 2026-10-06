@@ -1,0 +1,66 @@
+# First simulation
+
+Start one world, then add a robot or a sensor. Use two terminals with the same [Ubuntu](install.md) or [Docker](docker.md) environment loaded: Terminal A runs the simulation; Terminal B inspects data.
+
+## 1. Start an ocean world
+
+In Terminal A:
+
+```bash
+ros2 launch posim_demos posim_world.launch.py \
+  world_name:=posim_ocean_waves headless:=true
+```
+
+In Terminal B:
+
+```bash
+gz topic -e -t /world/oceans_waves/clock
+```
+
+Simulation time should advance. The world entity is `oceans_waves`, although the file is `posim_ocean_waves.world`. Stop the topic viewer and then the launch with Ctrl+C before starting the next example.
+
+## 2. Spawn REXROV
+
+The robot launch starts its world too; do not leave the previous world running.
+
+```bash
+ros2 launch posim_demos posim_robot.launch.py \
+  namespace:=rexrov world_name:=posim_ocean_waves z:=-5 paused:=false \
+  gui:=false headless:=true use_teleop:=false use_web_joystick:=false
+```
+
+In Terminal B:
+
+```bash
+ros2 topic echo /model/rexrov/odometry nav_msgs/msg/Odometry --once
+```
+
+Inspect the timestamp, pose and twist. An unmoving robot can still produce valid odometry. See [ROVs](rovs.md) to select BlueROV2 and its control interfaces.
+
+## 3. Receive a camera image
+
+Stop REXROV and start the camera example:
+
+```bash
+ros2 launch posim_demos posim_sensor.launch.py \
+  namespace:=underwater_camera world_name:=camera_tutorial \
+  x:=10 z:=-93.5 pitch:=0.3 yaw:=3.14 \
+  paused:=false gui:=false headless:=true
+```
+
+In Terminal B:
+
+```bash
+ros2 topic echo /underwater_camera/simulated_image \
+  sensor_msgs/msg/Image --once --no-arr
+```
+
+Check nonzero width and height, encoding and timestamp. `--no-arr` hides the pixel array from terminal output. To see the image, use an RViz Image display subscribed to this topic. [Underwater camera](camera.md) explains the attenuation settings.
+
+## Desktop viewing
+
+On a machine with a working display and renderer, use `gui:=true headless:=false` for robot and sensor launches. For the world launch, use `headless:=false`. These are Gazebo desktop windows; the browser hosting this documentation does not run the simulation.
+
+## Next experiments
+
+Try [DVL](dvl.md), [USBL](usbl.md), [currents](currents.md) or the [world library](worlds.md). First-use Fuel downloads can delay startup. If data does not arrive, inspect the advancing clock, then plugin and resource logs using [Troubleshooting](troubleshooting.md).

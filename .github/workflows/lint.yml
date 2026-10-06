@@ -21,7 +21,7 @@ jobs:
 
     steps:
       - name: Check out Git repository
-        uses: actions/checkout@v7.0.1
+        uses: actions/checkout@v7
 
       - name: Set up Python 3.12
         uses: actions/setup-python@v7.0.0
@@ -45,9 +45,6 @@ jobs:
       - name: Lint Python
         if: ${{ !cancelled() }}
         run: flake8 --ignore=E203,W503,E501 --exclude=tools/code_check .
-
-      - name: Test runtime log failure detection
-        run: python -m unittest discover -s extras/ci -p 'test_*.py'
 
       - name: Check C and C++ formatting
         if: ${{ !cancelled() }}

@@ -1,0 +1,26 @@
+{
+  "sourceRevision": "144d55e4cf183bdbce58a5f4fba780b2d5f39459",
+  "worlds": [
+    "camera_tutorial.world",
+    "dvl_world.world",
+    "new_dvl.world",
+    "ocean_current_plugin.world",
+    "posim_Santorini.world",
+    "posim_bimanual_example.world",
+    "posim_electrical_mating.world",
+    "posim_graded_seabed.world",
+    "posim_integrated.world",
+    "posim_multibeam_sonar.world",
+    "posim_ocean_models.world",
+    "posim_ocean_waves.world",
+    "posim_ocean_waves_mossy_ground.world",
+    "posim_ocean_waves_sonar.world",
+    "posim_ocean_waves_sonar_integrated.world",
+    "posim_ocean_waves_transient_current.world",
+    "posim_plug_and_socket.world",
+    "usbl_tutorial.world"
+  ],
+  "objects": [
+    "mossy_cinder_block"
+  ]
+}

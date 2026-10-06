@@ -2,6 +2,10 @@
 # Install the ROS 2 Lyrical / Gazebo Jetty development stack used by POSIM (formerly DAVE).
 set -euo pipefail
 
+# A local checkout supplies the companion installers from the same revision.
+LOCAL_EXTRAS_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]:-.}")" && pwd)"
+POSIM_EXTRAS_DIR="${POSIM_EXTRAS_DIR:-$LOCAL_EXTRAS_DIR}"
+
 DIST="${ROS_DISTRO:-lyrical}"
 echo
 echo -e "\033[94m============================================================\033[0m"
@@ -96,8 +100,8 @@ sudo apt update && sudo apt install -y \
 # Install ArduSub. The helper sources the Lyrical environment so the
 # ardupilot_gazebo build resolves Jetty's vendored CMake packages.
 sudo mkdir -p /opt/ardusub_ws && cd /opt/ardusub_ws || exit
-if [[ -n "${DAVE_EXTRAS_DIR:-}" && -f "${DAVE_EXTRAS_DIR}/ardusub-ubuntu-install.sh" ]]; then
-    sudo cp "${DAVE_EXTRAS_DIR}/ardusub-ubuntu-install.sh" ./ardusub-ubuntu-install.sh
+if [[ -n "${POSIM_EXTRAS_DIR:-}" && -f "${POSIM_EXTRAS_DIR}/ardusub-ubuntu-install.sh" ]]; then
+    sudo cp "${POSIM_EXTRAS_DIR}/ardusub-ubuntu-install.sh" ./ardusub-ubuntu-install.sh
 else
     sudo wget https://raw.githubusercontent.com/IOES-Lab/POSIM/main/extras/ardusub-ubuntu-install.sh
 fi
@@ -109,7 +113,22 @@ sudo mkdir -p /opt/mavros_ws && cd /opt/mavros_ws || exit
 sudo wget https://raw.githubusercontent.com/mavlink/mavros/master/mavros/scripts/install_geographiclib_datasets.sh
 sudo chmod +x install_geographiclib_datasets.sh && sudo bash ./install_geographiclib_datasets.sh
 
-# Environment variables setup (write to ~/.dave/env and source from shell rc)
+# Fetch and build the pinned external waves during the same POSIM install.
+if [[ -n "${POSIM_EXTRAS_DIR:-}" && -f "${POSIM_EXTRAS_DIR}/install-waves.sh" ]]; then
+    sudo bash "${POSIM_EXTRAS_DIR}/install-waves.sh"
+else
+    # The one-liner installer may run without a local POSIM checkout.
+    WAVE_HELPERS="$(mktemp -d)"
+    mkdir -p "$WAVE_HELPERS/surface"
+    for WAVE_HELPER in install-waves.sh surface/dependency.json surface/patch_external_waves.py; do
+        curl -fsSL "https://raw.githubusercontent.com/IOES-Lab/POSIM/main/extras/$WAVE_HELPER" \
+            -o "$WAVE_HELPERS/$WAVE_HELPER"
+    done
+    sudo bash "$WAVE_HELPERS/install-waves.sh"
+    rm -rf "$WAVE_HELPERS"
+fi
+
+# Environment variables setup (write to ~/.posim/env and source from shell rc)
 TARGET_USER="${SUDO_USER:-${USER:-}}"
 if [[ -z "$TARGET_USER" ]]; then
     TARGET_USER="$(id -un)"
@@ -136,8 +155,9 @@ export PATH=/opt/ardusub_ws/ardupilot/Tools/autotest:\$PATH
 export PATH=/opt/ardusub_ws/ardupilot/build/sitl/bin:\$PATH
 export GEOGRAPHICLIB_GEOID_PATH=/usr/share/GeographicLib/geoids
 export GZ_VERSION=jetty
-export GZ_SIM_SYSTEM_PLUGIN_PATH=/opt/ardusub_ws/ardupilot_gazebo/build:\${GZ_SIM_SYSTEM_PLUGIN_PATH:-}
-export GZ_SIM_RESOURCE_PATH=/opt/ardusub_ws/ardupilot_gazebo/models:/opt/ardusub_ws/ardupilot_gazebo/worlds:\${GZ_SIM_RESOURCE_PATH:-}
+export LD_LIBRARY_PATH=/opt/waves/lib:\${LD_LIBRARY_PATH:-}
+export GZ_SIM_SYSTEM_PLUGIN_PATH=/opt/waves/lib:/opt/ardusub_ws/ardupilot_gazebo/build:\${GZ_SIM_SYSTEM_PLUGIN_PATH:-}
+export GZ_SIM_RESOURCE_PATH=/opt/asv_wave_sim/gz-waves-models/models:/opt/asv_wave_sim/gz-waves-models/world_models:/opt/ardusub_ws/ardupilot_gazebo/models:/opt/ardusub_ws/ardupilot_gazebo/worlds:\${GZ_SIM_RESOURCE_PATH:-}
 EOF
 
 if ! grep -q "^source \$HOME/.ros_ardusub_env/env$" "$RC_FILE" 2>/dev/null; then
