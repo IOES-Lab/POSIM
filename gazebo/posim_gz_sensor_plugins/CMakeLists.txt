@@ -103,6 +103,10 @@ ament_environment_hooks(
 
 # Testing setup
 if(BUILD_TESTING)
+  find_package(ament_cmake_gtest REQUIRED)
+  ament_add_gtest(test_underwater_camera test/test_underwater_camera.cc)
+  target_include_directories(test_underwater_camera PRIVATE include)
+  target_link_libraries(test_underwater_camera UnderwaterCamera)
   find_package(ament_lint_auto REQUIRED)
   ament_lint_auto_find_test_dependencies()
 endif()

@@ -62,6 +62,11 @@ private:
 
   struct PrivateData;
   std::unique_ptr<PrivateData> dataPtr;
+
+  // Queued transport callbacks may outlive Unsubscribe(). They must not retain
+  // an unguarded pointer to the plugin after its destructor starts.
+  struct CallbackState;
+  std::shared_ptr<CallbackState> callbackState;
 };
 }  // namespace posim_gz_sensor_plugins
 
