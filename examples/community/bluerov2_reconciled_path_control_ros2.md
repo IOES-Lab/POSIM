@@ -1,12 +1,12 @@
 # External BlueROV2 Direct-Thruster Path Controller
 
 This note points to a community-maintained ROS 2 BlueROV2 path-following controller package
-for DAVE / Gazebo:
+for POSIM / Gazebo:
 
 [BlueROV2 reconciled path control](https://github.com/drwa92/bluerov2_reconciled_path_control_ros2)
 
 > [!NOTE]
-> This package is developed and released outside DAVE. Startup and package-discovery
+> This package is developed and released outside POSIM. Startup and package-discovery
 > fixes found during DAVE validation are tracked in the
 > [external compatibility PR](https://github.com/drwa92/bluerov2_reconciled_path_control_ros2/pull/1).
 > Check that PR before following the external project's quick-start instructions.
@@ -21,7 +21,7 @@ The package provides:
 - direct six-thruster BlueROV2 allocation;
 - optional model-aided virtual-wrench reconciliation diagnostics.
 
-The controller is designed to run with the DAVE BlueROV2 simulator in direct-control mode:
+Run the controller with POSIM's BlueROV2 simulator in direct-control mode:
 
 ```bash
 ros2 launch posim_demos posim_robot.launch.py \
