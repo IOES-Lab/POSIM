@@ -2,6 +2,12 @@
 
 Build an image from the same source revision you intend to run. The repository supplies separate Linux AMD64 and ARM64 recipes.
 
+## Local builds and published images
+
+The `posim:dev-*` tags below are local builds, not published releases. Record the checkout SHA with `git rev-parse HEAD` before building. If using a published `ioeslab/posim` image instead, match its source revision, architecture and package names to the documentation and record its digest.
+
+Earlier `validation-pr5-*` images are historical test candidates, not release tags or builds of the current camera-only PR #5. Their tests do not establish the behavior of current `main` or a later PR revision. This guide does not require those images.
+
 ## 1. Build the image on the host
 
 Clone POSIM if you have not already done so:
@@ -61,10 +67,29 @@ docker exec -it posim-quickstart bash
 
 Repeat the source commands inside this second shell, then follow [First simulation](quickstart.md). Both shells must use the same container and discovery settings.
 
+## Rendering image sensors without a desktop
+
+The current POSIM launch argument `headless:=true` selects server-only mode (`-s`), not Gazebo's EGL `--headless-rendering` mode. `QT_QPA_PLATFORM=offscreen` does not by itself provide an OGRE rendering context. Camera and depth-based examples still need a working display or a separately configured headless renderer.
+
+For an initial software-rendering check, one option is a virtual X display. From a host terminal, install its tools in the disposable container:
+
+```bash
+docker exec -u root posim-quickstart bash -lc \
+  'apt-get update && apt-get install -y --no-install-recommends xvfb xauth'
+```
+
+Then, in container Terminal A, open a shell under that display:
+
+```bash
+xvfb-run -a -s "-screen 0 1280x720x24" bash
+```
+
+Repeat the source commands from step 3 in this shell and start the camera example there. Keep it open while inspecting ROS data from Terminal B. This is a software-rendering setup, not GPU passthrough or a CUDA/WGPU sonar test. For EGL, see [Gazebo headless rendering](https://gazebosim.org/api/sim/10/headless_rendering.html); the current POSIM launch arguments do not expose that flag.
+
 ## Graphics, persistence and shutdown
 
 For NVIDIA access, configure the host driver and [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html), then configure the container renderer instead of forcing software rendering. CUDA sonar also needs the toolkit and plugin binaries inside the image.
 
 Docker on macOS runs a Linux VM. Use [system requirements](requirements.md) to distinguish the container renderer from native host graphics.
 
-`--rm` removes the container after its shell exits. Store bags and custom assets in an explicit bind mount if you want to retain them. Stop ROS viewers, stop the simulation with Ctrl+C, then exit the container shell.
+`--rm` removes the container after its shell exits. Store bags and custom assets in an explicit bind mount if you want to retain them. Stop ROS viewers, stop the simulation with Ctrl+C, then exit the container shell. When using Xvfb, wait for the simulation to return to the shell prompt before closing that shell, so the virtual display remains available during Gazebo shutdown.

@@ -39,7 +39,7 @@ ros2 topic echo /model/rexrov/odometry nav_msgs/msg/Odometry --once
 
 ## 3. 카메라 영상 받기
 
-REXROV를 종료하고 카메라 예제를 실행합니다.
+REXROV를 종료하고 센서 렌더러가 준비되어 있는지 확인합니다. 디스플레이가 없는 컨테이너에서는 먼저 [Docker 렌더링 설정](docker.md)을 따르세요. 현재 Launch의 `headless:=true`는 GUI만 끕니다. 준비한 셸에서 아래 명령을 실행합니다.
 
 ```bash
 ros2 launch posim_demos posim_sensor.launch.py \
@@ -60,6 +60,10 @@ ros2 topic echo /underwater_camera/simulated_image \
 ## 데스크톱에서 보기
 
 디스플레이와 렌더러가 준비된 환경에서는 로봇·센서 Launch에 `gui:=true headless:=false`를 지정합니다. 월드 Launch는 `headless:=false`를 사용합니다. Gazebo 데스크톱 창이 열립니다. 이 문서를 보여주는 브라우저에서 시뮬레이션이 실행되는 것은 아닙니다.
+
+## 여기서 확인하는 범위
+
+시뮬레이션 시간, Odometry 메시지와 영상 메시지는 각각 해당 경로를 확인합니다. 위 명령은 텔레오퍼레이션과 브라우저 조이스틱을 끄며, 실물 게임패드·CUDA/WGPU 소나·모든 월드·센서 수치 정확도를 시험하지 않습니다. GUI 동작은 디스플레이가 준비된 환경에서 별도로 확인합니다.
 
 ## 다음 실험
 

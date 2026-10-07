@@ -39,7 +39,7 @@ Inspect the timestamp, pose and twist. An unmoving robot can still produce valid
 
 ## 3. Receive a camera image
 
-Stop REXROV and start the camera example:
+Stop REXROV. Before starting the camera, confirm that a sensor renderer is available. In a container without a display, follow [Docker rendering setup](docker.md) first: `headless:=true` only hides the GUI in the current launcher. Then run:
 
 ```bash
 ros2 launch posim_demos posim_sensor.launch.py \
@@ -60,6 +60,10 @@ Check nonzero width and height, encoding and timestamp. `--no-arr` hides the pix
 ## Desktop viewing
 
 On a machine with a working display and renderer, use `gui:=true headless:=false` for robot and sensor launches. For the world launch, use `headless:=false`. These are Gazebo desktop windows; the browser hosting this documentation does not run the simulation.
+
+## What these checks establish
+
+An advancing clock, an odometry payload and an image payload check those three paths only. These commands disable teleoperation and the browser joystick and do not test a physical gamepad, CUDA/WGPU sonar, every world or numerical sensor accuracy. Desktop operation needs its own check on a configured display.
 
 ## Next experiments
 

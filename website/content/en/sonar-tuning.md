@@ -33,7 +33,18 @@ ros2 pkg prefix multibeam_sonar_system
 ros2 pkg prefix posim_multibeam_sonar_demo
 ```
 
-Inspect the build output for skipped CUDA targets or missing shared libraries. Continue with [Multibeam sonar](sonar.md) and confirm actual image/raw payloads after plugin loading.
+A package prefix alone is not proof that CUDA sonar was built. Both packages still register with ament when their CMake configuration skips CUDA-specific targets. On Ubuntu, also check the installed libraries:
+
+```bash
+test -f "$(ros2 pkg prefix multibeam_sonar)/lib/multibeam_sonar/libmultibeam_sonar.so"
+test -f "$(ros2 pkg prefix multibeam_sonar_system)/lib/multibeam_sonar_system/libmultibeam_sonar_system.so"
+```
+
+Each command must exit with status 0. File presence is only a build/install check; inspect build output for skipped CUDA targets and launch logs for load errors. Continue with [Multibeam sonar](sonar.md) and confirm actual image/raw payloads after plugin loading.
+
+## WGPU is a separate candidate
+
+These CUDA commands do not enable WGPU. See the [experimental backend status](requirements.md) and its linked PR for scope and prerequisites; do not treat a WGPU test on one platform as validation of this CUDA installation.
 
 ## Tune one variable at a time
 

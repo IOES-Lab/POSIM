@@ -19,6 +19,12 @@ A headless server has no visible GUI, but camera, depth and DVL processing can s
 
 The multibeam sonar implementation requires an NVIDIA GPU, a compatible CUDA toolkit and the built sonar libraries. See [Sonar build and performance](sonar-tuning.md). CUDA is a separate requirement from successfully compiling the other packages.
 
+## Experimental WGPU backend
+
+WGPU integration is tracked separately in [PR #6](https://github.com/IOES-Lab/POSIM/pull/6). At this review (2026-10-07), it is not part of `main`; the installation and Quickstart commands here do not install or validate that candidate.
+
+Metal on macOS and Vulkan on compatible systems require their own GPU/runtime setup and Gazebo integration. A Linux container on an Apple Silicon host does not provide native Metal access. Shader output comparisons, complete sonar execution and CUDA-equivalent numerical results are separate checks; one does not establish the others.
+
 ## Plan resources for your experiment
 
 Terrain complexity, image resolution, sensor rate, number of vehicles and collision geometry affect CPU, RAM and GPU use. Begin with one vehicle and the default sensor settings. Measure memory, GPU utilization and Gazebo's real-time factor before increasing the load. The library does not prescribe a fixed number of simulations per GPU.

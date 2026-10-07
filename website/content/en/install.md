@@ -16,7 +16,7 @@ The checkout directory is `posim`. Keep this name when importing the matching re
 
 ## 2. Install the stack
 
-The supplied helper configures system package repositories, installs ROS 2 Lyrical and Gazebo Jetty, and prepares ArduSub, MAVROS and the external wave libraries. Read `src/posim/extras/ros-lyrical-gz-jetty-install.sh` before running it: it changes the Ubuntu installation and uses `sudo`.
+The supplied helper configures system package repositories, installs ROS 2 Lyrical and Gazebo Jetty, and prepares ArduSub, MAVROS and the external wave libraries. Read `src/posim/extras/ros-lyrical-gz-jetty-install.sh` before running it: it changes the Ubuntu installation and uses `sudo`, including `apt-get full-upgrade -y`. Use a dedicated Ubuntu environment or review these system-wide changes before proceeding.
 
 ```bash
 POSIM_EXTRAS_DIR="$PWD/src/posim/extras" \
