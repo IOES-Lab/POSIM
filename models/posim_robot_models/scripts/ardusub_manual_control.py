@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import math
+import time
 
 import rclpy
 from mavros_msgs.msg import ManualControl, State
@@ -25,6 +26,7 @@ DEADZONE = 0.08
 DEADZONE_HEAVE = 0.18
 RATE_HZ = 20.0
 TIMEOUT_SEC = 0.3
+PENDING_COMMAND_TTL_SEC = 2.0
 
 STABILIZE_MODE = "STABILIZE"
 DEPTH_HOLD_MODE = "ALT_HOLD"
@@ -116,26 +118,22 @@ class ArduSubManualControl(Node):
             },
         }
         self.last_axes = []
-        self.last_buttons = []
 
         self.connected = False
         self.armed = False
         self.current_mode = ""
-        self.last_requested_mode = ""
 
         self.throttle_index = THROTTLE_DEFAULT_INDEX
         self.throttle_scale = THROTTLE_LEVELS[self.throttle_index]
 
-        self._last_arm_on = 0
-        self._last_arm_off = 0
-        self._last_hold_on = 0
-        self._last_hold_off = 0
-        self._last_scale_up = 0
-        self._last_scale_dn = 0
-
         self._last_warn_sec = {}
         self._mode_future = None
         self._arm_future = None
+        self._mode_in_flight = None
+        self._arm_in_flight = None
+        self._pending_mode = None
+        self._pending_disarm = False
+        self._disarm_warn_at = None
 
         self._publish_armed_state()
         self.timer = self.create_timer(1.0 / RATE_HZ, self.tick)
@@ -173,11 +171,16 @@ class ArduSubManualControl(Node):
 
     def _update_input_state(self, source, msg):
         state = self.input_state[source]
+        previous_buttons = state["buttons"]
         state["axes"] = list(msg.axes)
         state["buttons"] = list(msg.buttons)
 
         if any(abs(axis) > 1e-6 for axis in state["axes"]) or any(state["buttons"]):
             state["activity_time"] = self.get_clock().now()
+
+        # A keyboard pulse can be pressed and released between two 20 Hz ticks.
+        # Consume button edges here, keeping history separate for each source.
+        self._handle_button_edges(previous_buttons, state["buttons"])
 
     def _select_active_input(self):
         now = self.get_clock().now()
@@ -202,9 +205,6 @@ class ArduSubManualControl(Node):
     def _get_axis(self, idx):
         return float(self.last_axes[idx]) if idx < len(self.last_axes) else 0.0
 
-    def _get_btn(self, idx):
-        return int(self.last_buttons[idx]) if idx < len(self.last_buttons) else 0
-
     def _publish_armed_state(self):
         msg = Bool()
         msg.data = self.armed
@@ -226,116 +226,156 @@ class ArduSubManualControl(Node):
         now_sec = self.get_clock().now().nanoseconds * 1e-9
         last_sec = self._last_warn_sec.get(key, -math.inf)
         if now_sec - last_sec >= period_sec:
-            self.get_logger().warn(message)
+            self.get_logger().warning(message)
             self._last_warn_sec[key] = now_sec
 
+    def _expire_pending_commands(self):
+        now = time.monotonic()
+        if self._pending_mode is not None and now >= self._pending_mode[1]:
+            self._pending_mode = None
+            self.get_logger().warning("Pending mode request expired; press the mode button again")
+        if self._disarm_warn_at is not None and now >= self._disarm_warn_at:
+            self._disarm_warn_at = None
+            self.get_logger().warning(
+                "Disarm still pending; waiting for the earlier arming response"
+            )
+
     def _call_set_mode(self, mode):
-        self.last_requested_mode = mode
+        self._expire_pending_commands()
+        if self._mode_future is not None:
+            # Keep only the latest intent, not a backlog of mode changes.
+            self._pending_mode = (
+                None
+                if mode == self._mode_in_flight
+                else (mode, time.monotonic() + PENDING_COMMAND_TTL_SEC)
+            )
+            return
 
         if not self.mode_client.service_is_ready():
-            self._warn_throttled("set_mode", "Waiting for MAVROS set_mode service")
-            return
-        if self._mode_future is not None and not self._mode_future.done():
+            self._warn_throttled(
+                "set_mode", "Waiting for MAVROS set_mode service; press the mode button again"
+            )
             return
 
         request = SetMode.Request()
         request.custom_mode = mode
-        self._mode_future = self.mode_client.call_async(request)
-        self._mode_future.add_done_callback(self._on_mode_response)
+        try:
+            future = self.mode_client.call_async(request)
+        except Exception as exc:
+            self.get_logger().warning(f"Could not send mode request {mode}: {exc}")
+            return
+        self._mode_in_flight = mode
+        self._mode_future = future
+        future.add_done_callback(lambda completed: self._on_mode_response(completed, mode))
 
-    def _on_mode_response(self, future):
+    def _on_mode_response(self, future, mode):
+        if future is not self._mode_future:
+            return
+        self._mode_future = None
+        self._mode_in_flight = None
         try:
             response = future.result()
+            if response.mode_sent:
+                self.get_logger().info(f"Requested ArduSub mode: {mode}")
+            else:
+                self.get_logger().warning(f"ArduSub rejected mode request: {mode}")
         except Exception as exc:
-            self.get_logger().warn(f"Set mode request failed: {exc}")
-            return
+            self.get_logger().warning(f"Set mode request {mode} failed: {exc}")
 
-        if response.mode_sent:
-            self.get_logger().info(f"Requested ArduSub mode: {self.last_requested_mode}")
-        else:
-            self.get_logger().warn(f"ArduSub rejected mode request: {self.last_requested_mode}")
+        self._expire_pending_commands()
+        pending = self._pending_mode
+        self._pending_mode = None
+        if pending is not None:
+            self._call_set_mode(pending[0])
 
     def _call_arm(self, arm):
-        if not self.arm_client.service_is_ready():
-            self._warn_throttled("arming", "Waiting for MAVROS arming service")
+        self._expire_pending_commands()
+        if self._arm_future is not None:
+            if arm:
+                # Never arm later as a side effect of an older request completing.
+                self._warn_throttled(
+                    "arm_busy",
+                    "Arming request pending; arm was not queued. Press again when ready",
+                )
+            elif self._arm_in_flight and not self._pending_disarm:
+                # Do not expire disarm: the older arm request may still complete late.
+                self._pending_disarm = True
+                self._disarm_warn_at = time.monotonic() + PENDING_COMMAND_TTL_SEC
             return
-        if self._arm_future is not None and not self._arm_future.done():
+
+        if not self.arm_client.service_is_ready():
+            self._warn_throttled(
+                "arming", "Waiting for MAVROS arming service; press the arm/disarm button again"
+            )
             return
 
         request = CommandBool.Request()
         request.value = arm
-        self._arm_future = self.arm_client.call_async(request)
-        self._arm_future.add_done_callback(self._on_arm_response)
+        try:
+            future = self.arm_client.call_async(request)
+        except Exception as exc:
+            self.get_logger().warning(f"Could not send arm={arm} request: {exc}")
+            return
+        self._arm_in_flight = arm
+        self._arm_future = future
+        future.add_done_callback(lambda completed: self._on_arm_response(completed, arm))
 
-    def _on_arm_response(self, future):
+    def _on_arm_response(self, future, arm):
+        if future is not self._arm_future:
+            return
+        self._arm_future = None
+        self._arm_in_flight = None
         try:
             response = future.result()
+            if not response.success:
+                self.get_logger().warning(f"ArduSub rejected arm={arm} request")
         except Exception as exc:
-            self.get_logger().warn(f"Arm request failed: {exc}")
-            return
+            self.get_logger().warning(f"Arm request arm={arm} failed: {exc}")
 
-        if not response.success:
-            self.get_logger().warn("ArduSub rejected arm/disarm request")
-
-    def _update_throttle_scale(self):
-        scale_up = self._get_btn(BTN_SCALE_UP)
-        scale_dn = self._get_btn(BTN_SCALE_DN)
-
-        if scale_up == 1 and self._last_scale_up == 0:
-            if self.throttle_index < len(THROTTLE_LEVELS) - 1:
-                self.throttle_index += 1
-                self.throttle_scale = THROTTLE_LEVELS[self.throttle_index]
-                self.get_logger().info(f"manual XY/yaw scale = {self.throttle_scale:.2f}")
-
-        if scale_dn == 1 and self._last_scale_dn == 0:
-            if self.throttle_index > 0:
-                self.throttle_index -= 1
-                self.throttle_scale = THROTTLE_LEVELS[self.throttle_index]
-                self.get_logger().info(f"manual XY/yaw scale = {self.throttle_scale:.2f}")
-
-        self._last_scale_up = scale_up
-        self._last_scale_dn = scale_dn
-
-    def _handle_mode_buttons(self):
-        hold_on = self._get_btn(BTN_Z_HOLD_ON)
-        hold_off = self._get_btn(BTN_Z_HOLD_OFF)
-
-        if hold_on == 1 and self._last_hold_on == 0:
-            self._call_set_mode(DEPTH_HOLD_MODE)
-
-        if hold_off == 1 and self._last_hold_off == 0:
-            self._call_set_mode(STABILIZE_MODE)
-
-        self._last_hold_on = hold_on
-        self._last_hold_off = hold_off
-
-    def _handle_arm_buttons(self):
-        arm_on = self._get_btn(BTN_ARM_ON)
-        arm_off = self._get_btn(BTN_ARM_OFF)
-
-        if arm_on == 1 and self._last_arm_on == 0:
-            self._call_arm(True)
-
-        if arm_off == 1 and self._last_arm_off == 0:
+        self._expire_pending_commands()
+        disarm_pending = self._pending_disarm
+        self._pending_disarm = False
+        self._disarm_warn_at = None
+        if disarm_pending:
             self._call_arm(False)
 
-        self._last_arm_on = arm_on
-        self._last_arm_off = arm_off
+    def _handle_button_edges(self, previous, current):
+        def down(buttons, index):
+            return index < len(buttons) and buttons[index] == 1
+
+        def pressed(index):
+            return down(current, index) and not down(previous, index)
+
+        # Disarm takes precedence if a message contains both arm buttons.
+        if pressed(BTN_ARM_OFF):
+            self._call_arm(False)
+        elif pressed(BTN_ARM_ON) and not down(current, BTN_ARM_OFF):
+            self._call_arm(True)
+
+        if pressed(BTN_Z_HOLD_ON):
+            self._call_set_mode(DEPTH_HOLD_MODE)
+        if pressed(BTN_Z_HOLD_OFF):
+            self._call_set_mode(STABILIZE_MODE)
+
+        if pressed(BTN_SCALE_UP) and self.throttle_index < len(THROTTLE_LEVELS) - 1:
+            self.throttle_index += 1
+            self.throttle_scale = THROTTLE_LEVELS[self.throttle_index]
+            self.get_logger().info(f"manual XY/yaw scale = {self.throttle_scale:.2f}")
+
+        if pressed(BTN_SCALE_DN) and self.throttle_index > 0:
+            self.throttle_index -= 1
+            self.throttle_scale = THROTTLE_LEVELS[self.throttle_index]
+            self.get_logger().info(f"manual XY/yaw scale = {self.throttle_scale:.2f}")
 
     def tick(self):
+        self._expire_pending_commands()
         active_input = self._select_active_input()
         if active_input is None:
             self.last_axes = []
-            self.last_buttons = []
             self._publish_manual(0.0, 0.0, THROTTLE_NEUTRAL, 0.0)
             return
 
         self.last_axes = active_input["axes"]
-        self.last_buttons = active_input["buttons"]
-
-        self._handle_arm_buttons()
-        self._handle_mode_buttons()
-        self._update_throttle_scale()
 
         forward = -dz(self._get_axis(AXIS_FWD), DEADZONE) * MAX_MANUAL
         forward *= self.throttle_scale
