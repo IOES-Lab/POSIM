@@ -55,4 +55,11 @@ Switching the channel selects individual mode. Set the channel to the requested 
 
 ## Configure an installation
 
-The SDF specifies `namespace`, device names/IDs, attached objects, sound speed and interrogation settings. `enable_ping_scheduler` and `ping_frequency` control scheduled requests; the tutorial requests 0.5 Hz. Match the names and IDs on both ends. Read [the tutorial SDF](https://github.com/IOES-Lab/POSIM/blob/main/models/posim_worlds/worlds/usbl_tutorial.world) before adding devices or changing the schedule.
+Configure devices and interrogation in SDF. Match the names and IDs on both ends.
+
+- Devices: `namespace`, names/IDs and attached objects
+- Acoustics: sound speed
+- Scheduled requests: `enable_ping_scheduler`, `ping_frequency`
+- Tutorial request rate: **0.5 Hz**
+
+See [the tutorial SDF](https://github.com/IOES-Lab/POSIM/blob/main/models/posim_worlds/worlds/usbl_tutorial.world) when changing devices or the schedule.

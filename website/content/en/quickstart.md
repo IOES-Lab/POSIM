@@ -59,11 +59,20 @@ Check nonzero width and height, encoding and timestamp. `--no-arr` hides the pix
 
 ## Desktop viewing
 
-On a machine with a working display and renderer, use `gui:=true headless:=false` for robot and sensor launches. For the world launch, use `headless:=false`. These are Gazebo desktop windows; the browser hosting this documentation does not run the simulation.
+Open Gazebo windows on a host with a display and renderer.
 
-## What these checks establish
+- Robot/sensor launch: `gui:=true headless:=false`
+- World launch: `headless:=false`
 
-An advancing clock, an odometry payload and an image payload check those three paths only. These commands disable teleoperation and the browser joystick and do not test a physical gamepad, CUDA/WGPU sonar, every world or numerical sensor accuracy. Desktop operation needs its own check on a configured display.
+## Check the results
+
+Check these outputs from the examples.
+
+- Advancing simulation time
+- Odometry position and velocity
+- Image size, format and timestamp
+
+See [ROVs](rovs.md) for control and [Multibeam sonar](sonar.md) for sonar.
 
 ## Next experiments
 

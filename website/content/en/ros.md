@@ -36,7 +36,12 @@ ros2 service list -t
 ros2 topic info /mavros/manual_control/send --verbose
 ```
 
-The included manual-control adapter maps `/joy` and `/keyboard/joy` to MAVROS manual control. It publishes at 20 Hz and applies a 0.3-second input timeout. Use one active command source and respect arming/navigation checks. Keyboard and local WebSocket setup are described in [ROVs](rovs.md).
+The manual-control adapter maps `/joy` and `/keyboard/joy` to MAVROS commands.
+
+- Publication rate: **20 Hz**
+- Input timeout: **0.3 seconds**
+
+Use one command source and check arming/navigation status. See [ROVs](rovs.md) for keyboard and WebSocket setup.
 
 ## Subscribe from Python
 
@@ -70,10 +75,22 @@ finally:
 
 ## Visualization and recording
 
-Use RViz displays matching the message type: Image for cameras, PointCloud2 for point clouds, and TF/pose displays for frames and state. POSIM-specific messages are defined in `posim_interfaces`; install/source these definitions on any separate ROS client.
+Choose RViz displays matching the message type.
+
+- Cameras: Image
+- Point clouds: PointCloud2
+- Frames and state: TF/pose displays
+
+POSIM-specific messages are defined in `posim_interfaces`. Install and source these definitions on each separate ROS client.
 
 ```bash
 ros2 bag record /model/rexrov/odometry /model/rexrov/imu
 ```
 
-A remote ROS client needs compatible message definitions, reachable DDS discovery/data paths and matching domain/discovery settings. A documentation website or HTTP tunnel does not expose ROS DDS automatically. Session URLs and remote-access gateways are responsibilities of the application hosting the simulator.
+A remote ROS client requires:
+
+- Compatible message definitions
+- Reachable DDS discovery and data paths
+- Matching domain and discovery settings
+
+Configure remote gateways in the application hosting the simulator.

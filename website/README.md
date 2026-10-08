@@ -53,8 +53,14 @@ them to HTML links. Keep headings unique and descriptive. Code fences get a
 localized copy button in the browser. If clipboard access is denied, the code
 is selected and the UI prompts the user to copy with the keyboard.
 
+Follow [AGENTS.md](AGENTS.md) for public wording. Explain current behaviour in
+short sentences, and put values and limits in bullets or tables. Keep release
+history and review notes outside the user guides. Update English and Korean
+together. The wording check catches known regressions; review meaning and
+desktop/mobile readability as well.
+
 `pnpm check` checks both languages, local files/anchors, search coverage,
-unresolved Notion markup and old command identifiers. In a full repository it
+public wording, unresolved Notion markup and old command identifiers. In a full repository it
 also checks POSIM launch files, named worlds/descriptors, interface definitions,
 repository source links and catalog consistency. A website-only deployment
 performs the same site checks without requiring the ROS source tree.

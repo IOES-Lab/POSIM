@@ -21,12 +21,13 @@ Start with [installation](https://ioes-lab.github.io/POSIM/install.html) or
 
 ## Try WWW-POSIM
 
-[WWW-POSIM — World Wide Web Platform for Ocean Simulation](https://www-posim.vercel.app/)
-builds on POSIM, ROS 2, Gazebo, and ArduPilot to bring maritime simulation to a
-web browser and a standalone application. Choose a geographic starting point,
-explore real terrain with surface or underwater robots, inspect live sensor data,
-and test waypoint missions or your own ROS 2 autonomy code. Visit the platform
-to watch the live voyage, explore its features, and find downloads and tutorials.
+[WWW-POSIM](https://www-posim.vercel.app/) uses POSIM as its simulation engine.
+Run it in a web workspace or desktop app.
+
+- Generate seabed and coast from geographic coordinates.
+- Operate surface or underwater robots and inspect sensors.
+- Test ArduPilot waypoint missions or ROS 2 control code.
+- Watch the public LIVE world voyage.
 
 ## Contributing
 
@@ -34,11 +35,10 @@ Report issues or propose changes in [IOES-Lab/POSIM](https://github.com/IOES-Lab
 See the [contribution guide](https://ioes-lab.github.io/POSIM/contributing.html)
 for development checks and documentation updates.
 
-## Origins and license
+## License and attribution
 
-POSIM continues the [DAVE](https://github.com/IOES-Lab/dave) codebase, originally
-developed as [Project DAVE](https://github.com/Field-Robotics-Lab/dave), and
-preserves its source history and copyright notices.
+POSIM includes source from [Project DAVE](https://github.com/Field-Robotics-Lab/dave)
+with its author and copyright notices.
 POSIM-authored source uses [Apache License 2.0](LICENSE). Third-party source and
 assets retain their original terms. External Wave Sim is built from its upstream
 repository under GPL terms; see the

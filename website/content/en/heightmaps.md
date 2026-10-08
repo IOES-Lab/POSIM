@@ -2,9 +2,9 @@
 
 A heightmap represents terrain as a regular grid of elevations. Configure visual and collision geometry together so the seabed seen by a camera agrees with the surface used for contact.
 
-## Inspect existing terrain first
+## Example terrain
 
-Read [Santorini](https://github.com/IOES-Lab/POSIM/blob/main/models/posim_worlds/worlds/posim_Santorini.world) for a geographic scene and [graded seabed](https://github.com/IOES-Lab/POSIM/blob/main/models/posim_worlds/worlds/posim_graded_seabed.world) for a seabed scene. The current Santorini world includes the Fuel model `Santorini Scaled`; it does not directly reference the repository's historical TIFF asset.
+Use [Santorini](https://github.com/IOES-Lab/POSIM/blob/main/models/posim_worlds/worlds/posim_Santorini.world) for a geographic scene and [graded seabed](https://github.com/IOES-Lab/POSIM/blob/main/models/posim_worlds/worlds/posim_graded_seabed.world) for a seabed scene. Santorini uses the Fuel model `Santorini Scaled`.
 
 These examples show world composition. For heightmap geometry itself, follow Gazebo's [heightmap tutorial](https://gazebosim.org/api/sim/10/heightmap_dem.html) and the [SDFormat geometry reference](http://sdformat.org/spec?ver=1.12&elem=geometry).
 

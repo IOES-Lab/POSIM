@@ -1,6 +1,6 @@
 # Add a robot
 
-Create a separate model description using a nearby POSIM robot as a reference. SDF describes the mechanical model and systems; the ROS configuration connects its observations and commands.
+Create a model using a POSIM robot with a similar layout as a reference. SDF describes the mechanical model and systems; the ROS configuration connects observations and commands.
 
 ## 1. Choose a starting point
 
@@ -20,7 +20,15 @@ models/posim_robot_models/
 
 ## 2. Define mechanics and assets
 
-Set the model/link names, mass in kilograms, inertia in kg·m², poses in meters/radians, and collision geometry. STL supplies geometry, not mass or dynamics. Declare mesh scale explicitly and confirm the mesh's original units.
+Configure physical properties in the model SDF.
+
+- Model/link names
+- Mass: kg
+- Inertia: kg·m²
+- Position/rotation: m/rad
+- Collision geometry
+
+STL supplies geometry. Define mass and dynamics in SDF, and confirm mesh units and scale.
 
 Use installed resource URIs, following the package's existing mesh examples. Keep visual and collision poses aligned. Prefer a simple collision shape when a detailed visual mesh is unnecessarily expensive for contact.
 
@@ -43,4 +51,11 @@ ros2 launch posim_demos posim_robot.launch.py \
   gui:=false headless:=true use_teleop:=false use_web_joystick:=false
 ```
 
-Check installed asset resolution, mass/inertia, equilibrium pose, collisions, frame conventions, payloads and small commands in each axis. Launch from outside the source checkout too. Save the model revision and observations for reproducible comparisons. Use [ROS 2 and control](ros.md) for recording and [Troubleshooting](troubleshooting.md) for missing assets.
+Check each axis with small control commands. Launch from outside the source checkout too.
+
+- Installed asset resolution
+- Mass, inertia and equilibrium pose
+- Collision geometry and response
+- Frame conventions and message payloads
+
+Save the model revision and observations for reproducible comparisons. Use [ROS 2 and control](ros.md) for recording and [Troubleshooting](troubleshooting.md) for missing assets.

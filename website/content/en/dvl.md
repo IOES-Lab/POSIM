@@ -33,11 +33,14 @@ Stop the Gazebo viewer before the ROS command. Match the topic to your descripto
 | `teledyne_whn` | Teledyne WHN |
 | `nortek_dvl500_300_with_multibeam_sonar` | DVL plus [CUDA sonar](sonar-tuning.md) |
 
-These are simulation descriptions. Read each SDF for the configured sampling and geometry rather than treating its name as a sensor certification.
+Check each sensor model's sampling and geometry in SDF.
 
 ## Configure a DVL
 
-The custom sensor uses `gz:type="dvl"`. Its configuration includes beam aperture/rotation/tilt, bottom and water-mass tracking, velocity noise, minimum/maximum range and a reference-frame rotation. The default DVL500-300 example requests 8 Hz and a range of 0.3–200 m.
+Configure `gz:type="dvl"` with beam angles/tilt, bottom/water tracking, velocity noise and reference frame.
+
+- DVL500-300 requested rate: **8 Hz**
+- Range: **0.3–200 m**
 
 The example converts ENU to its configured forward/starboard/down reference using `<reference_frame>`. The ROS bridge preserves the Gazebo frame ID. Check that your estimator uses the same frame and distinguishes bottom tracking from water-mass tracking.
 

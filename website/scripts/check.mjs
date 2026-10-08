@@ -2,6 +2,7 @@ import { access, readFile, readdir } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { pages } from './pages.mjs';
+import { checkPublicWording } from './public-wording.mjs';
 const root = fileURLToPath(new URL('../', import.meta.url));
 const repository = path.resolve(root, '..');
 const output = path.join(root, 'dist');
@@ -14,6 +15,13 @@ const catalog = JSON.parse(await readFile(path.join(root, 'catalog.json'), 'utf8
 if (catalog.sourceRevision !== sources.sourceRevision) fail('Catalog/source revision mismatch');
 let links = 0, commands = 0;
 const haveSource = await exists(path.join(repository, 'models/posim_worlds/worlds'));
+if (haveSource) {
+  for (const file of ['README.md', 'examples/posim_demos/README.md', 'extras/surface/README.md', 'gazebo/posim_gz_multibeam_sonar/README.md']) {
+    if (await exists(path.join(repository, file))) {
+      checkPublicWording(await readFile(path.join(repository, file), 'utf8'), '../' + file);
+    }
+  }
+}
 for (const file of htmlFiles) {
   const html = await readFile(path.join(output, file), 'utf8');
   documents.set(file, html);
@@ -26,6 +34,7 @@ for (const file of htmlFiles) {
   if (/notion-file-block:|<mention-page|\{\{[A-Z_]+\}\}/.test(html)) fail(`${file}: unresolved source markup`);
   if (/dave_(?:demos|interfaces|robot|sensor|world|gz|ros)|dave_(?:world|robot|sensor)\.launch/.test(html)) fail(`${file}: stale package/launch name`);
   const markdown = await readFile(path.join(root, 'content', lang, path.basename(file, '.html') + '.md'), 'utf8');
+  checkPublicWording(markdown, `content/${lang}/${path.basename(file, '.html')}.md`);
   if (haveSource) {
     for (const match of markdown.matchAll(/ros2 launch (posim_[a-z_]+) ([a-z_]+\.launch\.py)/g)) {
       const roots = { posim_demos: 'examples/posim_demos', posim_multibeam_sonar_demo: 'gazebo/posim_gz_multibeam_sonar/multibeam_sonar_demo' };

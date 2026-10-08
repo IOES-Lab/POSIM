@@ -1,6 +1,6 @@
 # 인용과 라이선스
 
-POSIM은 IOES-Lab에서 관리하며 DAVE 코드베이스를 이어갑니다. 사용하거나 배포할 때 기존 저자, 소스 이력과 구성 요소의 고지를 유지하세요.
+POSIM은 IOES-Lab에서 관리합니다. 사용·배포 시 저자 표시와 구성 요소별 고지를 유지하세요.
 
 ## 기반 시뮬레이터 인용
 
@@ -18,8 +18,8 @@ Choi 외, *Physics-Based Modelling and Simulation of Multibeam Echosounder Perce
 
 | 구성 요소 | 출처·고지 |
 | --- | --- |
-| POSIM과 기존 Apache 소스 | 저장소 [LICENSE](https://github.com/IOES-Lab/POSIM/blob/main/LICENSE), 파일별 고지 |
-| DAVE 기반 | [Project DAVE](https://github.com/Field-Robotics-Lab/dave), 보존된 소스 이력 |
+| POSIM의 Apache 소스 | 저장소 [LICENSE](https://github.com/IOES-Lab/POSIM/blob/main/LICENSE), 파일별 고지 |
+| DAVE 기반 | [Project DAVE](https://github.com/Field-Robotics-Lab/dave), 저자·소스 고지 |
 | 외부 Wave Sim | [asv_wave_sim](https://github.com/srmainwaring/asv_wave_sim), 업스트림 GPLv3 라이선스 |
 | 외부 WAM-V·VRX 자산 | 내려받은 의존성에 보관된 고지 |
 | Gazebo Fuel 모델 | 개별 자산의 출처와 라이선스 |
@@ -28,6 +28,6 @@ Choi 외, *Physics-Based Modelling and Simulation of Multibeam Echosounder Perce
 
 ## 문서 출처
 
-영어·한국어 가이드는 [IOES-Lab POSIM Notion Wiki](https://caring-dibble-be5.notion.site/d24c9419989882cfa6498152ad4c840c?v=b42c941998988252a89588ad58631495&pvs=74)를 참고하여 현재 패키지 이름과 외부 파도 통합에 맞춰 정리했습니다. 각 페이지 하단에 참고 링크가 있습니다. 예전 영상을 새로운 실행 캡처로 재사용하지 않았습니다.
+참고 자료는 [IOES-Lab POSIM Notion Wiki](https://caring-dibble-be5.notion.site/d24c9419989882cfa6498152ad4c840c?v=b42c941998988252a89588ad58631495&pvs=74)와 각 페이지 하단의 소스 링크에서 확인하세요.
 
 연구실·관리자 정보: [IOES-Lab · KMOU](https://lab.wschoi.com). 소스와 이슈: [IOES-Lab/POSIM](https://github.com/IOES-Lab/POSIM).

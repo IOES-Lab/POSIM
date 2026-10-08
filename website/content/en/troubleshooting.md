@@ -9,7 +9,7 @@ printf 'ROS_DISTRO=%s\n' "$ROS_DISTRO"
 ros2 pkg prefix posim_demos
 ```
 
-Expect `lyrical` and a package prefix from your selected workspace. Source ROS and the workspace again using the [installation](install.md) or [Docker](docker.md) guide. Keep host and container setup paths separate. Use a clean workspace when migrating package names.
+Expect `lyrical` and the selected workspace path. Source [installation](install.md) or [Docker](docker.md) settings and check host/container paths.
 
 ## Missing models or meshes
 
@@ -17,7 +17,7 @@ Read the first missing URI in the log. Check that its package resources were ins
 
 ## No image or rendering initialization failure
 
-Headless means no desktop window. It does not eliminate sensor rendering. Check the renderer and display/offscreen configuration. The Docker guide supplies a software-rendering setup for an initial check. For CUDA sonar, also verify the [CUDA toolchain and installed libraries](sonar-tuning.md).
+Image sensors need a renderer even without a desktop window. Check display/offscreen settings, [Docker Xvfb setup](docker.md) and [CUDA libraries](sonar-tuning.md).
 
 ## No messages
 

@@ -55,4 +55,11 @@ ros2 topic pub --once /USBL/transponder_manufacturer_1/individual_interrogation_
 
 ## 장치 구성
 
-SDF에는 `namespace`, 장치 이름·ID, 부착 물체, 음속과 요청 방식을 지정합니다. `enable_ping_scheduler`, `ping_frequency`로 정기 요청을 설정하며 튜토리얼은 0.5 Hz입니다. 양쪽 장치의 이름과 ID를 맞추세요. 장치를 추가하거나 주기를 변경하기 전에 [튜토리얼 SDF](https://github.com/IOES-Lab/POSIM/blob/main/models/posim_worlds/worlds/usbl_tutorial.world)를 확인합니다.
+SDF에서 장치와 요청 방식을 설정합니다. 양쪽 장치의 이름과 ID를 맞추세요.
+
+- 장치: `namespace`, 이름·ID, 부착 물체
+- 음향: 음속
+- 정기 요청: `enable_ping_scheduler`, `ping_frequency`
+- 튜토리얼 요청 주기: **0.5 Hz**
+
+장치나 주기를 변경할 때 [튜토리얼 SDF](https://github.com/IOES-Lab/POSIM/blob/main/models/posim_worlds/worlds/usbl_tutorial.world)를 참고하세요.

@@ -1,6 +1,9 @@
 # 첫 시뮬레이션
 
-월드를 먼저 실행하고 로봇이나 센서를 추가해보겠습니다. 같은 [Ubuntu](install.md) 또는 [Docker](docker.md) 환경을 불러온 터미널 두 개를 준비하세요. A에서는 시뮬레이션을 실행하고 B에서는 데이터를 확인합니다.
+같은 [Ubuntu](install.md) 또는 [Docker](docker.md) 환경의 터미널 두 개를 준비하세요.
+
+- **A:** 월드·로봇·센서 실행
+- **B:** 시간과 데이터 확인
 
 ## 1. 해양 월드 실행
 
@@ -59,11 +62,20 @@ ros2 topic echo /underwater_camera/simulated_image \
 
 ## 데스크톱에서 보기
 
-디스플레이와 렌더러가 준비된 환경에서는 로봇·센서 Launch에 `gui:=true headless:=false`를 지정합니다. 월드 Launch는 `headless:=false`를 사용합니다. Gazebo 데스크톱 창이 열립니다. 이 문서를 보여주는 브라우저에서 시뮬레이션이 실행되는 것은 아닙니다.
+디스플레이와 렌더러가 있는 환경에서 Gazebo 창을 엽니다.
 
-## 여기서 확인하는 범위
+- 로봇·센서 Launch: `gui:=true headless:=false`
+- 월드 Launch: `headless:=false`
 
-시뮬레이션 시간, Odometry 메시지와 영상 메시지는 각각 해당 경로를 확인합니다. 위 명령은 텔레오퍼레이션과 브라우저 조이스틱을 끄며, 실물 게임패드·CUDA/WGPU 소나·모든 월드·센서 수치 정확도를 시험하지 않습니다. GUI 동작은 디스플레이가 준비된 환경에서 별도로 확인합니다.
+## 실행 결과 확인
+
+각 예제에서 다음 결과를 확인하세요.
+
+- 시뮬레이션 시간 증가
+- Odometry 위치·속도 메시지
+- 영상 크기·형식·타임스탬프
+
+제어 방법은 [ROV](rovs.md), 소나는 [멀티빔 소나](sonar.md)를 참고하세요.
 
 ## 다음 실험
 
