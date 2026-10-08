@@ -52,10 +52,12 @@ def launch_setup(context, *args, **kwargs):
         world_entity_name = "empty"
         gz_args = [world_name]
 
-    zoom_camera_value = "true" if selected_world_name == "posim_ocean_waves" else "false"
-
     run_server_only = (
         headless.perform(context).lower() == "true" or gui.perform(context).lower() == "false"
+    )
+    # A server-only launch has no GUI camera service to move.
+    zoom_camera_value = (
+        "true" if selected_world_name == "posim_ocean_waves" and not run_server_only else "false"
     )
     if run_server_only:
         gz_args.append(" -s")
