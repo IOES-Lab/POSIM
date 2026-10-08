@@ -102,7 +102,8 @@ void OceanCurrentPlugin::Configure(
 {
   if (!rclcpp::ok())
   {
-    rclcpp::init(0, nullptr);
+    // Gazebo owns process signal handling for embedded ROS nodes.
+    rclcpp::init(0, nullptr, rclcpp::InitOptions(), rclcpp::SignalHandlerOptions::None);
     // gzerr << "ROS 2 has not been properly initialized. Please make sure you have initialized your
     // ROS 2 environment.";
   }
@@ -587,13 +588,40 @@ bool OceanCurrentPlugin::UpdateCurrentVertAngleModel(
 void OceanCurrentPlugin::PostUpdate(
   const gz::sim::UpdateInfo & _info, const gz::sim::EntityComponentManager & _ecm)
 {
+  if (!this->dataPtr->rosNode)
+  {
+    return;
+  }
+  const auto context = this->dataPtr->rosNode->get_node_base_interface()->get_context();
+  if (!rclcpp::ok(context))
+  {
+    return;
+  }
   if (!_info.paused)
   {
-    rclcpp::spin_some(this->dataPtr->rosNode);
+    try
+    {
+      rclcpp::spin_some(this->dataPtr->rosNode);
+    }
+    catch (const rclcpp::exceptions::RCLError &)
+    {
+      // Another embedded ROS component may shut down the shared context
+      // after the check above. Do not hide errors during normal operation.
+      if (rclcpp::ok(context))
+      {
+        throw;
+      }
+      return;
+    }
     if (_info.iterations % 1000 == 0)
     {
       gzmsg << "posim_ros_gz_plugins::OceanCurrentPlugin::PostUpdate" << std::endl;
     }
+  }
+  // A callback processed by spin_some may have shut down the context.
+  if (!rclcpp::ok(context))
+  {
+    return;
   }
   auto * worldPlugin = posim_gz_world_plugins::OceanCurrentWorldPlugin::Instance();
   if (!worldPlugin)
