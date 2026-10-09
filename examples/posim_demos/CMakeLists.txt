@@ -8,4 +8,9 @@ install(
   DESTINATION share/posim_demos
 )
 
+if(BUILD_TESTING)
+  find_package(ament_cmake_pytest REQUIRED)
+  ament_add_pytest_test(test_world_paths test/test_world_paths.py)
+endif()
+
 ament_package()

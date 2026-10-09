@@ -8,6 +8,10 @@
   <maintainer email="kys50728@g.kmou.ac.kr">Ye-Seol Kwon</maintainer>
   <license>Apache 2.0</license>
   <buildtool_depend>ament_cmake</buildtool_depend>
+  <test_depend>ament_cmake_pytest</test_depend>
+  <test_depend>ament_index_python</test_depend>
+  <test_depend>launch</test_depend>
+  <test_depend>launch_ros</test_depend>
   <export>
     <build_type>ament_cmake</build_type>
   </export>

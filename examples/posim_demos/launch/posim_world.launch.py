@@ -1,9 +1,15 @@
 import os
+import shlex
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, OpaqueFunction, IncludeLaunchDescription
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
+
+
+def _quote_path(path):
+    # Keep Windows shell handling unchanged; shlex.quote is POSIX-only.
+    return shlex.quote(path) if os.name == "posix" else path
 
 
 def launch_setup(context, *args, **kwargs):
@@ -19,7 +25,7 @@ def launch_setup(context, *args, **kwargs):
     world_path = os.path.join(pkg_posim_worlds, "worlds", world_file_name)
 
     # Gazebo simulation launch
-    gz_args = f"-r {world_path}"
+    gz_args = f"-r {_quote_path(world_path)}"
     if verbose_flag.lower() == "true":
         gz_args += " --verbose"
     if headless_flag.lower() == "true":
