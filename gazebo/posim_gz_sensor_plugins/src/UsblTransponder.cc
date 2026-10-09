@@ -92,7 +92,8 @@ void UsblTransponder::Configure(
 
   if (!rclcpp::ok())
   {
-    rclcpp::init(0, nullptr);
+    // Gazebo owns process signals; do not invalidate ROS during its final updates.
+    rclcpp::init(0, nullptr, rclcpp::InitOptions(), rclcpp::SignalHandlerOptions::None);
   }
 
   this->dataPtr->ecm = &_ecm;
@@ -393,8 +394,32 @@ void UsblTransponder::commandRosCallback(const posim_interfaces::msg::UsblComman
 void UsblTransponder::PostUpdate(
   const gz::sim::UpdateInfo & _info, const gz::sim::EntityComponentManager & _ecm)
 {
-  // ROS callbacks are wall-time events and must remain responsive while paused.
-  rclcpp::spin_some(this->ros_node_);
+  if (!this->ros_node_)
+  {
+    return;
+  }
+  const auto context = this->ros_node_->get_node_base_interface()->get_context();
+  if (!rclcpp::ok(context))
+  {
+    return;
+  }
+  try
+  {
+    // ROS callbacks are wall-time events and must remain responsive while paused.
+    rclcpp::spin_some(this->ros_node_);
+    if (!rclcpp::ok(context))
+    {
+      return;
+    }
+  }
+  catch (const rclcpp::exceptions::RCLError &)
+  {
+    // Suppress only shutdown races; preserve errors while the context is valid.
+    if (rclcpp::ok(context))
+    {
+      throw;
+    }
+  }
 }
 
 }  // namespace posim_gz_sensor_plugins

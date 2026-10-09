@@ -67,7 +67,7 @@ void SubseaPressureSensorPlugin::Configure(
 {
   if (!rclcpp::ok())
   {
-    rclcpp::init(0, nullptr);
+    rclcpp::init(0, nullptr, rclcpp::InitOptions(), rclcpp::SignalHandlerOptions::None);
   }
 
   gzdbg << "posim_gz_sensor_plugins::SubseaPressureSensorPlugin::Configure on entity: " << _entity
@@ -217,64 +217,86 @@ void SubseaPressureSensorPlugin::PreUpdate(
 void SubseaPressureSensorPlugin::PostUpdate(
   const gz::sim::UpdateInfo & _info, const gz::sim::EntityComponentManager & _ecm)
 {
-  if (this->dataPtr->hasMeasurement && this->dataPtr->updateRate > 0.0)
+  if (!this->rosNode || !this->dataPtr->ros_pressure_sensor_pub)
   {
-    const auto period = std::chrono::duration_cast<std::chrono::steady_clock::duration>(
-      std::chrono::duration<double>(1.0 / this->dataPtr->updateRate));
-    if (
-      _info.simTime >= this->dataPtr->lastMeasurementTime &&
-      _info.simTime - this->dataPtr->lastMeasurementTime < period)
+    return;
+  }
+  const auto context = this->rosNode->get_node_base_interface()->get_context();
+  if (!rclcpp::ok(context))
+  {
+    return;
+  }
+  try
+  {
+    if (this->dataPtr->hasMeasurement && this->dataPtr->updateRate > 0.0)
     {
-      return;
+      const auto period = std::chrono::duration_cast<std::chrono::steady_clock::duration>(
+        std::chrono::duration<double>(1.0 / this->dataPtr->updateRate));
+      if (
+        _info.simTime >= this->dataPtr->lastMeasurementTime &&
+        _info.simTime - this->dataPtr->lastMeasurementTime < period)
+      {
+        return;
+      }
+    }
+
+    this->dataPtr->lastMeasurementTime = _info.simTime;
+    this->dataPtr->hasMeasurement = true;
+
+    // The pressure model uses kPa internally, while both Gazebo and ROS
+    // FluidPressure messages require Pa (and Pa^2 for variance).
+    constexpr double kPaToPa = 1000.0;
+    const double pressurePa = this->dataPtr->pressure * kPaToPa;
+    const double variancePa2 =
+      this->dataPtr->noiseSigma * this->dataPtr->noiseSigma * kPaToPa * kPaToPa;
+
+    // Publishing Sea_Pressure and depth estimate on gazebo topic
+    gz::msgs::FluidPressure gzPressureMsg;
+    gzPressureMsg.set_pressure(pressurePa);
+    gzPressureMsg.set_variance(variancePa2);
+
+    // Publishing the pressure message
+    this->dataPtr->gz_pressure_sensor_pub.Publish(gzPressureMsg);
+
+    // Publishing Sea_Pressure on Ros Topic
+    sensor_msgs::msg::FluidPressure rosPressureMsg;
+    rosPressureMsg.header.stamp.sec =
+      std::chrono::duration_cast<std::chrono::seconds>(_info.simTime).count();  // Time in seconds
+    rosPressureMsg.header.stamp.nanosec =
+      std::chrono::duration_cast<std::chrono::nanoseconds>(_info.simTime).count() %
+      1000000000;  // Time in nanoseconds
+    rosPressureMsg.fluid_pressure = pressurePa;
+    rosPressureMsg.variance = variancePa2;
+    this->dataPtr->ros_pressure_sensor_pub->publish(rosPressureMsg);
+
+    // publishing depth message
+    if (this->dataPtr->estimateDepth)
+    {
+      geometry_msgs::msg::PointStamped rosDepthMsg;
+      rosDepthMsg.point.z = this->dataPtr->inferredDepth;
+      rosDepthMsg.header.stamp.sec =
+        std::chrono::duration_cast<std::chrono::seconds>(this->dataPtr->lastMeasurementTime)
+          .count();
+      this->dataPtr->ros_depth_estimate_pub->publish(rosDepthMsg);
+    }
+
+    if (!_info.paused)
+    {
+      rclcpp::spin_some(this->rosNode);
+
+      if (_info.iterations % 1000 == 0)
+      {
+        gzmsg << "posim_ros_gz_plugins::SubseaPressureSensorPlugin::PostUpdate" << std::endl;
+      }
     }
   }
-
-  this->dataPtr->lastMeasurementTime = _info.simTime;
-  this->dataPtr->hasMeasurement = true;
-
-  // The pressure model uses kPa internally, while both Gazebo and ROS
-  // FluidPressure messages require Pa (and Pa^2 for variance).
-  constexpr double kPaToPa = 1000.0;
-  const double pressurePa = this->dataPtr->pressure * kPaToPa;
-  const double variancePa2 =
-    this->dataPtr->noiseSigma * this->dataPtr->noiseSigma * kPaToPa * kPaToPa;
-
-  // Publishing Sea_Pressure and depth estimate on gazebo topic
-  gz::msgs::FluidPressure gzPressureMsg;
-  gzPressureMsg.set_pressure(pressurePa);
-  gzPressureMsg.set_variance(variancePa2);
-
-  // Publishing the pressure message
-  this->dataPtr->gz_pressure_sensor_pub.Publish(gzPressureMsg);
-
-  // Publishing Sea_Pressure on Ros Topic
-  sensor_msgs::msg::FluidPressure rosPressureMsg;
-  rosPressureMsg.header.stamp.sec =
-    std::chrono::duration_cast<std::chrono::seconds>(_info.simTime).count();  // Time in seconds
-  rosPressureMsg.header.stamp.nanosec =
-    std::chrono::duration_cast<std::chrono::nanoseconds>(_info.simTime).count() %
-    1000000000;  // Time in nanoseconds
-  rosPressureMsg.fluid_pressure = pressurePa;
-  rosPressureMsg.variance = variancePa2;
-  this->dataPtr->ros_pressure_sensor_pub->publish(rosPressureMsg);
-
-  // publishing depth message
-  if (this->dataPtr->estimateDepth)
+  catch (const rclcpp::exceptions::RCLError &)
   {
-    geometry_msgs::msg::PointStamped rosDepthMsg;
-    rosDepthMsg.point.z = this->dataPtr->inferredDepth;
-    rosDepthMsg.header.stamp.sec =
-      std::chrono::duration_cast<std::chrono::seconds>(this->dataPtr->lastMeasurementTime).count();
-    this->dataPtr->ros_depth_estimate_pub->publish(rosDepthMsg);
-  }
-
-  if (!_info.paused)
-  {
-    rclcpp::spin_some(this->rosNode);
-
-    if (_info.iterations % 1000 == 0)
+    // The context may be invalidated between the check and publication/spin.
+    // Do not hide unrelated failures while ROS remains valid.
+    if (rclcpp::ok(context))
     {
-      gzmsg << "posim_ros_gz_plugins::SubseaPressureSensorPlugin::PostUpdate" << std::endl;
+      throw;
     }
   }
 }
