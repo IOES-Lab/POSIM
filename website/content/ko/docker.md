@@ -2,11 +2,9 @@
 
 실행하려는 소스 커밋에서 이미지를 빌드합니다. 저장소에는 Linux AMD64와 ARM64용 구성이 각각 있습니다.
 
-## 로컬 빌드와 게시 이미지 구분
+## 이미지 선택
 
-아래의 `posim:dev-*`는 로컬에서 빌드하는 태그이며 정식 배포 태그가 아닙니다. 빌드 전에 `git rev-parse HEAD`로 소스 커밋을 기록합니다. 게시된 `ioeslab/posim` 이미지를 대신 사용한다면 소스 커밋·아키텍처·패키지 이름이 문서와 맞는지 확인하고 이미지 digest를 남깁니다.
-
-이전 `validation-pr5-*` 이미지는 과거 검증용 후보이며 정식 릴리스나 현재 카메라 수정만 남긴 PR #5의 빌드가 아닙니다. 과거 이미지의 시험 결과를 현재 `main`이나 이후 PR 커밋의 결과로 사용하면 안 됩니다. 이 가이드는 해당 이미지를 요구하지 않습니다.
+이 가이드는 소스에서 `posim:dev-*` 이미지를 빌드합니다. `git rev-parse HEAD`로 사용할 커밋을 기록하세요. 게시된 `ioeslab/posim` 이미지는 소스 커밋·아키텍처·패키지 이름을 확인하고 digest를 기록합니다.
 
 ## 1. 호스트에서 이미지 빌드
 
@@ -69,7 +67,11 @@ docker exec -it posim-quickstart bash
 
 ## 데스크톱 없이 영상 센서 렌더링
 
-현재 POSIM Launch의 `headless:=true`는 서버 전용 모드(`-s`)이며 Gazebo의 EGL `--headless-rendering` 모드가 아닙니다. `QT_QPA_PLATFORM=offscreen`만으로 OGRE 렌더링 환경이 준비되지는 않습니다. 카메라·깊이 센서 예제에는 작동하는 디스플레이 또는 별도로 구성한 headless 렌더러가 필요합니다.
+`headless:=true`는 Gazebo 서버 모드(`-s`)로 실행합니다. 영상 센서는 별도의 렌더링 환경이 필요합니다.
+
+- 가상 디스플레이: 아래 Xvfb 설정 사용
+- EGL: [Gazebo headless 렌더링](https://gazebosim.org/api/sim/10/headless_rendering.html) 설정과 `--headless-rendering` 필요
+- `QT_QPA_PLATFORM=offscreen`: Qt 창 설정
 
 소프트웨어 렌더링으로 첫 수신을 확인할 때는 가상 X 디스플레이를 사용할 수 있습니다. 호스트 터미널에서 일회용 컨테이너에 필요한 도구를 설치합니다.
 
@@ -84,7 +86,7 @@ docker exec -u root posim-quickstart bash -lc \
 xvfb-run -a -s "-screen 0 1280x720x24" bash
 ```
 
-이 셸에서 3단계 환경을 다시 불러온 뒤 카메라 예제를 실행합니다. 터미널 B에서 ROS 데이터를 확인하는 동안 이 셸을 유지하세요. 소프트웨어 렌더링용 구성이며 GPU 연결이나 CUDA·WGPU 소나 시험은 아닙니다. EGL은 [Gazebo headless 렌더링 문서](https://gazebosim.org/api/sim/10/headless_rendering.html)를 참고하세요. 현재 POSIM Launch 인자에는 해당 플래그가 노출되어 있지 않습니다.
+이 셸에서 3단계 환경을 불러온 뒤 카메라 예제를 실행합니다. 터미널 B에서 데이터를 확인하는 동안 셸을 유지하세요. Xvfb 구성은 소프트웨어 렌더링을 사용합니다. EGL 실행 플래그는 POSIM Launch 인자에 노출되어 있지 않습니다.
 
 ## 그래픽, 파일 보관과 종료
 
@@ -92,4 +94,10 @@ NVIDIA GPU를 사용하려면 호스트 드라이버와 [NVIDIA Container Toolki
 
 macOS의 Docker는 Linux 가상 머신입니다. 컨테이너 렌더링과 호스트의 직접 GPU 사용은 [시스템 요구 사항](requirements.md)에서 구분하여 확인하세요.
 
-`--rm`은 셸 종료 후 컨테이너를 삭제합니다. ROS bag과 사용자 자산을 보관하려면 명시적으로 호스트 디렉터리를 마운트합니다. 토픽 확인 도구를 먼저 종료하고 시뮬레이션에서 Ctrl+C를 누른 뒤 컨테이너 셸을 종료합니다. Xvfb를 사용한다면 시뮬레이션이 끝나 셸 프롬프트가 돌아온 뒤 해당 셸을 닫으세요. Gazebo가 종료되는 동안에는 가상 디스플레이를 유지해야 합니다.
+`--rm`은 셸 종료 후 컨테이너를 삭제합니다. 기록과 자산을 보관하려면 호스트 디렉터리를 마운트하세요.
+
+1. 토픽 확인 도구를 종료합니다.
+2. 시뮬레이션에서 Ctrl+C를 누르고 종료를 기다립니다.
+3. Xvfb 셸과 컨테이너 셸을 닫습니다.
+
+Gazebo가 종료될 때까지 가상 디스플레이를 유지하세요.

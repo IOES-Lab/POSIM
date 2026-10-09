@@ -16,7 +16,13 @@ cd ~/posim_ws
 
 ## 2. 기본 환경 설치
 
-설치 도우미는 시스템 패키지 저장소를 설정하고 ROS 2 Lyrical, Gazebo Jetty, ArduSub, MAVROS와 외부 파도 라이브러리를 설치합니다. `sudo`를 사용하며 `apt-get full-upgrade -y`로 시스템 전체 패키지를 갱신하므로 실행 전에 `src/posim/extras/ros-lyrical-gz-jetty-install.sh` 내용을 확인하세요. 전용 Ubuntu 환경을 사용하거나 기존 시스템에 미칠 영향을 검토한 뒤 진행합니다.
+설치 도우미는 ROS 2 Lyrical·Gazebo Jetty·ArduSub·MAVROS·파도 라이브러리를 설치합니다. 실행 전에 `src/posim/extras/ros-lyrical-gz-jetty-install.sh`를 확인하세요.
+
+- 시스템 패키지 저장소 설정
+- `sudo` 사용
+- `apt-get full-upgrade -y`로 전체 패키지 갱신
+
+전용 Ubuntu 환경을 권장합니다.
 
 ```bash
 POSIM_EXTRAS_DIR="$PWD/src/posim/extras" \
@@ -46,7 +52,7 @@ source install/setup.bash
 ros2 pkg prefix posim_demos
 ```
 
-마지막 명령은 설치된 패키지 경로를 확인합니다. 시뮬레이션 실행과 센서 데이터 수신까지 확인하는 명령은 아닙니다. 새 터미널에서도 같은 환경을 불러옵니다.
+마지막 명령은 설치된 패키지 경로를 확인합니다. 실행과 데이터 수신은 [첫 시뮬레이션](quickstart.md)에서 확인하세요. 새 터미널에서는 아래 환경을 불러옵니다.
 
 ```bash
 source /opt/ros/lyrical/setup.bash
@@ -64,5 +70,3 @@ source ~/posim_ws/install/setup.bash
 git -C ~/posim_ws/src/posim rev-parse HEAD
 git -C ~/posim_ws/src/posim pull --ff-only
 ```
-
-이전 패키지 이름에서 이전할 때는 새 작업 공간을 사용합니다. 이전 설치 파일과 환경 훅이 새 `posim_*` 패키지를 가리는 일을 피할 수 있습니다.

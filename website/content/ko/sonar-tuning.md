@@ -1,6 +1,6 @@
 # 소나 빌드와 성능
 
-현재 멀티빔 소나는 CUDA를 사용합니다. NVIDIA 드라이버, CUDA 컴파일러·런타임, cuFFT, cuBLAS와 Gazebo 렌더링을 준비한 뒤 해당 타깃을 빌드합니다.
+멀티빔 소나는 CUDA를 사용합니다. NVIDIA 드라이버·CUDA 컴파일러와 런타임·cuFFT·cuBLAS·Gazebo 렌더링을 준비하세요.
 
 ## 도구 확인
 
@@ -33,18 +33,14 @@ ros2 pkg prefix multibeam_sonar_system
 ros2 pkg prefix posim_multibeam_sonar_demo
 ```
 
-패키지 경로 조회만으로 CUDA 소나가 빌드되었다고 판단하면 안 됩니다. 두 패키지는 CMake에서 CUDA 전용 타깃을 생략해도 ament 패키지로 등록됩니다. Ubuntu에서는 설치된 라이브러리도 확인합니다.
+CUDA 타깃이 빌드되었는지 라이브러리 파일을 확인합니다. 패키지는 CUDA 타깃을 생략해도 등록될 수 있습니다.
 
 ```bash
 test -f "$(ros2 pkg prefix multibeam_sonar)/lib/multibeam_sonar/libmultibeam_sonar.so"
 test -f "$(ros2 pkg prefix multibeam_sonar_system)/lib/multibeam_sonar_system/libmultibeam_sonar_system.so"
 ```
 
-각 명령의 종료 상태가 0이어야 합니다. 파일 존재는 빌드·설치 확인에 해당합니다. 빌드 로그의 CUDA 타깃 생략과 실행 로그의 라이브러리 로드 오류도 확인합니다. [멀티빔 소나](sonar.md)를 실행하여 플러그인이 로드된 뒤 실제 영상·원시 데이터가 도착하는지도 확인하세요.
-
-## WGPU는 별도 후보 버전
-
-위 CUDA 명령으로 WGPU가 활성화되지는 않습니다. 범위와 준비 조건은 [실험용 백엔드 안내](requirements.md)와 연결된 PR을 확인하세요. 한 플랫폼의 WGPU 시험 결과를 이 CUDA 설치의 검증 결과로 대신하지 않습니다.
+각 명령의 종료 상태가 0인지 확인하세요. 빌드·실행 로그에서 타깃 생략과 로드 오류를 확인하고, [멀티빔 소나](sonar.md)에서 영상·원시 데이터를 받습니다.
 
 ## 한 번에 하나씩 조절
 

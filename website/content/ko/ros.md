@@ -36,7 +36,12 @@ ros2 service list -t
 ros2 topic info /mavros/manual_control/send --verbose
 ```
 
-포함된 수동 제어 어댑터는 `/joy`, `/keyboard/joy`를 MAVROS 수동 명령으로 변환합니다. 20 Hz로 발행하고 입력이 0.3초 동안 없으면 타임아웃을 적용합니다. 명령 입력은 하나씩 사용하고 Arm·항법 확인 절차를 지키세요. 키보드와 로컬 WebSocket 구성은 [ROV 예제](rovs.md)에 있습니다.
+수동 제어 어댑터는 `/joy`, `/keyboard/joy`를 MAVROS 명령으로 변환합니다.
+
+- 발행 주기: **20 Hz**
+- 입력 타임아웃: **0.3초**
+
+명령 입력은 하나씩 사용하고 Arm·항법 상태를 확인하세요. 키보드·WebSocket 설정은 [ROV 예제](rovs.md)를 참고하세요.
 
 ## Python에서 구독
 
@@ -70,10 +75,22 @@ finally:
 
 ## 시각화와 기록
 
-RViz에서 자료형에 맞는 디스플레이를 사용합니다. 카메라는 Image, 점군은 PointCloud2, 좌표계·상태는 TF와 위치 디스플레이를 선택합니다. POSIM 전용 메시지는 `posim_interfaces`에 정의되어 있으므로 별도 ROS 클라이언트에도 이를 설치하고 환경을 불러옵니다.
+RViz에서 자료형에 맞는 디스플레이를 선택합니다.
+
+- 카메라: Image
+- 점군: PointCloud2
+- 좌표계·상태: TF와 위치 디스플레이
+
+POSIM 전용 메시지는 `posim_interfaces`에 정의되어 있습니다. 별도 ROS 클라이언트에도 이를 설치하고 환경을 불러오세요.
 
 ```bash
 ros2 bag record /model/rexrov/odometry /model/rexrov/imu
 ```
 
-원격 ROS 클라이언트에는 호환되는 메시지 정의, 접근 가능한 DDS 탐색·데이터 경로와 일치하는 도메인·탐색 설정이 필요합니다. 문서 웹사이트나 HTTP 터널이 ROS DDS를 자동으로 공개하지는 않습니다. 세션 URL과 원격 연결 게이트웨이는 시뮬레이터를 제공하는 응용 프로그램에서 구성합니다.
+원격 ROS 클라이언트에는 다음 설정이 필요합니다.
+
+- 호환 메시지 정의
+- 접근 가능한 DDS 탐색·데이터 경로
+- 일치하는 도메인·탐색 설정
+
+원격 연결 게이트웨이는 시뮬레이터 응용 프로그램에서 구성합니다.

@@ -2,9 +2,9 @@
 
 높이맵은 격자마다 고도를 저장하여 지형을 표현합니다. 카메라에 보이는 해저와 접촉 계산에 사용되는 해저가 일치하도록 화면·충돌 형상을 함께 설정합니다.
 
-## 기존 지형 먼저 살펴보기
+## 예제 지형
 
-지리 장면은 [Santorini](https://github.com/IOES-Lab/POSIM/blob/main/models/posim_worlds/worlds/posim_Santorini.world), 해저 장면은 [graded seabed](https://github.com/IOES-Lab/POSIM/blob/main/models/posim_worlds/worlds/posim_graded_seabed.world)를 참고합니다. 현재 Santorini 월드는 Fuel의 `Santorini Scaled` 모델을 포함하며 저장소에 남아 있는 예전 TIFF 자산을 직접 참조하지 않습니다.
+지리 장면은 [Santorini](https://github.com/IOES-Lab/POSIM/blob/main/models/posim_worlds/worlds/posim_Santorini.world), 해저 장면은 [graded seabed](https://github.com/IOES-Lab/POSIM/blob/main/models/posim_worlds/worlds/posim_graded_seabed.world)를 참고하세요. Santorini는 Fuel의 `Santorini Scaled` 모델을 사용합니다.
 
 이 예제는 월드 구성 참고용입니다. 높이맵 형상은 Gazebo의 [높이맵 튜토리얼](https://gazebosim.org/api/sim/10/heightmap_dem.html)과 [SDFormat 형상 참고](http://sdformat.org/spec?ver=1.12&elem=geometry)를 따라 설정합니다.
 

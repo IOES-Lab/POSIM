@@ -9,7 +9,7 @@ printf 'ROS_DISTRO=%s\n' "$ROS_DISTRO"
 ros2 pkg prefix posim_demos
 ```
 
-`lyrical`과 선택한 작업 공간의 패키지 경로가 나와야 합니다. [설치](install.md) 또는 [Docker](docker.md)에 따라 ROS와 작업 공간 환경을 다시 불러옵니다. 호스트와 컨테이너 경로를 혼용하지 마세요. 패키지 이름이 변경된 버전으로 이전할 때는 새 작업 공간을 사용합니다.
+`lyrical`과 선택한 작업 공간 경로가 나와야 합니다. [설치](install.md) 또는 [Docker](docker.md)에 따라 환경을 불러오세요. 호스트와 컨테이너의 경로를 확인합니다.
 
 ## 모델·메시가 없을 때
 
@@ -17,7 +17,7 @@ ros2 pkg prefix posim_demos
 
 ## 영상이 없거나 렌더링 초기화가 실패할 때
 
-Headless는 데스크톱 창이 없다는 뜻이며 센서 렌더링도 없어진다는 뜻은 아닙니다. 렌더러와 디스플레이·offscreen 설정을 확인하세요. 첫 확인에는 Docker 가이드의 소프트웨어 렌더링 구성을 사용할 수 있습니다. CUDA 소나에서는 [툴킷과 설치 라이브러리](sonar-tuning.md)도 확인합니다.
+영상 센서는 화면 없이 실행해도 렌더러가 필요합니다. 디스플레이·offscreen 설정을 확인하세요. [Docker 환경](docker.md)의 Xvfb 설정이나 [CUDA 라이브러리](sonar-tuning.md)를 확인합니다.
 
 ## 메시지가 오지 않을 때
 

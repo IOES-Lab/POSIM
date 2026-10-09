@@ -34,7 +34,12 @@ The model uses an RGBD sensor and the plugin `UnderwaterCamera`, class `posim_gz
 | `backgroundG` | Green background channel | `0` |
 | `backgroundB` | Blue background channel | `0` |
 
-The packaged example overrides these with attenuation `0.8`, `0.5`, `0.2` and background `85`, `107`, `47`. Its RGBD image is 320 × 240 with a requested 10 Hz update rate. Code defaults and descriptor values are different; inspect the chosen SDF when reproducing an image.
+The example model uses these values. SDF settings override code defaults.
+
+- RGB attenuation: **0.8, 0.5, 0.2**
+- RGB background: **85, 107, 47**
+- Image size: **320 × 240**
+- Requested rate: **10 Hz**
 
 ## Tune and compare
 

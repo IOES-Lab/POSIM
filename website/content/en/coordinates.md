@@ -48,6 +48,6 @@ ros2 service call /gz/set_origin_spherical_coordinates \
   '{latitude_deg: 35.074823, longitude_deg: 129.084798, altitude: 0.0}'
 ```
 
-An origin change changes the coordinate interpretation. It does not fetch terrain or move all scene entities to a new geographic region. Configure terrain, world orientation, altitude reference and any navigation controller consistently.
+Changing the origin updates how local positions map to latitude/longitude. Align terrain, world orientation, altitude reference and controllers with that coordinate system.
 
 Gazebo's spherical-coordinate transformations are used internally. Keep the SDF's heading/orientation in mind rather than assuming every world has the same local axes.

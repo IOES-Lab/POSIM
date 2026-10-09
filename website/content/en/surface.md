@@ -19,7 +19,7 @@ This image contains ArduSub and ArduRover as separate binaries. The single-vehic
 
 `extras/surface/wamv.py` reads the model from the external dependency and configures the integration. The two aft propellers are driven through outputs 1 and 3. The example starts at the sea surface.
 
-The example's external-navigation adapter publishes **simulated Gazebo ground-truth** pose and velocity to MAVROS. Inspect controller state, navigation validity and thruster direction before sending a mission. This navigation input describes simulation state; it is not a physical positioning sensor.
+The external-navigation adapter publishes **simulated Gazebo pose and velocity** to MAVROS. Check controller state, navigation validity and thruster direction before sending a mission.
 
 ## Adjust waves
 

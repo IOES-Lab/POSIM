@@ -8,10 +8,9 @@ source /opt/ros/lyrical/setup.bash
 source ~/posim_ws/install/setup.bash
 ```
 
-The package remains named `posim_demos` for compatibility. Its four entry points
-compose installed world, robot, sensor, and object descriptions. Existing
-resource hooks are installed by the packages; no manual CMake or hook edits are
-needed for the examples below.
+The `posim_demos` package provides four launch entry points for installed
+world, object, sensor and robot descriptions. Packages install their resource
+hooks automatically.
 
 ## World
 

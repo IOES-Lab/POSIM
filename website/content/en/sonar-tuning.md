@@ -1,6 +1,6 @@
 # Sonar build and performance
 
-The current multibeam sonar implementation uses CUDA. Prepare the NVIDIA driver, CUDA compiler/runtime, cuFFT, cuBLAS and Gazebo rendering before building its targets.
+Multibeam sonar uses CUDA. Prepare the NVIDIA driver, CUDA compiler/runtime, cuFFT, cuBLAS and Gazebo rendering.
 
 ## Check the toolchain
 
@@ -33,18 +33,14 @@ ros2 pkg prefix multibeam_sonar_system
 ros2 pkg prefix posim_multibeam_sonar_demo
 ```
 
-A package prefix alone is not proof that CUDA sonar was built. Both packages still register with ament when their CMake configuration skips CUDA-specific targets. On Ubuntu, also check the installed libraries:
+Check library files to confirm CUDA targets were built. Packages can register even when CUDA targets are skipped.
 
 ```bash
 test -f "$(ros2 pkg prefix multibeam_sonar)/lib/multibeam_sonar/libmultibeam_sonar.so"
 test -f "$(ros2 pkg prefix multibeam_sonar_system)/lib/multibeam_sonar_system/libmultibeam_sonar_system.so"
 ```
 
-Each command must exit with status 0. File presence is only a build/install check; inspect build output for skipped CUDA targets and launch logs for load errors. Continue with [Multibeam sonar](sonar.md) and confirm actual image/raw payloads after plugin loading.
-
-## WGPU is a separate candidate
-
-These CUDA commands do not enable WGPU. See the [experimental backend status](requirements.md) and its linked PR for scope and prerequisites; do not treat a WGPU test on one platform as validation of this CUDA installation.
+Each command must exit with status 0. Check build/launch logs for skipped targets or load errors, then receive image/raw data in [Multibeam sonar](sonar.md).
 
 ## Tune one variable at a time
 

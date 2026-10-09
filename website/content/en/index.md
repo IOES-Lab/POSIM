@@ -1,35 +1,52 @@
 # Platform for Ocean Simulation
 
-POSIM is a ROS 2 and Gazebo library for maritime robotics. Combine ocean environments, vehicle descriptions, simulated sensors and control interfaces to build repeatable experiments.
+POSIM is a ROS 2 and Gazebo library for maritime robotics. Combine ocean environments, robots, simulated sensors and control interfaces for repeatable experiments.
 
 ## Try WWW-POSIM
 
-[WWW-POSIM — World Wide Web Platform for Ocean Simulation](https://www-posim.vercel.app/) builds on POSIM, ROS 2, Gazebo and ArduPilot to bring maritime simulation to a web browser and a standalone application. Choose a geographic starting point, explore real terrain with surface or underwater robots, inspect live sensor data, and test waypoint missions or your own ROS 2 autonomy code. Visit the platform to watch the live voyage, explore its features, and find downloads and tutorials.
+[WWW-POSIM](https://www-posim.vercel.app/) is an ocean robot simulator powered by POSIM. Use a web workspace or desktop app.
+
+- Generate seabed and coast from latitude/longitude
+- Operate surface/underwater robots and inspect sensors
+- Test ArduPilot waypoint missions or ROS 2 code
+- Watch the public LIVE world voyage
 
 ## Start here
 
-<div class="docs-architecture"><a href="install.html"><strong>Install</strong><span>Build the ROS 2 and Gazebo workspace on Ubuntu.</span></a><a href="quickstart.html"><strong>Run</strong><span>Start an ocean world and receive your first sensor data.</span></a><a href="custom-robots.html"><strong>Extend</strong><span>Add your robot, terrain and control code.</span></a></div>
+<div class="docs-architecture"><a href="install.html"><strong>Install</strong><span>Build the ROS 2 and Gazebo workspace on Ubuntu.</span></a><a href="quickstart.html"><strong>Run</strong><span>Start an ocean world and receive sensor data.</span></a><a href="custom-robots.html"><strong>Extend</strong><span>Add robots, terrain and control code.</span></a></div>
 
-Use [Ubuntu installation](install.md) for a native Linux workspace, or [Docker](docker.md) for an isolated environment. Then follow [First simulation](quickstart.md). The current source targets **Ubuntu 26.04, ROS 2 Lyrical and Gazebo Jetty**.
+Prepare an [Ubuntu installation](install.md) or [Docker environment](docker.md), then run the [first simulation](quickstart.md).
 
-## What is in the library?
+- Operating system: **Ubuntu 26.04**
+- ROS: **ROS 2 Lyrical**
+- Simulator: **Gazebo Jetty**
+
+## Library components
 
 | Component | Purpose | Guide |
 | --- | --- | --- |
-| Ocean worlds | Assemble sea surface, seabed and task scenes | [World library](worlds.md) |
-| Vehicles | REXROV, BlueROV2, Slocum and the surface integration | [ROVs](rovs.md), [glider](gliders.md), [surface robots](surface.md) |
-| Sensors | Underwater camera, DVL, pressure, USBL and CUDA multibeam sonar | [Camera](camera.md), [DVL](dvl.md), [sonar](sonar.md) |
-| Environmental plugins | Currents and spherical-coordinate services | [Currents](currents.md), [coordinates](coordinates.md) |
-| ROS interfaces | Sensor subscriptions, vehicle control and experiment recording | [ROS 2 and control](ros.md) |
+| Ocean worlds | Surface, seabed and task scenes | [World library](worlds.md) |
+| Robots | REXROV, BlueROV2, Slocum and surface vehicles | [ROVs](rovs.md), [Gliders](gliders.md), [Surface robots](surface.md) |
+| Sensors | Camera, DVL, pressure, USBL and CUDA sonar | [Camera](camera.md), [DVL](dvl.md), [Sonar](sonar.md) |
+| Environment plugins | Currents and geographic coordinates | [Currents](currents.md), [Coordinates](coordinates.md) |
+| ROS interfaces | Sensor subscriptions, commands and recording | [ROS 2 and control](ros.md) |
 
-## How a simulation fits together
+## Simulation structure
 
-A world SDF defines the environment and world systems. A model SDF defines links, collisions, inertia, sensors and model systems. Launch files start Gazebo, spawn the selected description and configure ROS bridges. Your ROS node reads observations and publishes commands through the configured interface.
+1. Define the environment and world systems in world SDF.
+2. Define links, collision, inertia and sensors in model SDF.
+3. Launch Gazebo, the model and ROS bridges.
+4. Subscribe to sensors and send commands from ROS nodes.
 
-You can use POSIM directly from a ROS workspace. WWW-POSIM adds geographic world generation, a browser interface, account management and online sessions around the simulation library.
+Use POSIM directly in a ROS workspace. WWW-POSIM provides geographic world generation, a workbench and online sessions.
 
-## Find the right guide
+WWW-POSIM uses [POSIM-Terrain, POSIM-Routing and POSIM-Control](libraries.md) for terrain generation, route planning and vehicle control. Each is a public library with its own usage guide.
 
-The examples provide runnable entry points. Advanced guides cover custom models, terrain and build tuning. Plugin references explain parameters, units and topic names. Run one example at a time while learning the launch and resource layout.
+## Find a guide
 
-This documentation adapts the IOES-Lab POSIM Notion Wiki to the current source layout. Each page links its reference material and source revision in the footer. [Contribution guidance](contributing.md) explains how to update the documentation alongside code changes.
+- **Examples:** commands and data checks
+- **Advanced guides:** models, terrain and build settings
+- **Plugin reference:** values, units and topics
+- **[Contributing](contributing.md):** source/documentation updates and checks
+
+Each page links related source and reference material in its footer.

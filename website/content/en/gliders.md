@@ -24,7 +24,7 @@ gz topic -l
 
 The descriptor defines IMU and NavSat Gazebo topics under `/model/glider_slocum/`. Inspect the installed bridge configuration to select corresponding ROS topics and types. The model also loads the [pressure plugin](pressure.md) and the Gazebo odometry publisher.
 
-The launch creates a model and environment. Your control node supplies an experiment-specific mission; spawning the model does not start a dive or autonomous gliding sequence.
+Launch the model and environment, then use your control node for dive or gliding missions.
 
 ## Adapt the model
 
