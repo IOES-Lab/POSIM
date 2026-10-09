@@ -274,9 +274,7 @@ void SubseaPressureSensorPlugin::PostUpdate(
     {
       geometry_msgs::msg::PointStamped rosDepthMsg;
       rosDepthMsg.point.z = this->dataPtr->inferredDepth;
-      rosDepthMsg.header.stamp.sec =
-        std::chrono::duration_cast<std::chrono::seconds>(this->dataPtr->lastMeasurementTime)
-          .count();
+      rosDepthMsg.header = rosPressureMsg.header;
       this->dataPtr->ros_depth_estimate_pub->publish(rosDepthMsg);
     }
 
