@@ -59,7 +59,7 @@
               </water_velocity>
               <boundaries>
                 <near>10.</near>
-                <far>100.</far>
+                <far>81.</far>
               </boundaries>
               <bins>10</bins>
               <noise type="gaussian">
