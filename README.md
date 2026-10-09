@@ -29,6 +29,18 @@ Run it in a web workspace or desktop app.
 - Test ArduPilot waypoint missions or ROS 2 control code.
 - Watch the public LIVE world voyage.
 
+## Terrain, routing and control libraries
+
+WWW-POSIM connects the POSIM engine to three public libraries. Each repository has English/Korean usage instructions and tests.
+
+| Library | Responsibility |
+| --- | --- |
+| [POSIM-Terrain](https://github.com/IOES-Lab/POSIM-Terrain) | Geographic land/seabed generation and satellite textures |
+| [POSIM-Routing](https://github.com/IOES-Lab/POSIM-Routing) | Global routes, coastal paths, port approaches and local collision checks |
+| [POSIM-Control](https://github.com/IOES-Lab/POSIM-Control) | Vehicle propulsion, leader/follower control and motion policies |
+
+Read the [library guide](https://ioes-lab.github.io/POSIM/libraries.html) or [한국어 안내](https://ioes-lab.github.io/POSIM/ko/libraries.html) for how they work together and how to use them directly.
+
 ## Contributing
 
 Report issues or propose changes in [IOES-Lab/POSIM](https://github.com/IOES-Lab/POSIM).

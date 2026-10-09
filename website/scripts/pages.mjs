@@ -30,6 +30,7 @@ export const sections = [
     ['sonar', 'Multibeam sonar', '멀티빔 소나', ['sonar']],
   ] },
   { en: 'Project', ko: '프로젝트', pages: [
+    ['libraries', 'Terrain, routing & control', '지형·경로·차량 제어', []],
     ['contributing', 'Contributing', '기여하기', ['development']],
     ['citation', 'Citation & licenses', '인용과 라이선스', ['development']],
   ] },

@@ -40,6 +40,8 @@ Prepare an [Ubuntu installation](install.md) or [Docker environment](docker.md),
 
 Use POSIM directly in a ROS workspace. WWW-POSIM provides geographic world generation, a workbench and online sessions.
 
+WWW-POSIM uses [POSIM-Terrain, POSIM-Routing and POSIM-Control](libraries.md) for terrain generation, route planning and vehicle control. Each is a public library with its own usage guide.
+
 ## Find a guide
 
 - **Examples:** commands and data checks

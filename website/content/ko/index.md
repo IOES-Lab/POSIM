@@ -40,6 +40,8 @@ POSIM은 해양 로봇 실험을 위한 ROS 2·Gazebo 라이브러리입니다. 
 
 POSIM은 ROS 작업 공간에서 직접 사용합니다. WWW-POSIM은 지리 좌표 기반 월드 생성, 작업 화면과 온라인 세션을 제공합니다.
 
+WWW-POSIM은 지형 생성·경로 계획·차량 제어에 [POSIM-Terrain·POSIM-Routing·POSIM-Control](libraries.md)을 사용합니다. 각 공개 라이브러리에 별도 사용 안내가 있습니다.
+
 ## 필요한 문서 찾기
 
 - **예제:** 실행 명령과 데이터 확인
