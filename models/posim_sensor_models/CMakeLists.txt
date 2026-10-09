@@ -13,7 +13,8 @@ ament_environment_hooks(
 
 if(BUILD_TESTING)
   find_package(ament_cmake_pytest REQUIRED)
-  ament_add_pytest_test(test_dvl_tracking_bounds test/test_dvl_tracking_bounds.py)
+  ament_add_pytest_test(test_dvl_tracking_bounds
+    test/test_dvl_tracking_bounds.py)
 endif()
 
 ament_package()
