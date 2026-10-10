@@ -42,7 +42,8 @@ for (const lang of ['en', 'ko']) {
   const index = [];
   for (const page of pages) {
     let text = await readFile(path.join(root, 'content', lang, page.slug + '.md'), 'utf8');
-    text = text.replace('{{WORLD_CATALOG}}', worldRows).replace('{{OBJECT_CATALOG}}', objectRows);
+    text = text.replace('{{WORLD_CATALOG}}', worldRows).replace('{{OBJECT_CATALOG}}', objectRows)
+      .replaceAll('{{ASSET_PREFIX}}', asset);
     const toc = [], ids = new Map();
     const marked = new Marked();
     marked.use({ renderer: { heading({ tokens, depth }) {

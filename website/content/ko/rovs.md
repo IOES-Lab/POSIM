@@ -60,3 +60,9 @@ ros2 launch posim_demos posim_robot.launch.py \
 WebSocket 브리지가 teleoperation Launch 안에 있으므로 `use_teleop:=true`를 유지합니다. 브라우저가 자동으로 열리지 않으면 같은 컴퓨터에서 위 URL을 여세요. QGroundControl은 별도 프로그램이며 `open_qgc`를 켜기 전에 실행 파일을 설치해야 합니다.
 
 프로그램에서 센서를 구독하거나 명령을 보내려면 [ROS 2와 제어](ros.md)로 이어가세요.
+
+## 로봇 동작 살펴보기
+
+<figure><a href="{{ASSET_PREFIX}}media/notion/rovs-670c9419.gif"><img width="782" height="494" src="{{ASSET_PREFIX}}media/notion/rovs-670c9419.gif" alt="REXROV의 수중 운항과 자세 변화" loading="lazy" decoding="async"></a><figcaption>REXROV의 수중 운항과 자세 변화</figcaption></figure>
+
+그림·영상 출처: POSIM Notion Wiki. DAVE 문서에서 이어받은 그림의 저자 표시는 [인용과 라이선스](citation.md)를 참고하세요. 실행 명령과 토픽 이름은 이 페이지의 코드 블록을 기준으로 사용하세요.

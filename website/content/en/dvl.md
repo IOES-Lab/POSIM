@@ -47,3 +47,12 @@ The example converts ENU to its configured forward/starboard/down reference usin
 ## Inspect observations
 
 Use `ros2 interface show posim_interfaces/msg/DVL` for the payload definition. Confirm received velocity, frame and status with a known stationary case, then a controlled translation. Bottom geometry, range and beam intersections affect the observations. Enable the descriptor's visualization settings when inspecting beams on a configured desktop.
+
+## DVL beams and output
+
+<figure><a href="{{ASSET_PREFIX}}media/notion/dvl-e7cc9419.png"><img width="1417" height="846" src="{{ASSET_PREFIX}}media/notion/dvl-e7cc9419.png" alt="DVL acoustic beams directed at the seabed" loading="lazy" decoding="async"></a><figcaption>DVL acoustic beams directed at the seabed</figcaption></figure>
+<figure><a href="{{ASSET_PREFIX}}media/notion/dvl-cc9c9419.gif"><img width="754" height="476" src="{{ASSET_PREFIX}}media/notion/dvl-cc9c9419.gif" alt="DVL velocity observations" loading="lazy" decoding="async"></a><figcaption>DVL velocity observations</figcaption></figure>
+<figure><a href="{{ASSET_PREFIX}}media/notion/dvl-607c9419.png"><img width="473" height="417" src="{{ASSET_PREFIX}}media/notion/dvl-607c9419.png" alt="Gazebo DVL topic inspection" loading="lazy" decoding="async"></a><figcaption>Gazebo DVL topic inspection</figcaption></figure>
+<figure><a href="{{ASSET_PREFIX}}media/notion/dvl-b85c9419.png"><img width="528" height="87" src="{{ASSET_PREFIX}}media/notion/dvl-b85c9419.png" alt="ROS DVL topic inspection" loading="lazy" decoding="async"></a><figcaption>ROS DVL topic inspection</figcaption></figure>
+
+Figures and videos: POSIM Notion Wiki. See [Citation and licenses](citation.md) for DAVE documentation attribution. Use this page's code blocks for execution commands and topic names.

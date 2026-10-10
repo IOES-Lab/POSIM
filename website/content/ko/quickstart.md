@@ -80,3 +80,25 @@ ros2 topic echo /underwater_camera/simulated_image \
 ## 다음 실험
 
 [DVL](dvl.md), [USBL](usbl.md), [해류](currents.md)와 [월드 목록](worlds.md)을 살펴보세요. 첫 Fuel 자산 다운로드로 시작이 지연될 수 있습니다. 데이터가 오지 않으면 시뮬레이션 시간부터 확인한 뒤 [문제 해결](troubleshooting.md)에 따라 플러그인과 리소스 로그를 확인합니다.
+
+## Launch 인수 선택하기
+
+로봇·센서 launch에서 `--show-args`로 사용할 수 있는 인수를 확인합니다.
+
+```bash
+ros2 launch posim_demos posim_sensor.launch.py --show-args
+```
+
+| 인수 | 의미 | 센서 launch 기본값 |
+| --- | --- | --- |
+| `namespace` | 설치된 모델 디렉터리 선택 | 빈 값; 직접 지정 |
+| `world_name` | 월드 파일 선택 | `empty.sdf` |
+| `paused` | 일시 정지 상태로 시작 | `true` |
+| `gui` / `headless` | Gazebo GUI 표시 / 숨김 | `true` / `false` |
+| `use_sim_time` | ROS 노드의 시뮬레이션 시계 사용 | `true` |
+| `x`, `y`, `z` | 초기 위치, m | 각각 `0.0` |
+| `roll`, `pitch`, `yaw` | 초기 자세, rad | 각각 `0.0` |
+| `debug` / `verbosity_level` | 상세 로그 / 로그 수준 | `false` / `1` |
+| `use_ned_frame` | NED 프레임 사용 | `false` |
+
+센서 예제에서는 `paused:=false`를 지정해 데이터가 생성되도록 합니다. 로봇·월드 launch의 인수는 해당 launch의 `--show-args`로 확인하세요.

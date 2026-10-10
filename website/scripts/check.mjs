@@ -1,6 +1,7 @@
 import { access, readFile, readdir } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { createHash } from 'node:crypto';
 import { pages } from './pages.mjs';
 import { checkPublicWording } from './public-wording.mjs';
 const root = fileURLToPath(new URL('../', import.meta.url));
@@ -12,6 +13,7 @@ const htmlFiles = pages.flatMap(page => [page.slug + '.html', 'ko/' + page.slug 
 const documents = new Map();
 const sources = JSON.parse(await readFile(path.join(root, 'sources.json'), 'utf8'));
 const catalog = JSON.parse(await readFile(path.join(root, 'catalog.json'), 'utf8'));
+const mediaSources = JSON.parse(await readFile(path.join(root, 'media-sources.json'), 'utf8'));
 if (catalog.sourceRevision !== sources.sourceRevision) fail('Catalog/source revision mismatch');
 let links = 0, commands = 0;
 const haveSource = await exists(path.join(repository, 'models/posim_worlds/worlds'));
@@ -32,6 +34,9 @@ for (const file of htmlFiles) {
   const ids = [...html.matchAll(/\bid="([^"]+)"/g)].map(match => match[1]);
   if (new Set(ids).size !== ids.length) fail(`${file}: duplicate heading/element IDs`);
   if (/notion-file-block:|<mention-page|\{\{[A-Z_]+\}\}/.test(html)) fail(`${file}: unresolved source markup`);
+  for (const image of html.matchAll(/<img\b[^>]*>/g)) {
+    if (!/\balt="[^"]+"/.test(image[0])) fail(`${file}: image needs descriptive alt text`);
+  }
   if (/dave_(?:demos|interfaces|robot|sensor|world|gz|ros)|dave_(?:world|robot|sensor)\.launch/.test(html)) fail(`${file}: stale package/launch name`);
   const markdown = await readFile(path.join(root, 'content', lang, path.basename(file, '.html') + '.md'), 'utf8');
   checkPublicWording(markdown, `content/${lang}/${path.basename(file, '.html')}.md`);
@@ -51,7 +56,28 @@ for (const file of htmlFiles) {
       if (match[1] === 'my_robot') continue; // Explicit custom-model tutorial placeholder.
       const robot = path.join(repository, 'models/posim_robot_models/description', match[1], 'model.sdf');
       const sensor = path.join(repository, 'models/posim_sensor_models/description', match[1], 'model.sdf');
-      if (!await exists(robot) && !await exists(sensor)) fail(`${file}: unknown descriptor ${match[1]}`);
+      const object = path.join(repository, 'models/posim_object_models/description', match[1], 'model.sdf');
+      if (!await exists(robot) && !await exists(sensor) && !await exists(object)) fail(`${file}: unknown descriptor ${match[1]}`);
+    }
+  }
+}
+for (const media of mediaSources) {
+  if (!media.source_page?.startsWith('https://caring-dibble-be5.notion.site/') || !media.block || !media.title) {
+    fail('Media registry entry needs its source page, block and original title');
+  }
+  if (media.audience === 'engineering') {
+    if (await exists(path.join(output, 'assets/media/notion', path.basename(media.file)))) {
+      fail(`Engineering figure leaked into the public site: ${media.file}`);
+    }
+    continue;
+  }
+  if (media.audience !== 'public' || !media.file.startsWith('media/notion/')) fail(`Unknown media audience/path: ${media.file}`);
+  const bytes = await readFile(path.join(output, 'assets', media.file));
+  if (createHash('sha256').update(bytes).digest('hex') !== media.sha256) fail(`Source media changed: ${media.file}`);
+  for (const lang of ['en', 'ko']) {
+    const prefix = lang === 'ko' ? '../assets/' : 'assets/';
+    if (![...documents].some(([file, html]) => file.startsWith('ko/') === (lang === 'ko') && html.includes(`src="${prefix}${media.file}"`))) {
+      fail(`${lang}: source media missing from guides: ${media.file}`);
     }
   }
 }
@@ -86,4 +112,4 @@ if (haveSource) {
   const objects = (await readdir(path.join(repository, 'models/posim_object_models/description'), { withFileTypes: true })).filter(f => f.isDirectory()).map(f => f.name).sort();
   if (JSON.stringify(worlds) !== JSON.stringify(catalog.worlds) || JSON.stringify(objects) !== JSON.stringify(catalog.objects)) fail('Catalog is stale; run pnpm catalog');
 }
-console.log(`Checked ${htmlFiles.length} pages, ${links} local links/anchors, bilingual search${haveSource ? ` and ${commands} source launch references` : ' (standalone website build)'}.`);
+console.log(`Checked ${htmlFiles.length} pages, ${links} local links/anchors, ${mediaSources.filter(m => m.audience === 'public').length} bilingual source media, bilingual search${haveSource ? ` and ${commands} source launch references` : ' (standalone website build)'}.`);

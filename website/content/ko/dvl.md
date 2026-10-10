@@ -47,3 +47,12 @@ Gazebo 확인 도구를 종료한 뒤 ROS 명령을 실행합니다. 새 센서�
 ## 관측값 확인
 
 메시지 정의는 `ros2 interface show posim_interfaces/msg/DVL`로 확인합니다. 정지 상태와 제어된 이동에서 속도, 좌표계와 상태를 비교하세요. 해저 형상, 범위와 빔 교차에 따라 관측값이 달라집니다. 디스플레이가 준비된 환경에서는 모델의 시각화 설정을 켜 빔을 확인할 수 있습니다.
+
+## DVL 빔과 출력 보기
+
+<figure><a href="{{ASSET_PREFIX}}media/notion/dvl-e7cc9419.png"><img width="1417" height="846" src="{{ASSET_PREFIX}}media/notion/dvl-e7cc9419.png" alt="해저를 향하는 DVL 음향 빔" loading="lazy" decoding="async"></a><figcaption>해저를 향하는 DVL 음향 빔</figcaption></figure>
+<figure><a href="{{ASSET_PREFIX}}media/notion/dvl-cc9c9419.gif"><img width="754" height="476" src="{{ASSET_PREFIX}}media/notion/dvl-cc9c9419.gif" alt="DVL 속도 관측 출력" loading="lazy" decoding="async"></a><figcaption>DVL 속도 관측 출력</figcaption></figure>
+<figure><a href="{{ASSET_PREFIX}}media/notion/dvl-607c9419.png"><img width="473" height="417" src="{{ASSET_PREFIX}}media/notion/dvl-607c9419.png" alt="Gazebo DVL 토픽 확인 화면" loading="lazy" decoding="async"></a><figcaption>Gazebo DVL 토픽 확인 화면</figcaption></figure>
+<figure><a href="{{ASSET_PREFIX}}media/notion/dvl-b85c9419.png"><img width="528" height="87" src="{{ASSET_PREFIX}}media/notion/dvl-b85c9419.png" alt="ROS DVL 토픽 확인 화면" loading="lazy" decoding="async"></a><figcaption>ROS DVL 토픽 확인 화면</figcaption></figure>
+
+그림·영상 출처: POSIM Notion Wiki. DAVE 문서에서 이어받은 그림의 저자 표시는 [인용과 라이선스](citation.md)를 참고하세요. 실행 명령과 토픽 이름은 이 페이지의 코드 블록을 기준으로 사용하세요.

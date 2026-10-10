@@ -60,3 +60,9 @@ ros2 launch posim_demos posim_robot.launch.py \
 Keep `use_teleop:=true`: it enables the teleoperation launch containing the WebSocket bridge. If the browser does not open automatically, open the URL on the same machine. QGroundControl is an optional separate application; install its executable before enabling `open_qgc`.
 
 For programmatic sensor subscriptions and commands, continue to [ROS 2 and control](ros.md).
+
+## See the robot in motion
+
+<figure><a href="{{ASSET_PREFIX}}media/notion/rovs-670c9419.gif"><img width="782" height="494" src="{{ASSET_PREFIX}}media/notion/rovs-670c9419.gif" alt="REXROV underwater motion and attitude" loading="lazy" decoding="async"></a><figcaption>REXROV underwater motion and attitude</figcaption></figure>
+
+Figures and videos: POSIM Notion Wiki. See [Citation and licenses](citation.md) for DAVE documentation attribution. Use this page's code blocks for execution commands and topic names.

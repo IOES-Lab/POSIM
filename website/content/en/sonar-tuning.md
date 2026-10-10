@@ -56,3 +56,9 @@ Each command must exit with status 0. Check build/launch logs for skipped target
 Record frame processing time, received topic rate, Gazebo real-time factor, CPU/GPU utilization and memory with the same scene and pose. Separate physics, rendering, CUDA computation, publication and logging costs. Warm up the renderer before timing.
 
 Retain a baseline dataset when changing numerical kernels. Compare intensity/range outputs, not only rendered screenshots. Upstream research and attribution are listed under [Citation](citation.md).
+
+## GPU processing flow
+
+<figure><a href="{{ASSET_PREFIX}}media/notion/sonar-optimization-a26c9419.png"><img width="1049" height="554" src="{{ASSET_PREFIX}}media/notion/sonar-optimization-a26c9419.png" alt="GPU stages in sonar processing" loading="lazy" decoding="async"></a><figcaption>GPU stages in sonar processing</figcaption></figure>
+
+Sonar processing includes ray summation, window/correction and FFT stages. Separate stage timings from GPU memory transfers when profiling. Figure: POSIM Notion Wiki.

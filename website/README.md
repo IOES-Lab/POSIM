@@ -46,7 +46,11 @@ Search reads a local JSON asset and does not need an external search service.
 - `sources.json`: reference Notion pages and reviewed POSIM source revision.
 - `catalog.json`: deployable world/object inventory; regenerate from a full
   POSIM checkout with `pnpm catalog` when catalog files change.
-- `public/`: stylesheet, browser controls and vector favicon.
+- `public/`: stylesheet, browser controls, vector favicon and local guide media.
+- `media-sources.json`: Notion page/block provenance, original filenames, SHA-256
+  digests and the public/engineering audience for each source figure. Public
+  figures must appear in both languages. Keep signed download URLs out of this
+  registry; deployed guides use the local files.
 
 Use relative Markdown links such as `[Camera](camera.md)`. The builder converts
 them to HTML links. Keep headings unique and descriptive. Code fences get a

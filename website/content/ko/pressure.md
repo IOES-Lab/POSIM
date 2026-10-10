@@ -43,3 +43,11 @@ ros2 topic echo /model/rexrov/sea_pressure_depth geometry_msgs/msg/PointStamped 
 ## 깊이 실험 확인
 
 압력 기울기를 유지하고 알려진 두 z 위치에서 값을 비교합니다. 압력 차이는 설정한 기울기에 깊이 차이를 곱한 값으로 나타나야 합니다. 추정 깊이는 같은 압력 모델에서 계산하므로 독립된 깊이 측정값은 아닙니다. 추정기의 단위와 기준 압력도 맞춰주세요.
+
+## 수압과 수심 출력 보기
+
+<figure><a href="{{ASSET_PREFIX}}media/notion/pressure-ba8c9419.png"><img width="1419" height="923" src="{{ASSET_PREFIX}}media/notion/pressure-ba8c9419.png" alt="ROS 수압 관측 출력" loading="lazy" decoding="async"></a><figcaption>ROS 수압 관측 출력</figcaption></figure>
+<figure><a href="{{ASSET_PREFIX}}media/notion/pressure-8cdc9419.png"><img width="1842" height="892" src="{{ASSET_PREFIX}}media/notion/pressure-8cdc9419.png" alt="Gazebo 수압 관측 화면" loading="lazy" decoding="async"></a><figcaption>Gazebo 수압 관측 화면</figcaption></figure>
+<figure><a href="{{ASSET_PREFIX}}media/notion/pressure-6c1c9419.png"><img width="1526" height="830" src="{{ASSET_PREFIX}}media/notion/pressure-6c1c9419.png" alt="수압으로 계산한 수심 출력" loading="lazy" decoding="async"></a><figcaption>수압으로 계산한 수심 출력</figcaption></figure>
+
+그림·영상 출처: POSIM Notion Wiki. DAVE 문서에서 이어받은 그림의 저자 표시는 [인용과 라이선스](citation.md)를 참고하세요. 실행 명령과 토픽 이름은 이 페이지의 코드 블록을 기준으로 사용하세요.

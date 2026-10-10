@@ -2,6 +2,8 @@
 
 POSIM은 해양 로봇 실험을 위한 ROS 2·Gazebo 라이브러리입니다. 해양 환경, 로봇 모델, 모의 센서와 제어 인터페이스로 반복 가능한 실험을 구성합니다.
 
+<figure class="docs-abstract"><div class="docs-abstract-grid"><a href="rovs.html" aria-label="ROV · BlueROV2"><img width="577" height="797" src="{{ASSET_PREFIX}}media/overview/bluerov2.png" alt="ROV · BlueROV2" decoding="async"><span>ROV · BlueROV2</span></a><a href="surface.html" aria-label="수상 로봇 · WAM-V"><img width="1280" height="720" src="{{ASSET_PREFIX}}media/overview/wamv.jpg" alt="수상 로봇 · WAM-V" decoding="async"><span>수상 로봇 · WAM-V</span></a><a href="objects.html" aria-label="해저 · 작업 장면"><img width="2200" height="1650" src="{{ASSET_PREFIX}}media/notion/camera-6eec9419.png" alt="해저 · 작업 장면" decoding="async"><span>해저 · 작업 장면</span></a><a href="sonar.html" aria-label="소나 · 영상과 점군"><img width="1738" height="1066" src="{{ASSET_PREFIX}}media/notion/sonar-f4ac9419.png" alt="소나 · 영상과 점군" decoding="async"><span>소나 · 영상과 점군</span></a><a href="dvl.html" aria-label="DVL · 속도 관측"><img width="1417" height="846" src="{{ASSET_PREFIX}}media/notion/dvl-e7cc9419.png" alt="DVL · 속도 관측" decoding="async"><span>DVL · 속도 관측</span></a><a href="camera.html" aria-label="카메라 · 수중 시각"><img width="2202" height="1650" src="{{ASSET_PREFIX}}media/notion/camera-f14c9419.png" alt="카메라 · 수중 시각" decoding="async"><span>카메라 · 수중 시각</span></a></div><figcaption>해양 환경 → 로봇과 동역학 → 센서 관측 → ROS 2 제어. POSIM Notion Wiki의 센서 그림과 WWW-POSIM에서 실행한 POSIM 로봇 장면입니다. 각 그림을 누르면 사용 안내로 이동합니다.</figcaption></figure>
+
 ## WWW-POSIM 체험하기
 
 [WWW-POSIM](https://www-posim.vercel.app/)은 POSIM 엔진을 사용하는 해양 로봇 시뮬레이터입니다. 웹 작업공간이나 설치형 앱에서 사용할 수 있습니다.

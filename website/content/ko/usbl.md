@@ -63,3 +63,11 @@ SDF에서 장치와 요청 방식을 설정합니다. 양쪽 장치의 이름과
 - 튜토리얼 요청 주기: **0.5 Hz**
 
 장치나 주기를 변경할 때 [튜토리얼 SDF](https://github.com/IOES-Lab/POSIM/blob/main/models/posim_worlds/worlds/usbl_tutorial.world)를 참고하세요.
+
+## 배치와 interrogation 모드
+
+<figure><a href="{{ASSET_PREFIX}}media/notion/usbl-5f8c9419.png"><img width="925" height="679" src="{{ASSET_PREFIX}}media/notion/usbl-5f8c9419.png" alt="USBL 송수신기와 트랜스폰더 배치" loading="lazy" decoding="async"></a><figcaption>USBL 송수신기와 트랜스폰더 배치</figcaption></figure>
+<figure><a href="{{ASSET_PREFIX}}media/notion/usbl-b388acb0.png"><img width="636" height="710" src="{{ASSET_PREFIX}}media/notion/usbl-b388acb0.png" alt="Common·individual interrogation 모드의 통신 흐름" loading="lazy" decoding="async"></a><figcaption>Common·individual interrogation 모드의 통신 흐름</figcaption></figure>
+<figure><a href="{{ASSET_PREFIX}}media/notion/usbl-a96c9419.png"><img width="1537" height="993" src="{{ASSET_PREFIX}}media/notion/usbl-a96c9419.png" alt="트랜스폰더 위치 관측 출력" loading="lazy" decoding="async"></a><figcaption>트랜스폰더 위치 관측 출력</figcaption></figure>
+
+그림·영상 출처: POSIM Notion Wiki. DAVE 문서에서 이어받은 그림의 저자 표시는 [인용과 라이선스](citation.md)를 참고하세요. 실행 명령과 토픽 이름은 이 페이지의 코드 블록을 기준으로 사용하세요.

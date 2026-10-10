@@ -56,3 +56,9 @@ test -f "$(ros2 pkg prefix multibeam_sonar_system)/lib/multibeam_sonar_system/li
 같은 장면·자세에서 프레임 처리 시간, 수신 토픽 주기, Gazebo 실시간 비율, CPU·GPU와 메모리 사용량을 기록합니다. 물리 계산, 렌더링, CUDA 계산, 발행과 기록 비용을 구분하세요. 측정 전에 렌더러를 충분히 실행합니다.
 
 계산 커널을 변경할 때는 기준 데이터를 보관합니다. 화면뿐 아니라 강도·거리 결과를 비교하세요. 관련 연구와 출처는 [인용 안내](citation.md)에 있습니다.
+
+## GPU 계산 흐름
+
+<figure><a href="{{ASSET_PREFIX}}media/notion/sonar-optimization-a26c9419.png"><img width="1049" height="554" src="{{ASSET_PREFIX}}media/notion/sonar-optimization-a26c9419.png" alt="소나 계산의 GPU 처리 단계" loading="lazy" decoding="async"></a><figcaption>소나 계산의 GPU 처리 단계</figcaption></figure>
+
+소나 계산은 산란점 합산, 창 함수·보정과 FFT 단계로 구성됩니다. 프로파일링할 때 각 단계의 실행 시간과 GPU 메모리 전송을 구분하세요. 그림 출처: POSIM Notion Wiki.

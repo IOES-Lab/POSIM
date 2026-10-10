@@ -31,3 +31,9 @@ Launch the model and environment, then use your control node for dive or gliding
 Read the [Slocum SDF](https://github.com/IOES-Lab/POSIM/blob/main/models/posim_robot_models/description/glider_slocum/model.sdf) alongside its bridge configuration. Change mass, inertia, collision shape and hydrodynamic coefficients together. Verify the frame conventions before connecting an estimator or controller.
 
 Follow [Add a robot](custom-robots.md) to create a separate description, and [ROS 2 and control](ros.md) to record observations and issue commands. Keep the original model as a reference for comparisons.
+
+## See the glider in motion
+
+<figure><a href="{{ASSET_PREFIX}}media/notion/gliders-832c9419.gif"><img width="782" height="494" src="{{ASSET_PREFIX}}media/notion/gliders-832c9419.gif" alt="Slocum glider underwater motion" loading="lazy" decoding="async"></a><figcaption>Slocum glider underwater motion</figcaption></figure>
+
+Figures and videos: POSIM Notion Wiki. See [Citation and licenses](citation.md) for DAVE documentation attribution. Use this page's code blocks for execution commands and topic names.

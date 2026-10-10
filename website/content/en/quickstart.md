@@ -77,3 +77,25 @@ See [ROVs](rovs.md) for control and [Multibeam sonar](sonar.md) for sonar.
 ## Next experiments
 
 Try [DVL](dvl.md), [USBL](usbl.md), [currents](currents.md) or the [world library](worlds.md). First-use Fuel downloads can delay startup. If data does not arrive, inspect the advancing clock, then plugin and resource logs using [Troubleshooting](troubleshooting.md).
+
+## Choose launch arguments
+
+Use `--show-args` to inspect arguments accepted by a robot or sensor launch.
+
+```bash
+ros2 launch posim_demos posim_sensor.launch.py --show-args
+```
+
+| Argument | Meaning | Sensor launch default |
+| --- | --- | --- |
+| `namespace` | Select an installed model directory | Empty; set explicitly |
+| `world_name` | Select a world file | `empty.sdf` |
+| `paused` | Start paused | `true` |
+| `gui` / `headless` | Show / hide Gazebo GUI | `true` / `false` |
+| `use_sim_time` | Use the simulation clock in ROS nodes | `true` |
+| `x`, `y`, `z` | Initial position, m | `0.0` each |
+| `roll`, `pitch`, `yaw` | Initial attitude, rad | `0.0` each |
+| `debug` / `verbosity_level` | Verbose logging / log level | `false` / `1` |
+| `use_ned_frame` | Use NED frame | `false` |
+
+Use `paused:=false` in sensor examples to produce data. Inspect robot/world launch arguments with that launch's `--show-args`.

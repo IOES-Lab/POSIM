@@ -43,3 +43,11 @@ The model uses `depth = max(0, -z)` with the sea surface at local z = 0. It comp
 ## Check a depth experiment
 
 Compare measurements at two known z positions while keeping the pressure slope fixed. The pressure difference should follow the configured slope multiplied by the depth change. The derived depth uses the same model, so it is not an independent depth measurement. Configure your estimator's units and reference pressure accordingly.
+
+## Pressure and depth outputs
+
+<figure><a href="{{ASSET_PREFIX}}media/notion/pressure-ba8c9419.png"><img width="1419" height="923" src="{{ASSET_PREFIX}}media/notion/pressure-ba8c9419.png" alt="ROS pressure observations" loading="lazy" decoding="async"></a><figcaption>ROS pressure observations</figcaption></figure>
+<figure><a href="{{ASSET_PREFIX}}media/notion/pressure-8cdc9419.png"><img width="1842" height="892" src="{{ASSET_PREFIX}}media/notion/pressure-8cdc9419.png" alt="Gazebo pressure inspection" loading="lazy" decoding="async"></a><figcaption>Gazebo pressure inspection</figcaption></figure>
+<figure><a href="{{ASSET_PREFIX}}media/notion/pressure-6c1c9419.png"><img width="1526" height="830" src="{{ASSET_PREFIX}}media/notion/pressure-6c1c9419.png" alt="Pressure-derived depth output" loading="lazy" decoding="async"></a><figcaption>Pressure-derived depth output</figcaption></figure>
+
+Figures and videos: POSIM Notion Wiki. See [Citation and licenses](citation.md) for DAVE documentation attribution. Use this page's code blocks for execution commands and topic names.

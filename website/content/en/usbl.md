@@ -63,3 +63,11 @@ Configure devices and interrogation in SDF. Match the names and IDs on both ends
 - Tutorial request rate: **0.5 Hz**
 
 See [the tutorial SDF](https://github.com/IOES-Lab/POSIM/blob/main/models/posim_worlds/worlds/usbl_tutorial.world) when changing devices or the schedule.
+
+## Layout and interrogation modes
+
+<figure><a href="{{ASSET_PREFIX}}media/notion/usbl-5f8c9419.png"><img width="925" height="679" src="{{ASSET_PREFIX}}media/notion/usbl-5f8c9419.png" alt="USBL transceiver and transponder layout" loading="lazy" decoding="async"></a><figcaption>USBL transceiver and transponder layout</figcaption></figure>
+<figure><a href="{{ASSET_PREFIX}}media/notion/usbl-b388acb0.png"><img width="636" height="710" src="{{ASSET_PREFIX}}media/notion/usbl-b388acb0.png" alt="Common and individual interrogation message flow" loading="lazy" decoding="async"></a><figcaption>Common and individual interrogation message flow</figcaption></figure>
+<figure><a href="{{ASSET_PREFIX}}media/notion/usbl-a96c9419.png"><img width="1537" height="993" src="{{ASSET_PREFIX}}media/notion/usbl-a96c9419.png" alt="Transponder position observations" loading="lazy" decoding="async"></a><figcaption>Transponder position observations</figcaption></figure>
+
+Figures and videos: POSIM Notion Wiki. See [Citation and licenses](citation.md) for DAVE documentation attribution. Use this page's code blocks for execution commands and topic names.
