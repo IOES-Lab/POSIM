@@ -110,7 +110,8 @@ void UsblTransceiver::Configure(
 
   if (!rclcpp::ok())
   {
-    rclcpp::init(0, nullptr);
+    // Gazebo owns process signals; do not invalidate ROS during its final updates.
+    rclcpp::init(0, nullptr, rclcpp::InitOptions(), rclcpp::SignalHandlerOptions::None);
   }
 
   this->ros_node_ = std::make_shared<rclcpp::Node>("usbl_transceiver_node");
@@ -601,30 +602,54 @@ void UsblTransceiver::calculateRelativePose(
 void UsblTransceiver::PostUpdate(
   const gz::sim::UpdateInfo & _info, const gz::sim::EntityComponentManager & _ecm)
 {
-  // ROS callbacks are wall-time events and must remain responsive while paused.
-  rclcpp::spin_some(this->ros_node_);
-  if (!_info.paused)
+  if (!this->ros_node_)
   {
-    if (!this->dataPtr->setGlobalMode)
+    return;
+  }
+  const auto context = this->ros_node_->get_node_base_interface()->get_context();
+  if (!rclcpp::ok(context))
+  {
+    return;
+  }
+  try
+  {
+    // ROS callbacks are wall-time events and must remain responsive while paused.
+    rclcpp::spin_some(this->ros_node_);
+    if (!rclcpp::ok(context))
     {
-      std_msgs::msg::String mode;
-      mode.data = this->dataPtr->m_interrogationMode;
-
-      this->dataPtr->m_interrogationModePub->publish(mode);
-      gzmsg << "Published mode" << std::endl;
-      this->dataPtr->setGlobalMode = true;
+      return;
     }
-
-    if (this->dataPtr->m_enablePingerScheduler)
+    if (!_info.paused)
     {
-      // Calculate the time interval between pings based on frequency
-      double pingInterval = 1.0 / this->dataPtr->m_pingFrequency;
-
-      // Check if it's time to send a ping
-      if (_info.iterations % static_cast<int>(pingInterval * 1000) == 0)
+      if (!this->dataPtr->setGlobalMode)
       {
-        sendPing();
+        std_msgs::msg::String mode;
+        mode.data = this->dataPtr->m_interrogationMode;
+
+        this->dataPtr->m_interrogationModePub->publish(mode);
+        gzmsg << "Published mode" << std::endl;
+        this->dataPtr->setGlobalMode = true;
       }
+
+      if (this->dataPtr->m_enablePingerScheduler)
+      {
+        // Calculate the time interval between pings based on frequency
+        double pingInterval = 1.0 / this->dataPtr->m_pingFrequency;
+
+        // Check if it's time to send a ping
+        if (_info.iterations % static_cast<int>(pingInterval * 1000) == 0)
+        {
+          sendPing();
+        }
+      }
+    }
+  }
+  catch (const rclcpp::exceptions::RCLError &)
+  {
+    // Suppress only shutdown races; preserve errors while the context is valid.
+    if (rclcpp::ok(context))
+    {
+      throw;
     }
   }
 }
