@@ -1,3 +1,5 @@
+import os
+import shlex
 import xml.etree.ElementTree as ET
 
 from launch import LaunchDescription
@@ -9,6 +11,11 @@ from launch.actions import (
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch_ros.substitutions import FindPackageShare
+
+
+def _quote_path(path):
+    # Keep Windows shell handling unchanged; shlex.quote is POSIX-only.
+    return shlex.quote(path) if os.name == "posix" else path
 
 
 def launch_setup(context, *args, **kwargs):
@@ -47,10 +54,10 @@ def launch_setup(context, *args, **kwargs):
         if world_element is None or not world_element.get("name"):
             raise ValueError(f"World file [{world_filename}] does not declare a world name")
         world_entity_name = world_element.get("name")
-        gz_args = [world_filepath]
+        gz_args = [_quote_path(world_filepath.perform(context))]
     else:
         world_entity_name = "empty"
-        gz_args = [world_name]
+        gz_args = [_quote_path(world_name.perform(context))]
 
     run_server_only = (
         headless.perform(context).lower() == "true" or gui.perform(context).lower() == "false"
