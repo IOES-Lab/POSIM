@@ -156,6 +156,12 @@ std::unique_ptr<ComputeBackend> CreateComputeBackend(const std::string & request
     backend.begin(), backend.end(), backend.begin(),
     [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
 
+  // An empty value behaves like an unset variable.
+  if (backend.empty())
+  {
+    backend = "auto";
+  }
+
   if (backend == "wgpu")
   {
     std::cerr << "[sonar_compute_factory] Attempting WgpuComputeBackend initialization..."
@@ -215,10 +221,13 @@ std::unique_ptr<ComputeBackend> CreateComputeBackend(const std::string & request
     std::cerr << "[sonar_compute_factory] SUCCESS: Auto-selected CPU backend (both CUDA and WGPU "
                  "unavailable)"
               << std::endl;
+    return std::make_unique<CpuComputeBackend>();
   }
 
-  std::cerr << "[sonar_compute_factory] Creating default CPU backend" << std::endl;
-  return std::make_unique<CpuComputeBackend>();
+  // Reject unknown values rather than silently substituting a different backend.
+  std::cerr << "[sonar_compute_factory] Unknown sonar compute backend '" << requestedBackend
+            << "'. Valid values: auto, wgpu, cuda, cpu." << std::endl;
+  return nullptr;
 }
 
 }  // namespace sensors
