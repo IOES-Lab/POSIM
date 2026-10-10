@@ -1,7 +1,7 @@
-/// C-FFI interface, Buffer initialization and write ups and reads + Bind groups created + encoder setup + memory free
-/// + Compute passes for each shader
+//! C-FFI interface, Buffer initialization and write ups and reads + Bind groups created + encoder setup + memory free
+//! + Compute passes for each shader
 
-mod pipeline;     // GPU context + buffer management
+mod pipeline; // GPU context + buffer management
 
 use bytemuck::{Pod, Zeroable};
 use std::fs::OpenOptions;
@@ -24,8 +24,8 @@ struct BackscatterParams {
     bandwidth: f32,
     seed_lo: u32,
     seed_hi: u32,
-    frame_lo: u32,          // WGSL has no native u64 type.
-    frame_hi: u32,          // Split frame index into two u32 - frame_lo and frame_hi
+    frame_lo: u32, // WGSL has no native u64 type.
+    frame_hi: u32, // Split frame index into two u32 - frame_lo and frame_hi
     area_scaler: f32,
     h_fov: f32,
     v_fov: f32,
@@ -45,10 +45,10 @@ struct MatmulParams {
 #[repr(C)]
 #[derive(Clone, Copy, Pod, Zeroable)]
 struct FftParams {
-    n_beams:  u32,
-    n_freq:   u32,   // actual number of frequency bins (may not be power-of-2)
-    padded_n: u32,   // next power of 2 >= n_freq (actual FFT size, <= 4096)
-    log2_n:   u32,   // log2(padded_n)
+    n_beams: u32,
+    n_freq: u32,   // actual number of frequency bins (may not be power-of-2)
+    padded_n: u32, // next power of 2 >= n_freq (actual FFT size, <= 4096)
+    log2_n: u32,   // log2(padded_n)
 }
 
 fn emit_debug_timing(line: &str) {
@@ -65,8 +65,16 @@ fn emit_debug_timing(line: &str) {
 }
 
 /// The function receives flat arrays from C++ and returns a heap-allocated array.
+///
+/// # Safety
+///
+/// Each input pointer must be null or valid for reads of its full length:
+/// `depth_flat` and `reflectivity_flat` `n_beams * n_rays` floats, `normal_flat`
+/// `n_beams * n_rays * 3`, `beam_corrector_flat` `n_beams * n_beams` and `window_flat` `n_freq`.
+/// A non-null result holds `n_beams * n_freq * 2` floats and must be released with
+/// [`sonar_wgpu_free`].
 #[no_mangle]
-pub extern "C" fn sonar_wgpu_compute(
+pub unsafe extern "C" fn sonar_wgpu_compute(
     depth_flat: *const f32,
     normal_flat: *const f32,
     reflectivity_flat: *const f32,
@@ -128,7 +136,11 @@ pub extern "C" fn sonar_wgpu_compute(
         }
         None => {
             static FALLBACK_LOG: Once = Once::new();
-            FALLBACK_LOG.call_once(|| eprintln!("[sonar_wgpu] GPU init failed -> returning null (C++ will use CPU backend)."));
+            FALLBACK_LOG.call_once(|| {
+                eprintln!(
+                    "[sonar_wgpu] GPU init failed -> returning null (C++ will use CPU backend)."
+                )
+            });
             return std::ptr::null_mut();
         }
     };
@@ -169,7 +181,11 @@ pub extern "C" fn sonar_wgpu_compute(
         contents: bytemuck::bytes_of(&backscatter_params),
         usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
     });
-    let mm_params = MatmulParams { n_beams, n_freq, beam_corrector_sum };
+    let mm_params = MatmulParams {
+        n_beams,
+        n_freq,
+        beam_corrector_sum,
+    };
     let mm_param_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
         label: Some("mm_param"),
         contents: bytemuck::bytes_of(&mm_params),
@@ -180,23 +196,25 @@ pub extern "C" fn sonar_wgpu_compute(
     // ---- Persistent data buffers: allocate once per dimension set, reuse every frame ----
     let mut buf_guard = ctx.buffers.lock().unwrap();
     {
-        let needs_alloc = buf_guard.as_ref().map_or(true, |b| {
-            b.n_beams != n_beams || b.n_rays != n_rays || b.n_freq != n_freq
-        });
+        let needs_alloc = buf_guard
+            .as_ref()
+            .is_none_or(|b| b.n_beams != n_beams || b.n_rays != n_rays || b.n_freq != n_freq);
         if needs_alloc {
             *buf_guard = Some(pipeline::SonarBuffers::new(device, n_beams, n_rays, n_freq));
-            eprintln!("[sonar_wgpu] Persistent GPU buffers allocated for {}×{}×{}",
-                n_beams, n_rays, n_freq);
+            eprintln!(
+                "[sonar_wgpu] Persistent GPU buffers allocated for {}×{}×{}",
+                n_beams, n_rays, n_freq
+            );
         }
     }
     let buf = buf_guard.as_ref().unwrap();
 
     // Upload frame data into persistent buffers (DMA, no GPU alloc)
-    queue.write_buffer(&buf.depth_buf,  0, bytemuck::cast_slice(depth));
+    queue.write_buffer(&buf.depth_buf, 0, bytemuck::cast_slice(depth));
     queue.write_buffer(&buf.normal_buf, 0, bytemuck::cast_slice(normals));
-    queue.write_buffer(&buf.refl_buf,   0, bytemuck::cast_slice(reflectivity));
+    queue.write_buffer(&buf.refl_buf, 0, bytemuck::cast_slice(reflectivity));
     queue.write_buffer(&buf.window_buf, 0, bytemuck::cast_slice(window_vals));
-    queue.write_buffer(&buf.bc_buf,     0, bytemuck::cast_slice(beam_corrector));
+    queue.write_buffer(&buf.bc_buf, 0, bytemuck::cast_slice(beam_corrector));
     // Zero atomic accumulators (reused each frame)
     let zeros_i32 = vec![0i32; spectrum_len];
     queue.write_buffer(&buf.out_re_i32, 0, bytemuck::cast_slice(&zeros_i32));
@@ -207,43 +225,100 @@ pub extern "C" fn sonar_wgpu_compute(
         label: Some("bs_bg"),
         layout: &ctx.bs_bgl,
         entries: &[
-            wgpu::BindGroupEntry { binding: 0, resource: bs_param_buf.as_entire_binding() },
-            wgpu::BindGroupEntry { binding: 1, resource: buf.depth_buf.as_entire_binding() },
-            wgpu::BindGroupEntry { binding: 2, resource: buf.normal_buf.as_entire_binding() },
-            wgpu::BindGroupEntry { binding: 3, resource: buf.refl_buf.as_entire_binding() },
-            wgpu::BindGroupEntry { binding: 4, resource: buf.out_re_i32.as_entire_binding() },
-            wgpu::BindGroupEntry { binding: 5, resource: buf.out_im_i32.as_entire_binding() },
-            wgpu::BindGroupEntry { binding: 6, resource: buf.window_buf.as_entire_binding() },
+            wgpu::BindGroupEntry {
+                binding: 0,
+                resource: bs_param_buf.as_entire_binding(),
+            },
+            wgpu::BindGroupEntry {
+                binding: 1,
+                resource: buf.depth_buf.as_entire_binding(),
+            },
+            wgpu::BindGroupEntry {
+                binding: 2,
+                resource: buf.normal_buf.as_entire_binding(),
+            },
+            wgpu::BindGroupEntry {
+                binding: 3,
+                resource: buf.refl_buf.as_entire_binding(),
+            },
+            wgpu::BindGroupEntry {
+                binding: 4,
+                resource: buf.out_re_i32.as_entire_binding(),
+            },
+            wgpu::BindGroupEntry {
+                binding: 5,
+                resource: buf.out_im_i32.as_entire_binding(),
+            },
+            wgpu::BindGroupEntry {
+                binding: 6,
+                resource: buf.window_buf.as_entire_binding(),
+            },
         ],
     });
     let conv_bg = device.create_bind_group(&wgpu::BindGroupDescriptor {
         label: Some("conv_bg"),
         layout: &ctx.convert_bgl,
         entries: &[
-            wgpu::BindGroupEntry { binding: 0, resource: buf.out_re_i32.as_entire_binding() },
-            wgpu::BindGroupEntry { binding: 1, resource: buf.out_im_i32.as_entire_binding() },
-            wgpu::BindGroupEntry { binding: 2, resource: buf.mm_re_in.as_entire_binding() },
-            wgpu::BindGroupEntry { binding: 3, resource: buf.mm_im_in.as_entire_binding() },
+            wgpu::BindGroupEntry {
+                binding: 0,
+                resource: buf.out_re_i32.as_entire_binding(),
+            },
+            wgpu::BindGroupEntry {
+                binding: 1,
+                resource: buf.out_im_i32.as_entire_binding(),
+            },
+            wgpu::BindGroupEntry {
+                binding: 2,
+                resource: buf.mm_re_in.as_entire_binding(),
+            },
+            wgpu::BindGroupEntry {
+                binding: 3,
+                resource: buf.mm_im_in.as_entire_binding(),
+            },
         ],
     });
     let mm_re_bg = device.create_bind_group(&wgpu::BindGroupDescriptor {
         label: Some("mm_re_bg"),
         layout: &ctx.mm_bgl,
         entries: &[
-            wgpu::BindGroupEntry { binding: 0, resource: mm_param_buf.as_entire_binding() },
-            wgpu::BindGroupEntry { binding: 1, resource: buf.bc_buf.as_entire_binding() },
-            wgpu::BindGroupEntry { binding: 2, resource: buf.mm_re_in.as_entire_binding() },
-            wgpu::BindGroupEntry { binding: 3, resource: buf.mm_re_out.as_entire_binding() },
+            wgpu::BindGroupEntry {
+                binding: 0,
+                resource: mm_param_buf.as_entire_binding(),
+            },
+            wgpu::BindGroupEntry {
+                binding: 1,
+                resource: buf.bc_buf.as_entire_binding(),
+            },
+            wgpu::BindGroupEntry {
+                binding: 2,
+                resource: buf.mm_re_in.as_entire_binding(),
+            },
+            wgpu::BindGroupEntry {
+                binding: 3,
+                resource: buf.mm_re_out.as_entire_binding(),
+            },
         ],
     });
     let mm_im_bg = device.create_bind_group(&wgpu::BindGroupDescriptor {
         label: Some("mm_im_bg"),
         layout: &ctx.mm_bgl,
         entries: &[
-            wgpu::BindGroupEntry { binding: 0, resource: mm_param_buf.as_entire_binding() },
-            wgpu::BindGroupEntry { binding: 1, resource: buf.bc_buf.as_entire_binding() },
-            wgpu::BindGroupEntry { binding: 2, resource: buf.mm_im_in.as_entire_binding() },
-            wgpu::BindGroupEntry { binding: 3, resource: buf.mm_im_out.as_entire_binding() },
+            wgpu::BindGroupEntry {
+                binding: 0,
+                resource: mm_param_buf.as_entire_binding(),
+            },
+            wgpu::BindGroupEntry {
+                binding: 1,
+                resource: buf.bc_buf.as_entire_binding(),
+            },
+            wgpu::BindGroupEntry {
+                binding: 2,
+                resource: buf.mm_im_in.as_entire_binding(),
+            },
+            wgpu::BindGroupEntry {
+                binding: 3,
+                resource: buf.mm_im_out.as_entire_binding(),
+            },
         ],
     });
 
@@ -264,10 +339,10 @@ pub extern "C" fn sonar_wgpu_compute(
         });
         pass.set_pipeline(&ctx.bs_pipeline);
         pass.set_bind_group(0, &bs_bg, &[]);
-        let gx = (n_beams + 7) / 8;
+        let gx = n_beams.div_ceil(8);
         let ray_step = std::cmp::max(1, ray_skips);
-        let reduced_rays = (n_rays + ray_step - 1) / ray_step;
-        let gy = (reduced_rays + 7) / 8;
+        let reduced_rays = n_rays.div_ceil(ray_step);
+        let gy = reduced_rays.div_ceil(8);
         pass.dispatch_workgroups(gx, gy, 1);
     }
 
@@ -279,14 +354,14 @@ pub extern "C" fn sonar_wgpu_compute(
         });
         pass.set_pipeline(&ctx.convert_pipeline);
         pass.set_bind_group(0, &conv_bg, &[]);
-        let gx = (spectrum_len as u32 + 63) / 64;
+        let gx = (spectrum_len as u32).div_ceil(64);
         pass.dispatch_workgroups(gx, 1, 1);
     }
 
     // Matmul dispatch: beam-corrector matrix multiply, re and im in same encoder
     {
-        let gx = (n_freq + 15) / 16;
-        let gy = (n_beams + 15) / 16;
+        let gx = n_freq.div_ceil(16);
+        let gy = n_beams.div_ceil(16);
         {
             let mut pass = enc.begin_compute_pass(&wgpu::ComputePassDescriptor {
                 label: Some("mm_re_pass"),
@@ -327,9 +402,18 @@ pub extern "C" fn sonar_wgpu_compute(
         label: Some("fft_bg"),
         layout: &ctx.fft_bgl,
         entries: &[
-            wgpu::BindGroupEntry { binding: 0, resource: fft_param_buf.as_entire_binding() },
-            wgpu::BindGroupEntry { binding: 1, resource: buf.p_re_buf.as_entire_binding() },
-            wgpu::BindGroupEntry { binding: 2, resource: buf.p_im_buf.as_entire_binding() },
+            wgpu::BindGroupEntry {
+                binding: 0,
+                resource: fft_param_buf.as_entire_binding(),
+            },
+            wgpu::BindGroupEntry {
+                binding: 1,
+                resource: buf.p_re_buf.as_entire_binding(),
+            },
+            wgpu::BindGroupEntry {
+                binding: 2,
+                resource: buf.p_im_buf.as_entire_binding(),
+            },
         ],
     });
     {
@@ -417,10 +501,14 @@ pub extern "C" fn sonar_wgpu_compute(
 
     // Log on the very first frame and then every 50 frames.
     if gpu_frame == 0 || gpu_frame % 50 == 49 {
-        let active_rays = (n_rays + std::cmp::max(1, ray_skips) - 1) / std::cmp::max(1, ray_skips);
+        let active_rays = n_rays.div_ceil(std::cmp::max(1, ray_skips));
         eprintln!(
             "[sonar_wgpu] GPU #{:<5} | {:6.1} ms | {} beams × {} rays × {} freq",
-            gpu_frame + 1, elapsed_ms, n_beams, active_rays, n_freq
+            gpu_frame + 1,
+            elapsed_ms,
+            n_beams,
+            active_rays,
+            n_freq
         );
     }
 
@@ -430,8 +518,14 @@ pub extern "C" fn sonar_wgpu_compute(
     ptr
 }
 
+/// Frees an array returned by [`sonar_wgpu_compute`].
+///
+/// # Safety
+///
+/// `ptr` must be null or a pointer returned by `sonar_wgpu_compute` that has not been freed yet,
+/// and `len` must be the length of that array (`n_beams * n_freq * 2`).
 #[no_mangle]
-pub extern "C" fn sonar_wgpu_free(ptr: *mut f32, len: usize) {
+pub unsafe extern "C" fn sonar_wgpu_free(ptr: *mut f32, len: usize) {
     if ptr.is_null() || len == 0 {
         return;
     }
