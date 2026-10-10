@@ -36,7 +36,7 @@ Wave Sim은 도우미가 지정된 업스트림 커밋을 내려받아 빌드합
 ## 3. 작업 공간 의존성 설치
 
 ```bash
-vcs import src --shallow --skip-existing \
+vcs import src --skip-existing \
   --input src/posim/extras/repos/posim.lyrical.repos
 rosdep update --rosdistro lyrical
 rosdep install --rosdistro lyrical --from-paths src --ignore-src -r -y
@@ -61,6 +61,12 @@ source ~/posim_ws/install/setup.bash
 ```
 
 이어서 [첫 시뮬레이션](quickstart.md)을 실행하세요. NVIDIA/CUDA 소나는 [추가 빌드 설정](sonar-tuning.md)이 필요합니다.
+
+메모리 부족으로 컴파일러가 강제 종료되면 패키지뿐 아니라 컴파일 작업 수도 줄이세요. `--executor sequential`은 패키지를 순서대로 빌드하지만, 패키지 안의 컴파일 작업 수까지 제한하지는 않습니다.
+
+```bash
+MAKEFLAGS="-j1" CMAKE_BUILD_PARALLEL_LEVEL=1 colcon build --merge-install --executor sequential --symlink-install
+```
 
 ## 작업 공간 갱신
 

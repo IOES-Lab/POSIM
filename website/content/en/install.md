@@ -36,7 +36,7 @@ Wave Sim is fetched at the pinned upstream revision and built by the helper. It 
 ## 3. Resolve workspace dependencies
 
 ```bash
-vcs import src --shallow --skip-existing \
+vcs import src --skip-existing \
   --input src/posim/extras/repos/posim.lyrical.repos
 rosdep update --rosdistro lyrical
 rosdep install --rosdistro lyrical --from-paths src --ignore-src -r -y
@@ -61,6 +61,12 @@ source ~/posim_ws/install/setup.bash
 ```
 
 Continue with [First simulation](quickstart.md). NVIDIA/CUDA sonar has additional [build requirements](sonar-tuning.md).
+
+If the compiler is killed because memory is exhausted, limit compiler jobs as well as package concurrency. `--executor sequential` serializes packages, not compiler processes:
+
+```bash
+MAKEFLAGS="-j1" CMAKE_BUILD_PARALLEL_LEVEL=1 colcon build --merge-install --executor sequential --symlink-install
+```
 
 ## Update a workspace
 
