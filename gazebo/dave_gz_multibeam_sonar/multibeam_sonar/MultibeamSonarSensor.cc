@@ -329,6 +329,15 @@ bool MultibeamSonarSensor::Implementation::Initialize(MultibeamSonarSensor * _se
   {
     gzerr << "Failed to initialize beam arrangement for "
           << "[" << _sensor->Name() << "] sensor." << std::endl;
+    // An unconfigured GpuRays left in the scene makes Ogre throw on the next render
+    // and aborts the server, so remove it and fail only this sensor.
+    this->rayConnection.reset();
+    if (this->raySensor)
+    {
+      _sensor->Scene()->DestroySensor(this->raySensor);
+      this->raySensor.reset();
+    }
+    this->computeBackend.reset();
     return false;
   }
 
@@ -365,6 +374,28 @@ bool MultibeamSonarSensor::Implementation::InitializeBeamArrangement(MultibeamSo
 {
   this->beams.clear();
   this->beamTargets.clear();
+
+  // Select the compute backend before adding anything to the scene, so an unavailable
+  // backend fails this sensor without leaving a half-configured GpuRays behind.
+  if (const char * backendEnv = std::getenv("POSIM_SONAR_COMPUTE_BACKEND"))
+  {
+    this->requestedBackend = backendEnv;
+    gzmsg << "POSIM_SONAR_COMPUTE_BACKEND=" << this->requestedBackend << std::endl;
+  }
+  else
+  {
+    this->requestedBackend = "auto";
+    gzmsg << "POSIM_SONAR_COMPUTE_BACKEND not set. Using default backend=auto" << std::endl;
+  }
+
+  this->computeBackend = CreateComputeBackend(this->requestedBackend);
+  if (!this->computeBackend)
+  {
+    gzerr << "Unable to initialize requested sonar backend [" << this->requestedBackend << "]."
+          << std::endl;
+    return false;
+  }
+  gzmsg << "Using sonar compute backend: " << this->computeBackend->Name() << std::endl;
 
   this->raySensor = _sensor->Scene()->CreateGpuRays(_sensor->Name() + "_ray_sensor");
   if (!this->raySensor)
@@ -459,26 +490,6 @@ bool MultibeamSonarSensor::Implementation::InitializeBeamArrangement(MultibeamSo
   this->frameName =
     sensorElement->Get<std::string>("frameName", "forward_sonar_optical_link").first;
   gzmsg << "frameName: " << this->frameName << std::endl;
-
-  if (const char * backendEnv = std::getenv("POSIM_SONAR_COMPUTE_BACKEND"))
-  {
-    this->requestedBackend = backendEnv;
-    gzmsg << "POSIM_SONAR_COMPUTE_BACKEND=" << this->requestedBackend << std::endl;
-  }
-  else
-  {
-    this->requestedBackend = "auto";
-    gzmsg << "POSIM_SONAR_COMPUTE_BACKEND not set. Using default backend=auto" << std::endl;
-  }
-
-  this->computeBackend = CreateComputeBackend(this->requestedBackend);
-  if (!this->computeBackend)
-  {
-    gzerr << "Unable to initialize requested sonar backend [" << this->requestedBackend << "]."
-          << std::endl;
-    return false;
-  }
-  gzmsg << "Using sonar compute backend: " << this->computeBackend->Name() << std::endl;
 
   // ROS Initialization
 
@@ -811,6 +822,10 @@ bool MultibeamSonarSensor::Implementation::InitializeBeamArrangement(MultibeamSo
 //////////////////////////////////////////////////
 std::vector<gz::rendering::SensorPtr> MultibeamSonarSensor::RenderingSensors() const
 {
+  if (!this->dataPtr->raySensor)
+  {
+    return {};
+  }
   return {this->dataPtr->raySensor};
 }
 
