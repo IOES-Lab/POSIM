@@ -65,7 +65,7 @@ def generate_launch_description():
                 description="Sonar backend selection: auto|wgpu|cuda|cpu",
             ),
             DeclareLaunchArgument("rviz", default_value="true", description="Open RViz."),
-            SetEnvironmentVariable("DAVE_SONAR_COMPUTE_BACKEND", compute_backend),
+            SetEnvironmentVariable("POSIM_SONAR_COMPUTE_BACKEND", compute_backend),
             multibeam_sonar_sim,
             rviz,
         ]

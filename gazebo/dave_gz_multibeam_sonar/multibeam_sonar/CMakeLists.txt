@@ -66,7 +66,7 @@ if(CUDAToolkit_FOUND)
     PROPERTIES
       CUDA_SEPARABLE_COMPILATION ON
   )
-  target_compile_definitions(${PROJECT_NAME} PRIVATE DAVE_HAS_CUDA_BACKEND=1)
+  target_compile_definitions(${PROJECT_NAME} PRIVATE POSIM_HAS_CUDA_BACKEND=1)
 endif()
 
 target_include_directories(${PROJECT_NAME} PUBLIC

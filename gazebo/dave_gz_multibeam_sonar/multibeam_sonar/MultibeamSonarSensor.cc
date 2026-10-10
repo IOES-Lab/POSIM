@@ -460,15 +460,15 @@ bool MultibeamSonarSensor::Implementation::InitializeBeamArrangement(MultibeamSo
     sensorElement->Get<std::string>("frameName", "forward_sonar_optical_link").first;
   gzmsg << "frameName: " << this->frameName << std::endl;
 
-  if (const char * backendEnv = std::getenv("DAVE_SONAR_COMPUTE_BACKEND"))
+  if (const char * backendEnv = std::getenv("POSIM_SONAR_COMPUTE_BACKEND"))
   {
     this->requestedBackend = backendEnv;
-    gzmsg << "DAVE_SONAR_COMPUTE_BACKEND=" << this->requestedBackend << std::endl;
+    gzmsg << "POSIM_SONAR_COMPUTE_BACKEND=" << this->requestedBackend << std::endl;
   }
   else
   {
     this->requestedBackend = "auto";
-    gzmsg << "DAVE_SONAR_COMPUTE_BACKEND not set. Using default backend=auto" << std::endl;
+    gzmsg << "POSIM_SONAR_COMPUTE_BACKEND not set. Using default backend=auto" << std::endl;
   }
 
   this->computeBackend = CreateComputeBackend(this->requestedBackend);

@@ -3,7 +3,7 @@
 #include <chrono>
 #include <cmath>
 
-#ifdef DAVE_HAS_CUDA_BACKEND
+#ifdef POSIM_HAS_CUDA_BACKEND
 #include <cuda_runtime_api.h>
 #include "sonar_calculation_cuda.cuh"
 #endif
@@ -15,7 +15,7 @@ namespace sensors
 
 CudaComputeBackend::~CudaComputeBackend()
 {
-#ifdef DAVE_HAS_CUDA_BACKEND
+#ifdef POSIM_HAS_CUDA_BACKEND
   if (this->initialized)
   {
     NpsGazeboSonar::free_cuda_memory();
@@ -27,7 +27,7 @@ const char * CudaComputeBackend::Name() const { return "cuda"; }
 
 bool CudaComputeBackend::Initialize(const SonarComputeInput &)
 {
-#ifdef DAVE_HAS_CUDA_BACKEND
+#ifdef POSIM_HAS_CUDA_BACKEND
   int deviceCount = 0;
   const cudaError_t err = cudaGetDeviceCount(&deviceCount);
   if (err != cudaSuccess || deviceCount <= 0)
@@ -44,7 +44,7 @@ bool CudaComputeBackend::Initialize(const SonarComputeInput &)
 
 bool CudaComputeBackend::Compute(const SonarComputeInput & input, SonarComputeOutput & output)
 {
-#ifdef DAVE_HAS_CUDA_BACKEND
+#ifdef POSIM_HAS_CUDA_BACKEND
   if (!this->initialized)
   {
     return false;
