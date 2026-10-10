@@ -19,4 +19,13 @@ install(
 ament_environment_hooks(
   "${CMAKE_CURRENT_SOURCE_DIR}/hooks/${PROJECT_NAME}.dsv.in")
 
+if(BUILD_TESTING)
+  find_package(ament_cmake_pytest REQUIRED)
+  ament_add_pytest_test(
+    test_manual_control_buttons test/test_manual_control_buttons.py)
+  ament_add_pytest_test(
+    test_manual_control_services test/test_manual_control_services.py)
+  ament_add_pytest_test(test_ws_lifecycle test/test_ws_lifecycle.py)
+endif()
+
 ament_package()
