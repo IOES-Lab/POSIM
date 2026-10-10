@@ -29,8 +29,8 @@ const char * WgpuComputeBackend::Name() const { return "wgpu"; }
 
 bool WgpuComputeBackend::Initialize(const SonarComputeInput &)
 {
-  // Probe the Rust FFI to check if GPU is available.
-  // If probe returns null, GPU is unavailable -> we'll fall back to CPU in Compute().
+  // Probe the Rust FFI to check if a GPU adapter is available. If it is not, report failure
+  // so the factory can pick another backend instead of silently computing on the CPU.
   std::vector<float> depth(1, 0.0f);
   std::vector<float> normal(3, 0.0f);
   std::vector<float> reflectivity(1, 0.0f);
@@ -42,17 +42,12 @@ bool WgpuComputeBackend::Initialize(const SonarComputeInput &)
     4u, 0u, 1500.0f, 10.0f, 220.0f, 0.0f, 1.0f, 29500000.0f, 1.0f, 1e-6f, 0.0f, 0.0f, 0u, 1u,
     false);
 
-  if (probe)
+  if (!probe)
   {
-    sonar_wgpu_free(probe, 1u * 4u * 2u);
-    this->gpuAvailable = true;
+    std::cerr << "[sonar_wgpu] GPU probe failed: no usable WGPU adapter." << std::endl;
+    return false;
   }
-  else
-  {
-    this->gpuAvailable = false;
-    std::cerr << "[sonar_wgpu] GPU probe failed -> will fall back to CPU at compute time."
-              << std::endl;
-  }
+  sonar_wgpu_free(probe, 1u * 4u * 2u);
 
   this->initialized = true;
   return true;
@@ -62,26 +57,6 @@ bool WgpuComputeBackend::Compute(const SonarComputeInput & input, SonarComputeOu
 {
   if (!this->initialized)
   {
-    return false;
-  }
-
-  // If GPU is unavailable, go directly to CPU fallback
-  if (!this->gpuAvailable)
-  {
-    if (!this->cpuFallback)
-    {
-      std::cerr << "[sonar_wgpu] GPU unavailable on first compute -> creating CPU fallback backend"
-                << std::endl;
-      this->cpuFallback = CreateComputeBackend("cpu");
-      if (this->cpuFallback)
-      {
-        this->cpuFallback->Initialize(input);
-      }
-    }
-    if (this->cpuFallback)
-    {
-      return this->cpuFallback->Compute(input, output);
-    }
     return false;
   }
 
@@ -176,21 +151,6 @@ bool WgpuComputeBackend::Compute(const SonarComputeInput & input, SonarComputeOu
 
   if (!result)
   {
-    // GPU returned null -> fall back to CPU backend
-    if (!this->cpuFallback)
-    {
-      this->cpuFallback = CreateComputeBackend("cpu");
-      if (this->cpuFallback)
-      {
-        this->cpuFallback->Initialize(input);
-        std::cerr << "[sonar_wgpu] GPU compute returned null -> falling back to CPU backend."
-                  << std::endl;
-      }
-    }
-    if (this->cpuFallback)
-    {
-      return this->cpuFallback->Compute(input, output);
-    }
     return false;
   }
 

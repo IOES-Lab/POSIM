@@ -20,8 +20,6 @@ public:
 
 private:
   bool initialized{false};
-  bool gpuAvailable{false};
-  std::unique_ptr<ComputeBackend> cpuFallback;
 };
 
 }  // namespace sensors
