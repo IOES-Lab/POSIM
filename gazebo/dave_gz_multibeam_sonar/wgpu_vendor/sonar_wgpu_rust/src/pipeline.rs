@@ -285,11 +285,10 @@ fn compile_pipeline(
     })
 }
 
+// Default backend sets, tried in order. WGPU_BACKEND replaces them with a single set.
+// Linux tries Vulkan only: the GL backend's EGL setup panics inside Gazebo.
 #[cfg(target_os = "linux")]
-const BACKEND_ATTEMPTS: &[(wgpu::Backends, &str)] = &[
-    (wgpu::Backends::VULKAN, "vulkan"),
-    (wgpu::Backends::all(), "all"),
-];
+const BACKEND_ATTEMPTS: &[(wgpu::Backends, &str)] = &[(wgpu::Backends::VULKAN, "vulkan")];
 
 #[cfg(target_os = "windows")]
 const BACKEND_ATTEMPTS: &[(wgpu::Backends, &str)] = &[
@@ -306,6 +305,38 @@ const BACKEND_ATTEMPTS: &[(wgpu::Backends, &str)] = &[
 #[cfg(not(any(target_os = "linux", target_os = "windows", target_os = "macos")))]
 const BACKEND_ATTEMPTS: &[(wgpu::Backends, &str)] = &[(wgpu::Backends::all(), "all")];
 
+/// Pick an adapter. WGPU_ADAPTER_NAME selects the first adapter whose name contains it
+/// (case-insensitive); otherwise wgpu chooses by WGPU_POWER_PREF (default: high performance).
+fn select_adapter(
+    instance: &wgpu::Instance,
+    backends: wgpu::Backends,
+    label: &str,
+) -> Option<wgpu::Adapter> {
+    if let Ok(wanted) = std::env::var("WGPU_ADAPTER_NAME") {
+        let wanted = wanted.to_lowercase();
+        let adapters = instance.enumerate_adapters(backends);
+        let names: Vec<String> = adapters.iter().map(|a| a.get_info().name).collect();
+        let found = adapters
+            .into_iter()
+            .find(|a| a.get_info().name.to_lowercase().contains(&wanted));
+        if found.is_none() {
+            eprintln!(
+                "[sonar_wgpu] [{label}] no adapter matches WGPU_ADAPTER_NAME='{wanted}'; available: {names:?}"
+            );
+        }
+        return found;
+    }
+
+    pollster::block_on(
+        instance.request_adapter(&wgpu::RequestAdapterOptions {
+            power_preference: wgpu::util::power_preference_from_env()
+                .unwrap_or(wgpu::PowerPreference::HighPerformance),
+            compatible_surface: None,
+            force_fallback_adapter: false,
+        }),
+    )
+}
+
 fn try_init_gpu_context(backends: wgpu::Backends, label: &str) -> Option<GpuContext> {
     eprintln!("[sonar_wgpu] Trying backend set: {label}");
 
@@ -316,11 +347,7 @@ fn try_init_gpu_context(backends: wgpu::Backends, label: &str) -> Option<GpuCont
             ..Default::default()
         });
 
-        let adapter = pollster::block_on(instance.request_adapter(&wgpu::RequestAdapterOptions {
-            power_preference: wgpu::PowerPreference::HighPerformance,
-            compatible_surface: None,
-            force_fallback_adapter: false,
-        }))?;
+        let adapter = select_adapter(&instance, backends, label)?;
 
         eprintln!(
             "[sonar_wgpu] [{label}] selected adapter: {}",
@@ -390,7 +417,7 @@ fn try_init_gpu_context(backends: wgpu::Backends, label: &str) -> Option<GpuCont
     match result {
         Ok(ctx) => ctx,
         Err(_) => {
-            eprintln!("[sonar_wgpu] [{label}] GPU init panicked; trying next backend set");
+            eprintln!("[sonar_wgpu] [{label}] GPU init panicked");
             None
         }
     }
@@ -398,18 +425,22 @@ fn try_init_gpu_context(backends: wgpu::Backends, label: &str) -> Option<GpuCont
 
 /// GPU context initialization: adapter enumeration, device request.
 fn init_gpu_context() -> Option<GpuContext> {
+    if let Some(backends) = wgpu::util::backend_bits_from_env() {
+        eprintln!("[sonar_wgpu] WGPU_BACKEND set; using only {backends:?}");
+        return try_init_gpu_context(backends, "WGPU_BACKEND");
+    }
     for (backends, label) in BACKEND_ATTEMPTS {
         if let Some(ctx) = try_init_gpu_context(*backends, label) {
             return Some(ctx);
         }
     }
 
-    eprintln!("[sonar_wgpu] GPU init failed for all backend sets; falling back to CPU path");
+    eprintln!("[sonar_wgpu] GPU init failed for all backend sets");
     None
 }
 
 /// Global singleton: lazily initializes GPU context on first access.
-/// Returns None if GPU unavailable; falls back to CPU implementation.
+/// Returns None if no usable GPU adapter was found.
 pub fn get_or_init() -> Option<&'static GpuContext> {
     GPU_CONTEXT.get_or_init(init_gpu_context).as_ref()
 }

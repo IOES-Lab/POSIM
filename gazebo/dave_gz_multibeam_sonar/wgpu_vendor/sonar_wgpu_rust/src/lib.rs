@@ -136,11 +136,7 @@ pub unsafe extern "C" fn sonar_wgpu_compute(
         }
         None => {
             static FALLBACK_LOG: Once = Once::new();
-            FALLBACK_LOG.call_once(|| {
-                eprintln!(
-                    "[sonar_wgpu] GPU init failed -> returning null (C++ will use CPU backend)."
-                )
-            });
+            FALLBACK_LOG.call_once(|| eprintln!("[sonar_wgpu] GPU init failed -> returning null."));
             return std::ptr::null_mut();
         }
     };
