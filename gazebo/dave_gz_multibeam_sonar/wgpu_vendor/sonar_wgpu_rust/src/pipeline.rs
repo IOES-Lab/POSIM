@@ -1,13 +1,17 @@
 /// Adapters, device, queue setups + BUFFERS SETUP + PIPELINE SETUPS + PIPELINE COMPILE + GPU CONTEXT INIT all in pipeline.rs
 /// + Shaders compiled
+use std::collections::HashMap;
 use std::sync::OnceLock;
 
+/// Buffer-set key: (n_beams, n_rays, n_freq).
+pub type BufferKey = (u32, u32, u32);
+
+/// Upper bound on cached buffer sets; the cache is cleared when it is full.
+pub const MAX_BUFFER_SETS: usize = 8;
+
 /// GPU buffer lifetime: persistent allocation across frames via queue.write_buffer.
-/// Buffers reallocated only when sonar dimensions change.
+/// One set per sonar dimensions (see `GpuContext::buffers`).
 pub struct SonarBuffers {
-    pub n_beams: u32,
-    pub n_rays: u32,
-    pub n_freq: u32,
     // Input data (written via queue.write_buffer each frame)
     pub depth_buf: wgpu::Buffer,
     pub normal_buf: wgpu::Buffer,
@@ -42,9 +46,6 @@ impl SonarBuffers {
         let i32_bytes = |n: usize| (n * std::mem::size_of::<i32>()) as u64;
 
         SonarBuffers {
-            n_beams,
-            n_rays,
-            n_freq,
             depth_buf: device.create_buffer(&wgpu::BufferDescriptor {
                 label: Some("pb_depth"),
                 size: f32_bytes(depth_ray),
@@ -165,10 +166,10 @@ pub struct GpuContext {
     pub fft_pipeline: wgpu::ComputePipeline,
     pub fft_bgl: wgpu::BindGroupLayout,
 
-    // SonarBuffers are None until first compute call when dimensions are known.
-    // Reallocated automatically if dimensions change between frames.
-    // Persistent GPU buffers across frames: CUDA cudaMalloc equivalent (allocated once, reused across ≥1 frames with same dimensions).
-    pub buffers: std::sync::Mutex<Option<SonarBuffers>>,
+    // Persistent GPU buffers across frames, one set per (n_beams, n_rays, n_freq), allocated on the
+    // first compute call with those dimensions. Keying by dimensions lets several sonars of
+    // different sizes share the context without reallocating every frame.
+    pub buffers: std::sync::Mutex<HashMap<BufferKey, SonarBuffers>>,
 }
 
 static GPU_CONTEXT: OnceLock<Option<GpuContext>> = OnceLock::new();
@@ -382,7 +383,7 @@ fn try_init_gpu_context(backends: wgpu::Backends, label: &str) -> Option<GpuCont
             mm_bgl,
             fft_pipeline,
             fft_bgl,
-            buffers: std::sync::Mutex::new(None),
+            buffers: std::sync::Mutex::new(HashMap::new()),
         })
     });
 

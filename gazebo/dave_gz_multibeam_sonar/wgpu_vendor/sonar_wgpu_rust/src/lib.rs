@@ -194,20 +194,23 @@ pub unsafe extern "C" fn sonar_wgpu_compute(
 
     // REMOVE THIS, UNNCESSARY
     // ---- Persistent data buffers: allocate once per dimension set, reuse every frame ----
+    // The lock is held for the whole frame, so sonars with equal dimensions can share a set.
     let mut buf_guard = ctx.buffers.lock().unwrap();
-    {
-        let needs_alloc = buf_guard
-            .as_ref()
-            .is_none_or(|b| b.n_beams != n_beams || b.n_rays != n_rays || b.n_freq != n_freq);
-        if needs_alloc {
-            *buf_guard = Some(pipeline::SonarBuffers::new(device, n_beams, n_rays, n_freq));
-            eprintln!(
-                "[sonar_wgpu] Persistent GPU buffers allocated for {}×{}×{}",
-                n_beams, n_rays, n_freq
-            );
+    let key = (n_beams, n_rays, n_freq);
+    if !buf_guard.contains_key(&key) {
+        if buf_guard.len() >= pipeline::MAX_BUFFER_SETS {
+            buf_guard.clear();
         }
+        buf_guard.insert(
+            key,
+            pipeline::SonarBuffers::new(device, n_beams, n_rays, n_freq),
+        );
+        eprintln!(
+            "[sonar_wgpu] Persistent GPU buffers allocated for {}×{}×{}",
+            n_beams, n_rays, n_freq
+        );
     }
-    let buf = buf_guard.as_ref().unwrap();
+    let buf = &buf_guard[&key];
 
     // Upload frame data into persistent buffers (DMA, no GPU alloc)
     queue.write_buffer(&buf.depth_buf, 0, bytemuck::cast_slice(depth));
