@@ -21,7 +21,7 @@ Run the native recipe in a Bash shell on Ubuntu. Docker commands run on the host
 
 Camera, depth and DVL processing require a renderer even without a desktop window. Software rendering can provide an initial data check.
 
-Multibeam sonar requires NVIDIA GPU access, CUDA and built sonar libraries. See [Sonar build and performance](sonar-tuning.md).
+Multibeam sonar supports WGPU, CUDA and CPU processing. Build its Rust/Cargo library and sonar plugins, then prepare the selected backend and Gazebo rendering. See [Sonar build and performance](sonar-tuning.md).
 
 ## Plan resources for your experiment
 

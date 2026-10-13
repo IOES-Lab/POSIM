@@ -47,6 +47,9 @@ rosdep install --rosdistro lyrical --from-paths src --ignore-src -r -y
 ## 4. 빌드하고 환경 불러오기
 
 ```bash
+colcon build --merge-install --executor sequential --symlink-install \
+  --packages-select wgpu_vendor
+source install/setup.bash
 colcon build --merge-install --executor sequential --symlink-install
 source install/setup.bash
 ros2 pkg prefix posim_demos
@@ -60,7 +63,7 @@ source "$HOME/.ros_ardusub_env/env"
 source ~/posim_ws/install/setup.bash
 ```
 
-이어서 [첫 시뮬레이션](quickstart.md)을 실행하세요. NVIDIA/CUDA 소나는 [추가 빌드 설정](sonar-tuning.md)이 필요합니다.
+이어서 [첫 시뮬레이션](quickstart.md)을 실행하세요. 소나 계산 방식은 [소나 빌드와 성능](sonar-tuning.md)에 따라 선택합니다.
 
 메모리 부족으로 컴파일러가 강제 종료되면 패키지뿐 아니라 컴파일 작업 수도 줄이세요. `--executor sequential`은 패키지를 순서대로 빌드하지만, 패키지 안의 컴파일 작업 수까지 제한하지는 않습니다.
 

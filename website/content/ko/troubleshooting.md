@@ -17,7 +17,7 @@ ros2 pkg prefix posim_demos
 
 ## 영상이 없거나 렌더링 초기화가 실패할 때
 
-영상 센서는 화면 없이 실행해도 렌더러가 필요합니다. 디스플레이·offscreen 설정을 확인하세요. [Docker 환경](docker.md)의 Xvfb 설정이나 [CUDA 라이브러리](sonar-tuning.md)를 확인합니다.
+영상 센서는 화면 없이 실행해도 렌더러가 필요합니다. 디스플레이·offscreen 설정을 확인하세요. [Docker 환경](docker.md)의 Xvfb 설정이나 [소나 계산 환경](sonar-tuning.md)를 확인합니다.
 
 ## 메시지가 오지 않을 때
 

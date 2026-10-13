@@ -19,6 +19,14 @@ Start with [installation](https://ioes-lab.github.io/POSIM/install.html) or
 [Docker](https://ioes-lab.github.io/POSIM/docker.html), then run your
 [first simulation](https://ioes-lab.github.io/POSIM/quickstart.html).
 
+## Multibeam sonar
+
+Run the BlueView P900 sensor with WGPU, CUDA or CPU processing. Select the backend
+at launch and inspect sonar images, raw acoustic data and point clouds.
+
+- English: [sensor and demo](website/content/en/sonar.md), [build and backend setup](website/content/en/sonar-tuning.md), [Apple Silicon](website/content/en/sonar-tuning.md#apple-silicon)
+- 한국어: WGPU·CUDA·CPU 계산 방식을 선택하여 소나 영상·원시 음향 데이터·점군을 확인합니다. [센서와 예제](website/content/ko/sonar.md), [빌드와 계산 설정](website/content/ko/sonar-tuning.md), [Apple Silicon](website/content/ko/sonar-tuning.md#apple-silicon)
+
 ## Try WWW-POSIM
 
 [WWW-POSIM](https://www-posim.vercel.app/) uses POSIM as its simulation engine.
