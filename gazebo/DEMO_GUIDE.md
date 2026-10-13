@@ -42,7 +42,7 @@ On subsequent builds, you can run all packages in one command.
 ros2 launch posim_multibeam_sonar_demo multibeam_sonar_demo.launch.py compute_backend:=wgpu
 ```
 
-Use `compute_backend:=cuda` for CUDA, `compute_backend:=cpu` for CPU, or `compute_backend:=auto` to pick the best available (tries wgpu -> cuda -> cpu).
+Use `compute_backend:=cuda` for CUDA, `compute_backend:=cpu` for CPU, or `compute_backend:=auto` to pick the best available (tries cuda -> wgpu -> cpu).
 
 You'll see RViz2 launch with a point cloud display. The sonar fan should update in real time. Check the terminal for initialization messages and per-frame timing.
 
