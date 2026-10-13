@@ -1,15 +1,13 @@
 # External BlueROV2 Direct-Thruster Path Controller
 
-This note points to a community-maintained ROS 2 BlueROV2 path-following controller package
+This guide describes a community-maintained ROS 2 BlueROV2 path-following controller package
 for POSIM / Gazebo:
 
 [BlueROV2 reconciled path control](https://github.com/drwa92/bluerov2_reconciled_path_control_ros2)
 
 > [!NOTE]
-> This package is developed and released outside POSIM. Startup and package-discovery
-> fixes found during DAVE validation are tracked in the
-> [external compatibility PR](https://github.com/drwa92/bluerov2_reconciled_path_control_ros2/pull/1).
-> Check that PR before following the external project's quick-start instructions.
+> This package is maintained outside POSIM. Follow its installation instructions
+> and ensure `bluerov2_path_control` is available in your sourced ROS 2 workspace.
 
 The package provides:
 
@@ -37,8 +35,7 @@ ros2 launch bluerov2_path_control path_controller.launch.py \
   use_bridge:=true
 ```
 
-With the compatibility fixes applied, a DAVE smoke test confirmed Odometry input, an accepted
-`GoTo` request, and non-zero commands on all six thruster topics.
+Check Odometry input and the six thruster command topics before sending a `GoTo` request.
 
 The package is maintained externally by Waseem Akram at MARVIS LAB:
 

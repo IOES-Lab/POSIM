@@ -11,10 +11,8 @@ const fail = message => { throw new Error(message); };
 const exists = async file => access(file).then(() => true).catch(() => false);
 const htmlFiles = pages.flatMap(page => [page.slug + '.html', 'ko/' + page.slug + '.html']);
 const documents = new Map();
-const sources = JSON.parse(await readFile(path.join(root, 'sources.json'), 'utf8'));
 const catalog = JSON.parse(await readFile(path.join(root, 'catalog.json'), 'utf8'));
 const mediaSources = JSON.parse(await readFile(path.join(root, 'media-sources.json'), 'utf8'));
-if (catalog.sourceRevision !== sources.sourceRevision) fail('Catalog/source revision mismatch');
 let links = 0, commands = 0;
 const haveSource = await exists(path.join(repository, 'models/posim_worlds/worlds'));
 if (haveSource) {
@@ -64,12 +62,6 @@ for (const file of htmlFiles) {
 for (const media of mediaSources) {
   if (!media.source_page?.startsWith('https://caring-dibble-be5.notion.site/') || !media.block || !media.title) {
     fail('Media registry entry needs its source page, block and original title');
-  }
-  if (media.audience === 'engineering') {
-    if (await exists(path.join(output, 'assets/media/notion', path.basename(media.file)))) {
-      fail(`Engineering figure leaked into the public site: ${media.file}`);
-    }
-    continue;
   }
   if (media.audience !== 'public' || !media.file.startsWith('media/notion/')) fail(`Unknown media audience/path: ${media.file}`);
   const bytes = await readFile(path.join(output, 'assets', media.file));

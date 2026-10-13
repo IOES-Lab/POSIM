@@ -54,4 +54,4 @@ with its author and copyright notices.
 POSIM-authored source uses [Apache License 2.0](LICENSE). Third-party source and
 assets retain their original terms. External Wave Sim is built from its upstream
 repository under GPL terms; see the
-[wave dependency and distribution details](extras/surface/README.md#submodules-and-licensing).
+[wave dependency and distribution details](extras/surface/README.md#licensing).

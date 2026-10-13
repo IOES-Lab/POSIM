@@ -53,3 +53,12 @@ log/
 install/
 logs/
 eeprom.bin
+
+# Local agent instructions and development records
+AGENTS.md
+/docs/engineering/
+/docs/enginering/
+/docs/validation/
+/extras/surface/VALIDATION.md
+/extras/surface/validation.json
+/.local/

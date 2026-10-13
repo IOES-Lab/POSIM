@@ -31,8 +31,8 @@ export const sections = [
   ] },
   { en: 'Project', ko: '프로젝트', pages: [
     ['libraries', 'Terrain, routing & control', '지형·경로·차량 제어', []],
-    ['contributing', 'Contributing', '기여하기', ['development']],
-    ['citation', 'Citation & licenses', '인용과 라이선스', ['development']],
+    ['contributing', 'Contributing', '기여하기', []],
+    ['citation', 'Citation & licenses', '인용과 라이선스', []],
   ] },
 ];
 export const pages = sections.flatMap(section => section.pages.map(([slug, en, ko, sources]) =>

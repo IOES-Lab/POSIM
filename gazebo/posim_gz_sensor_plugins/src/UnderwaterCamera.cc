@@ -494,10 +494,7 @@ cv::Mat UnderwaterCamera::SimulateUnderwater(
 
       for (int c = 0; c < 3; c++)
       {
-        // Simplifying assumption: intensity ~ irradiance.
-        // This is not really the case but a good enough approximation
-        // for now (it would be better to use a proper Radiometric
-        // Response Function).
+        // Approximate intensity as proportional to irradiance.
         float e = std::exp(-r * this->dataPtr->attenuation[c]);
         out[c] = e * in[c] + (1.0f - e) * this->dataPtr->background[c];
       }

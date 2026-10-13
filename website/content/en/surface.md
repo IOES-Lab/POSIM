@@ -1,6 +1,6 @@
 # Surface robots and waves
 
-The surface integration combines the upstream Wave Sim dependency, a WAM-V model and ArduRover boat-mode control. The standard POSIM installer and Docker recipes already build the external wave libraries.
+The surface integration combines the upstream Wave Sim dependency, a WAM-V model and ArduRover boat-mode control. The standard POSIM installer and Docker recipes build the external wave libraries.
 
 ## Build the WAM-V integration
 
@@ -32,6 +32,10 @@ The surface world's wave-control topic is `/world/wwos_gebco/waves`, using `gz.m
 | `steepness` | dimensionless | Wave steepness |
 
 Keep visual and hydrodynamic settings consistent. A spectral wave model provides the surface motion; [ocean currents](currents.md) are configured separately. Installing wave libraries makes their systems available; a world must still include and configure those systems.
+
+## Operating limits
+
+The optional Dockerfile supports the ARM64 base layout. Hull, propulsion and drag parameters need calibration for the vessel and operating conditions. MAVROS and Gazebo can require supervisor termination during shutdown; ensure both processes exit before starting another session.
 
 ## Dependency maintenance
 

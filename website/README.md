@@ -29,8 +29,7 @@ check the site without publishing. The workflow can also be run manually.
 
 Links, assets, search and language switching use relative paths so they work
 under `/POSIM/`. `SITE_URL=https://ioes-lab.github.io/POSIM` retains that path
-in the generated sitemap. Publish only the built `dist/`, never the repository
-root or internal validation records.
+in the generated sitemap. Publish the built `dist/` directory.
 
 ## Other static hosts
 
@@ -43,13 +42,13 @@ Search reads a local JSON asset and does not need an external search service.
 - `content/en/*.md`: default English guides.
 - `content/ko/*.md`: matching Korean guides.
 - `scripts/pages.mjs`: shared navigation order, titles and reference mapping.
-- `sources.json`: reference Notion pages and reviewed POSIM source revision.
+- `sources.json`: reference Notion pages for guide attribution.
 - `catalog.json`: deployable world/object inventory; regenerate from a full
   POSIM checkout with `pnpm catalog` when catalog files change.
 - `public/`: stylesheet, browser controls, vector favicon and local guide media.
-- `media-sources.json`: Notion page/block provenance, original filenames, SHA-256
-  digests and the public/engineering audience for each source figure. Public
-  figures must appear in both languages. Keep signed download URLs out of this
+- `media-sources.json`: Notion page/block provenance, original filenames and
+  SHA-256 digests for guide media. Figures appear in both languages.
+  Keep signed download URLs out of this
   registry; deployed guides use the local files.
 
 Use relative Markdown links such as `[Camera](camera.md)`. The builder converts
@@ -57,11 +56,13 @@ them to HTML links. Keep headings unique and descriptive. Code fences get a
 localized copy button in the browser. If clipboard access is denied, the code
 is selected and the UI prompts the user to copy with the keyboard.
 
-Follow [AGENTS.md](AGENTS.md) for public wording. Explain current behaviour in
-short sentences, and put values and limits in bullets or tables. Keep release
-history and review notes outside the user guides. Update English and Korean
-together. The wording check catches known regressions; review meaning and
-desktop/mobile readability as well.
+Describe the current product in short sentences. Put values and limits in
+bullets or tables. Update English and Korean together, including links, units,
+commands and supported behaviour. Use natural Korean: 설치형 앱, 상부 덮개,
+선행 차량 and 추종 차량. Retain prerequisites, limitations and attribution.
+Keep development notes, plans and review records outside the repository;
+use GitHub issues and pull requests for change discussions. Regenerate the
+site and check desktop/mobile readability after content updates.
 
 `pnpm check` checks both languages, local files/anchors, search coverage,
 public wording, unresolved Notion markup and old command identifiers. In a full repository it

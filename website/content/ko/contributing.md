@@ -22,6 +22,8 @@ git switch -c my-change
 
 기본 언어는 영어(`/`), 한국어는 `/ko/`입니다. `website/content/en`과 `website/content/ko`의 대응하는 Markdown 파일을 함께 수정합니다. 페이지 순서는 공통이며 월드·물체 목록은 소스에서 생성합니다.
 
+현재 제품의 동작, 사용 방법과 제한 사항을 설명합니다. 개발 메모, 단계별 계획과 검증 보고서는 저장소 밖에 보관합니다. 변경 논의와 테스트 결과는 GitHub 이슈와 Pull request에 기록합니다.
+
 Node.js 24와 pnpm 10.11.0을 준비한 뒤 `website`에서 실행합니다.
 
 ```bash

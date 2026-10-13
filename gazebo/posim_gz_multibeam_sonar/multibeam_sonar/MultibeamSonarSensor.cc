@@ -20,7 +20,6 @@
  *
  */
 
-// TODO(hidmic): implement SVD in gazebo?
 #include <eigen3/Eigen/Core>
 #include <eigen3/Eigen/SVD>
 
@@ -233,11 +232,7 @@ bool MultibeamSonarSensor::Load(const sdf::Sensor & _sdf)
   this->dataPtr->writeNumber = 1;
 
   // Initialize the point message.
-  // \todo(anyone) The true value in the following function call forces
-  // the xyz and rgb fields to be aligned to memory boundaries. This is need
-  // by ROS1: https://github.com/ros/common_msgs/pull/77. Ideally, memory
-  // alignment should be configured. This same problem is in the
-  // RgbdCameraSensor.
+  // Align packed point fields to memory boundaries.
   msgs::InitPointCloudPacked(
     this->dataPtr->pointMsg, this->FrameId(), true,
     {{"xyz", msgs::PointCloudPacked::Field::FLOAT32},
@@ -736,7 +731,7 @@ void MultibeamSonarSensor::SetScene(gz::rendering::ScenePtr _scene)
   // APIs make it possible for the scene pointer to change
   if (this->Scene() != _scene)
   {
-    // TODO(anyone) Remove camera from scene
+    // Reset the ray sensor and its buffer when the scene changes.
     this->dataPtr->raySensor = nullptr;
     if (this->dataPtr->rayBuffer)
     {

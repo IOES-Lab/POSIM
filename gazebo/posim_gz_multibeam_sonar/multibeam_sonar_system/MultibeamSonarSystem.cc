@@ -340,10 +340,7 @@ void MultibeamSonarSystem::Implementation::DoPreUpdate(
     {
       if (_entity == gz::sim::worldEntity(_ecm))
       {
-        // \todo(anyone) Create an EnvironmentalData DOM class
-        // in sdformat and make gz-sensors and gz-sim use this
-        // generic data structure? Currently the data structure is
-        // duplicated in the two libraries.
+        // Convert the world environment data to the sensor data structure.
         auto envData = sensors::EnvironmentalData::MakeShared(
           _env->Data()->frame, _env->Data()->reference,
           static_cast<gz::sensors::EnvironmentalData::ReferenceUnits>(_env->Data()->units),

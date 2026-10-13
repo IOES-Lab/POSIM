@@ -202,8 +202,7 @@ void SubseaPressureSensorPlugin::PreUpdate(
   const double depth = std::max(0.0, -sea_pressure_sensor_pos.Z());
   this->dataPtr->pressure = this->dataPtr->standardPressure + depth * this->dataPtr->kPaPerM;
 
-  // not adding gaussian noise for now, Future Work (TODO)
-  // pressure += this->dataPtr->GetGaussianNoise(this->dataPtr->noiseAmp);
+  // Apply the configured constant pressure offset.
   this->dataPtr->pressure += this->dataPtr->noiseAmp;  // noiseAmp is 0.0
 
   // double inferredDepth = 0.0;

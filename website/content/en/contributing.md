@@ -22,6 +22,8 @@ Sensor and dynamics changes need an appropriate numerical comparison. A screensh
 
 English is the default language at `/`; Korean pages live at `/ko/`. Edit paired Markdown files under `website/content/en` and `website/content/ko`. The site maintains a common page order and generates the world/object catalogs from the source tree.
 
+Describe the current product, its usage and limitations. Keep development notes, staged plans and validation reports outside the repository. Record change discussions and test results in GitHub issues and pull requests.
+
 From `website`, with Node.js 24 and pnpm 10.11.0:
 
 ```bash

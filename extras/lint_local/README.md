@@ -32,7 +32,7 @@ find . \( -iname 'CMakeLists.txt' -o -iname '*.cmake' \) \
   -print0 | xargs -0 cmake-lint
 ```
 
-The C/C++ command checks formatting without rewriting files. The older
+The C/C++ command checks formatting without rewriting files. The
 `lint_local.sh` helper formats C++ files in place and uses different options;
 use the commands above when comparing your result with CI. In a new terminal,
 activate the same virtual environment before running them.

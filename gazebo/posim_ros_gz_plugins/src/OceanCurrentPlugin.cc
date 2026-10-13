@@ -156,8 +156,7 @@ void OceanCurrentPlugin::Configure(
     this->dataPtr->model_namespace = "hydrodynamics";
   }
 
-  // Reinitialize the ROS 2 node with the model namespace // TODO: Do we need this confirm with
-  // woen-sug : )
+  // Create the ROS 2 node in the model namespace.
 
   this->dataPtr->rosNode =
     std::make_shared<rclcpp::Node>("underwater_current_ros_plugin", this->dataPtr->model_namespace);

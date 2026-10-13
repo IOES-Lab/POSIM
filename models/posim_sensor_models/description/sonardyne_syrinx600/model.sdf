@@ -91,7 +91,7 @@
         <geometry>
           <mesh>
             <scale>1 1 1</scale>
-            <!-- Mesh is actually for a Nortek DVL1000-4000m for now -->
+            <!-- Mesh represents a Nortek DVL1000-4000m -->
             <uri>model://meshes/sonardyne_syrinx600/Syrinx600.dae</uri>
           </mesh>
         </geometry>

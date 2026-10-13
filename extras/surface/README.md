@@ -9,7 +9,7 @@ Wave Sim is a pinned external build dependency. The standard Docker recipes and 
 
 ## Build and run
 
-This optional Dockerfile currently targets the ARM64 base layout (`docker` user, `/home/docker/ardupilot`, `/home/docker/posim_ws`). Build the ARM64 image as described in the [Docker guide](../../website/content/en/docker.md); Wave Sim is included by default, with no separate wave installation command. The optional surface overlay adds ArduRover and the WAM-V launch, reusing the wave installation when its recipe matches. From the repository root:
+This optional Dockerfile targets the ARM64 base layout (`docker` user, `/home/docker/ardupilot`, `/home/docker/posim_ws`). Build the ARM64 image as described in the [Docker guide](../../website/content/en/docker.md); Wave Sim is included by default, with no separate wave installation command. The optional surface overlay adds ArduRover and the WAM-V launch, reusing the wave installation when its recipe matches. From the repository root:
 
 ```sh
 docker build -f extras/surface/Dockerfile --build-arg POSIM_BASE_IMAGE=posim:dev-arm64-rdp -t posim:surface .
@@ -36,14 +36,18 @@ Wave controls use `gz.msgs.Param` on `/world/wwos_gebco/waves`. Match visual and
 
 The spectral wave model simulates surface waves. Tide, current and weather forecasts require separate data and models.
 
-## Dependency maintenance and distribution
+## Dependency configuration
 
-`dependency.json` pins the reviewed source revision. `extras/install-waves.sh` fetches that commit, compiles it and installs libraries under `/opt/waves`. It is called from the standard ARM64 Dockerfile and the Ubuntu installer (also used by the AMD64 Dockerfile). This is a source build dependency, not a Git submodule; users do not need `--recurse-submodules` for Wave Sim. `patch_external_waves.py` adapts CMake/package targets, library ordering and symbol visibility for Jetty's unversioned vendor packages, without copying the solver. Retain the patched upstream source and all GPL notices alongside distributed binaries; the Docker build does so under `/opt/asv_wave_sim`. CGAL/FFTW also have license obligations. Externalizing code solves the in-repository fork/maintenance problem; **it does not automatically remove GPL obligations for combined or distributed software**. Review the exact distribution before release. Fetching a dependency here is not a claim that all POSIM files must change license, or that any distribution is exempt.
+`dependency.json` pins the upstream source revision. `extras/install-waves.sh` fetches that commit and installs libraries under `/opt/waves`. The standard ARM64 Dockerfile and Ubuntu installer call it; the AMD64 Dockerfile uses the Ubuntu installer.
 
-Upstream WAM-V assets reference OSRF VRX. Their source and notices are included in the external checkout.
+`patch_external_waves.py` adapts CMake targets, library ordering and symbol visibility for Jetty's vendor packages. The upstream source remains under `/opt/asv_wave_sim`. Wave Sim is fetched during the build and requires no recursive Git clone.
 
-## Submodules and licensing
+## Operating limits
 
-A Git submodule records a separate repository URL and commit; it does not compile or install it. A submodule workflow would need `git submodule update --init --recursive` plus explicit CMake build/install steps. Fetching the pinned upstream revision during the image build gives the same automatic installation without requiring a recursive user clone. See [Git documentation](https://git-scm.com/docs/git-submodule).
+The optional Dockerfile supports the ARM64 base layout. Hull, propulsion and drag parameters need calibration for the vessel and operating conditions. MAVROS and Gazebo can require supervisor termination during shutdown; ensure both processes exit before starting another session.
 
-Using a submodule is not inherently a GPL violation and is not an exemption either. Preserve the upstream license/notices, corresponding source and build modifications. GPL treatment depends on whether distributed components are separate works or one combined program, especially when plugins share an address space; repository boundaries do not decide that. POSIM-authored source retains Apache-2.0 notices. Apache-2.0 is compatible with GPLv3, but that does not permit distributing GPL wave code under Apache-2.0 alone. See [GNU GPL FAQ](https://www.gnu.org/licenses/gpl-faq.en.html#MereAggregation), [upstream license](https://github.com/srmainwaring/asv_wave_sim/blob/ca8629df4e191235753dfae92ef725d30b923364/LICENSE), and [Apache compatibility guidance](https://www.apache.org/licenses/GPL-compatibility.html). Docker image labels declare both license families; this is a component inventory, not a complete legal determination of a distribution.
+## Licensing
+
+POSIM-authored source uses Apache-2.0. Wave Sim uses GPL-3.0-or-later. Distributed images retain the patched upstream source and license notices under `/opt/asv_wave_sim`. CGAL and FFTW retain their own license obligations. WAM-V assets reference OSRF VRX; their source and notices are included in the external checkout.
+
+Preserve corresponding source, build modifications and notices when distributing binaries. The distribution must comply with each component's terms, including requirements for combined programs. See the [upstream license](https://github.com/srmainwaring/asv_wave_sim/blob/ca8629df4e191235753dfae92ef725d30b923364/LICENSE), [GNU GPL FAQ](https://www.gnu.org/licenses/gpl-faq.en.html#MereAggregation) and [Apache compatibility guidance](https://www.apache.org/licenses/GPL-compatibility.html).
