@@ -156,9 +156,11 @@ RUN set -eu; \
     git init ardupilot; \
     cd ardupilot; \
     git remote add origin https://github.com/ArduPilot/ardupilot.git; \
-    retry git -c http.version=HTTP/1.1 fetch --depth 1 --no-tags origin "$ARDUSUB_COMMIT"; \
+    retry git -c http.version=HTTP/1.1 -c http.lowSpeedLimit=1 -c http.lowSpeedTime=60 \
+      fetch --depth 1 --no-tags origin "$ARDUSUB_COMMIT"; \
     git checkout --detach "$ARDUSUB_COMMIT"; \
-    retry git -c http.version=HTTP/1.1 submodule update --init --recursive --depth 1 --jobs 2
+    retry git -c http.version=HTTP/1.1 -c http.lowSpeedLimit=1 -c http.lowSpeedTime=60 \
+      submodule update --init --recursive --depth 1 --jobs 2
 
 RUN mkdir -p /home/$USER/imp_shim && \
     printf 'import types\ndef new_module(name):\n    return types.ModuleType(name)\n' > /home/$USER/imp_shim/imp.py && \
@@ -181,11 +183,22 @@ RUN chown -R $USER:$USER /home/$USER/ardupilot /home/$USER/imp_shim && \
     cp /home/$USER/ardupilot/build/sitl/bin/ardusub /usr/local/bin/ardusub
 
 # Build the Gazebo Jetty ArduPilot plugin against the ROS vendor packages.
-RUN git clone --depth 1 https://github.com/ArduPilot/ardupilot_gazebo.git \
-      /home/$USER/ardupilot_gazebo && \
-    cd /home/$USER/ardupilot_gazebo && \
-    git fetch --depth 1 origin "$ARDUPILOT_GAZEBO_COMMIT" && \
-    git checkout --detach "$ARDUPILOT_GAZEBO_COMMIT" && \
+RUN set -e; \
+    retry() { \
+      attempt=1; \
+      until "$@"; do \
+        if [ "$attempt" -ge 3 ]; then return 1; fi; \
+        echo "Git transfer failed; retrying in $((attempt * 5)) seconds" >&2; \
+        sleep "$((attempt * 5))"; \
+        attempt=$((attempt + 1)); \
+      done; \
+    }; \
+    git init /home/$USER/ardupilot_gazebo; \
+    cd /home/$USER/ardupilot_gazebo; \
+    git remote add origin https://github.com/ArduPilot/ardupilot_gazebo.git; \
+    retry git -c http.version=HTTP/1.1 -c http.lowSpeedLimit=1 -c http.lowSpeedTime=60 \
+      fetch --depth 1 --no-tags origin "$ARDUPILOT_GAZEBO_COMMIT"; \
+    git checkout --detach "$ARDUPILOT_GAZEBO_COMMIT"; \
     chown -R $USER:$USER /home/$USER/ardupilot_gazebo && \
     mkdir -p /home/$USER/ardupilot_gazebo/build && \
     cd /home/$USER/ardupilot_gazebo/build && \

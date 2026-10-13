@@ -12,11 +12,26 @@ export GZ_VERSION="${GZ_VERSION:-jetty}"
 # Commit used by the verified Lyrical / Python 3.14 build.
 ARDUPILOT_COMMIT="${ARDUPILOT_COMMIT:-30257f01185471ab4c1ac544e47d1b4437e44c98}"
 ARDUPILOT_GAZEBO_COMMIT="${ARDUPILOT_GAZEBO_COMMIT:-082a0fe231f6e63bc8d1598f1cba461d9e2ea7f5}"
+# Fetch pinned revisions over HTTP/1.1 and retry interrupted GitHub transfers.
+retry() {
+    local attempt=1
+    until "$@"; do
+        if [ "$attempt" -ge 3 ]; then return 1; fi
+        echo "Git transfer failed; retrying in $((attempt * 5)) seconds" >&2
+        sleep "$((attempt * 5))"
+        attempt=$((attempt + 1))
+    done
+}
+
 mkdir -p "/opt/ardusub_ws" && cd "/opt/ardusub_ws" || exit
-git clone https://github.com/ArduPilot/ardupilot.git --recurse-submodules
+git init ardupilot
 cd "/opt/ardusub_ws/ardupilot" || exit
+git remote add origin https://github.com/ArduPilot/ardupilot.git
+retry git -c http.version=HTTP/1.1 -c http.lowSpeedLimit=1 -c http.lowSpeedTime=60 \
+    fetch --depth 1 --no-tags origin "$ARDUPILOT_COMMIT"
 git checkout --detach "$ARDUPILOT_COMMIT"
-git submodule update --init --recursive
+retry git -c http.version=HTTP/1.1 -c http.lowSpeedLimit=1 -c http.lowSpeedTime=60 \
+    submodule update --init --recursive --depth 1 --jobs 2
 
 # ArduPilot's waf extras still import Python modules removed in 3.12/3.13.
 # These minimal compatibility shims were used in the verified Ubuntu 26.04 build.
@@ -50,10 +65,13 @@ Tools/environment_install/install-prereqs-ubuntu.sh -y
 python3 modules/waf/waf-light configure --board sitl
 python3 modules/waf/waf-light build --target bin/ardusub
 
-# Clone ardupilot_gazebo code
+# Fetch the pinned ardupilot_gazebo revision without cloning the default branch.
 cd "/opt/ardusub_ws" || exit
-git clone https://github.com/ArduPilot/ardupilot_gazebo.git
+git init ardupilot_gazebo
 cd "/opt/ardusub_ws/ardupilot_gazebo" || exit
+git remote add origin https://github.com/ArduPilot/ardupilot_gazebo.git
+retry git -c http.version=HTTP/1.1 -c http.lowSpeedLimit=1 -c http.lowSpeedTime=60 \
+    fetch --depth 1 --no-tags origin "$ARDUPILOT_GAZEBO_COMMIT"
 git checkout --detach "$ARDUPILOT_GAZEBO_COMMIT"
 
 # Install ardupilot_gazebo plugin
