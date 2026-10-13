@@ -47,6 +47,9 @@ rosdep install --rosdistro lyrical --from-paths src --ignore-src -r -y
 ## 4. Build and source
 
 ```bash
+colcon build --merge-install --executor sequential --symlink-install \
+  --packages-select wgpu_vendor
+source install/setup.bash
 colcon build --merge-install --executor sequential --symlink-install
 source install/setup.bash
 ros2 pkg prefix posim_demos
@@ -60,7 +63,7 @@ source "$HOME/.ros_ardusub_env/env"
 source ~/posim_ws/install/setup.bash
 ```
 
-Continue with [First simulation](quickstart.md). NVIDIA/CUDA sonar has additional [build requirements](sonar-tuning.md).
+Continue with [First simulation](quickstart.md). Choose the sonar compute backend using [Sonar build and performance](sonar-tuning.md).
 
 If the compiler is killed because memory is exhausted, limit compiler jobs as well as package concurrency. `--executor sequential` serializes packages, not compiler processes:
 
