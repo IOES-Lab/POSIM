@@ -1,0 +1,32 @@
+{
+  "platform": "ARM64 Ubuntu 26.04, ROS Lyrical, Gazebo Jetty, software Ogre2 rendering",
+  "posim_base": "e05a9fb7d25ec21399f897e9bddfcabc4493b703",
+  "wave_dependency": "ca8629df4e191235753dfae92ef725d30b923364",
+  "binaries": [
+    "ArduSub",
+    "ArduRover"
+  ],
+  "standalone": {
+    "standalone_launch": true,
+    "controller": "ArduRover Boat GUIDED",
+    "completed": true,
+    "distance_m": 5,
+    "return_error_m": 0.3846432106382859
+  },
+  "downstream_generated_world": {
+    "id": "e0739c94d17c4aeba7cfca9083afc282",
+    "status": "completed",
+    "controller": "ArduRover Boat GUIDED via MAVROS",
+    "surface_vehicle": true,
+    "elapsed_sim_seconds": 36.549999999999955,
+    "wall_seconds": 53.74309552399791,
+    "horizontal_error_m": 0.6835177025082803,
+    "depth_error_m": 0.1158563694811624,
+    "minimum_planned_clearance_m": 4.394828278324375,
+    "maximum_distance_from_start_m": 10.363561341947324,
+    "browser_frames": 40,
+    "actual_sensor_frames": 107
+  },
+  "native_gpu_verified": false,
+  "amd64_verified": false
+}

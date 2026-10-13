@@ -1,82 +1,57 @@
 # POSIM — Platform for Ocean Simulation
 
+[![Build Lyrical / Jetty Docker image (ARM64)](https://github.com/IOES-Lab/POSIM/actions/workflows/docker-arm64v8.yml/badge.svg)](https://github.com/IOES-Lab/POSIM/actions/workflows/docker-arm64v8.yml)
+[![Build Lyrical / Jetty Docker image (AMD64)](https://github.com/IOES-Lab/POSIM/actions/workflows/docker-amd64.yml/badge.svg)](https://github.com/IOES-Lab/POSIM/actions/workflows/docker-amd64.yml)
+
 POSIM is an open-source maritime robotics simulation library maintained by
-IOES-Lab. It brings together ocean worlds, underwater vehicles, sensors, and
-manipulation tasks for ROS 2 and Gazebo.
+IOES-Lab. It combines ocean environments, underwater and surface robots,
+simulated sensors, and ROS 2 control interfaces for Gazebo.
 
-POSIM continues the [DAVE](https://github.com/IOES-Lab/dave) codebase, originally
-developed as [Project DAVE](https://github.com/Field-Robotics-Lab/dave). This
-repository preserves the source history, existing copyright notices, and
-Apache-2.0 license. See [origin and compatibility](docs/compatibility.md).
+## Documentation
 
-## Current development version
+**[English documentation](https://ioes-lab.github.io/POSIM/)** ·
+**[한국어 문서](https://ioes-lab.github.io/POSIM/ko/)**
 
-The `main` branch targets **Ubuntu 26.04, ROS 2 Lyrical, and Gazebo Jetty**.
-The initial POSIM import is based on DAVE `ros2` commit
-[`8a3f6ab`](https://github.com/IOES-Lab/dave/commit/8a3f6abc2ba14ced787aff8befa0201f6c80ca8c).
-POSIM 1.0 has not been released.
+Find installation instructions, first simulations, vehicle and sensor examples,
+custom robot guides, and plugin references on the documentation website.
+The `main` branch targets Ubuntu 26.04, ROS 2 Lyrical, and Gazebo Jetty.
+Start with [installation](https://ioes-lab.github.io/POSIM/install.html) or
+[Docker](https://ioes-lab.github.io/POSIM/docker.html), then run your
+[first simulation](https://ioes-lab.github.io/POSIM/quickstart.html).
 
-Existing ROS package names and launch commands remain available. For example,
-the demonstration package is still called `dave_demos`. The initial import
-contains the CUDA sonar implementation; the WGPU work in
-[DAVE PR #44](https://github.com/IOES-Lab/dave/pull/44) is not included in `main`.
-Without a CUDA toolkit, the CUDA-specific sonar targets are skipped during
-configuration. A successful build on ARM64 therefore does not establish sonar
-availability.
+## Try WWW-POSIM
 
-## Get started
+[WWW-POSIM](https://www-posim.vercel.app/) uses POSIM as its simulation engine.
+Run it in a web workspace or desktop app.
 
-1. Follow the [Ubuntu installation guide](docs/installation.md), or build a
-   [Docker image from this checkout](docs/docker.md).
-2. Open a terminal with the installed ROS and workspace environments loaded.
-3. Start a world:
+- Generate seabed and coast from geographic coordinates.
+- Operate surface or underwater robots and inspect sensors.
+- Test ArduPilot waypoint missions or ROS 2 control code.
+- Watch the public LIVE world voyage.
 
-   ```bash
-   ros2 launch dave_demos dave_world.launch.py world_name:=dave_ocean_waves
-   ```
+## Terrain, routing and control libraries
 
-For a server-only run, append `headless:=true`. On a desktop with rendering
-available, start REXROV with:
+WWW-POSIM connects the POSIM engine to three public libraries. Each repository has English/Korean usage instructions and tests.
 
-```bash
-ros2 launch dave_demos dave_robot.launch.py \
-  namespace:=rexrov world_name:=dave_ocean_waves z:=-5 paused:=false
-```
+| Library | Responsibility |
+| --- | --- |
+| [POSIM-Terrain](https://github.com/IOES-Lab/POSIM-Terrain) | Geographic land/seabed generation and satellite textures |
+| [POSIM-Routing](https://github.com/IOES-Lab/POSIM-Routing) | Global routes, coastal paths, port approaches and local collision checks |
+| [POSIM-Control](https://github.com/IOES-Lab/POSIM-Control) | Vehicle propulsion, leader/follower control and motion policies |
 
-World and model references may download assets from Gazebo Fuel on first use.
-More examples are in [the demo guide](examples/dave_demos/README.md).
-
-## Library contents
-
-- `models/`: world, vehicle, sensor, and object descriptions and their resources.
-- `gazebo/`: model, sensor, world, ROS bridge, and multibeam sonar plugins.
-- `examples/dave_demos/`: world, robot, sensor, and object launch entry points.
-- `dave_interfaces/`: ROS messages and services used by the library.
-- `extras/`: dependency installation, repository manifests, and development tools.
-
-The [legacy DAVE Wiki](https://dave-ros2.notion.site) remains available for
-background material. Follow this repository's installation instructions for
-POSIM; the legacy Wiki is not a POSIM release manual.
+Read the [library guide](https://ioes-lab.github.io/POSIM/libraries.html) or [한국어 안내](https://ioes-lab.github.io/POSIM/ko/libraries.html) for how they work together and how to use them directly.
 
 ## Contributing
 
-Open issues and pull requests in [IOES-Lab/POSIM](https://github.com/IOES-Lab/POSIM).
-Include the source revision, operating system, architecture, launch command,
-and relevant logs when reporting a problem. Install and run the repository's
-pre-commit hooks before submitting changes:
+Report issues or propose changes in [IOES-Lab/POSIM](https://github.com/IOES-Lab/POSIM).
+See the [contribution guide](https://ioes-lab.github.io/POSIM/contributing.html)
+for development checks and documentation updates.
 
-```bash
-python3 -m venv ~/.venvs/posim-dev
-source ~/.venvs/posim-dev/bin/activate
-python3 -m pip install pre-commit
-pre-commit install
-pre-commit run --all-files
-```
+## License and attribution
 
-Maintainers should read [CI and image configuration](docs/maintainer-setup.md)
-before enabling Docker builds or publication in this new repository.
-
-## License
-
-[Apache License 2.0](LICENSE). Existing third-party notices remain with their
-source files and assets.
+POSIM includes source from [Project DAVE](https://github.com/Field-Robotics-Lab/dave)
+with its author and copyright notices.
+POSIM-authored source uses [Apache License 2.0](LICENSE). Third-party source and
+assets retain their original terms. External Wave Sim is built from its upstream
+repository under GPL terms; see the
+[wave dependency and distribution details](extras/surface/README.md#submodules-and-licensing).

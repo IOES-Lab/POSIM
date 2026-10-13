@@ -30,11 +30,11 @@ Nothing. This issue is meant to welcome you to Open Source :) We are happy to wa
 
 - [ ] 🗄️ **Create a local workspace** for making your changes and testing [following these instructions](https://docs.ros.org/en/lyrical/Tutorials/Beginner-Client-Libraries/Creating-A-Workspace.html)
 
-- [ ] 🍴 **Fork the repository** using the handy button at the top of the repository page and **clone** it into `~/ros2_ws/src/dave`, [here is a guide that you can follow](https://guides.github.com/activities/forking/) (You will have to remove or empty the existing `dave` folder before cloning your own fork)
+- [ ] 🍴 **Fork the repository** using the handy button at the top of the repository page and **clone** it into `~/ros2_ws/src/posim`, [here is a guide that you can follow](https://guides.github.com/activities/forking/) (You will have to remove or empty the existing `posim` folder before cloning your own fork)
 
 - [ ] **Checkout a new branch** using `git checkout -b <branch_name>`
 
-- [ ] 🤖 **Apply `pre-commit`** auto formatting, by running `pip3 install pre-commit` and running `pre-commit install` in the dave repo.
+- [ ] 🤖 **Apply `pre-commit`** auto formatting, by running `pip3 install pre-commit` and running `pre-commit install` in the POSIM repo.
 
 - [ ] 💾 **Commit and Push** your changes
 

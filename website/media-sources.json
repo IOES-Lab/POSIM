@@ -1,0 +1,462 @@
+[
+  {
+    "page": "rovs",
+    "block": "670c9419-9898-832e-8091-01f5eea961c3",
+    "type": "image",
+    "title": "rexrov.gif",
+    "file": "media/notion/rovs-670c9419.gif",
+    "source_page": "https://caring-dibble-be5.notion.site/p/POSIM-ROV-Models-768c941998988311b58a01a8dc246628?pvs=24",
+    "audience": "public",
+    "sha256": "b7e336af013df92c1fee93e62ddd9872d0d34a04b2ebda76d95acbe3736e68e9"
+  },
+  {
+    "page": "gliders",
+    "block": "832c9419-9898-833f-9cfe-0171a8eb0ddd",
+    "type": "image",
+    "title": "glider_slocum.gif",
+    "file": "media/notion/gliders-832c9419.gif",
+    "source_page": "https://caring-dibble-be5.notion.site/p/POSIM-Glider-Models-fe4c941998988326838f8199a73c15c5?pvs=24",
+    "audience": "public",
+    "sha256": "6008e8c8fed51d8391b93dee3448676f37a2d4b628d11a412b2d988ceb8e4645"
+  },
+  {
+    "page": "objects",
+    "block": "f56c9419-9898-8272-89bb-81ba378e8a25",
+    "type": "image",
+    "title": "Screenshot from 2024-06-04 15-42-27.png",
+    "file": "media/notion/objects-f56c9419.png",
+    "source_page": "https://caring-dibble-be5.notion.site/p/POSIM-Object-Models-2c9c941998988216b7a1816fce54894d?pvs=24",
+    "audience": "public",
+    "sha256": "cfe8240416b4968c7162e4b6aeaf497afc0f70186059d59b55cd4491a2b3c451"
+  },
+  {
+    "page": "objects",
+    "block": "18ec9419-9898-8207-a4e8-0101b15d83ea",
+    "type": "image",
+    "title": "Screenshot 2024-06-06 at 11.05.23 PM.png",
+    "file": "media/notion/objects-18ec9419.png",
+    "source_page": "https://caring-dibble-be5.notion.site/p/POSIM-Object-Models-2c9c941998988216b7a1816fce54894d?pvs=24",
+    "audience": "public",
+    "sha256": "d833610d2a1e20394c6f8106398d00b1fc7f318ebda39fedf78a2deb177d27ff"
+  },
+  {
+    "page": "objects",
+    "block": "6e7c9419-9898-8344-b2b9-8198dcbd6d58",
+    "type": "image",
+    "title": "Screenshot from 2024-06-05 12-38-27.png",
+    "file": "docs/engineering/notion-media/objects-6e7c9419.png",
+    "source_page": "https://caring-dibble-be5.notion.site/p/POSIM-Object-Models-2c9c941998988216b7a1816fce54894d?pvs=24",
+    "audience": "engineering",
+    "sha256": "4ea76e80ccb0a861ab22e02c5da518d4a5d4602519aa99947e566d45f62acdbe"
+  },
+  {
+    "page": "objects",
+    "block": "699c9419-9898-83f8-a493-81fbe5ae526a",
+    "type": "image",
+    "title": "Screenshot from 2024-06-04 15-45-07.png",
+    "file": "media/notion/objects-699c9419.png",
+    "source_page": "https://caring-dibble-be5.notion.site/p/POSIM-Object-Models-2c9c941998988216b7a1816fce54894d?pvs=24",
+    "audience": "public",
+    "sha256": "61492c5cb958e069688d43f29653c334895023eef5830b526867f9b4c3e835aa"
+  },
+  {
+    "page": "objects",
+    "block": "993c9419-9898-82c8-beb6-01deb6365f6d",
+    "type": "image",
+    "title": "Screenshot from 2024-06-04 15-46-07.png",
+    "file": "media/notion/objects-993c9419.png",
+    "source_page": "https://caring-dibble-be5.notion.site/p/POSIM-Object-Models-2c9c941998988216b7a1816fce54894d?pvs=24",
+    "audience": "public",
+    "sha256": "f568735318b9c49156bde35e2807c9ba1481e0f224d253ad97fa1c635b98c548"
+  },
+  {
+    "page": "currents",
+    "block": "fcfc9419-9898-83c5-9394-81b4944be24e",
+    "type": "image",
+    "title": "Ocean Current Stratified.gif",
+    "file": "media/notion/currents-fcfc9419.gif",
+    "source_page": "https://caring-dibble-be5.notion.site/p/POSIM-Ocean-Current-Plugins-523c941998988354b05581f66d943a99?pvs=24",
+    "audience": "public",
+    "sha256": "785f349c037fc4ce6fad4814f1d4332f5b8c61cd1ed7446147664ce7409c29c9"
+  },
+  {
+    "page": "currents",
+    "block": "edbc9419-9898-833f-ab51-01e62073cc47",
+    "type": "image",
+    "title": "Blank diagram.jpeg",
+    "file": "media/notion/currents-edbc9419.jpeg",
+    "source_page": "https://caring-dibble-be5.notion.site/p/POSIM-Ocean-Current-Plugins-523c941998988354b05581f66d943a99?pvs=24",
+    "audience": "public",
+    "sha256": "47940b3d08166c8a911b44b8e1ea0454ac08b7e8cb1c9cfd615bb248419f4902"
+  },
+  {
+    "page": "currents",
+    "block": "0e3c9419-9898-83d7-bf6f-81d76aece2b0",
+    "type": "video",
+    "title": "ocp.mp4",
+    "file": "media/notion/currents-0e3c9419.mp4",
+    "source_page": "https://caring-dibble-be5.notion.site/p/POSIM-Ocean-Current-Plugins-523c941998988354b05581f66d943a99?pvs=24",
+    "audience": "public",
+    "sha256": "0cd77d91e5b92f99735ad847ca338f1d14bf299950cefed3b337ad3753a6989a"
+  },
+  {
+    "page": "currents",
+    "block": "e41c9419-9898-8266-98e6-813fb3d2a5c6",
+    "type": "image",
+    "title": "Ocean Current Stratified.gif",
+    "file": "media/notion/currents-e41c9419.gif",
+    "source_page": "https://caring-dibble-be5.notion.site/p/POSIM-Ocean-Current-Plugins-523c941998988354b05581f66d943a99?pvs=24",
+    "audience": "public",
+    "sha256": "785f349c037fc4ce6fad4814f1d4332f5b8c61cd1ed7446147664ce7409c29c9"
+  },
+  {
+    "page": "currents",
+    "block": "120c9419-9898-8277-bb4f-810ae3729405",
+    "type": "image",
+    "title": "Screenshot 2025-01-25 at 4.08.18 AM.png",
+    "file": "media/notion/currents-120c9419.png",
+    "source_page": "https://caring-dibble-be5.notion.site/p/POSIM-Ocean-Current-Plugins-523c941998988354b05581f66d943a99?pvs=24",
+    "audience": "public",
+    "sha256": "f6e7f784712dbc2d3d9cd57d7271723229e1a0ae7f4f2e0fe9deafa52a28edc0"
+  },
+  {
+    "page": "currents",
+    "block": "9a7c9419-9898-8318-8762-81eacf556969",
+    "type": "image",
+    "title": "Screenshot 2025-01-25 at 4.09.27 AM.png",
+    "file": "media/notion/currents-9a7c9419.png",
+    "source_page": "https://caring-dibble-be5.notion.site/p/POSIM-Ocean-Current-Plugins-523c941998988354b05581f66d943a99?pvs=24",
+    "audience": "public",
+    "sha256": "23ef3aa877caf18fead85635ab68d7d9655eed64aa754bb5d829ce6d8c2b6c2b"
+  },
+  {
+    "page": "currents",
+    "block": "d27c9419-9898-83a5-ae8c-010a981a9d9c",
+    "type": "image",
+    "title": "Screenshot 2025-01-25 at 4.10.40 AM.png",
+    "file": "media/notion/currents-d27c9419.png",
+    "source_page": "https://caring-dibble-be5.notion.site/p/POSIM-Ocean-Current-Plugins-523c941998988354b05581f66d943a99?pvs=24",
+    "audience": "public",
+    "sha256": "e3f4dd489bb6859d89b80f6955e26623d4bb8c35b00fca0f5ccad5d3e47a0f3e"
+  },
+  {
+    "page": "currents",
+    "block": "54dc9419-9898-8392-8fad-8133a8331314",
+    "type": "video",
+    "title": "ocmp_1.mp4",
+    "file": "media/notion/currents-54dc9419.mp4",
+    "source_page": "https://caring-dibble-be5.notion.site/p/POSIM-Ocean-Current-Plugins-523c941998988354b05581f66d943a99?pvs=24",
+    "audience": "public",
+    "sha256": "08bd16e3a4c33fa938525c6a9ab8f6ed1872f4da26fa552f71be74a23c7f3bd6"
+  },
+  {
+    "page": "currents",
+    "block": "ae1c9419-9898-82d7-8ee8-01f784a93f71",
+    "type": "image",
+    "title": "Screenshot 2025-01-25 at 3.59.40 AM.png",
+    "file": "media/notion/currents-ae1c9419.png",
+    "source_page": "https://caring-dibble-be5.notion.site/p/POSIM-Ocean-Current-Plugins-523c941998988354b05581f66d943a99?pvs=24",
+    "audience": "public",
+    "sha256": "67ec2e9f095c35426685eba7820b4969ac8d8abe6e216c0255a4ba5c759f379a"
+  },
+  {
+    "page": "currents",
+    "block": "4a8c9419-9898-83a2-885c-0165fcc8cea6",
+    "type": "image",
+    "title": "Screenshot 2025-01-25 at 4.55.42 AM.png",
+    "file": "media/notion/currents-4a8c9419.png",
+    "source_page": "https://caring-dibble-be5.notion.site/p/POSIM-Ocean-Current-Plugins-523c941998988354b05581f66d943a99?pvs=24",
+    "audience": "public",
+    "sha256": "a3cf08e3c6086de011b1e5ac3bdf3420b7907959dcd65ada785e37ae0fdb3d02"
+  },
+  {
+    "page": "currents",
+    "block": "7bec9419-9898-8309-ac27-81af46ba55fe",
+    "type": "image",
+    "title": "Screenshot 2025-01-25 at 4.56.50 AM.png",
+    "file": "media/notion/currents-7bec9419.png",
+    "source_page": "https://caring-dibble-be5.notion.site/p/POSIM-Ocean-Current-Plugins-523c941998988354b05581f66d943a99?pvs=24",
+    "audience": "public",
+    "sha256": "529440f775da00909eb596473fef8570ea485fa69844a17c1e2a3819506461da"
+  },
+  {
+    "page": "usbl",
+    "block": "5f8c9419-9898-82eb-9653-817d08653481",
+    "type": "image",
+    "title": "Screenshot from 2024-07-13 13-04-22.png",
+    "file": "media/notion/usbl-5f8c9419.png",
+    "source_page": "https://caring-dibble-be5.notion.site/p/POSIM-USBL-Plugin-7b8c9419989882b5ad1981cde0349c35?pvs=24",
+    "audience": "public",
+    "sha256": "2e8b1594aca0b46c00d0abe5bc35e054b72637c49320b08cf17e1c1c84634df1"
+  },
+  {
+    "page": "usbl",
+    "block": "b388acb0-a29c-4b15-86bb-70c6b53c1413",
+    "type": "image",
+    "title": "usbl_interrogation_modes.png",
+    "file": "media/notion/usbl-b388acb0.png",
+    "source_page": "https://caring-dibble-be5.notion.site/p/POSIM-USBL-Plugin-7b8c9419989882b5ad1981cde0349c35?pvs=24",
+    "audience": "public",
+    "sha256": "7e9cd0b53317d5bde63e97af91e97024171849c0bc2c14319f6c11d7959e6460"
+  },
+  {
+    "page": "usbl",
+    "block": "a96c9419-9898-827b-925f-81f200529c05",
+    "type": "image",
+    "title": "Screenshot from 2024-07-13 18-03-22.png",
+    "file": "media/notion/usbl-a96c9419.png",
+    "source_page": "https://caring-dibble-be5.notion.site/p/POSIM-USBL-Plugin-7b8c9419989882b5ad1981cde0349c35?pvs=24",
+    "audience": "public",
+    "sha256": "c11dcbf8f18fd8e318e74193b6f2513c8aaea244126f408e92906230a1055577"
+  },
+  {
+    "page": "pressure",
+    "block": "ba8c9419-9898-8346-906f-015a30278e2c",
+    "type": "image",
+    "title": "Screenshot 2024-08-08 at 6.30.22 PM.png",
+    "file": "media/notion/pressure-ba8c9419.png",
+    "source_page": "https://caring-dibble-be5.notion.site/p/POSIM-SeaPressure-Plugin-3ffc94199898832da3b881f9962ec3bf?pvs=24",
+    "audience": "public",
+    "sha256": "ea87aec0eb03fdfc1d32438f84a36baaf56fc11d5e85c247fc361a0501a338e0"
+  },
+  {
+    "page": "pressure",
+    "block": "8cdc9419-9898-8231-a73e-81557c0d0457",
+    "type": "image",
+    "title": "Screenshot 2024-08-08 at 7.39.10 PM.png",
+    "file": "media/notion/pressure-8cdc9419.png",
+    "source_page": "https://caring-dibble-be5.notion.site/p/POSIM-SeaPressure-Plugin-3ffc94199898832da3b881f9962ec3bf?pvs=24",
+    "audience": "public",
+    "sha256": "82a0c08fcdc0d83c3c90fed6d4ba3356f702e3defcce4747ccc9b68bc2826170"
+  },
+  {
+    "page": "pressure",
+    "block": "6c1c9419-9898-8212-8e17-0111430d895f",
+    "type": "image",
+    "title": "Screenshot 2024-08-08 at 7.43.09 PM.png",
+    "file": "media/notion/pressure-6c1c9419.png",
+    "source_page": "https://caring-dibble-be5.notion.site/p/POSIM-SeaPressure-Plugin-3ffc94199898832da3b881f9962ec3bf?pvs=24",
+    "audience": "public",
+    "sha256": "203011609e9ee7aa87c787a567c68fbdcc57fe33dd12d17e75cad732e057aac7"
+  },
+  {
+    "page": "sonar",
+    "block": "3edc9419-9898-835a-8298-81c27848200e",
+    "type": "image",
+    "title": "Diagrama em branco(4).png",
+    "file": "media/notion/sonar-3edc9419.png",
+    "source_page": "https://caring-dibble-be5.notion.site/p/POSIM-Multibeam-Sonar-CUDA-WGPU-2e6c94199898822a8905817e53dc6447?pvs=24",
+    "audience": "public",
+    "sha256": "b7ed21a31d191f0dcdce807b82fc13879eea095428557d0214f95ecc66db5118"
+  },
+  {
+    "page": "sonar",
+    "block": "f4ac9419-9898-83a8-bc75-81774e9105ad",
+    "type": "image",
+    "title": "Screenshot from 2025-06-25 19-51-53.png",
+    "file": "media/notion/sonar-f4ac9419.png",
+    "source_page": "https://caring-dibble-be5.notion.site/p/POSIM-Multibeam-Sonar-CUDA-WGPU-2e6c94199898822a8905817e53dc6447?pvs=24",
+    "audience": "public",
+    "sha256": "700e75463ff7264191d9f056c3da4a6f042cc80bcd2862de1a58799544cdcc3d"
+  },
+  {
+    "page": "sonar",
+    "block": "57bc9419-9898-83db-b1a8-810c5676f4ee",
+    "type": "image",
+    "title": "Screencastfrom2025-06-2600-51-44-ezgif.com-crop(1).gif",
+    "file": "media/notion/sonar-57bc9419.gif",
+    "source_page": "https://caring-dibble-be5.notion.site/p/POSIM-Multibeam-Sonar-CUDA-WGPU-2e6c94199898822a8905817e53dc6447?pvs=24",
+    "audience": "public",
+    "sha256": "07e6be5df420a1db798333807d5e542a7b452723f3e30d48f1bb72474a8d44cd"
+  },
+  {
+    "page": "sonar",
+    "block": "c72c9419-9898-83f3-bb7b-8149586e7d99",
+    "type": "image",
+    "title": "Screencastfrom2025-07-0716-36-54-ezgif.com-video-to-gif-converter.gif",
+    "file": "media/notion/sonar-c72c9419.gif",
+    "source_page": "https://caring-dibble-be5.notion.site/p/POSIM-Multibeam-Sonar-CUDA-WGPU-2e6c94199898822a8905817e53dc6447?pvs=24",
+    "audience": "public",
+    "sha256": "a946aa88ba6e08de8b933e6d61a3ff50c5392cadbb513e3ee0da1ff661660bf0"
+  },
+  {
+    "page": "sonar",
+    "block": "2e8c9419-9898-82a5-b27e-812b6b4b90da",
+    "type": "image",
+    "title": "Design sem nome(14).gif",
+    "file": "media/notion/sonar-2e8c9419.gif",
+    "source_page": "https://caring-dibble-be5.notion.site/p/POSIM-Multibeam-Sonar-CUDA-WGPU-2e6c94199898822a8905817e53dc6447?pvs=24",
+    "audience": "public",
+    "sha256": "a97e69bf4adaedbdb31f3279fd2e25df02a28cf1589dda0102795ef02baebc91"
+  },
+  {
+    "page": "sonar",
+    "block": "488c9419-9898-8203-a6b3-8184be2cc94b",
+    "type": "image",
+    "title": "Screencastfrom2025-10-2915-43-48-ezgif.com-video-to-gif-converter.gif",
+    "file": "media/notion/sonar-488c9419.gif",
+    "source_page": "https://caring-dibble-be5.notion.site/p/POSIM-Multibeam-Sonar-CUDA-WGPU-2e6c94199898822a8905817e53dc6447?pvs=24",
+    "audience": "public",
+    "sha256": "4b1c4b950fa6c5115bd669d944a55feaa0b0e805841fee3d548fd7bee147288c"
+  },
+  {
+    "page": "dvl",
+    "block": "607c9419-9898-8266-9def-0158e0d6fe3c",
+    "type": "image",
+    "title": "Screenshot 2024-08-18 at 3.33.19 PM.png",
+    "file": "media/notion/dvl-607c9419.png",
+    "source_page": "https://caring-dibble-be5.notion.site/p/POSIM-DVL-Plugin-045c941998988221995c0130ae637b13?pvs=24",
+    "audience": "public",
+    "sha256": "8449807727155244a92ef52c0e3fe090171aa267a563a30d56e08ef983eb0bee"
+  },
+  {
+    "page": "dvl",
+    "block": "b85c9419-9898-829f-9437-0145eafcaade",
+    "type": "image",
+    "title": "Screenshot 2024-08-18 at 3.27.28 PM.png",
+    "file": "media/notion/dvl-b85c9419.png",
+    "source_page": "https://caring-dibble-be5.notion.site/p/POSIM-DVL-Plugin-045c941998988221995c0130ae637b13?pvs=24",
+    "audience": "public",
+    "sha256": "209321bec13a37a8c1577c8954222fe57c81ca7c2e872dffa75062a1ebefde0a"
+  },
+  {
+    "page": "dvl",
+    "block": "cc9c9419-9898-8202-a972-01b11f2a3a10",
+    "type": "image",
+    "title": "dvl_output.gif",
+    "file": "media/notion/dvl-cc9c9419.gif",
+    "source_page": "https://caring-dibble-be5.notion.site/p/POSIM-DVL-Plugin-045c941998988221995c0130ae637b13?pvs=24",
+    "audience": "public",
+    "sha256": "17eeef4a1bf745bf880d703d0466c1493121d5751a7b05f15fa0b43988c3ce05"
+  },
+  {
+    "page": "dvl",
+    "block": "e7cc9419-9898-83fb-90a9-01549f944a69",
+    "type": "image",
+    "title": "Screenshot 2024-08-18 at 3.31.42 PM.png",
+    "file": "media/notion/dvl-e7cc9419.png",
+    "source_page": "https://caring-dibble-be5.notion.site/p/POSIM-DVL-Plugin-045c941998988221995c0130ae637b13?pvs=24",
+    "audience": "public",
+    "sha256": "32f2313b2693c93bb2431264af24bdd5f83b22854f9eac0d0d2a42259b5992ca"
+  },
+  {
+    "page": "camera",
+    "block": "f14c9419-9898-8225-9ec4-819bcc11810a",
+    "type": "image",
+    "title": "Screenshot 2024-09-01 at 3.24.43 AM.png",
+    "file": "media/notion/camera-f14c9419.png",
+    "source_page": "https://caring-dibble-be5.notion.site/p/POSIM-Underwater-Camera-Plugin-d79c9419989883b8812681042f90cfa0?pvs=24",
+    "audience": "public",
+    "sha256": "b98fff0fa27dd86d1cee5f9e2343221e159e5116db090089f82ccda71ff98105"
+  },
+  {
+    "page": "camera",
+    "block": "200c9419-9898-834a-9cd9-81adf0748b84",
+    "type": "image",
+    "title": "Screenshot 2024-09-01 at 3.15.18 AM.png",
+    "file": "media/notion/camera-200c9419.png",
+    "source_page": "https://caring-dibble-be5.notion.site/p/POSIM-Underwater-Camera-Plugin-d79c9419989883b8812681042f90cfa0?pvs=24",
+    "audience": "public",
+    "sha256": "16bf08c66d5d5901cce5e819127617218509e065bba4a759825e35fd58501831"
+  },
+  {
+    "page": "camera",
+    "block": "effc9419-9898-839d-9045-816074356c8c",
+    "type": "image",
+    "title": "Screenshot 2024-09-01 at 3.16.17 AM.png",
+    "file": "media/notion/camera-effc9419.png",
+    "source_page": "https://caring-dibble-be5.notion.site/p/POSIM-Underwater-Camera-Plugin-d79c9419989883b8812681042f90cfa0?pvs=24",
+    "audience": "public",
+    "sha256": "4c31cf1a16dc1e918fc6c77368ead3c51cd49722d76f12879349c03078a9a473"
+  },
+  {
+    "page": "camera",
+    "block": "6eec9419-9898-82ac-9108-01de581e27cf",
+    "type": "image",
+    "title": "Screenshot 2024-09-01 at 3.23.49 AM.png",
+    "file": "media/notion/camera-6eec9419.png",
+    "source_page": "https://caring-dibble-be5.notion.site/p/POSIM-Underwater-Camera-Plugin-d79c9419989883b8812681042f90cfa0?pvs=24",
+    "audience": "public",
+    "sha256": "e33c8ac6f5a9e10e811e8fbde4be9617c681ccc864bb68030d16a5a2ba995214"
+  },
+  {
+    "page": "sonar-optimization",
+    "block": "a26c9419-9898-835d-a739-81554e9da1f1",
+    "type": "image",
+    "title": "Diagrama em branco(3).png",
+    "file": "media/notion/sonar-optimization-a26c9419.png",
+    "source_page": "https://caring-dibble-be5.notion.site/p/POSIM-CUDA-Sonar-Optimization-Reference-ab3c941998988356a7b481b10d998268?pvs=24",
+    "audience": "public",
+    "sha256": "ae2558aaa39274de7a711e2d79e1e0b69fc8fb6e0ff7fee47329cdfe0c428fb5"
+  },
+  {
+    "page": "sonar-optimization",
+    "block": "214c9419-9898-82f3-a7f4-0197ceaf1c2a",
+    "type": "image",
+    "title": "CUDA_INITIAL_TIMES.png",
+    "file": "docs/engineering/notion-media/sonar-optimization-214c9419.png",
+    "source_page": "https://caring-dibble-be5.notion.site/p/POSIM-CUDA-Sonar-Optimization-Reference-ab3c941998988356a7b481b10d998268?pvs=24",
+    "audience": "engineering",
+    "sha256": "db1f4381c900fd0e3ef4c26d0ba9502d390f58f784efb2898e1bce15cfd148d3"
+  },
+  {
+    "page": "sonar-optimization",
+    "block": "7dac9419-9898-83d4-80fc-015d772c5dd7",
+    "type": "image",
+    "title": "CUDA_OLD_KERNEL.png",
+    "file": "docs/engineering/notion-media/sonar-optimization-7dac9419.png",
+    "source_page": "https://caring-dibble-be5.notion.site/p/POSIM-CUDA-Sonar-Optimization-Reference-ab3c941998988356a7b481b10d998268?pvs=24",
+    "audience": "engineering",
+    "sha256": "38286b46ff88bf0f10a4b91a88eb76d73a0c60b26678cc5a551192b9f989169c"
+  },
+  {
+    "page": "sonar-optimization",
+    "block": "fa4c9419-9898-82c8-9ae4-81f9181d1870",
+    "type": "image",
+    "title": "CUDA_FINAL_INTRINSICS.png",
+    "file": "docs/engineering/notion-media/sonar-optimization-fa4c9419.png",
+    "source_page": "https://caring-dibble-be5.notion.site/p/POSIM-CUDA-Sonar-Optimization-Reference-ab3c941998988356a7b481b10d998268?pvs=24",
+    "audience": "engineering",
+    "sha256": "eb6f678bf36da067fd30c072ea442671b411d8c3fb81a813be58f62e6920b32c"
+  },
+  {
+    "page": "sonar-optimization",
+    "block": "f3cc9419-9898-8326-98bd-818b63bc67e9",
+    "type": "image",
+    "title": "FCUDA_FINAL_INTRINSIC_COMPARE.png",
+    "file": "docs/engineering/notion-media/sonar-optimization-f3cc9419.png",
+    "source_page": "https://caring-dibble-be5.notion.site/p/POSIM-CUDA-Sonar-Optimization-Reference-ab3c941998988356a7b481b10d998268?pvs=24",
+    "audience": "engineering",
+    "sha256": "0d8d130840ff8ca6d7a40a741e54d6627729ec166f17854388470657bef05f5c"
+  },
+  {
+    "page": "sonar-optimization",
+    "block": "782c9419-9898-8264-a92f-8120adf6eea4",
+    "type": "image",
+    "title": "CUDA_FINAL_KERN_INTRINSICS.png",
+    "file": "docs/engineering/notion-media/sonar-optimization-782c9419.png",
+    "source_page": "https://caring-dibble-be5.notion.site/p/POSIM-CUDA-Sonar-Optimization-Reference-ab3c941998988356a7b481b10d998268?pvs=24",
+    "audience": "engineering",
+    "sha256": "ad06cb705ba0218bd80f7632a46cbbb28c43676952dcbfc596cd8e3d03e81845"
+  },
+  {
+    "page": "sonar-optimization",
+    "block": "a57c9419-9898-82bf-bd7e-0126a4cea57b",
+    "type": "image",
+    "title": "resultados_geforce.png",
+    "file": "docs/engineering/notion-media/sonar-optimization-a57c9419.png",
+    "source_page": "https://caring-dibble-be5.notion.site/p/POSIM-CUDA-Sonar-Optimization-Reference-ab3c941998988356a7b481b10d998268?pvs=24",
+    "audience": "engineering",
+    "sha256": "b7f29065d94913b1c12cfd5fe14a88c4671f526c3e41fe6eb1cea73c7d2c4ad1"
+  },
+  {
+    "page": "sonar-optimization",
+    "block": "7d0c9419-9898-839c-b862-816b0c3005eb",
+    "type": "image",
+    "title": "results_t4.png",
+    "file": "docs/engineering/notion-media/sonar-optimization-7d0c9419.png",
+    "source_page": "https://caring-dibble-be5.notion.site/p/POSIM-CUDA-Sonar-Optimization-Reference-ab3c941998988356a7b481b10d998268?pvs=24",
+    "audience": "engineering",
+    "sha256": "db7243d51a5263d0fddc116dfa38e2b2f4b675a68a21f659d5b5f5bed3e3580f"
+  }
+]

@@ -10,7 +10,7 @@ on:
       - ".docker/**"
       - ".dockerignore"
       - ".github/workflows/docker-arm64v8.yml"
-      - "dave_interfaces/**"
+      - "posim_interfaces/**"
       - "examples/**"
       - "extras/**"
       - "gazebo/**"
@@ -43,16 +43,24 @@ jobs:
     steps:
       - name: Configure non-interactive Docker credentials
         run: |
+          # Read the selected daemon before isolating credentials. A new
+          # DOCKER_CONFIG otherwise loses Docker Desktop's desktop-linux context
+          # and falls back to the absent /var/run/docker.sock on macOS.
+          docker_host="${DOCKER_HOST:-$(docker context inspect --format '{{.Endpoints.docker.Host}}')}"
           docker_config="$RUNNER_TEMP/docker-config"
           mkdir -p "$docker_config"
+          chmod 700 "$docker_config"
           printf '{}\n' > "$docker_config/config.json"
+          chmod 600 "$docker_config/config.json"
+          echo "DOCKER_HOST=$docker_host" >> "$GITHUB_ENV"
+          echo "DOCKER_CONTEXT=" >> "$GITHUB_ENV"
           echo "DOCKER_CONFIG=$docker_config" >> "$GITHUB_ENV"
 
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
         with:
           # On a macOS launchd runner, the docker-container driver can try to
           # open Docker Desktop's interactive Keychain credential helper.
@@ -84,7 +92,7 @@ jobs:
 
       - name: Docker metadata
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
           images: ${{ env.IMAGE_NAME }}
           flavor: |
@@ -97,7 +105,7 @@ jobs:
             type=semver,pattern={{major}}.{{minor}}
 
       - name: Build Docker image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v7
         with:
           context: .
           push: ${{ vars.POSIM_PUBLISH_IMAGES == 'true' && github.event_name != 'pull_request' }}

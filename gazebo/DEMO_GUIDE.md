@@ -12,11 +12,10 @@ Build and run the GPU multibeam sonar demo. The plugin supports wgpu (Vulkan), C
 - Vulkan driver
 - CUDA 12+ (if using the CUDA backend)
 
-Clone and check out the branch:
+Clone the repository:
 ```bash
-git clone https://github.com/naitikpahwa18/dave.git
-cd dave
-git checkout wgpu_integration
+git clone https://github.com/IOES-Lab/POSIM.git
+cd POSIM
 ```
 
 ## Build
@@ -31,7 +30,7 @@ colcon build --packages-select wgpu_vendor
 source install/setup.bash
 
 # Step 2: build the plugin and everything else
-colcon build --packages-select dave_demos dave_worlds dave_interfaces multibeam_sonar multibeam_sonar_system dave_multibeam_sonar_demo dave_sensor_models
+colcon build --packages-select posim_demos posim_worlds posim_interfaces multibeam_sonar multibeam_sonar_system posim_multibeam_sonar_demo posim_sensor_models
 source install/setup.bash
 ```
 
@@ -40,7 +39,7 @@ On subsequent builds, you can run all packages in one command.
 ## Run
 
 ```bash
-ros2 launch dave_multibeam_sonar_demo multibeam_sonar_demo.launch.py compute_backend:=wgpu
+ros2 launch posim_multibeam_sonar_demo multibeam_sonar_demo.launch.py compute_backend:=wgpu
 ```
 
 Use `compute_backend:=cuda` for CUDA, `compute_backend:=cpu` for CPU, or `compute_backend:=auto` to pick the best available (tries wgpu -> cuda -> cpu).

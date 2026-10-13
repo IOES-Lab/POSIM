@@ -113,18 +113,18 @@ RUN curl --fail --show-error --location --retry 5 --retry-delay 2 \
       ros-${ROS_DISTRO}-image-view \
       python3-rosdep python3-vcstool python3-colcon-common-extensions
 
-# --- DAVE workspace ---
+# --- POSIM workspace ---
 # Build the exact checked-out revision supplied as the Docker build context.
-ENV DAVE_UNDERLAY=/home/$USER/dave_ws
-WORKDIR $DAVE_UNDERLAY/src
-COPY . dave
-RUN chown -R $USER:$USER $DAVE_UNDERLAY/src/dave
+ENV POSIM_UNDERLAY=/home/$USER/posim_ws
+WORKDIR $POSIM_UNDERLAY/src
+COPY . posim
+RUN chown -R $USER:$USER $POSIM_UNDERLAY/src/posim
 
 # Keep the companion repositories from the inherited DAVE workspace, while
 # preserving the exact POSIM checkout copied above.
 RUN vcs import --shallow --skip-existing \
-      --input dave/extras/repos/posim.lyrical.repos && \
-    chown -R $USER:$USER $DAVE_UNDERLAY
+      --input posim/extras/repos/posim.lyrical.repos && \
+    chown -R $USER:$USER $POSIM_UNDERLAY
 
 RUN apt-get update && \
     (rosdep init 2>/dev/null || true) && \
@@ -133,7 +133,7 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 USER $USER
-WORKDIR $DAVE_UNDERLAY
+WORKDIR $POSIM_UNDERLAY
 RUN . "/opt/ros/${ROS_DISTRO}/setup.sh" && \
     colcon build --merge-install --executor sequential --symlink-install
 
@@ -143,25 +143,24 @@ USER root
 ARG ARDUSUB_COMMIT="30257f01185471ab4c1ac544e47d1b4437e44c98"
 ARG ARDUPILOT_GAZEBO_COMMIT="082a0fe231f6e63bc8d1598f1cba461d9e2ea7f5"
 WORKDIR /home/$USER
-# Fetch only the pinned revision before its submodules, avoiding a full-history
-# clone of the default branch. Retry interrupted transfers without changing pins.
+# Fetch only the pinned revision before downloading its submodules. Use HTTP/1.1
+# and bounded retries for interrupted GitHub transfers during CI builds.
 RUN set -eu; \
     retry() { \
-      for attempt in 1 2 3; do \
-        if "$@"; then return 0; fi; \
-        if [ "$attempt" -lt 3 ]; then \
-          echo "Git transfer failed (attempt $attempt/3); retrying..." >&2; \
-          sleep "$((attempt * 5))"; \
-        fi; \
+      attempt=1; \
+      until "$@"; do \
+        if [ "$attempt" -ge 3 ]; then return 1; fi; \
+        echo "Git transfer failed; retrying in $((attempt * 5)) seconds" >&2; \
+        sleep "$((attempt * 5))"; \
+        attempt=$((attempt + 1)); \
       done; \
-      return 1; \
     }; \
     git init ardupilot; \
     cd ardupilot; \
     git remote add origin https://github.com/ArduPilot/ardupilot.git; \
-    retry git fetch --depth 1 --no-tags origin "$ARDUSUB_COMMIT"; \
+    retry git -c http.version=HTTP/1.1 fetch --depth 1 --no-tags origin "$ARDUSUB_COMMIT"; \
     git checkout --detach "$ARDUSUB_COMMIT"; \
-    retry git submodule update --init --recursive --depth 1
+    retry git -c http.version=HTTP/1.1 submodule update --init --recursive --depth 1 --jobs 2
 
 RUN mkdir -p /home/$USER/imp_shim && \
     printf 'import types\ndef new_module(name):\n    return types.ModuleType(name)\n' > /home/$USER/imp_shim/imp.py && \
@@ -196,8 +195,12 @@ RUN git clone --depth 1 https://github.com/ArduPilot/ardupilot_gazebo.git \
     cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo && \
     make -j2
 
-ENV GZ_SIM_SYSTEM_PLUGIN_PATH=/home/$USER/ardupilot_gazebo/build
-ENV GZ_SIM_RESOURCE_PATH=/home/$USER/ardupilot_gazebo/models:/home/$USER/ardupilot_gazebo/worlds
+# Waves are built during the normal POSIM image build. The upstream checkout
+# and GPL notices stay separate from POSIM under /opt/asv_wave_sim.
+RUN bash $POSIM_UNDERLAY/src/posim/extras/install-waves.sh
+ENV LD_LIBRARY_PATH=/opt/waves/lib
+ENV GZ_SIM_SYSTEM_PLUGIN_PATH=/opt/waves/lib:/home/$USER/ardupilot_gazebo/build
+ENV GZ_SIM_RESOURCE_PATH=/opt/asv_wave_sim/gz-waves-models/models:/opt/asv_wave_sim/gz-waves-models/world_models:/home/$USER/ardupilot_gazebo/models:/home/$USER/ardupilot_gazebo/worlds
 
 # --- QGroundControl, Firefox, environment ---
 RUN usermod -aG dialout $USER && apt -y remove modemmanager || true
@@ -231,7 +234,7 @@ RUN curl -L "https://download.mozilla.org/?product=firefox-latest-ssl&os=linux64
 
 USER root
 RUN echo "source /opt/ros/${ROS_DISTRO}/setup.bash" >> /home/$USER/.bashrc && \
-    echo "source $DAVE_UNDERLAY/install/setup.bash" >> /home/$USER/.bashrc && \
+    echo "source $POSIM_UNDERLAY/install/setup.bash" >> /home/$USER/.bashrc && \
     echo "export PATH=/home/$USER/.local/bin:/usr/local/bin:\$PATH" >> /home/$USER/.bashrc && \
     echo "export GZ_SIM_SYSTEM_PLUGIN_PATH=/home/$USER/ardupilot_gazebo/build:\${GZ_SIM_SYSTEM_PLUGIN_PATH:-}" >> /home/$USER/.bashrc && \
     echo "export GZ_SIM_RESOURCE_PATH=/home/$USER/ardupilot_gazebo/models:/home/$USER/ardupilot_gazebo/worlds:\${GZ_SIM_RESOURCE_PATH:-}" >> /home/$USER/.bashrc && \
@@ -242,11 +245,11 @@ RUN echo "source /opt/ros/${ROS_DISTRO}/setup.bash" >> /home/$USER/.bashrc && \
     echo "export PS1='\[\e[1;36m\]\u@POSIM_docker\[\e[0m\]:\[\e[1;34m\]\w\[\e[0m\]\$ '" >> /home/$USER/.bashrc
 
 # --- Run (no systemd inside this container) ---
-COPY extras/docker-arm64-entrypoint.sh /usr/local/bin/dave-rdp-entrypoint
-RUN chmod 0755 /usr/local/bin/dave-rdp-entrypoint
-CMD ["/usr/local/bin/dave-rdp-entrypoint"]
+COPY extras/docker-arm64-entrypoint.sh /usr/local/bin/posim-rdp-entrypoint
+RUN chmod 0755 /usr/local/bin/posim-rdp-entrypoint
+CMD ["/usr/local/bin/posim-rdp-entrypoint"]
 
 LABEL org.opencontainers.image.title="POSIM" \
       org.opencontainers.image.description="Platform for Ocean Simulation" \
       org.opencontainers.image.source="https://github.com/IOES-Lab/POSIM" \
-      org.opencontainers.image.licenses="Apache-2.0"
+      org.opencontainers.image.licenses="Apache-2.0 AND GPL-3.0-or-later"

@@ -10,7 +10,7 @@ on:
       - ".docker/**"
       - ".dockerignore"
       - ".github/workflows/docker-amd64.yml"
-      - "dave_interfaces/**"
+      - "posim_interfaces/**"
       - "examples/**"
       - "extras/**"
       - "gazebo/**"
@@ -43,10 +43,10 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Log in to Docker Hub
         if: vars.POSIM_PUBLISH_IMAGES == 'true' && github.event_name != 'pull_request'
@@ -57,7 +57,7 @@ jobs:
 
       - name: Docker metadata
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
           images: ${{ env.IMAGE_NAME }}
           flavor: |
@@ -70,7 +70,7 @@ jobs:
             type=semver,pattern={{major}}.{{minor}}
 
       - name: Build Docker image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v7
         with:
           context: .
           push: ${{ vars.POSIM_PUBLISH_IMAGES == 'true' && github.event_name != 'pull_request' }}
