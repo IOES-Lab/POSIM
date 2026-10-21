@@ -1,0 +1,98 @@
+// SPDX-License-Identifier: Apache-2.0
+// PBR surface optics: RGB and RGBD colour share the same linear radiance path.
+@pset( custom_disable_directional_lights, 1 )
+@property( !hlms_shadowcaster )
+@undefpiece( custom_passBuffer )
+@piece( custom_passBuffer )
+ @insertpiece( custom_passBuffer_spherical_clip_min_distance )
+ @insertpiece( custom_passBuffer_terra )
+ float4 uwInverse0; float4 uwInverse1; float4 uwInverse2;
+ float4 uwControls; float4 uwOptics; float4 uwParams;
+ float4 uwCoefficients; float4 uwScatter;
+@end
+@piece( custom_ps_posMaterialLoad )
+ float3 uwWorld = float3(dot(passBuf.uwInverse0,float4(inPs.pos,1.0)),dot(passBuf.uwInverse1,float4(inPs.pos,1.0)),dot(passBuf.uwInverse2,float4(inPs.pos,1.0)));
+ float uwDepth = max(0.0,passBuf.uwCoefficients.w-uwWorld.z);
+ float uwSeabed = abs(material.userValue[0].x-6421.0)<0.5 && uwDepth>0.0 ? 1.0 : 0.0;
+@end
+@piece( custom_ps_posSampleNormal )
+ if(uwSeabed>0.5){
+  if(passBuf.uwControls.w<0.5){
+   pixelData.diffuse.xyz=float3(0.32,0.27,0.19)*0.318309886;
+   @property( normal_map )pixelData.normal=float3(0.0,0.0,1.0);@end
+  }
+  float2 cell=uwWorld.xy/passBuf.uwParams.x;
+  float2 footprint=max(abs(OGRE_ddx(cell))+abs(OGRE_ddy(cell)),float2(0.00001,0.00001));
+  float2 edge=abs(fract(cell-0.5)-0.5)/footprint;
+  float grid=(1.0-smoothstep(0.35,1.2,min(edge.x,edge.y)))*(1.0-smoothstep(0.25,0.6,max(footprint.x,footprint.y)));
+  float level=uwWorld.z/passBuf.uwParams.y;
+  float fw=max(abs(OGRE_ddx(level))+abs(OGRE_ddy(level)),0.00001);
+  float contour=(1.0-smoothstep(0.45*fw,1.35*fw,abs(fract(level-0.5)-0.5)))*(1.0-smoothstep(0.25,0.6,fw));
+  pixelData.diffuse.xyz*=1.0-max(grid*passBuf.uwControls.y*0.72,contour*passBuf.uwControls.z*0.88);
+ }
+@end
+@undefpiece( custom_ps_preLights )
+@piece( custom_ps_preLights )
+ @property( terra_enabled )
+  @property( hlms_lights_directional && hlms_num_shadow_map_lights )fShadow *= inPs.terrainShadow;
+  @else float fShadow = inPs.terrainShadow;@end
+ @end
+ float3 uwAmbient=finalColour;
+ finalColour=float3(0.0,0.0,0.0);
+ @insertpiece( DoDirectionalLights )
+ if(passBuf.uwControls.x>0.5 && uwDepth>0.0){
+  if(passBuf.uwOptics.z>0.5) finalColour*=exp(-passBuf.uwCoefficients.xyz*uwDepth);
+  if(passBuf.uwOptics.w>0.5 && uwSeabed>0.5){
+   float2 p=uwWorld.xy*1.4;
+   float t=passBuf.uwParams.z*0.35;
+   float a=sin(p.x+sin(p.y*1.3+t)*1.5+t);
+   float b=sin(p.y+sin(p.x*1.1-t)*1.5-t);
+   float caustic=pow(max(0.0,1.0-abs(a+b)*0.65),8.0);
+   finalColour*=1.0+caustic*0.45*exp(-uwDepth*0.12);
+  }
+ }
+ finalColour+=uwAmbient;
+@end
+@undefpiece( custom_ps_posExecution )
+@piece( custom_ps_posExecution )
+ @property( !hlms_render_depth_only && !hlms_prepass && (hlms_normal || hlms_qtangent) )
+ if(passBuf.uwControls.x>0.5){
+  float cameraZ=passBuf.uwInverse2.w-passBuf.uwCoefficients.w;
+  float targetZ=uwWorld.z-passBuf.uwCoefficients.w;
+  float distance=length(inPs.pos);
+  float fraction=0.0;
+  if(cameraZ<=0.0 && targetZ<=0.0)fraction=1.0;
+  else if(cameraZ*targetZ<0.0)fraction=(cameraZ<0.0?-cameraZ:-targetZ)/max(abs(targetZ-cameraZ),0.00001);
+  float water=distance*fraction;
+  float3 attenuation=passBuf.uwOptics.y>0.5?passBuf.uwCoefficients.xyz:float3(0.06,0.06,0.06);
+  if(passBuf.uwOptics.x<0.5 && passBuf.uwOptics.y<0.5)attenuation=float3(0.0,0.0,0.0);
+  float3 transmission=exp(-water*attenuation);
+  // Three cheap, world-anchored dust slices; visual approximation, no sensor noise.
+  float specks=0.0;
+  if(passBuf.uwParams.w>0.5 && cameraZ<0.0){
+   float3 origin=float3(passBuf.uwInverse0.w,passBuf.uwInverse1.w,passBuf.uwInverse2.w);
+   float3 ray=(uwWorld-origin)/max(distance,0.0001);
+   for(int layer=1;layer<=3;++layer){
+    float travel=float(layer)*0.8;
+    float3 point=origin+ray*travel;
+    if(travel<distance && point.z<passBuf.uwCoefficients.w){
+     float2 dust=point.xy*9.0+float2(point.z*3.1,passBuf.uwParams.z*0.025);
+     float2 id=floor(dust);
+     float seed=fract(sin(dot(id,float2(127.1,311.7)))*43758.5453);
+     float2 delta=fract(dust)-float2(seed,fract(seed*17.3));
+     float radius=max(length(OGRE_ddx(dust))+length(OGRE_ddy(dust)),0.01);
+     specks+=seed>0.97?(1.0-smoothstep(0.015,0.015+radius,length(delta)))*0.035:0.0;
+    }
+   }
+  }
+  float3 radiance=outPs_colour0.xyz;
+  @property( !hw_gamma_write )radiance*=radiance;@end
+  radiance=radiance*transmission+passBuf.uwScatter.xyz*(1.0-transmission)*passBuf.uwOptics.x;
+  radiance+=float3(specks,specks,specks);
+  @property( !hw_gamma_write )radiance=sqrt(max(radiance,float3(0.0,0.0,0.0)));@end
+  outPs_colour0.xyz=radiance;
+ }
+ @end
+ @insertpiece( custom_ps_posExecution_solid_color )
+@end
+@end
