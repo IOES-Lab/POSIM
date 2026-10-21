@@ -4,6 +4,10 @@
 
 ## 예제 실행
 
+[POSIM 수중 렌더러](https://github.com/IOES-Lab/POSIM/tree/main/gazebo/posim_gz_rendering)는 Ogre2 PBR 표면의 광학 효과를 공유합니다. 수중 경로 안개, 색상 흡수, 수심에 따른 햇빛 감쇠와 움직이는 해저면 햇빛 무늬를 RGB 카메라와 RGBD 컬러 영상에 적용합니다. 수치 깊이는 유지합니다. WWW-POSIM에서는 Gazebo 장면과 카메라 영상에 적용할 효과를 실시간 스위치로 바꿉니다.
+
+렌더러는 평균 해수면을 z = 0 m로 근사합니다. 비조명 재질·사용자 수면 셰이더·하늘은 자체 렌더링을 사용합니다. 호스트에서 `POSIM_UNDERWATER_PLUGIN`으로 네이티브 렌더러를 활성화하면 카메라 플러그인은 이미 색상이 적용된 입력을 호환 출력으로 그대로 전달합니다.
+
 ```bash
 ros2 launch posim_demos posim_sensor.launch.py \
   namespace:=underwater_camera world_name:=camera_tutorial \

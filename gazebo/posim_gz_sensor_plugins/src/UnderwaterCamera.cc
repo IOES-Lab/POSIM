@@ -15,6 +15,7 @@
  */
 
 #include "posim_gz_sensor_plugins/UnderwaterCamera.hh"
+#include <cstdlib>
 #include <gz/common/Console.hh>
 #include <gz/sim/Model.hh>
 #include <gz/sim/Util.hh>
@@ -468,6 +469,12 @@ void UnderwaterCamera::DepthImageCallback(const gz::msgs::Image & msg)
 cv::Mat UnderwaterCamera::SimulateUnderwater(
   const cv::Mat & _inputImage, const cv::Mat & _inputDepth, cv::Mat & _outputImage)
 {
+  // The scene renderer already applies optics to the raw RGB topic. Preserve
+  // this compatibility output without attenuating the same pixels twice.
+  if (std::getenv("POSIM_UNDERWATER_PLUGIN")) {
+    _inputImage.copyTo(_outputImage);
+    return _outputImage;
+  }
   const float * lutPtr = this->dataPtr->depth2rangeLUT;
   for (unsigned int row = 0; row < this->dataPtr->height; row++)
   {

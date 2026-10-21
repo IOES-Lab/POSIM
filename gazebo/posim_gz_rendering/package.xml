@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>posim_gz_rendering</name><version>0.1.0</version>
+  <description>Shared underwater surface optics for Gazebo Ogre2 cameras.</description>
+  <maintainer email="wschoi@kmou.ac.kr">Woen-Sug Choi</maintainer>
+  <license>Apache-2.0</license>
+  <buildtool_depend>cmake</buildtool_depend>
+  <depend>gz_sim_vendor</depend><depend>gz_rendering_vendor</depend><depend>gz_plugin_vendor</depend>
+  <export><build_type>cmake</build_type></export>
+</package>
