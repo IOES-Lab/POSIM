@@ -42,7 +42,7 @@ The model uses `depth = max(0, -z)` with the sea surface at local z = 0. It comp
 
 ## Check a depth experiment
 
-Compare measurements at two known z positions while keeping the pressure slope fixed. The pressure difference should follow the configured slope multiplied by the depth change. The derived depth uses the same model, so it is not an independent depth measurement. Configure your estimator's units and reference pressure accordingly.
+Compare measurements at two known z positions while keeping the pressure slope fixed. The pressure difference should equal the configured pressure increase per meter multiplied by the depth change. The derived depth uses the same model, so it is not an independent depth measurement. Configure your estimator's units and reference pressure accordingly.
 
 ## Pressure and depth outputs
 

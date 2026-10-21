@@ -17,7 +17,7 @@ Generate a land/ocean region from latitude, longitude and dimensions. Available 
 
 ## POSIM-Routing
 
-Plan a global maritime itinerary, then connect it to arrival water. OSM land polygons guide port connections. Coastal and local planners use POSIM-Terrain's numeric field to check paths. A global graph route alone does not establish water depth.
+Plan an itinerary between ports, then connect it to each port's arrival area. OSM land polygons guide port connections. Coastal and local planners use POSIM-Terrain's numeric field to check paths. A global graph route alone does not establish water depth.
 
 - [Installation, route export and planner APIs](https://github.com/IOES-Lab/POSIM-Routing#readme)
 - Terrain dependency: POSIM-Terrain
@@ -31,7 +31,7 @@ Use Python policies for speed, rough water, stability and recovery. Native Gazeb
 
 ## Use them together
 
-POSIM-Terrain supplies the geographic field. POSIM-Routing plans and checks paths across it. POSIM-Control follows approved waypoints while Gazebo computes physical motion. WWW-POSIM manages sessions, terrain jobs, voyage progress and user interfaces.
+POSIM-Terrain supplies the terrain data. POSIM-Routing plans and checks paths across it. POSIM-Control follows approved waypoints while Gazebo computes physical motion. WWW-POSIM manages sessions, terrain jobs, voyage progress and user interfaces.
 
 Each library can be used directly through its README. WWW-POSIM pins all three and the POSIM engine as Git submodules. Its web workspace and installed app include the pinned implementations. See [WWW-POSIM components](https://www-posim.vercel.app/guide/components.html) for the application structure.
 

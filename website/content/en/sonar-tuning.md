@@ -15,7 +15,7 @@ GPU visibility and compiler availability are separate checks. For containers, co
 
 ## Select a CUDA architecture
 
-The sonar CMake configuration exposes `CUDA_ARCHITECTURE`, defaulting to `60`. Set it to the SM version supported by your GPU and CUDA toolkit. From a sourced workspace, rebuild after choosing that value:
+The sonar CMake configuration provides `CUDA_ARCHITECTURE`, defaulting to `60`. Set it to the SM version supported by your GPU and CUDA toolkit. From a sourced workspace, rebuild after choosing that value:
 
 ```bash
 colcon build --merge-install --executor sequential --symlink-install \
@@ -23,7 +23,7 @@ colcon build --merge-install --executor sequential --symlink-install \
 source install/setup.bash
 ```
 
-Replace `YOUR_GPU_SM` with the numeric architecture. Check CUDA's supported architectures before selecting it; a toolkit may have dropped an older target. Do not confuse this project-specific singular variable with CMake's `CMAKE_CUDA_ARCHITECTURES`.
+Replace `YOUR_GPU_SM` with the numeric architecture. Check CUDA's supported architectures before selecting it; a toolkit may have dropped an older target. Use this project's `CUDA_ARCHITECTURE` variable; CMake's `CMAKE_CUDA_ARCHITECTURES` is a separate setting.
 
 ## Verify installed targets
 

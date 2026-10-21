@@ -1,6 +1,6 @@
 # Contributing
 
-Contribute a small, reproducible change to the POSIM source or documentation. Keep changes to the model, controller configuration and documentation consistent.
+Contributions to POSIM's code and documentation are welcome. Start with a focused change that others can reproduce, and keep models, controller settings and guides consistent.
 
 ## Work in a branch
 
@@ -37,6 +37,6 @@ Open `http://127.0.0.1:4174`. Check links, command copying, search, language swi
 
 ## Open a pull request
 
-Explain the concrete problem, resulting behavior and relevant validation. Include commands/logs for simulation changes and a desktop/mobile preview for layout changes. Keep known test gaps in the review record rather than presenting an unexecuted check as a pass.
+Explain the concrete problem, resulting behavior and relevant validation. Include commands/logs for simulation changes and a desktop/mobile preview for layout changes. State which checks you ran and which remain untested.
 
 Use [GitHub issues](https://github.com/IOES-Lab/POSIM/issues) for reproducible defects and [pull requests](https://github.com/IOES-Lab/POSIM/pulls) for review. IOES-Lab maintains the project at [Korea Maritime & Ocean University](https://lab.wschoi.com).

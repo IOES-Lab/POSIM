@@ -1,6 +1,6 @@
 # 해류
 
-POSIM은 월드 해류 생성, 로봇 위치의 해류 처리와 ROS 인터페이스를 나누어 구성합니다. 균일한 흐름과 깊이에 따라 달라지는 흐름은 토픽·설정 블록이 다릅니다.
+POSIM은 월드의 해류를 만들고 각 로봇 위치에서 유속을 계산하며, ROS로 설정을 조절할 수 있습니다. 균일한 해류와 수심에 따라 달라지는 층상 해류는 별도 토픽과 설정을 사용합니다.
 
 ## 예제 실행
 
@@ -10,7 +10,7 @@ ros2 launch posim_demos posim_robot.launch.py \
   gui:=false headless:=true use_teleop:=false use_web_joystick:=false
 ```
 
-두 번째 터미널에서 각 통신 체계를 확인합니다.
+두 번째 터미널에서 Gazebo와 ROS 데이터를 차례로 확인하세요.
 
 ```bash
 gz topic -e -t /ocean_current
@@ -47,7 +47,7 @@ ros2 service call /hydrodynamics/set_current_velocity posim_interfaces/srv/SetCu
   '{velocity: 0.3, horizontal_angle: 0.0, vertical_angle: 0.0}'
 ```
 
-속도는 m/s, 두 각도는 라디안입니다. 예제는 0각도 방향의 수평 흐름을 요청합니다. 반환된 성공 값과 이후 해류 데이터를 확인하세요.
+속도는 m/s, 두 각도는 라디안입니다. 예제는 두 각도를 0으로 설정해 수평 흐름을 만듭니다. 반환된 성공 값과 이후 해류 데이터를 확인하세요.
 
 속도·수평각·수직각 모델 서비스는 `GetCurrentModel`, `SetCurrentModel`을 사용합니다. 평균, 상·하한, 잡음 진폭과 `mu`를 설정합니다. 깊이별 서비스는 stratified 자료형을 사용합니다. 특정 층을 변경하기 전에 `ros2 interface show`로 필드를 확인하세요.
 
@@ -59,7 +59,7 @@ ros2 service call /hydrodynamics/set_current_velocity posim_interfaces/srv/SetCu
 
 ## 일정·층상 해류 설정하기
 
-[예제 월드 SDF](https://github.com/IOES-Lab/POSIM/blob/main/models/posim_worlds/worlds/ocean_current_plugin.world)의 `OceanCurrentWorldPlugin`에 `<constant_current>`와 `<transient_current>`를 설정합니다. 일정 해류는 속도와 수평·수직 각도의 확률 모델을 각각 사용합니다.
+[예제 월드 SDF](https://github.com/IOES-Lab/POSIM/blob/main/models/posim_worlds/worlds/ocean_current_plugin.world)의 `OceanCurrentWorldPlugin`에 `<constant_current>`와 `<transient_current>`를 설정합니다. 균일 해류는 속도와 수평·수직 각도에 각각 확률 모델을 사용합니다.
 
 | 모델 인수 | 의미 |
 | --- | --- |
@@ -82,7 +82,7 @@ ros2 service call /hydrodynamics/set_current_velocity posim_interfaces/srv/SetCu
 </transient_current>
 ```
 
-[층상 해류 CSV](https://github.com/IOES-Lab/POSIM/blob/main/models/posim_worlds/worlds/transientOceanCurrentDatabase.csv)는 북쪽 속도(m/s), 동쪽 속도(m/s), 수심(m)의 순서입니다. 설명·헤더 행 형식을 유지하며 각 층의 값을 바꿉니다. 월드 ROS 플러그인은 전체 데이터베이스를 전달하고, 모델 해류 플러그인은 차량 수심에서 해류를 계산합니다. 모델의 `<namespace>`와 hydrodynamics가 구독하는 `/model/<namespace>/ocean_current`를 맞추세요. 차량 속도에 대한 상대 유속이 유체역학 응답에 영향을 줍니다.
+[층상 해류 CSV](https://github.com/IOES-Lab/POSIM/blob/main/models/posim_worlds/worlds/transientOceanCurrentDatabase.csv)는 북쪽 속도(m/s), 동쪽 속도(m/s), 수심(m)의 순서입니다. 설명·헤더 행 형식을 유지하며 각 층의 값을 바꿉니다. 월드 ROS 플러그인은 전체 데이터베이스를 전달하고, 모델 해류 플러그인은 로봇이 있는 깊이의 해류를 계산합니다. 모델의 `<namespace>`와 hydrodynamics가 구독하는 `/model/<namespace>/ocean_current`를 맞추세요. 로봇과 물 사이의 상대 속도가 로봇에 작용하는 유체력에 영향을 줍니다.
 
 ## ROS 서비스로 해류 조정하기
 
@@ -110,7 +110,7 @@ ros2 service call /hydrodynamics/set_stratified_current_velocity \
 
 속도는 m/s, 각도는 rad이며 `layer`는 데이터베이스의 0부터 시작하는 층 인덱스입니다. 응답의 `success`와 관측 토픽을 함께 확인하세요. 해류 SDF의 `noiseAmp`에 대응하는 ROS 서비스 필드는 `noise`입니다.
 
-조석을 사용할 때 `<tidal_oscillation>`에 CSV 입력 또는 M2·S2·N2 같은 조화 성분, ebb/flood 방향과 GMT 시작 시각을 설정합니다. 예제의 조화 성분 단위는 진폭 m, 위상 도, 각속도 도/시간입니다. 조석 방향 설정과 해류 서비스의 rad 단위를 구분하세요.
+조석을 사용할 때 `<tidal_oscillation>`에 CSV 입력 또는 M2·S2·N2 같은 조화 성분, 낙조·창조(ebb/flood) 방향과 GMT 시작 시각을 설정합니다. 예제의 조화 성분 단위는 진폭 m, 위상 도, 각속도 도/시간입니다. 조석 방향 설정과 해류 서비스의 rad 단위를 구분하세요.
 
 ## 해류 흐름과 모델 응답 보기
 

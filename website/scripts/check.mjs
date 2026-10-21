@@ -74,8 +74,8 @@ for (const media of mediaSources) {
   }
 }
 for (const [file, html] of documents) {
-  for (const match of html.matchAll(/\b(?:href|src)="([^"]+)"/g)) {
-    const reference = match[1].replaceAll('&amp;', '&');
+  for (const match of html.matchAll(/\b(?:href|src)="([^"]+)"|<option value="([^"]+\.html)"/g)) {
+    const reference = (match[1] || match[2]).replaceAll('&amp;', '&');
     if (/^(https?:|mailto:)/.test(reference)) {
       if (haveSource) {
         const source = reference.match(/^https:\/\/github\.com\/IOES-Lab\/POSIM\/(?:blob|tree|edit)\/main\/(.+)$/i);

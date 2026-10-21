@@ -1,6 +1,6 @@
 # Troubleshooting
 
-Find the first failed step: environment resolution, resource loading, physics time, plugin loading or data delivery. Keep the complete launch log while investigating.
+Start with the first error in the launch log. Check environment paths, model resources, simulation time, plugins and data delivery in that order. Keep the full log to help trace the cause.
 
 ## Package not found
 
@@ -33,7 +33,7 @@ Select the correct transport, keep the inspector in the same sourced environment
 
 ## A vehicle does not move
 
-Inspect controller state, arming/navigation validity, command delivery and the selected mode. Confirm joint names and thruster axes. Keep only one active command source. Neutral inputs, a paused world or an unarmed autopilot each explain a stationary vehicle without implying a renderer failure.
+Inspect controller state, arming/navigation validity, command delivery and the selected mode. Confirm joint names and thruster axes. Keep only one active command source. The vehicle may be stationary because input is neutral, the world is paused or the autopilot is disarmed.
 
 ## Shutdown fails
 
@@ -41,4 +41,4 @@ Stop data viewers, then press Ctrl+C once in the launch terminal and allow child
 
 ## Make a useful report
 
-Include source SHA or image digest, dependency versions, command/arguments, first error, expected behavior, relevant topic types and a short reproducible case. Distinguish a received topic payload from a topic merely appearing in the graph.
+Include source SHA or image digest, dependency versions, command/arguments, first error, expected behavior, relevant topic types and a short reproducible case. Note whether the topic only appears in the list or also delivers data.

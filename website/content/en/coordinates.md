@@ -9,7 +9,7 @@ ros2 launch posim_demos posim_world.launch.py \
   world_name:=posim_bimanual_example headless:=true
 ```
 
-In a second sourced terminal:
+In a second terminal with the same environment loaded:
 
 ```bash
 ros2 service list -t

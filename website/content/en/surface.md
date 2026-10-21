@@ -1,6 +1,6 @@
 # Surface robots and waves
 
-The surface integration combines the upstream Wave Sim dependency, a WAM-V model and ArduRover boat-mode control. The standard POSIM installer and Docker recipes build the external wave libraries.
+Simulate a WAM-V surface vehicle with Wave Sim waves and ArduRover boat-mode control. The standard POSIM installer and Docker recipes build the external wave libraries.
 
 ## Build the WAM-V integration
 
@@ -23,7 +23,7 @@ The external-navigation adapter publishes **simulated Gazebo pose and velocity**
 
 ## Adjust waves
 
-The surface world's wave-control topic is `/world/wwos_gebco/waves`, using `gz.msgs.Param`. The adjustable double-valued parameters are:
+The surface world's wave-control topic is `/world/wwos_gebco/waves`, using `gz.msgs.Param`. Each adjustable value uses the `double` data type:
 
 | Parameter | Unit | Meaning |
 | --- | --- | --- |

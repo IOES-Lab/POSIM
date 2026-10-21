@@ -1,6 +1,6 @@
 # 멀티빔 소나
 
-POSIM 멀티빔 소나는 ray 기반 점 산란 모델로 강도·거리 데이터와 소나 영상을 생성합니다. 실행 전에 [NVIDIA/CUDA 환경](sonar-tuning.md)을 준비하세요.
+POSIM 멀티빔 소나는 음선(ray) 기반 점 산란 모델로 강도·거리 데이터와 소나 영상을 생성합니다. 실행 전에 [NVIDIA/CUDA 환경](sonar-tuning.md)을 준비하세요.
 
 ## 소나 예제 실행
 
@@ -35,17 +35,17 @@ RViz에서 소나 영상은 Image, `/sensor/multibeam_sonar/point_cloud`는 Poin
 | 설정 | 값 |
 | --- | --- |
 | 수평 빔 | 512개, 약 130° 시야 |
-| 수직 ray | 300개, 약 12° 시야 |
+| 수직 음선 | 300개, 약 12° 시야 |
 | 범위 | 0.1–10 m |
 | 주파수·대역폭 | 900 kHz / 29.9 kHz |
 | 음속 | 1500 m/s |
-| 센서 요청 주기 | 30 Hz |
+| 설정한 센서 갱신 빈도 | 30 Hz |
 
-실제 수신 주기는 계산량과 렌더링에 따라 달라집니다. 전체 값은 [센서 모델](https://github.com/IOES-Lab/POSIM/blob/main/models/posim_sensor_models/description/blueview_p900/model.sdf)을 확인하세요.
+실제 수신 빈도는 계산량과 렌더링에 따라 달라집니다. 전체 값은 [센서 모델](https://github.com/IOES-Lab/POSIM/blob/main/models/posim_sensor_models/description/blueview_p900/model.sdf)을 확인하세요.
 
 ## 변경할 설정
 
-`<spec>`에서 `sonarFreq`, `bandwidth`, `soundSpeed`, `sourceLevel`, `maxDistance`, `raySkips`, `sensorGain`과 출력 이름을 설정합니다. Ray 범위와 처리 거리를 맞추세요. `pointCloudTopicName`은 ROS–Gazebo 브리지 설정과 일치시키고 `frameName`에 소나 광학 좌표계를 지정합니다.
+`<spec>`에서 `sonarFreq`, `bandwidth`, `soundSpeed`, `sourceLevel`, `maxDistance`, `raySkips`, `sensorGain`과 출력 이름을 설정합니다. 음선 범위와 처리 거리를 맞추세요. `pointCloudTopicName`은 ROS–Gazebo 브리지 설정과 일치시키고 `frameName`에 소나 광학 좌표계를 지정합니다.
 
 `writeLog`, `writeFrameInterval`, `debugFlag`로 진단 기록과 처리 시간을 확인할 수 있습니다. 기록 자체가 실험 목적이 아니라면 처리율 측정 시 기록을 끄세요. 반복 가능한 조절 순서는 [소나 빌드와 성능](sonar-tuning.md), 모델의 연구 출처는 [인용 안내](citation.md)에 있습니다.
 
@@ -62,7 +62,7 @@ RViz에서 소나 영상은 Image, `/sensor/multibeam_sonar/point_cloud`는 Poin
 <plugin filename="multibeam_sonar_system" name="custom::MultibeamSonarSystem"/>
 ```
 
-CUDA와 렌더링을 준비하고 작업 공간을 다시 빌드·source한 뒤, [센서 launch 인수](quickstart.md)를 사용해 새 descriptor를 선택합니다. ROS 점군 브리지는 `sensor_msgs/msg/PointCloud2`와 Gazebo `gz.msgs.PointCloudPacked`를 연결합니다. `pointCloudTopicName`과 `sensor_config.py`에 지정한 경로를 일치시키세요.
+CUDA와 렌더링 환경을 준비한 뒤 작업 공간을 다시 빌드하고 환경을 불러오세요. [센서 launch 인수](quickstart.md)로 새 센서 모델을 선택합니다. ROS 점군 브리지는 `sensor_msgs/msg/PointCloud2`와 Gazebo `gz.msgs.PointCloudPacked`를 연결합니다. `pointCloudTopicName`과 `sensor_config.py`에 지정한 경로를 일치시키세요.
 
 ## 원시 소나 데이터 기록하기
 

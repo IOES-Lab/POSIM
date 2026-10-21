@@ -13,7 +13,7 @@ ros2 launch posim_demos posim_robot.launch.py \
   use_teleop:=false use_web_joystick:=false
 ```
 
-For an empty-world composition check, replace the world and position with `world_name:=empty.sdf z:=0.2`. To view the model on a configured desktop, use `gui:=true headless:=false`.
+To inspect the model in an empty world, use `world_name:=empty.sdf z:=0.2`. To view the model on a configured desktop, use `gui:=true headless:=false`.
 
 ## Inspect observations
 

@@ -1,6 +1,6 @@
 # 수상 로봇과 파도
 
-수상 로봇 통합은 업스트림 Wave Sim 의존성, WAM-V 모델과 ArduRover의 보트 제어를 연결합니다. 기본 POSIM 설치 도우미와 Docker 구성에서 외부 파도 라이브러리를 함께 빌드합니다.
+WAM-V 수상 로봇에 Wave Sim의 파도와 ArduRover의 보트 제어를 적용해 시뮬레이션합니다. 기본 POSIM 설치 도우미와 Docker 구성에서 외부 파도 라이브러리를 함께 빌드합니다.
 
 ## WAM-V 통합 빌드
 
@@ -23,13 +23,13 @@ docker run --rm -it --entrypoint bash posim:surface -lc \
 
 ## 파도 조절
 
-수상 월드의 파도 제어 토픽은 `/world/wwos_gebco/waves`이며 `gz.msgs.Param` 메시지를 사용합니다. 조절하는 값은 모두 double입니다.
+수상 월드의 파도 제어 토픽은 `/world/wwos_gebco/waves`이며 `gz.msgs.Param` 메시지를 사용합니다. 각 설정값의 자료형은 `double`입니다.
 
 | 설정 | 단위 | 의미 |
 | --- | --- | --- |
 | `wind_speed` | m/s | 파도 모델의 풍속 |
 | `wind_angle` | 도 | 파도 모델의 풍향 |
-| `steepness` | 무차원 | 파도 기울기 |
+| `steepness` | 무차원 | 파형 경사도 |
 
 화면과 유체역학 설정을 일치시키세요. 스펙트럼 파도 모델이 수면 움직임을 만들며 [해류](currents.md)는 별도로 설정합니다. 파도 라이브러리를 설치한 뒤에도 사용할 월드에 해당 시스템을 포함하고 설정해야 합니다.
 

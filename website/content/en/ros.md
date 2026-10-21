@@ -1,6 +1,6 @@
 # ROS 2 and control
 
-Read observations and send commands using the interfaces configured for the selected vehicle. Gazebo Transport and ROS 2 are separate transports; a bridge or ROS-enabled plugin connects them.
+Use your robot's interfaces to receive sensor data and send control commands. A bridge or ROS-enabled plugin connects Gazebo Transport to ROS 2.
 
 ## Inspect the graph
 
@@ -24,7 +24,7 @@ ros2 topic pub --once /model/rexrov/joint/thruster1_joint/cmd_thrust \
   std_msgs/msg/Float64 '{data: 0.0}'
 ```
 
-A controller must allocate forces across the thrusters using their positions and axes. One thruster is not a vehicle-level velocity controller. End an experiment by sending neutral values to every commanded thruster.
+A controller must allocate forces across the thrusters using their positions and axes. Controlling the vehicle's speed requires coordinating the thrusters. End an experiment by sending neutral values to every commanded thruster.
 
 ## BlueROV2 and autopilot
 

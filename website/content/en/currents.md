@@ -1,6 +1,6 @@
 # Ocean currents
 
-POSIM separates world-current generation, vehicle-local current processing and ROS interaction. Uniform and depth-stratified flows use different topics and configuration blocks.
+POSIM generates ocean currents for the world, calculates the flow at each robot and exposes ROS controls. Uniform currents and currents that vary with depth use separate topics and settings.
 
 ## Run the example
 
@@ -10,7 +10,7 @@ ros2 launch posim_demos posim_robot.launch.py \
   gui:=false headless:=true use_teleop:=false use_web_joystick:=false
 ```
 
-Inspect both transports from a second terminal:
+In a second terminal, inspect Gazebo and ROS data in turn:
 
 ```bash
 gz topic -e -t /ocean_current
@@ -47,7 +47,7 @@ ros2 service call /hydrodynamics/set_current_velocity posim_interfaces/srv/SetCu
   '{velocity: 0.3, horizontal_angle: 0.0, vertical_angle: 0.0}'
 ```
 
-Velocity is in m/s and the two angles are in radians. The example requests a horizontal flow along the zero-angle direction; check the returned success flag and subsequent current payloads.
+Velocity is in m/s and the two angles are in radians. The example requests a horizontal flow along the zero-angle direction; check the returned success flag and current data that follows.
 
 Model services use `GetCurrentModel` and `SetCurrentModel` for velocity, horizontal angle and vertical angle. Parameters include mean, lower/upper bounds, noise amplitude and `mu`. Depth-specific services use the stratified interface types. Inspect them with `ros2 interface show` before setting a layer.
 

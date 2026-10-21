@@ -15,7 +15,7 @@ ros2 launch posim_demos posim_world.launch.py \
   world_name:=posim_plug_and_socket headless:=true
 ```
 
-Other task scenes include `posim_electrical_mating` and `posim_bimanual_example`. Their Fuel includes provide a blow-out preventer panel, male/female plugs and sunken-vase inspection targets. The world SDF records each asset URI and placement. Read it before selecting robot placement, contact or joint-control experiments.
+Other task scenes include `posim_electrical_mating` and `posim_bimanual_example`. These worlds load a blowout preventer panel, male and female plugs, and submerged vases from Fuel for inspection and manipulation experiments. The world SDF records each asset URI and placement. Read it before selecting robot placement, contact or joint-control experiments.
 
 ## Place an object in your own world
 

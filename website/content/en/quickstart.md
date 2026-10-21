@@ -1,6 +1,6 @@
 # First simulation
 
-Start one world, then add a robot or a sensor. Use two terminals with the same [Ubuntu](install.md) or [Docker](docker.md) environment loaded: Terminal A runs the simulation; Terminal B inspects data.
+Try an ocean world, a robot and a camera in turn. Use two terminals with the same [Ubuntu](install.md) or [Docker](docker.md) environment loaded: Terminal A runs the simulation; Terminal B inspects data.
 
 ## 1. Start an ocean world
 
@@ -21,7 +21,7 @@ Simulation time should advance. The world entity is `oceans_waves`, although the
 
 ## 2. Spawn REXROV
 
-The robot launch starts its world too; do not leave the previous world running.
+The robot launch also starts a world. Stop the previous example before continuing.
 
 ```bash
 ros2 launch posim_demos posim_robot.launch.py \
@@ -35,7 +35,7 @@ In Terminal B:
 ros2 topic echo /model/rexrov/odometry nav_msgs/msg/Odometry --once
 ```
 
-Inspect the timestamp, pose and twist. An unmoving robot can still produce valid odometry. See [ROVs](rovs.md) to select BlueROV2 and its control interfaces.
+Check the timestamp, position, orientation and velocity. A stationary robot can still publish valid odometry. See [ROVs](rovs.md) to select BlueROV2 and its control interfaces.
 
 ## 3. Receive a camera image
 
@@ -76,7 +76,7 @@ See [ROVs](rovs.md) for control and [Multibeam sonar](sonar.md) for sonar.
 
 ## Next experiments
 
-Try [DVL](dvl.md), [USBL](usbl.md), [currents](currents.md) or the [world library](worlds.md). First-use Fuel downloads can delay startup. If data does not arrive, inspect the advancing clock, then plugin and resource logs using [Troubleshooting](troubleshooting.md).
+Try [DVL](dvl.md), [USBL](usbl.md), [currents](currents.md) or the [world library](worlds.md). The first run may take longer while Gazebo downloads Fuel assets. If data does not arrive, inspect the advancing clock, then plugin and resource logs using [Troubleshooting](troubleshooting.md).
 
 ## Choose launch arguments
 

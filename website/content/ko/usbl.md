@@ -1,6 +1,6 @@
 # USBL 위치 추정
 
-USBL 예제는 트랜시버 하나와 트랜스폰더 두 개를 연결합니다. 요청을 보내면 위치 응답을 받으며 ID로 대상 트랜스폰더를 선택할 수 있습니다.
+초단기선(USBL) 위치 추정은 음향 신호로 수중 장비의 위치를 찾는 방식입니다. 이 예제는 송수신기(트랜시버) 하나와 응답기(트랜스폰더) 두 개를 연결합니다. 모든 응답기의 위치를 요청하거나 ID로 하나를 선택할 수 있습니다.
 
 ## 튜토리얼 월드 실행
 
@@ -9,7 +9,7 @@ ros2 launch posim_demos posim_world.launch.py \
   world_name:=usbl_tutorial headless:=true
 ```
 
-트랜시버와 트랜스폰더가 이미 월드에 포함되어 있습니다. 별도의 `usbl` 센서 모델을 배치하는 대신 월드 Launch를 사용합니다.
+송수신기와 응답기가 월드에 포함되어 있으므로 월드 Launch로 함께 실행하세요.
 
 ## 위치 받기
 
@@ -29,7 +29,7 @@ ros2 topic echo /USBL/transceiver_manufacturer_168/transponder_location_cartesia
 | `transponder_location` | 방위각(도) | 거리(m) | 고도각(도) |
 | `transponder_location_cartesian` | 상대 x(m) | 상대 y(m) | 상대 z(m) |
 
-현재 구현은 월드 좌표의 위치 차이로 방향을 계산합니다. 로봇 몸체 좌표의 데이터와 결합할 때 이 기준을 반영하세요.
+현재 구현은 월드 좌표의 위치 차이로 방향을 계산합니다. 로봇 본체 좌표의 데이터와 결합할 때 이 기준을 반영하세요.
 
 ## 모든 트랜스폰더 요청
 
@@ -40,7 +40,7 @@ ros2 topic pub --once /USBL/common_interrogation_ping \
   std_msgs/msg/String "data: 'ping'"
 ```
 
-Common 모드에서는 같은 출력 토픽에 여러 ID가 도착할 수 있습니다. 데이터 연결 로직에서 ID를 유지하세요.
+Common 모드에서는 같은 출력 토픽에 여러 ID가 도착할 수 있습니다. 응답의 출처를 구분할 수 있도록 ID를 함께 보관하세요.
 
 ## 특정 트랜스폰더 선택
 

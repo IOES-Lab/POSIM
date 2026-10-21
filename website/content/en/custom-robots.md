@@ -34,13 +34,13 @@ Use installed resource URIs, following the package's existing mesh examples. Kee
 
 ## 3. Connect systems and ROS
 
-Adapt hydrodynamics, buoyancy, thruster axes and sensor poses to your robot. Reusing coefficients from another vehicle changes the simulated dynamics; choose them from your model's properties.
+Adapt hydrodynamics, buoyancy, thruster axes and sensor poses to your robot. Choose coefficients that match your robot's physical properties; values from another vehicle may give misleading motion.
 
-Copy a relevant `config/<namespace>/robot_config.py`, updating entity names, joint names, topics, frames and any controller ports together. The package already installs `description`, `meshes`, `config` and resource hooks. Do not edit generated `install/` files.
+Copy a relevant `config/<namespace>/robot_config.py`, updating entity names, joint names, topics, frames and any controller ports together. The package already installs `description`, `meshes`, `config` and resource hooks. Make changes in the source files, then rebuild to update `install/`.
 
 ## 4. Build and launch
 
-From the sourced workspace:
+From a terminal with the workspace environment loaded:
 
 ```bash
 colcon build --merge-install --executor sequential --symlink-install
@@ -53,9 +53,9 @@ ros2 launch posim_demos posim_robot.launch.py \
 
 Check each axis with small control commands. Launch from outside the source checkout too.
 
-- Installed asset resolution
+- Installed asset paths
 - Mass, inertia and equilibrium pose
 - Collision geometry and response
-- Frame conventions and message payloads
+- Coordinate frames and message contents
 
 Save the model revision and observations for reproducible comparisons. Use [ROS 2 and control](ros.md) for recording and [Troubleshooting](troubleshooting.md) for missing assets.

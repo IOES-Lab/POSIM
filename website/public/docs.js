@@ -64,3 +64,8 @@ document.querySelectorAll('.docs-content pre > code').forEach(code => {
     reset = setTimeout(() => { button.textContent = label; status.textContent = ''; }, 2500);
   });
 });
+
+// Each option points to the same guide in an available language.
+document.querySelectorAll('[data-language-select]').forEach(select => {
+  select.addEventListener('change', () => { window.location.assign(select.value); });
+});

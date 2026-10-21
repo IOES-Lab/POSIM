@@ -1,6 +1,6 @@
 # Doppler velocity log
 
-A DVL estimates velocity relative to the seabed or water mass. POSIM uses Gazebo's DVL system and a ROS bridge that converts observations to `posim_interfaces/msg/DVL`.
+A Doppler velocity log (DVL) estimates velocity relative to the seabed or surrounding water. POSIM uses Gazebo's DVL system and a ROS bridge that converts observations to `posim_interfaces/msg/DVL`.
 
 ## Run the sensor
 
@@ -42,11 +42,11 @@ Configure `gz:type="dvl"` with beam angles/tilt, bottom/water tracking, velocity
 - DVL500-300 requested rate: **8 Hz**
 - Range: **0.3–200 m**
 
-The example converts ENU to its configured forward/starboard/down reference using `<reference_frame>`. The ROS bridge preserves the Gazebo frame ID. Check that your estimator uses the same frame and distinguishes bottom tracking from water-mass tracking.
+The example converts east–north–up (ENU) coordinates to its configured forward/starboard/down reference using `<reference_frame>`. The ROS bridge preserves the Gazebo frame ID. Check that your estimator uses the same frame and distinguishes bottom tracking from water-mass tracking.
 
 ## Inspect observations
 
-Use `ros2 interface show posim_interfaces/msg/DVL` for the payload definition. Confirm received velocity, frame and status with a known stationary case, then a controlled translation. Bottom geometry, range and beam intersections affect the observations. Enable the descriptor's visualization settings when inspecting beams on a configured desktop.
+Use `ros2 interface show posim_interfaces/msg/DVL` to read the message definition. Check velocity, coordinate frame and status while the robot is stationary, then during a controlled movement. Bottom geometry, range and beam intersections affect the observations. Enable the descriptor's visualization settings when inspecting beams on a configured desktop.
 
 ## DVL beams and output
 

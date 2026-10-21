@@ -30,7 +30,7 @@ In RViz, add an Image display for the sonar image and PointCloud2 for `/sensor/m
 
 ## Sensor configuration
 
-The descriptor uses `type="custom" gz:type="multibeam_sonar"`. The world loads `multibeam_sonar_system`. The BlueView P900 example requests:
+The sensor model uses `type="custom" gz:type="multibeam_sonar"`. The world loads `multibeam_sonar_system`. The BlueView P900 example requests:
 
 | Setting | Value |
 | --- | --- |
@@ -41,7 +41,7 @@ The descriptor uses `type="custom" gz:type="multibeam_sonar"`. The world loads `
 | Sound speed | 1500 m/s |
 | Sensor update rate | 30 Hz requested |
 
-Actual received rate depends on computation and rendering. Read [the descriptor](https://github.com/IOES-Lab/POSIM/blob/main/models/posim_sensor_models/description/blueview_p900/model.sdf) for all values.
+Actual received rate depends on computation and rendering. Read [the sensor model](https://github.com/IOES-Lab/POSIM/blob/main/models/posim_sensor_models/description/blueview_p900/model.sdf) for all values.
 
 ## Parameters to customize
 
@@ -62,7 +62,7 @@ Include the Gazebo rendering-sensor system and sonar system in the world. Consul
 <plugin filename="multibeam_sonar_system" name="custom::MultibeamSonarSystem"/>
 ```
 
-Prepare CUDA and rendering, rebuild/source the workspace, then select your descriptor using the [sensor launch arguments](quickstart.md). The ROS point-cloud bridge connects `sensor_msgs/msg/PointCloud2` to Gazebo `gz.msgs.PointCloudPacked`. Match `pointCloudTopicName` to the path configured in `sensor_config.py`.
+Prepare CUDA and rendering, rebuild the workspace and load its environment, then select your sensor model using the [sensor launch arguments](quickstart.md). The ROS point-cloud bridge connects `sensor_msgs/msg/PointCloud2` to Gazebo `gz.msgs.PointCloudPacked`. Match `pointCloudTopicName` to the path configured in `sensor_config.py`.
 
 ## Record raw sonar data
 

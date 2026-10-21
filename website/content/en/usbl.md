@@ -1,6 +1,6 @@
 # USBL positioning
 
-The USBL example pairs a transceiver with two transponders. Interrogation requests trigger position responses, which can be selected by transponder ID.
+Ultra-short baseline (USBL) positioning uses acoustic signals to locate underwater equipment. This example connects one transceiver to two transponders. Request positions from all transponders or select one by ID.
 
 ## Start the tutorial world
 
@@ -9,11 +9,11 @@ ros2 launch posim_demos posim_world.launch.py \
   world_name:=usbl_tutorial headless:=true
 ```
 
-The transceiver and transponders are already inside this world. Use the world launch, rather than attempting to spawn a separate `usbl` sensor descriptor.
+The world already contains the transceiver and transponders. Start them together with the world launch.
 
 ## Receive positions
 
-In a second sourced terminal:
+In a second terminal with the same environment loaded:
 
 ```bash
 ros2 topic echo /USBL/transceiver_manufacturer_168/transponder_location \
@@ -40,7 +40,7 @@ ros2 topic pub --once /USBL/common_interrogation_ping \
   std_msgs/msg/String "data: 'ping'"
 ```
 
-Common mode can publish multiple IDs on the same output topic. Keep the ID in your data association logic.
+Common mode can publish multiple IDs on the same output topic. Keep each response's ID so you can identify its source.
 
 ## Select one transponder
 

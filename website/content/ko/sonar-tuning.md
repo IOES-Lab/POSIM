@@ -46,12 +46,12 @@ test -f "$(ros2 pkg prefix multibeam_sonar_system)/lib/multibeam_sonar_system/li
 
 | 설정 | 확인할 영향 |
 | --- | --- |
-| 수평 빔·수직 ray 수 | 각도 샘플링과 계산량 |
+| 수평 빔·수직 음선 수 | 각도 샘플링과 계산량 |
 | 거리·`maxDistance` | 관측 범위와 거리 처리 |
 | `raySkips` | 샘플링과 계산량의 균형 |
-| 센서 `update_rate` | 요청하는 센서 처리율 |
+| 센서 `update_rate` | 설정한 센서 갱신 빈도 |
 | `writeLog`, `debugFlag` | 디스크·콘솔 출력 부하 |
-| 센서 gain | 영상 표현. 물리적 반사 강도와 구분 |
+| 센서 이득(gain) | 영상 표현. 물리적 반사 강도와 구분 |
 
 같은 장면·자세에서 프레임 처리 시간, 수신 토픽 주기, Gazebo 실시간 비율, CPU·GPU와 메모리 사용량을 기록합니다. 물리 계산, 렌더링, CUDA 계산, 발행과 기록 비용을 구분하세요. 측정 전에 렌더러를 충분히 실행합니다.
 

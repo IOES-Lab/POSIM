@@ -4,6 +4,8 @@ import { fileURLToPath } from 'node:url';
 import { Marked } from 'marked';
 import { pages, sections } from './pages.mjs';
 
+const languages = [{ code: 'en', label: 'English', directory: '' }, { code: 'ko', label: '한국어', directory: 'ko/' }];
+
 const root = fileURLToPath(new URL('../', import.meta.url));
 const output = path.join(root, 'dist');
 const repository = path.resolve(root, '..');
@@ -36,7 +38,7 @@ await rm(output, { recursive: true, force: true });
 await mkdir(path.join(output, 'ko'), { recursive: true });
 await cp(path.join(root, 'public'), path.join(output, 'assets'), { recursive: true });
 
-for (const lang of ['en', 'ko']) {
+for (const { code: lang } of languages) {
   const ko = lang === 'ko';
   const asset = ko ? '../assets/' : 'assets/';
   const index = [];
@@ -65,8 +67,10 @@ for (const lang of ['en', 'ko']) {
     const position = pages.indexOf(page);
     const previous = pages[position - 1], next = pages[position + 1];
     const navigation = `<nav class="docs-page-nav" aria-label="${ko ? '이전·다음 문서' : 'Previous and next guides'}">${previous ? `<a href="${previous.slug}.html"><small>${ko ? '이전' : 'Previous'}</small>${esc(previous[lang])}</a>` : '<span></span>'}${next ? `<a href="${next.slug}.html"><small>${ko ? '다음' : 'Next'}</small>${esc(next[lang])}</a>` : ''}</nav>`;
-    const html = `<!doctype html><html lang="${lang}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="${esc(description)}"><meta name="document-audience" content="public-posim-library"><title>${esc(title)} · POSIM</title><link rel="icon" type="image/svg+xml" href="${asset}favicon.svg"><link rel="alternate" hreflang="${ko ? 'en' : 'ko'}" href="${alternate}"><link rel="stylesheet" href="${asset}docs.css"><script defer src="${asset}docs.js"></script></head><body data-search-index="${asset}search.${lang}.json"><a class="skip-link" href="#main">${ko ? '본문으로 이동' : 'Skip to content'}</a>
-<header class="docs-header"><a class="docs-brand" href="index.html">POSIM</a><span class="docs-product">${ko ? 'Platform for Ocean Simulation · 문서' : 'Platform for Ocean Simulation · Documentation'}</span><nav aria-label="${ko ? '바로가기' : 'Utility navigation'}"><a class="docs-language" href="${alternate}" lang="${ko ? 'en' : 'ko'}">${ko ? 'English' : '한국어'}</a><a href="https://github.com/IOES-Lab/POSIM">GitHub</a></nav></header>
+    const languageOptions = languages.map(locale => `<option value="${ko ? '../' : ''}${locale.directory}${page.slug}.html" lang="${locale.code}"${locale.code === lang ? ' selected' : ''}>${locale.label}</option>`).join('');
+    const controls = `<select class="docs-control" data-language-select aria-label="${ko ? '문서 언어' : 'Documentation language'}">${languageOptions}</select><select class="docs-control" data-theme-select aria-label="${ko ? '화면 테마' : 'Color theme'}"><option value="system">${ko ? '시스템' : 'System'}</option><option value="light">${ko ? '밝게' : 'Light'}</option><option value="dark">${ko ? '어둡게' : 'Dark'}</option></select>`;
+    const html = `<!doctype html><html lang="${lang}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="${esc(description)}"><meta name="document-audience" content="public-posim-library"><title>${esc(title)} · POSIM</title><link rel="icon" type="image/svg+xml" href="${asset}favicon.svg"><link rel="alternate" hreflang="${ko ? 'en' : 'ko'}" href="${alternate}"><script src="${asset}theme.js"></script><link rel="stylesheet" href="${asset}docs.css"><script defer src="${asset}docs.js"></script></head><body data-search-index="${asset}search.${lang}.json"><a class="skip-link" href="#main">${ko ? '본문으로 이동' : 'Skip to content'}</a>
+<header class="docs-header"><a class="docs-brand" href="index.html">POSIM</a><span class="docs-product">${ko ? 'Platform for Ocean Simulation · 문서' : 'Platform for Ocean Simulation · Documentation'}</span><nav aria-label="${ko ? '바로가기' : 'Utility navigation'}">${controls}<a href="https://github.com/IOES-Lab/POSIM">GitHub</a></nav></header>
 <details class="docs-mobile-menu"><summary>${ko ? '문서 메뉴' : 'Documentation menu'}</summary><label class="docs-search">${ko ? '문서 검색' : 'Search documentation'}<input type="search" placeholder="${ko ? '제목·명령·주제 검색' : 'Titles, commands, topics'}" autocomplete="off"></label><div class="docs-search-results" aria-live="polite" hidden></div><nav aria-label="${ko ? '모바일 문서' : 'Mobile documentation'}">${nav}</nav></details>
 <div class="docs-layout"><aside class="docs-sidebar"><label class="docs-search">${ko ? '문서 검색' : 'Search documentation'}<input type="search" placeholder="${ko ? '제목·명령·주제 검색' : 'Titles, commands, topics'}" autocomplete="off"></label><div class="docs-search-results" aria-live="polite" hidden></div><nav aria-label="${ko ? '문서' : 'Documentation'}">${nav}</nav><a class="docs-lab" href="https://lab.wschoi.com">IOES-Lab · KMOU</a></aside>
 <main id="main" class="docs-content"><div class="docs-breadcrumb">POSIM <span>/</span> ${esc(ko ? page.sectionKo : page.sectionEn)}</div>${body}${navigation}<footer class="docs-footer"><span>POSIM · ROS 2 Lyrical · Gazebo Jetty</span><a href="https://github.com/IOES-Lab/POSIM/edit/main/website/content/${lang}/${page.slug}.md">${ko ? '이 문서 편집' : 'Edit this page'}</a>${sourceLinks ? `<div class="docs-source-note">${ko ? '참고 자료' : 'References'}: ${sourceLinks}</div>` : ''}</footer></main>

@@ -1,6 +1,6 @@
 # 첫 시뮬레이션
 
-같은 [Ubuntu](install.md) 또는 [Docker](docker.md) 환경의 터미널 두 개를 준비하세요.
+해양 월드, 로봇, 카메라를 차례로 실행해 봅니다. 같은 [Ubuntu](install.md) 또는 [Docker](docker.md) 환경을 불러온 터미널 두 개를 준비하세요.
 
 - **A:** 월드·로봇·센서 실행
 - **B:** 시간과 데이터 확인
@@ -38,7 +38,7 @@ ros2 launch posim_demos posim_robot.launch.py \
 ros2 topic echo /model/rexrov/odometry nav_msgs/msg/Odometry --once
 ```
 
-타임스탬프, 위치와 속도를 확인합니다. 움직이지 않는 로봇도 정상적인 Odometry를 발행할 수 있습니다. BlueROV2와 제어 인터페이스는 [ROV 예제](rovs.md)에서 이어서 다룹니다.
+타임스탬프, 위치, 자세와 속도를 확인하세요. 로봇이 정지해 있어도 정상적인 Odometry 메시지를 받을 수 있습니다. BlueROV2와 제어 인터페이스는 [ROV 예제](rovs.md)에서 이어서 다룹니다.
 
 ## 3. 카메라 영상 받기
 
@@ -79,7 +79,7 @@ ros2 topic echo /underwater_camera/simulated_image \
 
 ## 다음 실험
 
-[DVL](dvl.md), [USBL](usbl.md), [해류](currents.md)와 [월드 목록](worlds.md)을 살펴보세요. 첫 Fuel 자산 다운로드로 시작이 지연될 수 있습니다. 데이터가 오지 않으면 시뮬레이션 시간부터 확인한 뒤 [문제 해결](troubleshooting.md)에 따라 플러그인과 리소스 로그를 확인합니다.
+[DVL](dvl.md), [USBL](usbl.md), [해류](currents.md)와 [월드 목록](worlds.md)을 살펴보세요. 첫 실행은 Gazebo Fuel 자산을 내려받느라 시간이 더 걸릴 수 있습니다. 데이터가 오지 않으면 시뮬레이션 시간부터 확인한 뒤 [문제 해결](troubleshooting.md)에 따라 플러그인과 리소스 로그를 확인합니다.
 
 ## Launch 인수 선택하기
 
