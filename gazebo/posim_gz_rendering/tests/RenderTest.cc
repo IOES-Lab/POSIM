@@ -29,6 +29,7 @@ int main(int argc, char ** argv)
     return 3;
   }
   auto scene = engine->CreateScene("underwater-test");
+  scene->SetSkyEnabled(true);
   scene->SetAmbientLight(.4, .4, .4);
   scene->SetBackgroundColor(.01, .03, .04);
   auto light = scene->CreateDirectionalLight();
@@ -164,6 +165,65 @@ int main(int argc, char ** argv)
                        .count() /
                      40
                 << " depth unchanged" << std::endl;
+    }
+    seabed->SetVisible(false);
+    target->SetVisible(false);
+    camera->SetLocalRotation(0, 0, 0);
+    depth->SetLocalPose(camera->LocalPose());
+    for (int location = 0; location < 2; ++location)
+    {
+      camera->SetLocalPosition(-2, 0, location ? 3 : -3);
+      depth->SetLocalPose(camera->LocalPose());
+      std::vector<unsigned char> skyOff;
+      std::vector<float> skyDepth;
+      for (int enabled = 0; enabled < 2; ++enabled)
+      {
+        settings = posim::Defaults();
+        settings[2] = enabled;
+        renderer.Update(scene, settings, 10.);
+        auto image = camera->CreateImage();
+        camera->Capture(image);
+        camera->Capture(image);
+        depth->Update();
+        auto pixels = image.Data<unsigned char>();
+        unsigned long skyAgreement = 0;
+        for (size_t i = 0; i < rgb.size(); ++i)
+        {
+          skyAgreement += std::abs(int(pixels[i]) - int(rgb[i]));
+        }
+        if (skyAgreement / double(rgb.size()) > 2)
+        {
+          return 10;
+        }
+        std::ofstream file(
+          std::string(argv[2]) + "/sky-" + std::to_string(location) + "-" +
+            std::to_string(enabled) + ".ppm",
+          std::ios::binary);
+        file << "P6\n640 360\n255\n";
+        file.write(reinterpret_cast<char *>(pixels), 640 * 360 * 3);
+        if (!enabled)
+        {
+          skyOff.assign(pixels, pixels + 640 * 360 * 3);
+          skyDepth = measured;
+        }
+        else
+        {
+          unsigned long difference = 0;
+          for (size_t i = 0; i < skyOff.size(); ++i)
+          {
+            difference += std::abs(int(pixels[i]) - int(skyOff[i]));
+          }
+          std::cout << "sky location " << location << " delta " << difference << std::endl;
+          if ((location == 0 && difference < 10000) || (location == 1 && difference != 0))
+          {
+            return 8;
+          }
+          if (std::memcmp(skyDepth.data(), measured.data(), measured.size() * sizeof(float)))
+          {
+            return 9;
+          }
+        }
+      }
     }
   }
   engine->DestroyScene(scene);

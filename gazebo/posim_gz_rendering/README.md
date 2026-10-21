@@ -4,7 +4,7 @@
 
 This Gazebo Jetty / Ogre2 system applies water-path haze, RGB absorption, depth-dependent sunlight, animated seabed caustics and optional suspended specks while PBR surfaces are shaded. RGB cameras and RGBD color use the same material path. Numeric depth and collision geometry retain their measured values. Gazebo's clipping, solid-color sensor output and terrain-shadow hooks are retained.
 
-The water surface is approximated by the plane z = 0 m. Caustics and specks are inexpensive procedural approximations. Unlit objects, custom water shaders and the sky are outside the PBR effect. Local lamps keep their direct illumination; water between a surface and a camera still attenuates that surface's light.
+The water surface is approximated by the plane z = 0 m. Caustics and specks are inexpensive procedural approximations. Sky rays use water-path attenuation without changing depth measurements. Unlit objects and custom water shaders retain their own appearance. Local lamps keep their direct illumination; water between a surface and a camera still attenuates that surface's light.
 
 Build with CMake against the same Gazebo/Ogre SDK as the server. The system library delays loading its rendering helper until Gazebo creates a rendering scene. Install libraries to `lib` and shader pieces to `share/posim/underwater`.
 
@@ -22,7 +22,7 @@ On macOS the libraries have the `.dylib` suffix. Use one instance per Gazebo pro
 
 - Defaults on: optics, texture, haze, absorption, sunlight fading, caustics.
 - Defaults off: grid, contours, suspended specks.
-- Grid: 50 m, adjustable from 1 to 500 m.
+- Grid: 10 m, adjustable from 1 to 500 m.
 - Contours: 5 m, adjustable from 1 to 50 m.
 - Turning water optics off preserves texture and measurement-overlay selections.
 

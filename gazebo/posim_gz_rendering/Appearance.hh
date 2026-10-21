@@ -7,7 +7,7 @@ namespace posim
 {
 // Stable wire order; schema and revision precede user settings.
 using Appearance = std::array<double, 13>;
-inline Appearance Defaults() { return {1, 0, 1, 1, 0, 0, 1, 1, 1, 1, 0, 50, 5}; }
+inline Appearance Defaults() { return {1, 0, 1, 1, 0, 0, 1, 1, 1, 1, 0, 10, 5}; }
 inline bool Valid(const Appearance & a)
 {
   for (auto v : a)
