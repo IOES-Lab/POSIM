@@ -6,7 +6,7 @@ The underwater-camera plugin applies distance-dependent color attenuation to ren
 
 The [POSIM underwater renderer](https://github.com/IOES-Lab/POSIM/tree/main/gazebo/posim_gz_rendering) provides shared scene optics for Ogre2 PBR surfaces. It applies water-path haze, color absorption, depth-dependent sunlight and animated seabed light patterns to RGB cameras and RGBD color. Numeric depth remains unchanged. WWW-POSIM exposes live switches for the Gazebo scene and camera feeds.
 
-The renderer approximates mean sea level by z = 0 m. Unlit materials, custom water shaders and the sky use their own rendering. When the host enables the native renderer with `POSIM_UNDERWATER_PLUGIN`, the camera plugin passes its already-colored input through to the compatibility output.
+The renderer approximates mean sea level by z = 0 m. Sky rays use underwater path attenuation. Unlit materials and custom water shaders use their own rendering. When the host enables the native renderer with `POSIM_UNDERWATER_PLUGIN`, the camera plugin passes its already-colored input through to the compatibility output.
 
 ```bash
 ros2 launch posim_demos posim_sensor.launch.py \
