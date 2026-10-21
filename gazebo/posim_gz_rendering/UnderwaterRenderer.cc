@@ -70,7 +70,9 @@ void UnderwaterRenderer::Update(const gz::rendering::ScenePtr &scene,const Appea
   if(std::dynamic_pointer_cast<gz::rendering::Camera>(scene->SensorByIndex(i)))++impl->cameras;
  for(unsigned i=0;i<scene->VisualCount();++i){
   auto v=scene->VisualByIndex(i);const auto &name=v->Name();
-  const bool seabed=name=="seabed"||name.find("::seabed")!=std::string::npos||name.find("::shallow")!=std::string::npos;
+  const auto scope=name.rfind("::");
+  const auto leaf=name.substr(scope==std::string::npos?0:scope+2);
+  const bool seabed=leaf=="seabed"||leaf=="shallow";
   if(!seabed)continue;
   for(unsigned g=0;g<v->GeometryCount();++g){
    auto m=std::dynamic_pointer_cast<gz::rendering::Ogre2Material>(v->GeometryByIndex(g)->Material());
