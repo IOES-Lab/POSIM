@@ -471,7 +471,8 @@ cv::Mat UnderwaterCamera::SimulateUnderwater(
 {
   // The scene renderer already applies optics to the raw RGB topic. Preserve
   // this compatibility output without attenuating the same pixels twice.
-  if (std::getenv("POSIM_UNDERWATER_PLUGIN")) {
+  if (std::getenv("POSIM_UNDERWATER_PLUGIN"))
+  {
     _inputImage.copyTo(_outputImage);
     return _outputImage;
   }
