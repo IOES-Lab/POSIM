@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+#include <algorithm>
+#include <functional>
 #include <iostream>
 
 #include <gz/common/Console.hh>
@@ -40,7 +42,29 @@ struct DVLBridge::PrivateData
   rclcpp::Publisher<posim_interfaces::msg::DVL>::SharedPtr dvl_pub;
 };
 
-DVLBridge::DVLBridge() : dataPtr(std::make_unique<PrivateData>()) {}
+struct DVLBridge::CallbackState
+{
+  std::mutex mutex;
+  DVLBridge * owner = nullptr;
+};
+
+DVLBridge::DVLBridge()
+: dataPtr(std::make_unique<PrivateData>()), callbackState(std::make_shared<CallbackState>())
+{
+  this->callbackState->owner = this;
+}
+
+DVLBridge::~DVLBridge()
+{
+  {
+    std::lock_guard<std::mutex> lock(this->callbackState->mutex);
+    this->callbackState->owner = nullptr;
+  }
+  if (!this->dataPtr->dvl_topic.empty())
+  {
+    this->dataPtr->gz_node.Unsubscribe(this->dataPtr->dvl_topic);
+  }
+}
 
 void DVLBridge::Configure(
   const gz::sim::Entity & _entity, const std::shared_ptr<const sdf::Element> & _sdf,
@@ -50,7 +74,7 @@ void DVLBridge::Configure(
 
   if (!rclcpp::ok())
   {
-    rclcpp::init(0, nullptr);
+    rclcpp::init(0, nullptr, rclcpp::InitOptions(), rclcpp::SignalHandlerOptions::None);
   }
 
   this->ros_node_ = std::make_shared<rclcpp::Node>("dvl_bridge_node");
@@ -67,22 +91,32 @@ void DVLBridge::Configure(
     gzmsg << "dvl topic: " << this->dataPtr->dvl_topic << std::endl;
   }
 
-  // Gazebo subscriber
-  std::function<void(const gz::msgs::DVLVelocityTracking &)> callback =
-    std::bind(&DVLBridge::receiveGazeboCallback, this, std::placeholders::_1);
-
-  this->dataPtr->gz_node.Subscribe(this->dataPtr->dvl_topic, callback);
-
-  // ROS2 publisher
+  // Construct the publisher before transport can call into the bridge.
   this->dataPtr->dvl_pub =
     this->ros_node_->create_publisher<posim_interfaces::msg::DVL>(this->dataPtr->dvl_topic, 1);
+  const auto state = this->callbackState;
+  std::function<void(const gz::msgs::DVLVelocityTracking &)> callback =
+    [state](const gz::msgs::DVLVelocityTracking & message)
+  {
+    std::lock_guard<std::mutex> lock(state->mutex);
+    if (state->owner)
+    {
+      state->owner->receiveGazeboCallback(message);
+    }
+  };
+  this->dataPtr->gz_node.Subscribe(this->dataPtr->dvl_topic, callback);
 }
 
 void DVLBridge::receiveGazeboCallback(const gz::msgs::DVLVelocityTracking & msg)
 {
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex_);
 
-  gzmsg << "posim_ros_gz_plugins::DVLBridge::receiveGazeboCallback" << std::endl;
+  if (
+    !this->ros_node_ || !this->dataPtr->dvl_pub ||
+    !rclcpp::ok(this->ros_node_->get_node_base_interface()->get_context()))
+  {
+    return;
+  }
 
   auto dvl_msg = posim_interfaces::msg::DVL();
   dvl_msg.header.stamp.sec = msg.header().stamp().sec();
@@ -146,11 +180,12 @@ void DVLBridge::receiveGazeboCallback(const gz::msgs::DVLVelocityTracking & msg)
   dvl_msg.velocity.twist.linear.y = msg.velocity().mean().y();
   dvl_msg.velocity.twist.linear.z = msg.velocity().mean().z();
 
-  size_t covariance_size = msg.velocity().covariance().size();
+  const size_t covariance_size = std::min<size_t>(9, msg.velocity().covariance().size());
 
   for (size_t i = 0; i < covariance_size; i++)
   {
-    dvl_msg.velocity.covariance[i] = msg.velocity().covariance()[i];
+    // Gazebo is 3x3 linear covariance; ROS TwistWithCovariance is 6x6.
+    dvl_msg.velocity.covariance[(i / 3) * 6 + i % 3] = msg.velocity().covariance()[i];
   }
 
   size_t beam_size = msg.beams().size();
@@ -183,11 +218,12 @@ void DVLBridge::receiveGazeboCallback(const gz::msgs::DVLVelocityTracking & msg)
     beam.velocity.twist.linear.y = msg.beams()[i].velocity().mean().y();
     beam.velocity.twist.linear.z = msg.beams()[i].velocity().mean().z();
 
-    size_t beam_covariance_size = msg.beams()[i].velocity().covariance().size();
+    const size_t beam_covariance_size =
+      std::min<size_t>(9, msg.beams()[i].velocity().covariance().size());
 
     for (size_t j = 0; j < beam_covariance_size; j++)
     {
-      beam.velocity.covariance[j] = msg.beams()[i].velocity().covariance()[j];
+      beam.velocity.covariance[(j / 3) * 6 + j % 3] = msg.beams()[i].velocity().covariance()[j];
     }
 
     dvl_msg.beams.push_back(beam);
