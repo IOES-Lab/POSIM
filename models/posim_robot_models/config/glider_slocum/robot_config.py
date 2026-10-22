@@ -8,6 +8,7 @@ def launch_setup(context, *args, **kwargs):
     namespace = LaunchConfiguration("namespace").perform(context)
 
     glider_slocum_arguments = [
+        "/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock",
         f"/model/{namespace}/battery/battery/state@sensor_msgs/msg/BatteryState@gz.msgs.BatteryState",
         f"/model/{namespace}/joint/propeller_joint/cmd_thrust@std_msgs/msg/Float64@gz.msgs.Double",
         f"/model/{namespace}/joint/propeller_joint/ang_vel@std_msgs/msg/Float64@gz.msgs.Double",
