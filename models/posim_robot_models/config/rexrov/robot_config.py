@@ -19,6 +19,7 @@ def launch_setup(context, *args, **kwargs):
             for joint in thruster_joints
         ]
         + [
+            "/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock",
             f"/model/{namespace}/odometry@nav_msgs/msg/Odometry@gz.msgs.Odometry",
             f"/model/{namespace}/odometry_with_covariance@nav_msgs/msg/Odometry@gz.msgs.OdometryWithCovariance",
             f"/model/{namespace}/pose@geometry_msgs/msg/PoseArray@gz.msgs.Pose_V",
