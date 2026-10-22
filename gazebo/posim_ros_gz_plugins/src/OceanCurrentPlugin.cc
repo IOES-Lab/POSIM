@@ -295,7 +295,9 @@ bool OceanCurrentPlugin::UpdateStratHorzAngle(
   auto & stratifiedDatabase = worldPlugin->sharedDataPtr->stratifiedDatabase;
   auto & stratifiedCurrentModels = worldPlugin->sharedDataPtr->stratifiedCurrentModels;
 
-  if (_req->layer >= stratifiedDatabase.size())
+  if (
+    _req->layer >= stratifiedDatabase.size() || _req->layer >= stratifiedCurrentModels.size() ||
+    stratifiedCurrentModels[_req->layer].size() < 3)
   {
     _res->success = false;
     return true;
@@ -345,7 +347,9 @@ bool OceanCurrentPlugin::UpdateStratVertAngle(
   auto & stratifiedDatabase = worldPlugin->sharedDataPtr->stratifiedDatabase;
   auto & stratifiedCurrentModels = worldPlugin->sharedDataPtr->stratifiedCurrentModels;
 
-  if (_req->layer >= stratifiedDatabase.size())
+  if (
+    _req->layer >= stratifiedDatabase.size() || _req->layer >= stratifiedCurrentModels.size() ||
+    stratifiedCurrentModels[_req->layer].size() < 3)
   {
     _res->success = false;
     return true;
@@ -371,11 +375,17 @@ bool OceanCurrentPlugin::UpdateCurrentVelocity(
   auto & currentHorzAngleModel = worldPlugin->sharedDataPtr->currentHorzAngleModel;
   auto & currentVertAngleModel = worldPlugin->sharedDataPtr->currentVertAngleModel;
 
+  // Validate the complete request on copies before changing shared state.
+  auto nextVelocity = currentVelModel;
+  auto nextHorizontal = currentHorzAngleModel;
+  auto nextVertical = currentVertAngleModel;
   if (
-    currentVelModel.SetMean(_req->velocity) &&
-    currentHorzAngleModel.SetMean(_req->horizontal_angle) &&
-    currentVertAngleModel.SetMean(_req->vertical_angle))
+    nextVelocity.SetMean(_req->velocity) && nextHorizontal.SetMean(_req->horizontal_angle) &&
+    nextVertical.SetMean(_req->vertical_angle))
   {
+    currentVelModel = nextVelocity;
+    currentHorzAngleModel = nextHorizontal;
+    currentVertAngleModel = nextVertical;
     gzmsg << "Current velocity [m/s] = " << _req->velocity << std::endl
           << "Current horizontal angle [rad] = " << _req->horizontal_angle << std::endl
           << "Current vertical angle [rad] = " << _req->vertical_angle << std::endl
@@ -405,16 +415,19 @@ bool OceanCurrentPlugin::UpdateStratCurrentVelocity(
   auto & stratifiedCurrentModels = worldPlugin->sharedDataPtr->stratifiedCurrentModels;
   auto & stratifiedDatabase = worldPlugin->sharedDataPtr->stratifiedDatabase;
 
-  if (_req->layer >= stratifiedDatabase.size())
+  if (
+    _req->layer >= stratifiedDatabase.size() || _req->layer >= stratifiedCurrentModels.size() ||
+    stratifiedCurrentModels[_req->layer].size() < 3)
   {
     _res->success = false;
     return true;
   }
+  auto nextModels = stratifiedCurrentModels[_req->layer];
   if (
-    stratifiedCurrentModels[_req->layer][0].SetMean(_req->velocity) &&
-    stratifiedCurrentModels[_req->layer][1].SetMean(_req->horizontal_angle) &&
-    stratifiedCurrentModels[_req->layer][2].SetMean(_req->vertical_angle))
+    nextModels[0].SetMean(_req->velocity) && nextModels[1].SetMean(_req->horizontal_angle) &&
+    nextModels[2].SetMean(_req->vertical_angle))
   {
+    stratifiedCurrentModels[_req->layer] = std::move(nextModels);
     // Update the database values as well
     stratifiedDatabase[_req->layer].X() = cos(_req->horizontal_angle) * _req->velocity;
     stratifiedDatabase[_req->layer].Y() = sin(_req->horizontal_angle) * _req->velocity;
@@ -642,7 +655,8 @@ void OceanCurrentPlugin::PostUpdate(
   {
     auto flowVelMsg = geometry_msgs::msg::TwistStamped();
 
-    flowVelMsg.header.stamp = this->dataPtr->rosNode->get_clock()->now();
+    flowVelMsg.header.stamp = rclcpp::Time(
+      std::chrono::duration_cast<std::chrono::nanoseconds>(_info.simTime).count(), RCL_ROS_TIME);
     flowVelMsg.header.frame_id = "world";
 
     flowVelMsg.twist.linear.x = sharedPtr->currentVelocity.X();
@@ -655,7 +669,8 @@ void OceanCurrentPlugin::PostUpdate(
   // Generate and publish stratified current velocity
   auto stratCurrentVelocityMsg = posim_interfaces::msg::StratifiedCurrentVelocity();
 
-  stratCurrentVelocityMsg.header.stamp = this->dataPtr->rosNode->get_clock()->now();
+  stratCurrentVelocityMsg.header.stamp = rclcpp::Time(
+    std::chrono::duration_cast<std::chrono::nanoseconds>(_info.simTime).count(), RCL_ROS_TIME);
   stratCurrentVelocityMsg.header.frame_id = "world";
 
   // Updating for stratified behaviour of Ocean Currents
