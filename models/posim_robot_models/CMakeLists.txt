@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.8)
 project(posim_robot_models)
 
 find_package(ament_cmake REQUIRED)
+install(FILES ../../gazebo/posim_gz_gnss/config/profiles.json DESTINATION share/posim_robot_models/gnss)
 
 install(
   PROGRAMS

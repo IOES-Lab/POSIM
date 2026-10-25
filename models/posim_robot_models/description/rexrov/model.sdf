@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<sdf version="1.7">
+<sdf version="1.7" xmlns:gz="http://gazebosim.org">
   <model name="rexrov">
 
     <link name="base_link">
@@ -927,6 +927,43 @@
       </transient_current>
       <tide_oscillation>false</tide_oscillation>
     </plugin> -->
+
+
+    <link name="gnss_link">
+    <pose relative_to="base_link">0 0 0.8 0 0 0</pose>
+    <inertial>
+      <mass>.001</mass>
+      <inertia>
+        <ixx>0.000001</ixx>
+        <iyy>0.000001</iyy>
+        <izz>0.000001</izz>
+      </inertia>
+    </inertial>
+    <sensor name="gnss" type="custom" gz:type="posim_gnss" xmlns:gz="http://gazebosim.org">
+      <always_on>true</always_on>
+      <update_rate>5</update_rate>
+      <topic>/model/rexrov/gnss</topic>
+    </sensor>
+  </link>
+  <joint name="gnss_joint" type="fixed">
+    <parent>base_link</parent>
+    <child>gnss_link</child>
+  </joint>
+  <plugin name="posim::Gnss" filename="libposim_gnss.so">
+    <update_rate>5</update_rate>
+    <latency>0.2</latency>
+    <reacquire_seconds>3</reacquire_seconds>
+    <dry_margin>0.05</dry_margin>
+    <horizontal_stddev>0.7</horizontal_stddev>
+    <vertical_stddev>1.2</vertical_stddev>
+    <velocity_stddev>0.1</velocity_stddev>
+    <water_level>0</water_level>
+    <seed>42</seed>
+    <enabled>false</enabled>
+    <link_name>gnss_link</link_name>
+    <topic>/model/rexrov/gnss</topic>
+    <wave_topic />
+  </plugin>
 
   </model>
 </sdf>

@@ -1,0 +1,10 @@
+{
+  "receiver": {"update_rate": 5, "latency": 0.2, "reacquire_seconds": 3, "dry_margin": 0.05, "horizontal_stddev": 0.7, "vertical_stddev": 1.2, "velocity_stddev": 0.1, "water_level": 0, "seed": 42},
+  "mounts": {
+    "wamv": {"parent": "base_link", "pose": [0, 0, 1.8, 0, 0, 0], "enabled": true},
+    "bluerov2": {"parent": "base_link", "pose": [0, 0, 0.3, 0, 0, 0], "enabled": false},
+    "bluerov2_heavy": {"parent": "base_link", "pose": [0, 0, 0.3, 0, 0, 0], "enabled": false},
+    "bluerov2_heavy_multibeam_sonar": {"parent": "base_link", "pose": [0, 0, 0.3, 0, 0, 0], "enabled": false},
+    "rexrov": {"parent": "base_link", "pose": [0, 0, 0.8, 0, 0, 0], "enabled": false}
+  }
+}
