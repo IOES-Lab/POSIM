@@ -166,7 +166,7 @@ RUN mkdir -p /home/$USER/imp_shim && \
     printf 'import types\ndef new_module(name):\n    return types.ModuleType(name)\n' > /home/$USER/imp_shim/imp.py && \
     printf 'import shlex\ndef quote(s):\n    return shlex.quote(s)\n' > /home/$USER/imp_shim/pipes.py
 
-ENV PYTHONPATH=/home/$USER/imp_shim:/home/$USER/ardupilot/modules/waf/waflib/extras
+ENV PYTHONPATH=/home/$USER/imp_shim
 ENV PIP_BREAK_SYSTEM_PACKAGES=1
 
 # chown first — the repo was cloned as root but must be built as $USER, and git refuses to
