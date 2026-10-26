@@ -1,6 +1,12 @@
 """Explicit simulator ground truth for the standalone WAM-V demo; not a sensor."""
 
+from contextlib import ExitStack
+import signal
+
 import rclpy
+from rclpy.context import Context
+from rclpy.executors import ExternalShutdownException, SingleThreadedExecutor
+from rclpy.signals import SignalHandlerOptions
 from rclpy.node import Node
 from rclpy.qos import QoSProfile, ReliabilityPolicy
 from nav_msgs.msg import Odometry
@@ -12,8 +18,8 @@ from mavros_msgs.srv import CommandLong
 
 
 class Navigation(Node):
-    def __init__(self):
-        super().__init__("wamv_simulated_navigation")
+    def __init__(self, *, context=None):
+        super().__init__("wamv_simulated_navigation", context=context)
         self.start = None
         self.count = 0
         self.pose = self.create_publisher(
@@ -90,10 +96,52 @@ class Navigation(Node):
         self.count += 1
 
 
-rclpy.init()
-node = Navigation()
-try:
-    rclpy.spin(node)
-finally:
-    node.destroy_node()
-    rclpy.shutdown()
+def main(args=None, *, restore_signal_handlers=True):
+    # Record a stop request rather than raising inside ROS constructors. In
+    # particular, an interrupted Executor constructor can leave its destructor
+    # with uninitialized attributes. Keep the context alive until cleanup.
+    stop_requested = False
+
+    def request_stop(_signum, _frame):
+        nonlocal stop_requested
+        stop_requested = True
+
+    with ExitStack() as cleanup:
+        for signum in (signal.SIGINT, signal.SIGTERM):
+            previous = signal.signal(signum, request_stop)
+            if restore_signal_handlers:
+                cleanup.callback(signal.signal, signum, previous)
+
+        context = Context()
+        cleanup.callback(context.try_shutdown)
+        rclpy.init(args=args, context=context, signal_handler_options=SignalHandlerOptions.NO)
+        if stop_requested:
+            return
+
+        node = Navigation(context=context)
+        cleanup.callback(node.destroy_node)
+        if stop_requested:
+            return
+
+        executor = SingleThreadedExecutor(context=context)
+        cleanup.callback(executor.shutdown)
+        executor.add_node(node)
+        try:
+            while not stop_requested and context.ok():
+                # A bounded wait also observes stop requests when no data arrives.
+                executor.spin_once(timeout_sec=0.1)
+        except ExternalShutdownException:
+            pass
+        # ExitStack releases executor -> node -> context, then restores signal
+        # handlers for embedded callers. Repeated signals during cleanup only
+        # record another request.
+
+
+if __name__ == "__main__":
+    try:
+        main(restore_signal_handlers=False)
+    finally:
+        # ROS cleanup has finished. Ignore late duplicate signals during Python
+        # finalization, which otherwise resets callable handlers to SIG_DFL.
+        signal.signal(signal.SIGINT, signal.SIG_IGN)
+        signal.signal(signal.SIGTERM, signal.SIG_IGN)
