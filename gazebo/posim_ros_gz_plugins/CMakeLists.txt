@@ -115,6 +115,10 @@ ament_environment_hooks(
 
 # Optional: Testing setup
 if(BUILD_TESTING)
+  find_package(ament_cmake_gtest REQUIRED)
+  ament_add_gtest(test_dvl_bridge test/test_dvl_bridge.cc)
+  target_include_directories(test_dvl_bridge PRIVATE include)
+  target_link_libraries(test_dvl_bridge DVLBridge)
   find_package(ament_lint_auto REQUIRED)
   ament_lint_auto_find_test_dependencies()
 endif()

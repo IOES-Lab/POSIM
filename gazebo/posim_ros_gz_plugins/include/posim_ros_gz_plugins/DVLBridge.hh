@@ -35,7 +35,7 @@ class DVLBridge : public gz::sim::System,
 {
 public:
   DVLBridge();
-  ~DVLBridge() override = default;
+  ~DVLBridge() override;
 
   void Configure(
     const gz::sim::Entity & entity, const std::shared_ptr<const sdf::Element> & sdf,
@@ -51,6 +51,8 @@ private:
 
   struct PrivateData;
   std::unique_ptr<PrivateData> dataPtr;
+  struct CallbackState;
+  std::shared_ptr<CallbackState> callbackState;
 };
 }  // namespace posim_ros_gz_plugins
 
