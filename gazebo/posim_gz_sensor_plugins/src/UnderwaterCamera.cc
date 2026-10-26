@@ -24,6 +24,7 @@
 #include <gz/sim/components/RgbdCamera.hh>
 #include <gz/sim/components/Sensor.hh>
 #include <gz/transport/Node.hh>
+#include <limits>
 #include <sdf/Camera.hh>
 #include "gz/plugin/Register.hh"
 #include "gz/sim/EntityComponentManager.hh"
@@ -356,13 +357,16 @@ cv::Mat UnderwaterCamera::ConvertGazeboToOpenCV(const gz::msgs::Image & gz_image
       cv_type = CV_32FC1;
       break;
     default:
-      throw std::runtime_error("Unsupported pixel format");
+      return {};
   }
 
   const size_t rowBytes = static_cast<size_t>(gz_image.width()) * CV_ELEM_SIZE(cv_type);
   const size_t stride = gz_image.step();
   if (
-    gz_image.width() == 0 || gz_image.height() == 0 || stride < rowBytes ||
+    gz_image.width() == 0 || gz_image.height() == 0 ||
+    gz_image.width() > static_cast<unsigned int>(std::numeric_limits<int>::max()) ||
+    gz_image.height() > static_cast<unsigned int>(std::numeric_limits<int>::max()) ||
+    stride < rowBytes || stride % CV_ELEM_SIZE1(cv_type) != 0 ||
     static_cast<uint64_t>(stride) * gz_image.height() > gz_image.data().size())
   {
     return {};
@@ -376,11 +380,15 @@ cv::Mat UnderwaterCamera::ConvertGazeboToOpenCV(const gz::msgs::Image & gz_image
   // Optionally convert color space if needed (e.g., RGB to BGR)
   if (gz_image.pixel_format_type() == gz::msgs::PixelFormatType::RGB_INT8)
   {
-    cv::cvtColor(cv_image, cv_image, cv::COLOR_RGB2BGR);
+    cv::Mat converted;
+    cv::cvtColor(cv_image, converted, cv::COLOR_RGB2BGR);
+    return converted;
   }
   else if (gz_image.pixel_format_type() == gz::msgs::PixelFormatType::RGBA_INT8)
   {
-    cv::cvtColor(cv_image, cv_image, cv::COLOR_RGBA2BGRA);
+    cv::Mat converted;
+    cv::cvtColor(cv_image, converted, cv::COLOR_RGBA2BGRA);
+    return converted;
   }
 
   return cv_image;
@@ -439,7 +447,24 @@ void UnderwaterCamera::CameraCallback(const gz::msgs::Image & msg)
 
       // Publish simulated image
       sensor_msgs::msg::Image ros_image;
-      ros_image.header.stamp = this->ros_node_->now();
+      // Preserve the sensor acquisition time and frame for ROS synchronization.
+      ros_image.header.stamp.sec = msg.header().stamp().sec();
+      ros_image.header.stamp.nanosec = msg.header().stamp().nsec();
+      for (const auto & entry : msg.header().data())
+      {
+        if (entry.key() == "frame_id" && entry.value_size() > 0)
+        {
+          ros_image.header.frame_id = entry.value(0);
+          // Match ros_gz_bridge's ROS frame convention for scoped Gazebo names.
+          std::size_t separator = 0;
+          while ((separator = ros_image.header.frame_id.find("::", separator)) != std::string::npos)
+          {
+            ros_image.header.frame_id.replace(separator, 2, "/");
+            ++separator;
+          }
+          break;
+        }
+      }
       ros_image.height = msg.height();
       ros_image.width = msg.width();
       ros_image.encoding = "bgr8";
@@ -491,6 +516,12 @@ cv::Mat UnderwaterCamera::SimulateUnderwater(
       const cv::Vec3b & in = inrow[col];
       cv::Vec3b & out = outrow[col];
 
+      // NaN is an invalid/no-return depth, not a valid byte intensity.
+      // Treat it like a far return; signed infinities retain the clipping below.
+      if (std::isnan(r))
+      {
+        r = this->dataPtr->max_range;
+      }
       if (r < this->dataPtr->min_range)
       {
         r = this->dataPtr->min_range;
