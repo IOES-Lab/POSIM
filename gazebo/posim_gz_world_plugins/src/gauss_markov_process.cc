@@ -1,3 +1,4 @@
+#include <cmath>
 #include <posim_gz_world_plugins/gauss_markov_process.hh>
 
 namespace posim_gz_world_plugins
@@ -21,7 +22,7 @@ void GaussMarkovProcess::Reset() { this->var = this->mean; }
 /////////////////////////////////////////////////
 bool GaussMarkovProcess::SetMean(double _mean)
 {
-  if (this->min > _mean || this->max < _mean)
+  if (!std::isfinite(_mean) || this->min > _mean || this->max < _mean)
   {
     return false;
   }
@@ -34,6 +35,12 @@ bool GaussMarkovProcess::SetMean(double _mean)
 /////////////////////////////////////////////////
 bool GaussMarkovProcess::SetModel(double _mean, double _min, double _max, double _mu, double _noise)
 {
+  if (
+    !std::isfinite(_mean) || !std::isfinite(_min) || !std::isfinite(_max) || !std::isfinite(_mu) ||
+    !std::isfinite(_noise))
+  {
+    return false;
+  }
   if (_min >= _max)
   {
     return false;

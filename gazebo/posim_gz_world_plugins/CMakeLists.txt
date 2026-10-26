@@ -158,6 +158,10 @@ ament_environment_hooks(
 
 # Testing setup
 if(BUILD_TESTING)
+  find_package(ament_cmake_gtest REQUIRED)
+  ament_add_gtest(test_current_model test/test_current_model.cc)
+  target_include_directories(test_current_model PRIVATE include)
+  target_link_libraries(test_current_model gauss_markov_process)
   find_package(ament_lint_auto REQUIRED)
   ament_lint_auto_find_test_dependencies()
 endif()
