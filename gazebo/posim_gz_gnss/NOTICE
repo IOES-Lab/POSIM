@@ -1,0 +1,15 @@
+POSIM marine GNSS
+SPDX-License-Identifier: Apache-2.0
+
+The receiver is authored in POSIM. It links to Gazebo Sim, Math, Transport,
+Msgs and Plugin under their distributed licenses. Preserve the POSIM LICENSE
+and the linked dependencies' notices when distributing a native engine.
+
+BlueROV2, Blue Robotics and Water Linked identify third-party products.
+Product pages and documentation are references only. This receiver bundles
+no vendor imagery, manuals, hardware firmware or acoustic UGPS implementation.
+
+https://bluerobotics.com/store/rov/bluerov2/
+https://bluerobotics.com/learn/water-linked-bluerov2-integration-r2-integration-kit/
+https://docs.waterlinked.com/dvl/bluerov-integration-dvl-ugps/
+https://www.gps.gov/gps-accuracy
