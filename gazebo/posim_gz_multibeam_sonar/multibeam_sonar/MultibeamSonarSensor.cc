@@ -234,6 +234,16 @@ MultibeamSonarSensor::~MultibeamSonarSensor()
   {
     this->dataPtr->ros_executor_->remove_node(this->dataPtr->ros_node_);
   }
+  this->dataPtr->sonarImageRawPub.reset();
+  this->dataPtr->sonarImagePub.reset();
+  this->dataPtr->normalImagePub.reset();
+  this->dataPtr->ros_executor_.reset();
+  this->dataPtr->ros_node_.reset();
+  if (this->dataPtr->ros_context_)
+  {
+    this->dataPtr->ros_context_->shutdown("Multibeam sonar sensor destroyed");
+    this->dataPtr->ros_context_.reset();
+  }
   this->dataPtr->rayConnection.reset();
   this->dataPtr->sceneChangeConnection.reset();
   // CSV log write stream close
@@ -493,13 +503,20 @@ bool MultibeamSonarSensor::Implementation::InitializeBeamArrangement(MultibeamSo
 
   // ROS Initialization
 
-  if (!rclcpp::ok())
-  {
-    rclcpp::init(0, nullptr);
-  }
-
-  this->ros_node_ = std::make_shared<rclcpp::Node>("multibeam_sonar_node");
-  this->ros_executor_ = std::make_shared<rclcpp::executors::SingleThreadedExecutor>();
+  // Gazebo owns process signals. Keep this sensor's ROS lifetime independent
+  // from the global context and from other plugins' signal handlers. In
+  // particular, shutdown must not invalidate the context during node creation.
+  this->ros_context_ = std::make_shared<rclcpp::Context>();
+  rclcpp::InitOptions initOptions;
+  initOptions.shutdown_on_signal = false;
+  this->ros_context_->init(0, nullptr, initOptions);
+  rclcpp::NodeOptions nodeOptions;
+  nodeOptions.context(this->ros_context_);
+  this->ros_node_ = std::make_shared<rclcpp::Node>("multibeam_sonar_node", nodeOptions);
+  rclcpp::ExecutorOptions executorOptions;
+  executorOptions.context = this->ros_context_;
+  this->ros_executor_ =
+    std::make_shared<rclcpp::executors::SingleThreadedExecutor>(executorOptions);
   this->ros_executor_->add_node(this->ros_node_);
 
   // Create the point cloud publisher
