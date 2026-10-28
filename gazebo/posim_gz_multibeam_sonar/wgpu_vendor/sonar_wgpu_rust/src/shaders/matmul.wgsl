@@ -37,15 +37,17 @@ fn main(
     let k_b = t * 16u + lid.y;
 
     // LOAD: load tile data into shared memory.
+    // A thread outside the output bounds may still load data needed by a
+    // valid neighbor. Check A and B input coordinates independently.
     // Load A tile: each thread loads one A[row, k_a].
-    if (in_bounds && k_a < params.n_beams) {
+    if (row < params.n_beams && k_a < params.n_beams) {
       tile_a[lid.y][lid.x] = a[row * params.n_beams + k_a];
     } else {
       tile_a[lid.y][lid.x] = 0.0;
     }
 
     // Load B tile: each thread loads one B[k_b, col].
-    if (in_bounds && k_b < params.n_beams) {
+    if (col < params.n_freq && k_b < params.n_beams) {
       tile_b[lid.y][lid.x] = b[k_b * params.n_freq + col];
     } else {
       tile_b[lid.y][lid.x] = 0.0;
