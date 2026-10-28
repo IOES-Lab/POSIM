@@ -17,7 +17,7 @@ Read the first missing URI in the log. Check that its package resources were ins
 
 ## No image or rendering initialization failure
 
-Image sensors need a renderer even without a desktop window. Check display/offscreen settings, [Docker Xvfb setup](docker.md) and [CUDA libraries](sonar-tuning.md).
+Image sensors need a renderer even without a desktop window. Check display/offscreen settings, [Docker Xvfb setup](docker.md) and [sonar backend setup](sonar-tuning.md).
 
 ## No messages
 

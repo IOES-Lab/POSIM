@@ -29,7 +29,7 @@ POSIM은 ROS 2와 Gazebo에서 사용하는 해양 로봇 시뮬레이션 라이
 | --- | --- | --- |
 | 해양 월드 | 수면·해저·작업 장면 | [월드 목록](worlds.md) |
 | 로봇 | REXROV, BlueROV2, Slocum, 수상 로봇 | [ROV](rovs.md), [글라이더](gliders.md), [수상 로봇](surface.md) |
-| 센서 | 카메라·DVL·수압·USBL·CUDA 소나 | [카메라](camera.md), [DVL](dvl.md), [소나](sonar.md) |
+| 센서 | 카메라·DVL·수압·USBL·멀티빔 소나 | [카메라](camera.md), [DVL](dvl.md), [소나](sonar.md) |
 | 환경 플러그인 | 해류·위도·경도 좌표 | [해류](currents.md), [좌표](coordinates.md) |
 | ROS 인터페이스 | 센서 구독·제어·실험 기록 | [ROS 2와 제어](ros.md) |
 

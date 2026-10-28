@@ -464,6 +464,19 @@ void MultibeamSonarSystem::Implementation::Handle(requests::CreateSensor _reques
   sensor->SetScene(this->scene);
   sensor->SetManualSceneUpdate(true);
 
+  // SetScene() initializes the sensor; on failure it has no rendering sensor to attach.
+  if (sensor->RenderingSensors().empty())
+  {
+    gzerr << "Sensor [" << _request.sdf.Name() << "] failed to initialize and was "
+          << "removed. Other sensors and the simulation keep running." << std::endl;
+    if (!this->sensorManager.Remove(sensor->Id()))
+    {
+      gzerr << "Internal error, missing sensor "
+            << "[" << _request.sdf.Name() << "]" << std::endl;
+    }
+    return;
+  }
+
   if (this->latestWorldState)
   {
     sensor->SetWorldState(*this->latestWorldState);

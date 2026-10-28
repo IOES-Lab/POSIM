@@ -29,7 +29,7 @@ Prepare an [Ubuntu installation](install.md) or [Docker environment](docker.md),
 | --- | --- | --- |
 | Ocean worlds | Surface, seabed and task scenes | [World library](worlds.md) |
 | Robots | REXROV, BlueROV2, Slocum and surface vehicles | [ROVs](rovs.md), [Gliders](gliders.md), [Surface robots](surface.md) |
-| Sensors | Camera, DVL, pressure, USBL and CUDA sonar | [Camera](camera.md), [DVL](dvl.md), [Sonar](sonar.md) |
+| Sensors | Camera, DVL, pressure, USBL and multibeam sonar | [Camera](camera.md), [DVL](dvl.md), [Sonar](sonar.md) |
 | Environment plugins | Currents and geographic coordinates | [Currents](currents.md), [Coordinates](coordinates.md) |
 | ROS interfaces | Sensor subscriptions, commands and recording | [ROS 2 and control](ros.md) |
 
