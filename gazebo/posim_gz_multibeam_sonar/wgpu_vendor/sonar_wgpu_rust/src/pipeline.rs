@@ -12,6 +12,7 @@ pub const MAX_BUFFER_SETS: usize = 8;
 /// GPU buffer lifetime: persistent allocation across frames via queue.write_buffer.
 /// One set per sonar dimensions (see `GpuContext::buffers`).
 pub struct SonarBuffers {
+    pub exact_fft: Option<super::exact_fft::Plan>,
     // Input data (written via queue.write_buffer each frame)
     pub depth_buf: wgpu::Buffer,
     pub normal_buf: wgpu::Buffer,
@@ -38,14 +39,21 @@ pub struct SonarBuffers {
 impl SonarBuffers {
     /// Buffer allocation for 4 pipeline stages: backscatter, convert, matmul, FFT.
     /// Chain: backscatter→convert→matmul→FFT→readback.
-    pub fn new(device: &wgpu::Device, n_beams: u32, n_rays: u32, n_freq: u32) -> Self {
+    pub fn new(
+        device: &wgpu::Device,
+        n_beams: u32,
+        n_rays: u32,
+        n_freq: u32,
+        exact: &super::exact_fft::Pipeline,
+    ) -> Self {
         let depth_ray = (n_beams as usize) * (n_rays as usize);
         let spectrum = (n_beams as usize) * (n_freq as usize);
         let bc = (n_beams as usize) * (n_beams as usize);
         let f32_bytes = |n: usize| (n * std::mem::size_of::<f32>()) as u64;
         let i32_bytes = |n: usize| (n * std::mem::size_of::<i32>()) as u64;
 
-        SonarBuffers {
+        let mut buffers = SonarBuffers {
+            exact_fft: None,
             depth_buf: device.create_buffer(&wgpu::BufferDescriptor {
                 label: Some("pb_depth"),
                 size: f32_bytes(depth_ray),
@@ -140,7 +148,17 @@ impl SonarBuffers {
                 usage: wgpu::BufferUsages::MAP_READ | wgpu::BufferUsages::COPY_DST,
                 mapped_at_creation: false,
             }),
+        };
+        if !n_freq.is_power_of_two() {
+            buffers.exact_fft = Some(exact.plan(
+                device,
+                n_freq,
+                n_beams,
+                &buffers.p_re_buf,
+                &buffers.p_im_buf,
+            ));
         }
+        buffers
     }
 }
 
@@ -162,7 +180,8 @@ pub struct GpuContext {
     pub mm_pipeline: wgpu::ComputePipeline,
     pub mm_bgl: wgpu::BindGroupLayout,
 
-    // FFT kernel: power-of-2 only, N≤4096 (4096 is the shared memory limit). CPU fallback via Bluestein for arbitrary N.
+    // Radix-2 for powers of two, exact GPU Bluestein otherwise (N <= 4096).
+    pub exact_fft: super::exact_fft::Pipeline,
     pub fft_pipeline: wgpu::ComputePipeline,
     pub fft_bgl: wgpu::BindGroupLayout,
 
@@ -399,6 +418,7 @@ fn try_init_gpu_context(backends: wgpu::Backends, label: &str) -> Option<GpuCont
             t0.elapsed().as_millis()
         );
 
+        let exact_fft = super::exact_fft::Pipeline::new(&device);
         Some(GpuContext {
             device,
             queue,
@@ -410,6 +430,7 @@ fn try_init_gpu_context(backends: wgpu::Backends, label: &str) -> Option<GpuCont
             mm_bgl,
             fft_pipeline,
             fft_bgl,
+            exact_fft,
             buffers: std::sync::Mutex::new(HashMap::new()),
         })
     });

@@ -1,7 +1,6 @@
-// Cooley-Tukey FFT with zero-padding to the next power of 2.
-// Supports any n_freq <= 4096. The input is padded to padded_n (next power of 2 >= n_freq)
-// in shared memory. The padded FFT is then sampled back onto the original n_freq
-// physical range grid before writeback.
+// Cooley-Tukey FFT fast path for power-of-two n_freq <= 4096.
+// Arbitrary lengths use exact_fft.rs / bluestein.wgsl instead of interpolation.
+// Arithmetic is retained unchanged for bitwise preservation of this fast path.
 
 struct Params {
   n_beams:  u32,
