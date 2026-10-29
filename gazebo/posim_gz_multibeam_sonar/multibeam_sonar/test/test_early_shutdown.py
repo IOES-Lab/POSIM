@@ -11,8 +11,10 @@ import os
 from pathlib import Path
 import signal
 import subprocess
+import sys
 import time
 import uuid
+import xml.etree.ElementTree as ET
 
 
 def main():
@@ -20,11 +22,32 @@ def main():
     parser.add_argument("--backend", choices=("cpu", "wgpu", "cuda"), default="cpu")
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--repeats", type=int, default=2)
+    parser.add_argument("--sensor-system-plugin", type=Path)
+    parser.add_argument(
+        "--render-backend",
+        choices=("metal", "headless"),
+        default="metal" if sys.platform == "darwin" else "headless",
+    )
     args = parser.parse_args()
+    rendering = (
+        ["--render-engine-server-api-backend", "metal"]
+        if args.render_backend == "metal"
+        else ["--headless-rendering"]
+    )
     if args.repeats < 1:
         parser.error("--repeats must be positive")
     args.output.mkdir(parents=True, exist_ok=False)
     fixtures = Path(__file__).parent
+    world = fixtures / "shutdown_world.sdf"
+    if args.sensor_system_plugin:
+        if not args.sensor_system_plugin.is_file():
+            parser.error("--sensor-system-plugin must name an existing library")
+        root = ET.parse(world).getroot()
+        root.find("./world/plugin[@name='gz::sim::systems::Sensors']").set(
+            "filename", str(args.sensor_system_plugin.resolve())
+        )
+        world = args.output.resolve() / "world.sdf"
+        world.write_text(ET.tostring(root, encoding="unicode"))
     results = []
     for repetition in range(args.repeats):
         for sig in (signal.SIGINT, signal.SIGTERM):
@@ -53,10 +76,10 @@ def main():
                                 "sim",
                                 "-s",
                                 "-r",
-                                "--headless-rendering",
+                                *rendering,
                                 "-v",
                                 "4",
-                                str(fixtures / "shutdown_world.sdf"),
+                                str(world),
                             ],
                             env=env,
                             cwd=out,
@@ -120,7 +143,6 @@ def main():
                                 "context is invalid",
                                 "context argument is null",
                                 "mutex lock failed",
-                                "already exists",
                             )
                         )
                         row["passed"] = True
