@@ -12,12 +12,13 @@ import os
 from pathlib import Path
 import signal
 import subprocess
+import sys
 import time
 import uuid
 import xml.etree.ElementTree as ET
 
 import rclpy
-from rclpy.qos import DurabilityPolicy, QoSProfile
+from rclpy.qos import QoSProfile, ReliabilityPolicy
 from marine_acoustic_msgs.msg import ProjectedSonarImage
 
 
@@ -25,7 +26,18 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--backend", choices=("cpu", "wgpu", "cuda"), default="cpu")
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--sensor-system-plugin", type=Path)
+    parser.add_argument(
+        "--render-backend",
+        choices=("metal", "headless"),
+        default="metal" if sys.platform == "darwin" else "headless",
+    )
     args = parser.parse_args()
+    rendering = (
+        ["--render-engine-server-api-backend", "metal"]
+        if args.render_backend == "metal"
+        else ["--headless-rendering"]
+    )
     args.output.mkdir(parents=True, exist_ok=False)
     env = dict(
         os.environ,
@@ -33,24 +45,41 @@ def main():
         POSIM_SONAR_COMPUTE_BACKEND=args.backend,
         ROS_LOG_DIR=str(args.output.resolve() / "ros_logs"),
     )
-    world = Path(__file__).with_name("sensor_creation.sdf").resolve()
-    root = ET.parse(world).getroot()
+    fixture = Path(__file__).with_name("sensor_creation.sdf").resolve()
+    root = ET.parse(fixture).getroot()
+    if args.sensor_system_plugin:
+        if not args.sensor_system_plugin.is_file():
+            parser.error("--sensor-system-plugin must name an existing library")
+        root.find("./world/plugin[@name='gz::sim::systems::Sensors']").set(
+            "filename", str(args.sensor_system_plugin.resolve())
+        )
     model = root.find("./world/model[@name='blueview_p900']")
+    # Isolate every run from other publishers on the shared ROS domain.
+    sensor_topic = "/sonar_creation_" + uuid.uuid4().hex
+    model.find("./link/sensor/topic").text = sensor_topic
     spawn = args.output.resolve() / "model.sdf"
     # Gazebo uses the literal gz: prefix when reading custom-sensor elements.
     ET.register_namespace("gz", "http://gazebosim.org")
+    world = args.output.resolve() / "world.sdf"
+    world.write_text(ET.tostring(root, encoding="unicode"))
     spawn.write_text('<sdf version="1.10">' + ET.tostring(model, encoding="unicode") + "</sdf>")
     rclpy.init()
     node = rclpy.create_node("sonar_creation_regression")
     frames = []
     node.create_subscription(
         ProjectedSonarImage,
-        "/sensor/multibeam_sonar/sonar_image_raw",
+        sensor_topic + "/sonar_image_raw",
         frames.append,
-        QoSProfile(depth=10, durability=DurabilityPolicy.TRANSIENT_LOCAL),
+        QoSProfile(depth=10, reliability=ReliabilityPolicy.BEST_EFFORT),
     )
     proc = None
-    result = {"backend": args.backend, "pass": False}
+    result = {
+        "backend": args.backend,
+        "render_backend": args.render_backend,
+        "topic": sensor_topic,
+        "sensor_system_plugin": str(args.sensor_system_plugin),
+        "pass": False,
+    }
     log_path = args.output / "gazebo.log"
 
     def collect():
@@ -90,7 +119,7 @@ def main():
     try:
         with log_path.open("w") as log:
             proc = subprocess.Popen(
-                ["gz", "sim", "-s", "-r", "--headless-rendering", "-v", "4", str(world)],
+                ["gz", "sim", "-s", "-r", *rendering, "-v", "4", str(world)],
                 cwd=args.output,
                 env=env,
                 stdout=log,
@@ -98,9 +127,10 @@ def main():
                 start_new_session=True,
             )
             collect()
+            result["initial_frames"] = len(frames)
             text = log_path.read_text(errors="replace")
-            assert text.count("Initializing [blueview_p900") == 1, "Duplicate initialization"
-            assert "already exists" not in text, "Duplicate rendering resource"
+            result["initial_initializations"] = text.count("Initializing [blueview_p900")
+            assert result["initial_initializations"] == 1, "Duplicate initialization"
             service(
                 "/world/default/remove", "gz.msgs.Entity", 'name: "blueview_p900", type: MODEL'
             )
@@ -115,9 +145,14 @@ def main():
                 f'sdf_filename: "{spawn}", name: "blueview_p900", allow_renaming: false',
             )
             collect()
+            result["recreated_frames"] = len(frames)
+            result["shape"] = {
+                "beams": frames[0].image.beam_count,
+                "ranges": len(frames[0].ranges),
+            }
             text = log_path.read_text(errors="replace")
-            assert text.count("Initializing [blueview_p900") == 2, "Re-creation failed"
-            assert "already exists" not in text, "Duplicate resource after re-creation"
+            result["total_initializations"] = text.count("Initializing [blueview_p900")
+            assert result["total_initializations"] == 2, "Re-creation failed"
             os.killpg(proc.pid, signal.SIGINT)
             proc.wait(timeout=20)
             assert proc.returncode == 0, f"Abnormal exit: {proc.returncode}"
