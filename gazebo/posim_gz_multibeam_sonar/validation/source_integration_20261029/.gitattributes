@@ -1,0 +1,3 @@
+# Preserve canonical upstream license and unified-diff context bytes.
+LICENSE whitespace=-blank-at-eof
+upstream-patches/*.patch whitespace=-blank-at-eol

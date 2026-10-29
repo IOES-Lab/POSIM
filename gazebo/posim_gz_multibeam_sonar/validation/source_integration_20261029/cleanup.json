@@ -1,0 +1,135 @@
+{
+  "checked_at": "2026-10-29T00:16:29.706605+00:00",
+  "groups": [
+    {
+      "case": "creation-cpu-root",
+      "pid": 86635,
+      "empty": true
+    },
+    {
+      "case": "shutdown-cpu-1_15_0.0",
+      "pid": 87293,
+      "empty": true
+    },
+    {
+      "case": "shutdown-cpu-0_2_0.005",
+      "pid": 86874,
+      "empty": true
+    },
+    {
+      "case": "shutdown-cpu-0_2_0.05",
+      "pid": 86914,
+      "empty": true
+    },
+    {
+      "case": "shutdown-cpu-1_2_0.005",
+      "pid": 87220,
+      "empty": true
+    },
+    {
+      "case": "shutdown-cpu-1_15_0.05",
+      "pid": 87407,
+      "empty": true
+    },
+    {
+      "case": "shutdown-cpu-0_15_0.0",
+      "pid": 86958,
+      "empty": true
+    },
+    {
+      "case": "shutdown-cpu-0_2_0.0",
+      "pid": 86825,
+      "empty": true
+    },
+    {
+      "case": "shutdown-cpu-0_15_0.05",
+      "pid": 87121,
+      "empty": true
+    },
+    {
+      "case": "shutdown-cpu-1_2_0.05",
+      "pid": 87246,
+      "empty": true
+    },
+    {
+      "case": "shutdown-cpu-1_15_0.005",
+      "pid": 87363,
+      "empty": true
+    },
+    {
+      "case": "shutdown-cpu-0_15_0.005",
+      "pid": 87063,
+      "empty": true
+    },
+    {
+      "case": "shutdown-cpu-1_2_0.0",
+      "pid": 87170,
+      "empty": true
+    },
+    {
+      "case": "creation-wgpu-root",
+      "pid": 86741,
+      "empty": true
+    },
+    {
+      "case": "shutdown-wgpu-1_15_0.0",
+      "pid": 87807,
+      "empty": true
+    },
+    {
+      "case": "shutdown-wgpu-0_2_0.005",
+      "pid": 87493,
+      "empty": true
+    },
+    {
+      "case": "shutdown-wgpu-0_2_0.05",
+      "pid": 87534,
+      "empty": true
+    },
+    {
+      "case": "shutdown-wgpu-1_2_0.005",
+      "pid": 87735,
+      "empty": true
+    },
+    {
+      "case": "shutdown-wgpu-1_15_0.05",
+      "pid": 87893,
+      "empty": true
+    },
+    {
+      "case": "shutdown-wgpu-0_15_0.0",
+      "pid": 87567,
+      "empty": true
+    },
+    {
+      "case": "shutdown-wgpu-0_2_0.0",
+      "pid": 87443,
+      "empty": true
+    },
+    {
+      "case": "shutdown-wgpu-0_15_0.05",
+      "pid": 87649,
+      "empty": true
+    },
+    {
+      "case": "shutdown-wgpu-1_2_0.05",
+      "pid": 87777,
+      "empty": true
+    },
+    {
+      "case": "shutdown-wgpu-1_15_0.005",
+      "pid": 87850,
+      "empty": true
+    },
+    {
+      "case": "shutdown-wgpu-0_15_0.005",
+      "pid": 87619,
+      "empty": true
+    },
+    {
+      "case": "shutdown-wgpu-1_2_0.0",
+      "pid": 87698,
+      "empty": true
+    }
+  ]
+}

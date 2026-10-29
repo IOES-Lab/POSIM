@@ -1,0 +1,8 @@
+{
+  "backend": "cpu",
+  "render_backend": "metal",
+  "topic": "/sonar_creation_61cbebef21fc4326a29cb760f072976e",
+  "sensor_system_plugin": "/Volumes/ExternalHDD/POSIM/bluerov-slam-vrx/.local/sonar-current-main-20261029/assembled-gz-render-init/build/libgz-sim-sensors-system.10.5.0.dylib",
+  "pass": false,
+  "exit": -9
+}

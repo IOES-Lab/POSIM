@@ -1,0 +1,53 @@
+{
+  "integration_before_this_record": "12c0fac671c31fae85a56ab0a4845a7c39e4be2d",
+  "measured_binary_source": "de443a4ee0736ae9b1aeb8146376b770ac4147ad",
+  "ancestors": {
+    "main": "8c47601c7dd4729e3edeabef79665760268fdbc4",
+    "6": "a1786726bd77290f7fba40d8302dec385e6a5324",
+    "31": "27acb0fbf796fe84d3046405798921038fbc5aba",
+    "32": "1d395b92933a4ee897488e13082de3a517877a47",
+    "33": "5f327fd55d4301e4fed125b2a64bead6d5d4ceba",
+    "34": "387ab2174dcb658aed8ba650c4d4c9df67cb1568"
+  },
+  "platform": "27.0",
+  "machine": "arm64",
+  "sdk_posim": "8c47601c7dd4729e3edeabef79665760268fdbc4",
+  "library_sha256": {
+    "libgz-sim-sensors-system.10.5.0.dylib": "0cc6ffaae8fc654595a33364246e310e11b5824f562143ce9942b6d97c92f7cb",
+    "libgz-plugin-loader.4.0.0.dylib": "a6cde5e34bf8350227287f781289b77d033671b7fbc11480df99263a5f102776",
+    "libmultibeam_sonar_system.dylib": "8c030d070399eceecbb31f30271d6e046d70fc154fa2d29c173220ad8c2cc0d6",
+    "libmultibeam_sonar.dylib": "c48d3b2803ea13df0d9cb3ea6fbcdbf3f19cc5ed3eb794b8ccd8eb1e1dc4aaf7"
+  },
+  "loader_assembly": {
+    "upstream": "gz-plugin4_4.0.0",
+    "archive_sha256": "97810f74a8dd3af867ccc3ba3a76853d81167606582dd4f0935284e9979a6209",
+    "patch_sha256": "03182099dfd31f05643b8f9fe2e8b557b4243fe43dbfa3f9379fe228a01a5bb5",
+    "prepared_library_sha256": "a6cde5e34bf8350227287f781289b77d033671b7fbc11480df99263a5f102776",
+    "source_identical_to_constructor_control": true,
+    "installed_sdk_changed": false
+  },
+  "sensor_assembly": {
+    "source_sha256": "52826f34e6018ff3a24210da6a572bb1906519bd860109e8904f5c402a4902f2",
+    "exploratory_difference": "Duplicate Scene readiness guard removed in the assembly source; revalidate the actual assembled binary",
+    "old_stop_patch_sha256": "94fd6442f89614e0417c93a94628fdfb63d60141a81e6f0651e6f82d32a442b5",
+    "render_init_patch_sha256": "500619be164fbd9bedbd6abd0446e3a3b39f2f1f0a62316307fee5bd632a0858",
+    "sdk_changed": false,
+    "retained_patches": [
+      "gz-sim-custom-render-init.patch",
+      "gz-sim-sensor-stop-lifetime.patch"
+    ],
+    "assembled_library_sha256": "0cc6ffaae8fc654595a33364246e310e11b5824f562143ce9942b6d97c92f7cb"
+  },
+  "scope": {
+    "lifecycle_qualified": true,
+    "geometric_accuracy_qualified": false,
+    "slam_map_qualified": false,
+    "installed_archive_qualified": false,
+    "installed_sdk_modified": false
+  },
+  "runtime_changes_since_binary_build": [],
+  "test_only_changes_since_binary_build": [
+    "gazebo/posim_gz_multibeam_sonar/multibeam_sonar/test/test_early_shutdown.py",
+    "gazebo/posim_gz_multibeam_sonar/multibeam_sonar_system/test/test_sensor_creation.py"
+  ]
+}

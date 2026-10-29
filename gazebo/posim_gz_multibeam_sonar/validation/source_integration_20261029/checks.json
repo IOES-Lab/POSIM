@@ -1,0 +1,7 @@
+{
+  "black": "24.10.0, 99 columns",
+  "flake8": "7.1.1, ignore E203/W503/E501",
+  "native_creation_cases": 2,
+  "early_shutdown_cases": 24,
+  "native_geometry_or_slam_qualification": false
+}

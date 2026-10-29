@@ -1,0 +1,46 @@
+[
+  {
+    "variant": "sdk",
+    "phase": "configure",
+    "sensor_sha256": "a51477d19020ba3601edb0f3c8d299ee028fc29695cfb20902a2993a83e8a479",
+    "camera_count": 0,
+    "sonar_count": 0,
+    "render_demand_served": false,
+    "forced_cleanup": false,
+    "pid": 70223,
+    "exit": -11
+  },
+  {
+    "variant": "sdk",
+    "phase": "post",
+    "sensor_sha256": "a51477d19020ba3601edb0f3c8d299ee028fc29695cfb20902a2993a83e8a479",
+    "camera_count": 0,
+    "sonar_count": 0,
+    "render_demand_served": false,
+    "forced_cleanup": false,
+    "pid": 70246,
+    "exit": -11
+  },
+  {
+    "variant": "fixed",
+    "phase": "configure",
+    "sensor_sha256": "0cc6ffaae8fc654595a33364246e310e11b5824f562143ce9942b6d97c92f7cb",
+    "camera_count": 0,
+    "sonar_count": 0,
+    "render_demand_served": true,
+    "forced_cleanup": false,
+    "pid": 70267,
+    "exit": 0
+  },
+  {
+    "variant": "fixed",
+    "phase": "post",
+    "sensor_sha256": "0cc6ffaae8fc654595a33364246e310e11b5824f562143ce9942b6d97c92f7cb",
+    "camera_count": 0,
+    "sonar_count": 0,
+    "render_demand_served": true,
+    "forced_cleanup": false,
+    "pid": 70276,
+    "exit": 0
+  }
+]

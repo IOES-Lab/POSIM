@@ -1,0 +1,42 @@
+[
+  {
+    "library": "/Volumes/ExternalHDD/POSIM/bluerov-slam-vrx/.local/sonar-current-main-20261029/render-demand/build/libdummy-plugin.dylib",
+    "exit": 0,
+    "stdout": "seeded_error=0 loaded_plugins=1\n",
+    "loader_trace": [
+      "dyld[90482]: <C1556FEC-46EE-3C70-8B35-71CF6972DE0A> /Volumes/ExternalHDD/POSIM/bluerov-slam-vrx/.local/sonar-current-main-20261029/gz-plugin/assembled/install/lib/libgz-plugin-loader.4.0.0.dylib"
+    ],
+    "errors": []
+  },
+  {
+    "library": "/Volumes/ExternalHDD/POSIM/bluerov-slam-vrx/.local/sonar-current-main-20261029/render-demand/build/liboptional-lookup-plugin.dylib",
+    "exit": 0,
+    "stdout": "seeded_error=0 loaded_plugins=1\n",
+    "loader_trace": [
+      "dyld[90490]: <C1556FEC-46EE-3C70-8B35-71CF6972DE0A> /Volumes/ExternalHDD/POSIM/bluerov-slam-vrx/.local/sonar-current-main-20261029/gz-plugin/assembled/install/lib/libgz-plugin-loader.4.0.0.dylib"
+    ],
+    "errors": []
+  },
+  {
+    "library": "/Volumes/ExternalHDD/POSIM/bluerov-slam-vrx/.local/sonar-current-main-20261029/render-demand/build/missing.dylib",
+    "exit": 1,
+    "stdout": "seeded_error=0 loaded_plugins=0\n",
+    "loader_trace": [
+      "dyld[90492]: <C1556FEC-46EE-3C70-8B35-71CF6972DE0A> /Volumes/ExternalHDD/POSIM/bluerov-slam-vrx/.local/sonar-current-main-20261029/gz-plugin/assembled/install/lib/libgz-plugin-loader.4.0.0.dylib"
+    ],
+    "errors": [
+      "Error while loading the library [/Volumes/ExternalHDD/POSIM/bluerov-slam-vrx/.local/sonar-current-main-20261029/render-demand/build/missing.dylib]: dlopen(/Volumes/ExternalHDD/POSIM/bluerov-slam-vrx/.local/sonar-current-main-20261029/render-demand/build/missing.dylib, 0x0005): tried: '/Volumes/ExternalHDD/POSIM/bluerov-slam-vrx/.local/sonar-current-main-20261029/gz-plugin/assembled/loader-only/missing.dylib' (no such file), '/Volumes/ExternalHDD/POSIM/bluerov-slam-vrx/.local/sonar-current-main-20261029/render-demand/build/missing.dylib' (no such file), '/System/Volumes/Preboot/Cryptexes/OS/Volumes/ExternalHDD/POSIM/bluerov-slam-vrx/.local/sonar-current-main-20261029/render-demand/build/missing.dylib' (no such file), '/Volumes/ExternalHDD/POSIM/bluerov-slam-vrx/.local/sonar-current-main-20261029/render-demand/build/missing.dylib' (no such file)"
+    ]
+  },
+  {
+    "library": "/Volumes/ExternalHDD/POSIM/bluerov-slam-vrx/.local/posim332f629-sdk/lib/libc++.1.0.dylib",
+    "exit": 1,
+    "stdout": "seeded_error=0 loaded_plugins=0\n",
+    "loader_trace": [
+      "dyld[90493]: <C1556FEC-46EE-3C70-8B35-71CF6972DE0A> /Volumes/ExternalHDD/POSIM/bluerov-slam-vrx/.local/sonar-current-main-20261029/gz-plugin/assembled/install/lib/libgz-plugin-loader.4.0.0.dylib"
+    ],
+    "errors": [
+      "Library [/Volumes/ExternalHDD/POSIM/bluerov-slam-vrx/.local/posim332f629-sdk/lib/libc++.1.0.dylib] does not export any plugins. The symbol [GzPluginHook] is missing, or it is not externally visible."
+    ]
+  }
+]

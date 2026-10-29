@@ -1,0 +1,11 @@
+--- a/loader/src/Loader.cc
++++ b/loader/src/Loader.cc
+@@ -449,7 +449,7 @@
+       void *dlHandle = dlopen(_full_path.c_str(), dlopenMode);
+ 
+       const char *loadError = dlerror();
+-      if (nullptr == dlHandle || nullptr != loadError)
++      if (nullptr == dlHandle)
+       {
+         std::cerr << "Error while loading the library [" << _full_path << "]: "
+                   << loadError << std::endl;

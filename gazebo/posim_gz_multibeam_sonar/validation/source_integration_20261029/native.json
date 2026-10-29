@@ -1,0 +1,262 @@
+{
+  "cpu": {
+    "creation": {
+      "backend": "cpu",
+      "render_backend": "metal",
+      "topic": "/sonar_creation_488810c863194aeb8446c97ec2334b21",
+      "sensor_system_plugin": "/Volumes/ExternalHDD/POSIM/bluerov-slam-vrx/.local/sonar-current-main-20261029/assembled-gz-render-init/build/libgz-sim-sensors-system.10.5.0.dylib",
+      "pass": true,
+      "initial_frames": 5,
+      "initial_initializations": 1,
+      "recreated_frames": 5,
+      "shape": {
+        "beams": 513,
+        "ranges": 399
+      },
+      "total_initializations": 2,
+      "exit": 0
+    },
+    "creation_test_sha256": "ae13ab74b82054ebc373e77f98c49025362cf7f8a651521c130ac4b6053ce1dd",
+    "shutdown": [
+      {
+        "backend": "cpu",
+        "repetition": 0,
+        "signal": 2,
+        "delay_s": 0.0,
+        "passed": true,
+        "shutdown_s": 2.9504041250329465,
+        "exit": 0
+      },
+      {
+        "backend": "cpu",
+        "repetition": 0,
+        "signal": 2,
+        "delay_s": 0.005,
+        "passed": true,
+        "shutdown_s": 3.038054666016251,
+        "exit": 0
+      },
+      {
+        "backend": "cpu",
+        "repetition": 0,
+        "signal": 2,
+        "delay_s": 0.05,
+        "passed": true,
+        "shutdown_s": 2.9462468329584226,
+        "exit": 0
+      },
+      {
+        "backend": "cpu",
+        "repetition": 0,
+        "signal": 15,
+        "delay_s": 0.0,
+        "passed": true,
+        "shutdown_s": 3.1742020419915207,
+        "exit": 0
+      },
+      {
+        "backend": "cpu",
+        "repetition": 0,
+        "signal": 15,
+        "delay_s": 0.005,
+        "passed": true,
+        "shutdown_s": 3.014817667019088,
+        "exit": 0
+      },
+      {
+        "backend": "cpu",
+        "repetition": 0,
+        "signal": 15,
+        "delay_s": 0.05,
+        "passed": true,
+        "shutdown_s": 2.8831607919419184,
+        "exit": 0
+      },
+      {
+        "backend": "cpu",
+        "repetition": 1,
+        "signal": 2,
+        "delay_s": 0.0,
+        "passed": true,
+        "shutdown_s": 2.897711416997481,
+        "exit": 0
+      },
+      {
+        "backend": "cpu",
+        "repetition": 1,
+        "signal": 2,
+        "delay_s": 0.005,
+        "passed": true,
+        "shutdown_s": 2.9044634999590926,
+        "exit": 0
+      },
+      {
+        "backend": "cpu",
+        "repetition": 1,
+        "signal": 2,
+        "delay_s": 0.05,
+        "passed": true,
+        "shutdown_s": 3.05927370802965,
+        "exit": 0
+      },
+      {
+        "backend": "cpu",
+        "repetition": 1,
+        "signal": 15,
+        "delay_s": 0.0,
+        "passed": true,
+        "shutdown_s": 3.012336250045337,
+        "exit": 0
+      },
+      {
+        "backend": "cpu",
+        "repetition": 1,
+        "signal": 15,
+        "delay_s": 0.005,
+        "passed": true,
+        "shutdown_s": 3.0415461660013534,
+        "exit": 0
+      },
+      {
+        "backend": "cpu",
+        "repetition": 1,
+        "signal": 15,
+        "delay_s": 0.05,
+        "passed": true,
+        "shutdown_s": 2.9743751659989357,
+        "exit": 0
+      }
+    ],
+    "shutdown_test_sha256": "43172f5dfa0c4ded73cc256a3cd52d7eddc2fe785d9deb9cad7b155bf0aa846d"
+  },
+  "wgpu": {
+    "creation": {
+      "backend": "wgpu",
+      "render_backend": "metal",
+      "topic": "/sonar_creation_eb6e467f7d2042c4af35e6af2e926996",
+      "sensor_system_plugin": "/Volumes/ExternalHDD/POSIM/bluerov-slam-vrx/.local/sonar-current-main-20261029/assembled-gz-render-init/build/libgz-sim-sensors-system.10.5.0.dylib",
+      "pass": true,
+      "initial_frames": 5,
+      "initial_initializations": 1,
+      "recreated_frames": 5,
+      "shape": {
+        "beams": 513,
+        "ranges": 399
+      },
+      "total_initializations": 2,
+      "exit": 0
+    },
+    "creation_test_sha256": "ae13ab74b82054ebc373e77f98c49025362cf7f8a651521c130ac4b6053ce1dd",
+    "shutdown": [
+      {
+        "backend": "wgpu",
+        "repetition": 0,
+        "signal": 2,
+        "delay_s": 0.0,
+        "passed": true,
+        "shutdown_s": 2.9466505000018515,
+        "exit": 0
+      },
+      {
+        "backend": "wgpu",
+        "repetition": 0,
+        "signal": 2,
+        "delay_s": 0.005,
+        "passed": true,
+        "shutdown_s": 2.951982250029687,
+        "exit": 0
+      },
+      {
+        "backend": "wgpu",
+        "repetition": 0,
+        "signal": 2,
+        "delay_s": 0.05,
+        "passed": true,
+        "shutdown_s": 2.9873150839703158,
+        "exit": 0
+      },
+      {
+        "backend": "wgpu",
+        "repetition": 0,
+        "signal": 15,
+        "delay_s": 0.0,
+        "passed": true,
+        "shutdown_s": 2.872154042008333,
+        "exit": 0
+      },
+      {
+        "backend": "wgpu",
+        "repetition": 0,
+        "signal": 15,
+        "delay_s": 0.005,
+        "passed": true,
+        "shutdown_s": 3.168868625012692,
+        "exit": 0
+      },
+      {
+        "backend": "wgpu",
+        "repetition": 0,
+        "signal": 15,
+        "delay_s": 0.05,
+        "passed": true,
+        "shutdown_s": 2.808629374951124,
+        "exit": 0
+      },
+      {
+        "backend": "wgpu",
+        "repetition": 1,
+        "signal": 2,
+        "delay_s": 0.0,
+        "passed": true,
+        "shutdown_s": 3.033059457957279,
+        "exit": 0
+      },
+      {
+        "backend": "wgpu",
+        "repetition": 1,
+        "signal": 2,
+        "delay_s": 0.005,
+        "passed": true,
+        "shutdown_s": 3.000019541999791,
+        "exit": 0
+      },
+      {
+        "backend": "wgpu",
+        "repetition": 1,
+        "signal": 2,
+        "delay_s": 0.05,
+        "passed": true,
+        "shutdown_s": 2.9196707909577526,
+        "exit": 0
+      },
+      {
+        "backend": "wgpu",
+        "repetition": 1,
+        "signal": 15,
+        "delay_s": 0.0,
+        "passed": true,
+        "shutdown_s": 3.1009016670286655,
+        "exit": 0
+      },
+      {
+        "backend": "wgpu",
+        "repetition": 1,
+        "signal": 15,
+        "delay_s": 0.005,
+        "passed": true,
+        "shutdown_s": 2.8662277920520864,
+        "exit": 0
+      },
+      {
+        "backend": "wgpu",
+        "repetition": 1,
+        "signal": 15,
+        "delay_s": 0.05,
+        "passed": true,
+        "shutdown_s": 2.799660709046293,
+        "exit": 0
+      }
+    ],
+    "shutdown_test_sha256": "43172f5dfa0c4ded73cc256a3cd52d7eddc2fe785d9deb9cad7b155bf0aa846d"
+  }
+}

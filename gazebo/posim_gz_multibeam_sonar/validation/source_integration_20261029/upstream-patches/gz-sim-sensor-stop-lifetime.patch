@@ -1,0 +1,37 @@
+--- a/src/systems/sensors/Sensors.cc
++++ b/src/systems/sensors/Sensors.cc
+@@ -1260,6 +1260,14 @@
+     std::set<sensors::SensorId> &_sensorsToUpdate,
+     const std::chrono::steady_clock::duration &_currentTime)
+ {
++  // Stop marks running false under renderMutex before the render thread
++  // frees sensors. Keep each raw sensor lookup inside that lifetime gate.
++  std::unique_lock<std::mutex> lifetimeLock(this->renderMutex);
++  if (!this->running)
++  {
++    _sensorsToUpdate.clear();
++    return std::chrono::steady_clock::duration::max();
++  }
+   _sensorsToUpdate.clear();
+   std::chrono::steady_clock::duration minNextUpdateTime =
+       std::chrono::steady_clock::duration::max();
+@@ -1317,6 +1325,9 @@
+ //////////////////////////////////////////////////
+ bool SensorsPrivate::SensorsHaveConnections()
+ {
++  std::unique_lock<std::mutex> lifetimeLock(this->renderMutex);
++  if (!this->running)
++    return false;
+   for (auto id : this->sensorIds)
+   {
+     sensors::Sensor *s = this->sensorManager.Sensor(id);
+@@ -1344,6 +1355,9 @@
+ std::unordered_set<sensors::SensorId>
+ SensorsPrivate::SensorsWithPendingTrigger()
+ {
++  std::unique_lock<std::mutex> lifetimeLock(this->renderMutex);
++  if (!this->running)
++    return {};
+   std::unordered_set<sensors::SensorId> sensorsWithPendingTrigger;
+   for (auto id : this->sensorIds)
+   {

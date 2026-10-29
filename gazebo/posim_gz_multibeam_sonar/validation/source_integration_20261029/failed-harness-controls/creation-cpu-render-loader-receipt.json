@@ -1,0 +1,29 @@
+{
+  "kind": "creation",
+  "backend": "cpu",
+  "variant": "render-loader",
+  "command": [
+    "/Volumes/ExternalHDD/POSIM/bluerov-slam-vrx/.local/posim332f629-sdk/bin/python3",
+    "/Volumes/ExternalHDD/POSIM/bluerov-slam-vrx/.local/sonar-current-main-20261029/fixtures-integrated-dependencies/multibeam_sonar_system/test/test_sensor_creation.py",
+    "--backend",
+    "cpu",
+    "--render-backend",
+    "metal",
+    "--output",
+    "/Volumes/ExternalHDD/POSIM/bluerov-slam-vrx/.local/sonar-current-main-20261029/creation-cpu-render-loader"
+  ],
+  "test_sha256": "a177d0655c18886b58b7ffaafd333e76215c5fa7daa5feee1e4afc007c5ebbba",
+  "source_head": "de443a4ee0736ae9b1aeb8146376b770ac4147ad",
+  "exit": 1,
+  "library_traces": {
+    "gazebo.log": [
+      "dyld[81731]: <1E9BA4AA-B5DA-3CF3-80AC-4B880049573F> /usr/lib/libc++.1.dylib",
+      "dyld[81731]: <3D1E41F2-E7FA-3563-8E8D-5B43CE23D337> /Volumes/ExternalHDD/POSIM/bluerov-slam-vrx/.local/posim332f629-sdk/lib/libc++.1.0.dylib",
+      "dyld[81731]: <1E9BA4AA-B5DA-3CF3-80AC-4B880049573F> /usr/lib/libc++.1.dylib",
+      "dyld[81731]: <420F6D65-44A5-3427-A906-3ADAB28F7033> /Volumes/ExternalHDD/POSIM/bluerov-slam-vrx/.local/sonar-current-main-20261029/install/lib/multibeam_sonar_system/libmultibeam_sonar_system.dylib",
+      "dyld[81731]: <3AA8E2EE-6F1D-32FA-801F-C6E9709AD7ED> /Volumes/ExternalHDD/POSIM/bluerov-slam-vrx/.local/sonar-current-main-20261029/install/lib/multibeam_sonar/libmultibeam_sonar.dylib",
+      "dyld[81731]: libgz-sim-rendering.10.5.0.dylib has weak-def (or flat lookup) symbol used by libmultibeam_sonar.dylib, so cannot be delayed",
+      "dyld[81731]: libgz-sim-rendering.10.5.0.dylib has weak-def (or flat lookup) symbol used by libmultibeam_sonar_system.dylib, so cannot be delayed"
+    ]
+  }
+}

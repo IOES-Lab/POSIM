@@ -1,0 +1,14 @@
+[
+  {
+    "library": "libdummy-plugin.dylib",
+    "exit": 0,
+    "stdout": "seeded_error=0 loaded_plugins=1\n",
+    "stderr": ""
+  },
+  {
+    "library": "liboptional-lookup-plugin.dylib",
+    "exit": 1,
+    "stdout": "seeded_error=0 loaded_plugins=0\n",
+    "stderr": "Error while loading the library [/Volumes/ExternalHDD/POSIM/bluerov-slam-vrx/.local/sonar-current-main-20261029/render-demand/build/liboptional-lookup-plugin.dylib]: dlsym(RTLD_DEFAULT, POSIM_deliberately_missing_optional_constructor_probe): symbol not found\n"
+  }
+]
