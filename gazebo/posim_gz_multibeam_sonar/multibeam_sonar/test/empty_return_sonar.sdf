@@ -1,0 +1,52 @@
+<sdf xmlns:gz="http://gazebosim.org" version="1.10">
+  <model name="blueview_p900">
+    <static>true</static>
+    <pose>0 0 2 0 0 0</pose>
+    <link name="sonar_link">
+      <sensor name="multibeam_sonar" type="custom" gz:type="multibeam_sonar">
+        <always_on>true</always_on>
+        <update_rate>5.0</update_rate>
+        <topic>/sensor/multibeam_sonar</topic>
+        <visualize>true</visualize>
+        <gz:multibeam_sonar>
+          <ray degrees="false">
+            <scan>
+              <horizontal>
+                <beams>32</beams>
+                <min_angle>-1.13447</min_angle>
+                <max_angle>1.13447</max_angle>
+              </horizontal>
+              <vertical>
+                <rays>32</rays>
+                <min_angle>-0.10472</min_angle>
+                <max_angle>0.10472</max_angle>
+              </vertical>
+            </scan>
+            <range>
+              <min>0.1</min>
+              <max>10.0</max>
+            </range>
+          </ray>
+          <spec>
+            <verticalFOV>12</verticalFOV>
+            <sonarFreq>900e3</sonarFreq>
+            <bandwidth>29.9e3</bandwidth>
+            <soundSpeed>1500</soundSpeed>
+            <sourceLevel>220</sourceLevel>
+            <maxDistance>10</maxDistance>
+            <raySkips>10</raySkips>
+            <sensorGain>0.02</sensorGain>
+            <blazingSonarImage>true</blazingSonarImage>
+            <writeLog>false</writeLog>
+            <debugFlag>false</debugFlag>
+            <writeFrameInterval>5</writeFrameInterval>
+            <pointCloudTopicName>point_cloud</pointCloudTopicName>
+            <sonarImageRawTopicName>sonar_image_raw</sonarImageRawTopicName>
+            <sonarImageTopicName>sonar_image</sonarImageTopicName>
+            <frameName>forward_sonar_optical_link</frameName>
+          </spec>
+        </gz:multibeam_sonar>
+      </sensor>
+    </link>
+  </model>
+</sdf>
