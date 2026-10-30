@@ -28,7 +28,7 @@ import zlib
 import xml.etree.ElementTree as ET
 
 import rclpy
-from rclpy.qos import DurabilityPolicy, QoSProfile
+from rclpy.qos import DurabilityPolicy, QoSProfile, ReliabilityPolicy
 from rclpy.serialization import serialize_message
 from marine_acoustic_msgs.msg import ProjectedSonarImage
 from sensor_msgs.msg import Image
@@ -174,13 +174,21 @@ def main():
         ProjectedSonarImage,
         "/sensor/multibeam_sonar/sonar_image_raw",
         lambda m: callback(m, "raw"),
-        QoSProfile(depth=20, durability=DurabilityPolicy.TRANSIENT_LOCAL),
+        QoSProfile(
+            depth=20,
+            durability=DurabilityPolicy.VOLATILE,
+            reliability=ReliabilityPolicy.BEST_EFFORT,
+        ),
     )
     node.create_subscription(
         Image,
         "/sensor/multibeam_sonar/sonar_image",
         lambda m: callback(m, "image"),
-        QoSProfile(depth=20),
+        QoSProfile(
+            depth=20,
+            durability=DurabilityPolicy.VOLATILE,
+            reliability=ReliabilityPolicy.BEST_EFFORT,
+        ),
     )
 
     def spin(seconds):
