@@ -142,6 +142,16 @@ if(TARGET gz-sensors::gz-sensors-rendering)
   target_link_libraries(${PROJECT_NAME} gz-sensors::gz-sensors-rendering)
 endif()
 
+if(BUILD_TESTING)
+  enable_testing()
+  add_executable(test_ray_surface_normals test/test_ray_surface_normals.cc)
+  target_compile_features(test_ray_surface_normals PRIVATE cxx_std_17)
+  target_include_directories(test_ray_surface_normals PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR} ${OpenCV_INCLUDE_DIRS})
+  target_link_libraries(test_ray_surface_normals PRIVATE ${OpenCV_LIBS})
+  add_test(NAME ray_surface_normals COMMAND test_ray_surface_normals)
+endif()
+
 install(TARGETS ${PROJECT_NAME}
   DESTINATION lib/${PROJECT_NAME}
 )
