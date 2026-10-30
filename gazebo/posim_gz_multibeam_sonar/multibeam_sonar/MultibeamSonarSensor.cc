@@ -46,6 +46,7 @@
 #include <gz/sensors/RenderingEvents.hh>
 #include <gz/sensors/SensorTypes.hh>
 #include "MultibeamSonarSensor.hh"
+#include "RaySurfaceNormals.hh"
 
 #include <sys/stat.h>
 #include <cstdlib>
@@ -632,28 +633,23 @@ bool MultibeamSonarSensor::Implementation::InitializeBeamArrangement(MultibeamSo
   // Rendering sensors' FOV must be symmetric about its main axis
   beamsSphericalFootprint.Merge(beamsSphericalFootprint.Flip());
 
-  this->raySensor->SetAngleMin(horizAngleMin);
-  this->raySensor->SetAngleMax(horizAngleMax);
-  gzmsg << "Beams Angle Min: " << beamsSphericalFootprint.XMin() << std::endl;
-  gzmsg << "Beams Angle Max: " << beamsSphericalFootprint.XMax() << std::endl;
-  gzmsg << "V Angle Max: " << beamsSphericalFootprint.YMax() << std::endl;
-  gzmsg << "V Angle Min: " << beamsSphericalFootprint.YMin() << std::endl;
+  // Scan limits describe the complete imaging fan. AcousticBeam footprints
+  // include an aperture around each ray and must not enlarge that fan.
+  const double scanHorizontalMin = horizAngleMin * angleUnit.Radian();
+  const double scanHorizontalMax = horizAngleMax * angleUnit.Radian();
+  const double scanVerticalMin = verticalAngleMin * angleUnit.Radian();
+  const double scanVerticalMax = verticalAngleMax * angleUnit.Radian();
+  this->raySensor->SetAngleMin(scanHorizontalMin);
+  this->raySensor->SetAngleMax(scanHorizontalMax);
+  this->raySensor->SetVerticalAngleMin(scanVerticalMin);
+  this->raySensor->SetVerticalAngleMax(scanVerticalMax);
+  gzmsg << "Rendered horizontal limits: " << scanHorizontalMin << ", " << scanHorizontalMax
+        << "; vertical limits: " << scanVerticalMin << ", " << scanVerticalMax << std::endl;
 
-  auto horizontalRayCount = beamCount;
-  if (horizontalRayCount % 2 == 0)
-  {
-    ++horizontalRayCount;  // ensure odd
-  }
+  const auto horizontalRayCount = beamCount;
+  const auto verticalRayCount = rayCount;
   this->raySensor->SetRayCount(horizontalRayCount);
   this->nBeams = horizontalRayCount;
-
-  this->raySensor->SetVerticalAngleMin(beamsSphericalFootprint.YMin());
-  this->raySensor->SetVerticalAngleMax(beamsSphericalFootprint.YMax());
-  auto verticalRayCount = rayCount;
-  if (verticalRayCount % 2 == 0)
-  {
-    ++verticalRayCount;  // ensure odd
-  }
 
   // Currently, this->width equals # of beams, and this->height equals # of rays
   // Each beam consists of (elevation,azimuth)=(this->height,1) rays
@@ -677,10 +673,10 @@ bool MultibeamSonarSensor::Implementation::InitializeBeamArrangement(MultibeamSo
   gzmsg << "Horizontal Ray " << this->raySensor->VerticalRayCount() << " px" << std::endl;
 
   auto & intrinsics = this->raySensorIntrinsics;
-  intrinsics.offset.X(horizAngleMin);
-  intrinsics.offset.Y(beamsSphericalFootprint.YMin());
+  intrinsics.offset.X(scanHorizontalMin);
+  intrinsics.offset.Y(scanVerticalMin);
   intrinsics.step.X(this->hFOV / (horizontalRayCount - 1));
-  intrinsics.step.Y(beamsSphericalFootprint.YSize() / (verticalRayCount - 1));
+  intrinsics.step.Y(this->vFOV / (verticalRayCount - 1));
 
   // Pre-compute scan indices covered by beam spherical
   // footprints for speed during scan iteration
@@ -691,7 +687,12 @@ bool MultibeamSonarSensor::Implementation::InitializeBeamArrangement(MultibeamSo
       AxisAlignedPatch2i{(beam.SphericalFootprint() - intrinsics.offset) / intrinsics.step});
   }
 
-  this->raySensor->SetVisibilityMask(GZ_VISIBILITY_ALL);
+  // Keep RGB-only decorative geometry out of acoustic range measurements when
+  // the world author assigns it a dedicated visibility category.
+  const auto visibilityMask =
+    sensorElement->Get<unsigned int>("visibilityMask", GZ_VISIBILITY_ALL).first;
+  this->raySensor->SetVisibilityMask(visibilityMask);
+  gzmsg << "Acoustic visibility mask: " << visibilityMask << std::endl;
 
   _sensor->AddSensor(this->raySensor);
 
@@ -1107,57 +1108,11 @@ void MultibeamSonarSensor::Implementation::FillPointCloudMsg(const float * _rayB
 }
 
 cv::Mat MultibeamSonarSensor::Implementation::ComputeNormalImage(cv::Mat & depth)
-
 {
-  // filters
-  cv::Mat_<float> f1 = (cv::Mat_<float>(3, 3) << 1, 2, 1, 0, 0, 0, -1, -2, -1) / 8;
-
-  cv::Mat_<float> f2 = (cv::Mat_<float>(3, 3) << 1, 0, -1, 2, 0, -2, 1, 0, -1) / 8;
-
-  cv::Mat f1m, f2m;
-  cv::flip(f1, f1m, 0);
-  cv::flip(f2, f2m, 1);
-
-  cv::Mat n1, n2;
-  cv::filter2D(depth, n1, -1, f1m, cv::Point(-1, -1), 0, cv::BORDER_REPLICATE);
-  cv::filter2D(depth, n2, -1, f2m, cv::Point(-1, -1), 0, cv::BORDER_REPLICATE);
-
-  cv::Mat no_readings;
-  cv::erode(depth == 0, no_readings, cv::Mat(), cv::Point(-1, -1), 2, 1, 1);
-  // cv::dilate(no_readings, no_readings, cv::Mat(),
-  //            cv::Point(-1, -1), 2, 1, 1);
-  n1.setTo(0, no_readings);
-  n2.setTo(0, no_readings);
-
-  std::vector<cv::Mat> images(3);
-  cv::Mat white = cv::Mat::ones(depth.rows, depth.cols, CV_32FC1);
-
-  // NOTE: with different focal lengths, the expression becomes
-  // (-dzx*fy, -dzy*fx, fx*fy)
-  images.at(0) = n1;  // for green channel
-  images.at(1) = n2;  // for red channel
-
-  // Calculate focal length using the actual depth image dimensions (cols) so
-  // this function is safe to call from a background thread without accessing
-  // the shared pointMsg field. Avoid data race with pointMsg.width() which may
-  // be being written to by the render thread concurrently.
-  double focal_length = (0.5 * depth.cols) / tan(0.5 * this->hFOV);
-  images.at(2) = 1.0 / focal_length * depth;  // for blue channel
-
-  cv::Mat normal_image;
-  cv::merge(images, normal_image);
-
-  for (int i = 0; i < normal_image.rows; ++i)
-  {
-    for (int j = 0; j < normal_image.cols; ++j)
-    {
-      cv::Vec3f & n = normal_image.at<cv::Vec3f>(i, j);
-      n = cv::normalize(n);
-      float & d = depth.at<float>(i, j);
-    }
-  }
-
-  return normal_image;
+  return gz::sensors::RaySurfaceNormals(
+    depth, this->azimuth_angles,
+    std::vector<float>(this->elevation_angles, this->elevation_angles + depth.rows),
+    this->maxDistance);
 }
 
 // Precalculation of corrector sonar calculation
@@ -1428,14 +1383,16 @@ void MultibeamSonarSensor::Implementation::ComputeSonarImage()
   this->sonarRawDataMsg.image = sonar_image_data;
   this->sonarImageRawPub->publish(this->sonarRawDataMsg);
 
-  // Generate image of CV_8UC1
-  cv::Mat Intensity_image = cv::Mat::zeros(cv::Size(this->nBeams, this->nFreq), CV_8UC1);
+  // Fan coordinates are metric (one range bin per pixel), not beam-index
+  // coordinates. Keep the full lateral extent and the zero-range origin inside
+  // the raster, independently of the number of horizontal beams.
+  const unsigned int radius = this->nFreq;
+  cv::Mat Intensity_image = cv::Mat::zeros(cv::Size(2 * radius + 1, radius + 1), CV_8UC1);
 
   const float rangeMax = this->maxDistance;
   const float rangeRes = ranges[1] - ranges[0];
   const int nEffectiveRanges = ceil(rangeMax / rangeRes);
-  const unsigned int radius = Intensity_image.size().height;
-  const cv::Point origin(Intensity_image.size().width / 2, Intensity_image.size().height);
+  const cv::Point origin(radius, radius);
   const float binThickness = 2 * ceil(radius / nEffectiveRanges);
 
   struct BearingEntry
@@ -1497,7 +1454,11 @@ void MultibeamSonarSensor::Implementation::ComputeSonarImage()
     for (int b = 0; b < this->nBeams; ++b)
     {
       const float range = ranges[r];
-      const float power_dB = 20.0f * log10(std::abs(P_Beams[this->nBeams - 1 - b][r]) + 1e-10f);
+      const float power = std::abs(P_Beams[this->nBeams - 1 - b][r]);
+      // No echo must stay black, including a frame with no finite returns.
+      // The logarithm epsilon otherwise maps an all-zero frame to full white.
+      const float power_dB =
+        power > 0.0f && std::isfinite(power) ? 20.0f * log10(power + 1e-10f) : min_dB;
       int intensity = static_cast<int>(255.0f * (power_dB - min_dB) / (max_dB - min_dB));
       const float begin = angles[b].begin + ThetaShift, end = angles[b].end + ThetaShift;
       const float rad = static_cast<float>(radius) * range / rangeMax;
