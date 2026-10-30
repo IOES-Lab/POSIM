@@ -160,4 +160,13 @@ ament_environment_hooks(
   "${CMAKE_CURRENT_SOURCE_DIR}/hooks/${PROJECT_NAME}.dsv.in"
 )
 
+if(BUILD_TESTING)
+  enable_testing()
+  add_executable(range_sampling_test test/RangeSampling_TEST.cc)
+  target_include_directories(range_sampling_test
+    PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+  target_link_libraries(range_sampling_test ${PROJECT_NAME})
+  add_test(NAME range_sampling COMMAND range_sampling_test)
+endif()
+
 ament_package()

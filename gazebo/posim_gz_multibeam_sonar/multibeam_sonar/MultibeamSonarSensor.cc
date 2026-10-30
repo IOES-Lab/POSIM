@@ -45,6 +45,7 @@
 #include <gz/sensors/RenderingEvents.hh>
 #include <gz/sensors/SensorTypes.hh>
 #include "MultibeamSonarSensor.hh"
+#include "RangeSampling.hh"
 #include "RaySurfaceNormals.hh"
 
 #include <sys/stat.h>
@@ -726,11 +727,13 @@ bool MultibeamSonarSensor::Implementation::InitializeBeamArrangement(MultibeamSo
   this->attenuation = this->absorption * log(10) / 20.0;
 
   // Range vector
-  const float max_T = this->maxDistance * 2.0 / this->soundSpeed;
-  float delta_f = 1.0 / max_T;
   const float delta_t = 1.0 / this->bandwidth;
-  this->nFreq = ceil(this->bandwidth / delta_f);
-  delta_f = this->bandwidth / this->nFreq;
+  this->nFreq = RangeSampleCount(this->maxDistance, this->soundSpeed, this->bandwidth);
+  if (this->nFreq < 2)
+  {
+    gzerr << "Invalid or unrepresentable sonar range sampling parameters." << std::endl;
+    return false;
+  }
   const int nTime = nFreq;
   this->rangeVector = new float[nTime];
   for (int i = 0; i < nTime; i++)
@@ -754,7 +757,7 @@ bool MultibeamSonarSensor::Implementation::InitializeBeamArrangement(MultibeamSo
     this->ros_node_->get_logger(), "Maximum view range  [m] = " << this->maxDistance);
   RCLCPP_INFO_STREAM(
     this->ros_node_->get_logger(),
-    "Distance resolution [m] = " << this->soundSpeed * (1.0 / (this->nFreq * delta_f)));
+    "Distance resolution [m] = " << this->soundSpeed * delta_t / 2.0);
   RCLCPP_INFO_STREAM(this->ros_node_->get_logger(), "# of Beams = " << this->nBeams);
   RCLCPP_INFO_STREAM(
     this->ros_node_->get_logger(), "# of Rays / Beam (Elevation, Azimuth) = ("
@@ -1471,7 +1474,9 @@ void MultibeamSonarSensor::Implementation::ComputeSonarImage()
   // instead; the raw -inf samples and positive-return rendering are unchanged.
   for (int r = 0; max_power > 0.0f && r < ranges.size(); ++r)
   {
-    if (ranges[r] > rangeMax)
+    // The last bin center may lie just beyond maxDistance. Render its
+    // overlapping half-cell at the outer edge without relabeling raw ranges.
+    if (ranges[r] - 0.5f * rangeRes > rangeMax)
     {
       continue;
     }
@@ -1485,7 +1490,7 @@ void MultibeamSonarSensor::Implementation::ComputeSonarImage()
         power > 0.0f && std::isfinite(power) ? 20.0f * log10(power + 1e-10f) : min_dB;
       int intensity = static_cast<int>(255.0f * (power_dB - min_dB) / (max_dB - min_dB));
       const float begin = angles[b].begin + ThetaShift, end = angles[b].end + ThetaShift;
-      const float rad = static_cast<float>(radius) * range / rangeMax;
+      const float rad = static_cast<float>(radius) * std::min(range, rangeMax) / rangeMax;
       // Assume angles are in image frame x-right, y-down
       cv::ellipse(
         Intensity_image, origin, cv::Size(rad, rad), 0.0, begin * 180.0 / M_PI, end * 180.0 / M_PI,
