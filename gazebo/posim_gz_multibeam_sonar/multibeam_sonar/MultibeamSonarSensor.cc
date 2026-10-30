@@ -943,8 +943,7 @@ bool MultibeamSonarSensor::Update(const std::chrono::steady_clock::duration & _n
   // Capture simulation time before the render callback produces this frame.
   {
     std::lock_guard<std::mutex> lock(this->dataPtr->rayMutex);
-    this->dataPtr->renderStamp =
-      std::chrono::duration_cast<std::chrono::nanoseconds>(_now).count();
+    this->dataPtr->renderStamp = std::chrono::duration_cast<std::chrono::nanoseconds>(_now).count();
   }
   // Generate sensor data
   this->Render();
