@@ -216,10 +216,10 @@ pub unsafe extern "C" fn sonar_wgpu_compute(
     queue.write_buffer(&buf.refl_buf, 0, bytemuck::cast_slice(reflectivity));
     queue.write_buffer(&buf.window_buf, 0, bytemuck::cast_slice(window_vals));
     queue.write_buffer(&buf.bc_buf, 0, bytemuck::cast_slice(beam_corrector));
-    // Zero atomic accumulators (reused each frame)
-    let zeros_i32 = vec![0i32; spectrum_len];
-    queue.write_buffer(&buf.out_re_i32, 0, bytemuck::cast_slice(&zeros_i32));
-    queue.write_buffer(&buf.out_im_i32, 0, bytemuck::cast_slice(&zeros_i32));
+    // Clear inactive/invalid ray amplitudes in the persistent buffers.
+    let zeros_amp = vec![0.0f32; n_beams_us * n_rays_us];
+    queue.write_buffer(&buf.amp_re, 0, bytemuck::cast_slice(&zeros_amp));
+    queue.write_buffer(&buf.amp_im, 0, bytemuck::cast_slice(&zeros_amp));
 
     // ---- Bind groups (metadata only -> no GPU allocation) ----
     let bs_bg = device.create_bind_group(&wgpu::BindGroupDescriptor {
@@ -244,15 +244,11 @@ pub unsafe extern "C" fn sonar_wgpu_compute(
             },
             wgpu::BindGroupEntry {
                 binding: 4,
-                resource: buf.out_re_i32.as_entire_binding(),
+                resource: buf.amp_re.as_entire_binding(),
             },
             wgpu::BindGroupEntry {
                 binding: 5,
-                resource: buf.out_im_i32.as_entire_binding(),
-            },
-            wgpu::BindGroupEntry {
-                binding: 6,
-                resource: buf.window_buf.as_entire_binding(),
+                resource: buf.amp_im.as_entire_binding(),
             },
         ],
     });
@@ -262,11 +258,11 @@ pub unsafe extern "C" fn sonar_wgpu_compute(
         entries: &[
             wgpu::BindGroupEntry {
                 binding: 0,
-                resource: buf.out_re_i32.as_entire_binding(),
+                resource: buf.amp_re.as_entire_binding(),
             },
             wgpu::BindGroupEntry {
                 binding: 1,
-                resource: buf.out_im_i32.as_entire_binding(),
+                resource: buf.amp_im.as_entire_binding(),
             },
             wgpu::BindGroupEntry {
                 binding: 2,
@@ -275,6 +271,18 @@ pub unsafe extern "C" fn sonar_wgpu_compute(
             wgpu::BindGroupEntry {
                 binding: 3,
                 resource: buf.mm_im_in.as_entire_binding(),
+            },
+            wgpu::BindGroupEntry {
+                binding: 4,
+                resource: buf.depth_buf.as_entire_binding(),
+            },
+            wgpu::BindGroupEntry {
+                binding: 5,
+                resource: buf.window_buf.as_entire_binding(),
+            },
+            wgpu::BindGroupEntry {
+                binding: 6,
+                resource: bs_param_buf.as_entire_binding(),
             },
         ],
     });
@@ -332,7 +340,7 @@ pub unsafe extern "C" fn sonar_wgpu_compute(
         label: Some("sonar_enc"),
     });
 
-    // Backscatter dispatch: depth/normals/refl → i32 fixed-point spectrum
+    // Backscatter dispatch: geometry/material → per-ray complex amplitude
     {
         let mut pass = enc.begin_compute_pass(&wgpu::ComputePassDescriptor {
             label: Some("bs_pass"),
@@ -347,7 +355,7 @@ pub unsafe extern "C" fn sonar_wgpu_compute(
         pass.dispatch_workgroups(gx, gy, 1);
     }
 
-    // Convert dispatch: i32 fixed-point → f32 (GPU-side, eliminates CPU readback round-trip)
+    // Synthesize the frequency spectrum by floating-point ray summation.
     {
         let mut pass = enc.begin_compute_pass(&wgpu::ComputePassDescriptor {
             label: Some("conv_pass"),
