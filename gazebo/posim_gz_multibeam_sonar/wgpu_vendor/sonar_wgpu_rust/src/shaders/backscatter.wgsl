@@ -150,9 +150,6 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
   let n_freq_f = f32(params.n_freq);
   let is_even = (params.n_freq % 2u) == 0u;
 
-  // Keep window buffer bound for interface stability.
-  _ = window_vals[0u];
-
   // Per-frequency phase sweep
   for (var f: u32 = 0u; f < params.n_freq; f = f + 1u) {
     var freq: f32;
@@ -169,8 +166,11 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
 
     // let re_val = clamp((amp_re * c - amp_im * s) * SCALE, -LIMIT, LIMIT);
     // let im_val = clamp((amp_re * s + amp_im * c) * SCALE, -LIMIT, LIMIT);
-    let re_val = clamp(i32(round((amp_re * c - amp_im * s) * SCALE)), -LIMIT, LIMIT);
-    let im_val = clamp(i32(round((amp_re * s + amp_im * c) * SCALE)), -LIMIT, LIMIT);
+    // Taper the sampled frequency aperture before the range FFT. The configured
+    // window otherwise has no effect and strong echoes produce range sidelobes.
+    let taper = window_vals[f];
+    let re_val = clamp(i32(round((amp_re * c - amp_im * s) * taper * SCALE)), -LIMIT, LIMIT);
+    let im_val = clamp(i32(round((amp_re * s + amp_im * c) * taper * SCALE)), -LIMIT, LIMIT);
 
     let idx = beam * params.n_freq + f;
     atomicAdd(&out_re[idx], i32(re_val));
