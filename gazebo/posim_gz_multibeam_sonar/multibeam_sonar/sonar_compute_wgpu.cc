@@ -27,8 +27,16 @@ namespace sensors
 
 const char * WgpuComputeBackend::Name() const { return "wgpu"; }
 
-bool WgpuComputeBackend::Initialize(const SonarComputeInput &)
+bool WgpuComputeBackend::Initialize(const SonarComputeInput & prototype)
 {
+  // The factory uses nFreq == 0 for its adapter-only probe. A real sensor
+  // prototype must not exceed the FFT shader's fixed workgroup storage.
+  if (prototype.nFreq < 0 || prototype.nFreq > 4096)
+  {
+    this->initialized = false;
+    std::cerr << "[sonar_wgpu] Frequency count must not exceed 4096." << std::endl;
+    return false;
+  }
   // Probe the Rust FFI to check if a GPU adapter is available. If it is not, report failure
   // so the factory can pick another backend instead of silently computing on the CPU.
   std::vector<float> depth(1, 0.0f);
@@ -78,7 +86,7 @@ bool WgpuComputeBackend::Compute(const SonarComputeInput & input, SonarComputeOu
   const int nRays = input.nRays;
   const int nFreq = input.nFreq;
 
-  if (nBeams <= 0 || nRays <= 0 || nFreq <= 0)
+  if (nBeams <= 0 || nRays <= 0 || nFreq <= 0 || nFreq > 4096)
   {
     return false;
   }

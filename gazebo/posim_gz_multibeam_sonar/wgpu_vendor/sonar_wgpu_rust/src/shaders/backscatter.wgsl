@@ -27,13 +27,10 @@ struct Params {
 @group(0) @binding(1) var<storage, read> depth: array<f32>;
 @group(0) @binding(2) var<storage, read> normals: array<f32>;
 @group(0) @binding(3) var<storage, read> reflectivity: array<f32>;
-@group(0) @binding(4) var<storage, read_write> out_re: array<atomic<i32>>;
-@group(0) @binding(5) var<storage, read_write> out_im: array<atomic<i32>>;
-@group(0) @binding(6) var<storage, read> window_vals: array<f32>;
+@group(0) @binding(4) var<storage, read_write> out_re: array<f32>;
+@group(0) @binding(5) var<storage, read_write> out_im: array<f32>;
 
 const PI: f32 = 3.14159265358979323846;
-const SCALE: f32 = 1024.0;
-const LIMIT: i32 = 2147483520i;  // near i32 max
 
 // Philox4x32-10 RNG: WGPU/WGSL port of CUDA curand implementation.
 // Based on Salmon et al., 2011, SC'11: "Random123: A Library of Counter-Based Random Number Generators".
@@ -146,34 +143,9 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
   let amp_re = (xi.x / sqrt(2.0)) * amp_scale;
   let amp_im = (xi.y / sqrt(2.0)) * amp_scale;
 
-  let delta_f = params.bandwidth / f32(params.n_freq);
-  let n_freq_f = f32(params.n_freq);
-  let is_even = (params.n_freq % 2u) == 0u;
-
-  // Keep window buffer bound for interface stability.
-  _ = window_vals[0u];
-
-  // Per-frequency phase sweep
-  for (var f: u32 = 0u; f < params.n_freq; f = f + 1u) {
-    var freq: f32;
-    if (is_even) {
-      freq = delta_f * (-n_freq_f + 2.0 * (f32(f) + 1.0)) / 2.0;
-    } else {
-      freq = delta_f * (-(n_freq_f - 1.0) + 2.0 * (f32(f) + 1.0)) / 2.0;
-    }
-
-    let kw = 2.0 * PI * freq / params.sound_speed;
-    let phase = 2.0 * d * kw;
-    let c = cos(phase);
-    let s = sin(phase);
-
-    // let re_val = clamp((amp_re * c - amp_im * s) * SCALE, -LIMIT, LIMIT);
-    // let im_val = clamp((amp_re * s + amp_im * c) * SCALE, -LIMIT, LIMIT);
-    let re_val = clamp(i32(round((amp_re * c - amp_im * s) * SCALE)), -LIMIT, LIMIT);
-    let im_val = clamp(i32(round((amp_re * s + amp_im * c) * SCALE)), -LIMIT, LIMIT);
-
-    let idx = beam * params.n_freq + f;
-    atomicAdd(&out_re[idx], i32(re_val));
-    atomicAdd(&out_im[idx], i32(im_val));
-  }
+  // Preserve the complex scattering amplitude in floating point. Frequency
+  // synthesis is a separate pass, so no fixed-point atomics or rounding floor
+  // is introduced before the range transform.
+  out_re[dr] = amp_re;
+  out_im[dr] = amp_im;
 }
