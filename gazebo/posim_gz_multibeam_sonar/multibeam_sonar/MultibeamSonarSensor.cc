@@ -1466,7 +1466,10 @@ void MultibeamSonarSensor::Implementation::ComputeSonarImage()
   float max_dB = 20.0f * log10(max_power + 1e-10f);
   float min_dB = max_dB - 60.0f;
 
-  for (int r = 0; r < ranges.size(); ++r)
+  // With no returns, the per-bin and maximum powers share the epsilon floor.
+  // Normalizing it would draw a false full-white fan. Keep the black image
+  // instead; the raw -inf samples and positive-return rendering are unchanged.
+  for (int r = 0; max_power > 0.0f && r < ranges.size(); ++r)
   {
     if (ranges[r] > rangeMax)
     {
