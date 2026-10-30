@@ -643,9 +643,8 @@ bool MultibeamSonarSensor::Implementation::InitializeBeamArrangement(MultibeamSo
   this->raySensor->SetAngleMax(scanHorizontalMax);
   this->raySensor->SetVerticalAngleMin(scanVerticalMin);
   this->raySensor->SetVerticalAngleMax(scanVerticalMax);
-  gzmsg << "Rendered horizontal limits: " << scanHorizontalMin << ", "
-        << scanHorizontalMax << "; vertical limits: " << scanVerticalMin << ", "
-        << scanVerticalMax << std::endl;
+  gzmsg << "Rendered horizontal limits: " << scanHorizontalMin << ", " << scanHorizontalMax
+        << "; vertical limits: " << scanVerticalMin << ", " << scanVerticalMax << std::endl;
 
   const auto horizontalRayCount = beamCount;
   const auto verticalRayCount = rayCount;
@@ -1110,9 +1109,10 @@ void MultibeamSonarSensor::Implementation::FillPointCloudMsg(const float * _rayB
 
 cv::Mat MultibeamSonarSensor::Implementation::ComputeNormalImage(cv::Mat & depth)
 {
-  return gz::sensors::RaySurfaceNormals(depth, this->azimuth_angles,
-                                      std::vector<float>(this->elevation_angles, this->elevation_angles + depth.rows),
-                                      this->maxDistance);
+  return gz::sensors::RaySurfaceNormals(
+    depth, this->azimuth_angles,
+    std::vector<float>(this->elevation_angles, this->elevation_angles + depth.rows),
+    this->maxDistance);
 }
 
 // Precalculation of corrector sonar calculation
@@ -1387,8 +1387,7 @@ void MultibeamSonarSensor::Implementation::ComputeSonarImage()
   // coordinates. Keep the full lateral extent and the zero-range origin inside
   // the raster, independently of the number of horizontal beams.
   const unsigned int radius = this->nFreq;
-  cv::Mat Intensity_image = cv::Mat::zeros(
-    cv::Size(2 * radius + 1, radius + 1), CV_8UC1);
+  cv::Mat Intensity_image = cv::Mat::zeros(cv::Size(2 * radius + 1, radius + 1), CV_8UC1);
 
   const float rangeMax = this->maxDistance;
   const float rangeRes = ranges[1] - ranges[0];
@@ -1458,8 +1457,8 @@ void MultibeamSonarSensor::Implementation::ComputeSonarImage()
       const float power = std::abs(P_Beams[this->nBeams - 1 - b][r]);
       // No echo must stay black, including a frame with no finite returns.
       // The logarithm epsilon otherwise maps an all-zero frame to full white.
-      const float power_dB = power > 0.0f && std::isfinite(power)
-        ? 20.0f * log10(power + 1e-10f) : min_dB;
+      const float power_dB =
+        power > 0.0f && std::isfinite(power) ? 20.0f * log10(power + 1e-10f) : min_dB;
       int intensity = static_cast<int>(255.0f * (power_dB - min_dB) / (max_dB - min_dB));
       const float begin = angles[b].begin + ThetaShift, end = angles[b].end + ThetaShift;
       const float rad = static_cast<float>(radius) * range / rangeMax;
