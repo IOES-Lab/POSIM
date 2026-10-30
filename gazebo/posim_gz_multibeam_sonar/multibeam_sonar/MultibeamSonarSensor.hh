@@ -265,7 +265,7 @@ private:
 
     // Time
     double lastMeasurementTime = 0.0;
-    int64_t renderStamp = 0;  // Protected by rayMutex.
+    int64_t renderStamp = 0;    // Protected by rayMutex.
     int64_t snapshotStamp = 0;  // Protected by lock_, with pointCloudImage.
   };
 
