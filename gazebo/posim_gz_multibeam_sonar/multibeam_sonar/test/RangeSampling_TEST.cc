@@ -23,6 +23,7 @@ int main()
   try
   {
     Require(RangeSampleCount(10, 1500, 29900) == 400, "fractional endpoint");
+    Require(RangeSampleCount(15, 1500, 29900) == 599, "15 m demo endpoint");
     Require(RangeSampleCount(10, 1500, 38400) == 513, "integer endpoint");
     Require(RangeSampleCount(10, 1500, 29925) == 400, "odd integer endpoint");
     Require(RangeSampleCount(10, 1500, 38325) == 512, "avoid intermediate quotient rounding");
@@ -50,7 +51,7 @@ int main()
     int cases = 0;
     for (double bw : {29900.0, 29925.0, 38400.0})
     {
-      for (double maximum : {5.0, 10.0, 20.0})
+      for (double maximum : {5.0, 10.0, 15.0, 20.0})
       {
         const double dr = 1500.0 / (2.0 * bw);
         const int n = RangeSampleCount(maximum, 1500, bw);
