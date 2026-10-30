@@ -235,6 +235,16 @@ MultibeamSonarSensor::~MultibeamSonarSensor()
   {
     this->dataPtr->ros_executor_->remove_node(this->dataPtr->ros_node_);
   }
+  this->dataPtr->sonarImageRawPub.reset();
+  this->dataPtr->sonarImagePub.reset();
+  this->dataPtr->normalImagePub.reset();
+  this->dataPtr->ros_executor_.reset();
+  this->dataPtr->ros_node_.reset();
+  if (this->dataPtr->ros_context_)
+  {
+    this->dataPtr->ros_context_->shutdown("Multibeam sonar sensor destroyed");
+    this->dataPtr->ros_context_.reset();
+  }
   this->dataPtr->rayConnection.reset();
   this->dataPtr->sceneChangeConnection.reset();
   // CSV log write stream close
@@ -494,13 +504,20 @@ bool MultibeamSonarSensor::Implementation::InitializeBeamArrangement(MultibeamSo
 
   // ROS Initialization
 
-  if (!rclcpp::ok())
-  {
-    rclcpp::init(0, nullptr);
-  }
-
-  this->ros_node_ = std::make_shared<rclcpp::Node>("multibeam_sonar_node");
-  this->ros_executor_ = std::make_shared<rclcpp::executors::SingleThreadedExecutor>();
+  // Gazebo owns process signals. Keep this sensor's ROS lifetime independent
+  // from the global context and from other plugins' signal handlers. In
+  // particular, shutdown must not invalidate the context during node creation.
+  this->ros_context_ = std::make_shared<rclcpp::Context>();
+  rclcpp::InitOptions initOptions;
+  initOptions.shutdown_on_signal = false;
+  this->ros_context_->init(0, nullptr, initOptions);
+  rclcpp::NodeOptions nodeOptions;
+  nodeOptions.context(this->ros_context_);
+  this->ros_node_ = std::make_shared<rclcpp::Node>("multibeam_sonar_node", nodeOptions);
+  rclcpp::ExecutorOptions executorOptions;
+  executorOptions.context = this->ros_context_;
+  this->ros_executor_ =
+    std::make_shared<rclcpp::executors::SingleThreadedExecutor>(executorOptions);
   this->ros_executor_->add_node(this->ros_node_);
 
   // Create the point cloud publisher
@@ -842,7 +859,7 @@ void MultibeamSonarSensor::Implementation::OnNewFrame(
   unsigned int samples = _width * _height * _channels;
   unsigned int rayBufferSize = samples * sizeof(float);
 
-  this->lastMeasurementTime = this->ros_node_->now().seconds();
+  this->lastMeasurementTime = static_cast<double>(this->renderStamp) * 1e-9;
 
   // Allocate memory for the ray buffer if not already allocated
   if (!this->rayBuffer)
@@ -925,6 +942,11 @@ bool MultibeamSonarSensor::Update(const std::chrono::steady_clock::duration & _n
     this->dataPtr->publishingPointCloud = true;
   }
 
+  // Capture simulation time before the render callback produces this frame.
+  {
+    std::lock_guard<std::mutex> lock(this->dataPtr->rayMutex);
+    this->dataPtr->renderStamp = std::chrono::duration_cast<std::chrono::nanoseconds>(_now).count();
+  }
   // Generate sensor data
   this->Render();
 
@@ -1052,6 +1074,7 @@ void MultibeamSonarSensor::Implementation::FillPointCloudMsg(const float * _rayB
 
   // After filling pointMsg, compute pointCloudImage as well
   this->lock_.lock();
+  this->snapshotStamp = this->renderStamp;
   this->pointCloudImage.create(height, width, CV_32FC1);
   cv::MatIterator_<float> iter_image = this->pointCloudImage.begin<float>();
 
@@ -1158,7 +1181,7 @@ void MultibeamSonarSensor::Implementation::ComputeSonarImage()
       return;
     }
     depthSnapshot = this->pointCloudImage.clone();
-    capturedStamp = this->ros_node_->now();
+    capturedStamp = rclcpp::Time(this->snapshotStamp, RCL_ROS_TIME);
 
     if (this->beamCorrectorSum == 0)
     {

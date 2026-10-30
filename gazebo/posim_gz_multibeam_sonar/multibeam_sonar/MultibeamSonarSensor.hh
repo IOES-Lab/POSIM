@@ -118,6 +118,8 @@ private:
     std::mutex computeMutex_;
     bool newFrameReady_{false};
     bool stopThread_{false};
+    // Owned ROS context; declared before its users so it outlives them.
+    std::shared_ptr<rclcpp::Context> ros_context_;
     // ROS node pointer
     std::shared_ptr<rclcpp::Node> ros_node_;
     std::shared_ptr<rclcpp::executors::SingleThreadedExecutor> ros_executor_;
@@ -262,7 +264,9 @@ private:
     bool writeLogFlag;
 
     // Time
-    double lastMeasurementTime;
+    double lastMeasurementTime = 0.0;
+    int64_t renderStamp = 0;    // Protected by rayMutex.
+    int64_t snapshotStamp = 0;  // Protected by lock_, with pointCloudImage.
   };
 
   std::unique_ptr<Implementation> dataPtr;
