@@ -25,6 +25,7 @@ import sys
 import time
 import uuid
 import zlib
+import xml.etree.ElementTree as ET
 
 import rclpy
 from rclpy.qos import DurabilityPolicy, QoSProfile
@@ -63,6 +64,18 @@ def main():
     parser.add_argument("--backend", choices=("cpu", "wgpu", "cuda"), default="cpu")
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--service-command", default="gz service")
+    parser.add_argument("--sensor-system-plugin", type=Path)
+    parser.add_argument(
+        "--render-backend",
+        choices=("metal", "headless"),
+        default="metal" if sys.platform == "darwin" else "headless",
+    )
+    parser.add_argument(
+        "--preview-layout",
+        choices=("metric", "beam-raster"),
+        default="metric",
+        help="Metric fan is separate from the raw range-by-beam matrix; legacy control is explicit.",
+    )
     args = parser.parse_args()
     args.output = args.output.resolve()
     args.output.mkdir(parents=True, exist_ok=False)
@@ -75,16 +88,38 @@ def main():
     here = Path(__file__).resolve().parent
     env_world = os.environ.get("SONAR_DISPLAY_TEST_WORLD")
     world = Path(env_world) if env_world else here / "empty_return_world.sdf"
+    if args.sensor_system_plugin:
+        if not args.sensor_system_plugin.is_file():
+            parser.error("--sensor-system-plugin must name an existing library")
+        tree = ET.parse(world)
+        tree.getroot().find("./world/plugin[@name='gz::sim::systems::Sensors']").set(
+            "filename", str(args.sensor_system_plugin.resolve())
+        )
+        world = args.output / "world.sdf"
+        tree.write(world, encoding="utf-8", xml_declaration=True)
+    rendering = (
+        ["--render-engine-server-api-backend", "metal"]
+        if args.render_backend == "metal"
+        else ["--headless-rendering"]
+    )
     model = here / "empty_return_sonar.sdf"
     rclpy.init()
     node = rclpy.create_node("sonar_display_regression")
-    result = {"backend": args.backend, "pass": False, "phases": []}
-    phase = {"active": False, "fence": 0, "pairs": [], "raw": {}, "image": {}}
+    result = {
+        "backend": args.backend,
+        "pass": False,
+        "phases": [],
+        "render_backend": args.render_backend,
+        "preview_layout": args.preview_layout,
+        "fence_clock": "published_message_header",
+    }
+    phase = {"active": False, "fence": 0, "pairs": [], "raw": {}, "image": {}, "latest_stamp": -1}
     proc = None
 
     def callback(message, kind):
         result[kind + "_received"] = result.get(kind + "_received", 0) + 1
         t = stamp(message)
+        phase["latest_stamp"] = max(phase["latest_stamp"], t)
         if not phase["active"] or t <= phase["fence"] or len(phase["pairs"]) >= 25:
             return
         phase[kind][t] = message
@@ -101,14 +136,16 @@ def main():
         assert all(x < y for x, y in zip(raw.ranges, raw.ranges[1:]))
         assert raw.image.dtype == raw.image.DTYPE_FLOAT32
         assert len(raw.image.data) == n * b * 4
-        assert image.encoding == "bgr8" and (image.height, image.width) == (n, b)
-        assert image.step >= b * 3 and len(image.data) == image.height * image.step
+        shape = (n + 1, 2 * n + 1) if args.preview_layout == "metric" else (n, b)
+        assert image.encoding == "bgr8" and (image.height, image.width) == shape
+        assert image.step >= image.width * 3 and len(image.data) == image.height * image.step
         values = array.array("f", bytes(raw.image.data))
         if bool(raw.image.is_bigendian) != (sys.byteorder == "big"):
             values.byteswap()
         assert not any(math.isnan(v) or v == math.inf for v in values)
         pixels = b"".join(
-            bytes(image.data[y * image.step : y * image.step + b * 3]) for y in range(n)
+            bytes(image.data[y * image.step : y * image.step + image.width * 3])
+            for y in range(image.height)
         )
         empty = all(v == -math.inf for v in values)
         if not phase["pairs"]:
@@ -177,7 +214,7 @@ def main():
     try:
         with (args.output / "gazebo.log").open("w") as log:
             proc = subprocess.Popen(
-                ["gz", "sim", "-s", "-r", "--headless-rendering", "-v", "4", str(world)],
+                ["gz", "sim", "-s", "-r", *rendering, "-v", "4", str(world)],
                 cwd=args.output,
                 env=env,
                 stdout=log,
@@ -201,10 +238,12 @@ def main():
                 spin(2)
                 dest = args.output / str(distance)
                 dest.mkdir()
-                # Sonar raw and image headers both use the captured ROS system timestamp.
+                # Fence in the published headers' own clock domain. Captured
+                # simulation stamps must never be compared with Unix wall time.
+                assert phase["latest_stamp"] >= 0, "No timestamp observed before phase"
                 phase.update(
                     active=True,
-                    fence=time.time_ns(),
+                    fence=phase["latest_stamp"],
                     pairs=[],
                     raw={},
                     image={},
