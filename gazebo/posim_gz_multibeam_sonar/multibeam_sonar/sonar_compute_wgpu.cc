@@ -1,4 +1,5 @@
 #include "sonar_compute_wgpu.hh"
+#include "sonar_native_trace.hh"
 
 #include <algorithm>
 #include <chrono>
@@ -147,15 +148,15 @@ bool WgpuComputeBackend::Compute(const SonarComputeInput & input, SonarComputeOu
     }
   }
 
-  float * result = sonar_wgpu_compute(
-    depthFlat.data(), normalFlat.data(), reflFlat.data(), beamCorrectorFlat.data(),
-    windowFlat.data(), static_cast<uint32_t>(nBeams), static_cast<uint32_t>(nRays),
-    static_cast<uint32_t>(nFreq), static_cast<uint32_t>(std::max(0, input.raySkips)),
-    static_cast<float>(input.soundSpeed), static_cast<float>(input.maxDistance),
-    static_cast<float>(input.sourceLevel), static_cast<float>(input.attenuation), input.sensorGain,
-    static_cast<float>(input.bandwidth), input.beamCorrectorSum, area_scaler,
-    static_cast<float>(input.hFOV), static_cast<float>(input.vFOV), input.frameIndex, input.seed,
-    input.debugFlag);
+  float * result = native_trace::Call(
+    sonar_wgpu_compute, depthFlat.data(), normalFlat.data(), reflFlat.data(),
+    beamCorrectorFlat.data(), windowFlat.data(), static_cast<uint32_t>(nBeams),
+    static_cast<uint32_t>(nRays), static_cast<uint32_t>(nFreq),
+    static_cast<uint32_t>(std::max(0, input.raySkips)), static_cast<float>(input.soundSpeed),
+    static_cast<float>(input.maxDistance), static_cast<float>(input.sourceLevel),
+    static_cast<float>(input.attenuation), input.sensorGain, static_cast<float>(input.bandwidth),
+    input.beamCorrectorSum, area_scaler, static_cast<float>(input.hFOV),
+    static_cast<float>(input.vFOV), input.frameIndex, input.seed, input.debugFlag);
 
   if (!result)
   {

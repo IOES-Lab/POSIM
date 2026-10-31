@@ -947,6 +947,11 @@ bool MultibeamSonarSensor::Update(const std::chrono::steady_clock::duration & _n
   {
     std::lock_guard<std::mutex> lock(this->dataPtr->rayMutex);
     this->dataPtr->renderStamp = std::chrono::duration_cast<std::chrono::nanoseconds>(_now).count();
+    if (native_trace::Requested())
+    {
+      this->dataPtr->renderTrace =
+        native_trace::Capture(this->dataPtr->raySensor, this->dataPtr->renderStamp);
+    }
   }
   // Generate sensor data
   this->Render();
@@ -1076,6 +1081,16 @@ void MultibeamSonarSensor::Implementation::FillPointCloudMsg(const float * _rayB
   // After filling pointMsg, compute pointCloudImage as well
   this->lock_.lock();
   this->snapshotStamp = this->renderStamp;
+  if (native_trace::Requested())
+  {
+    // This callback owns the actual rendered ray frame. Record rendering-node
+    // poses here, not later on the asynchronous compute/physics thread.
+    auto trace = native_trace::Capture(this->raySensor, this->snapshotStamp);
+    trace.beginWorld = this->renderTrace.world;
+    trace.beginStampNs = this->renderTrace.stampNs;
+    trace.hasBegin = this->renderTrace.valid;
+    this->snapshotTrace = trace;
+  }
   this->pointCloudImage.create(height, width, CV_32FC1);
   cv::MatIterator_<float> iter_image = this->pointCloudImage.begin<float>();
 
@@ -1171,6 +1186,7 @@ void MultibeamSonarSensor::Implementation::ComputeSonarImage()
   // Snapshot the depth image quickly, then release the lock so the render
   // thread can fill the next frame without waiting for GPU compute.
   cv::Mat depthSnapshot;
+  native_trace::Frame capturedTrace;
   // Capture the timestamp and image dimensions while holding the lock so that
   // all published messages share one coherent stamp matching when the data was
   // recorded -- mismatched stamps are the primary cause of RViz flicker.
@@ -1183,6 +1199,7 @@ void MultibeamSonarSensor::Implementation::ComputeSonarImage()
     }
     depthSnapshot = this->pointCloudImage.clone();
     capturedStamp = rclcpp::Time(this->snapshotStamp, RCL_ROS_TIME);
+    capturedTrace = this->snapshotTrace;
 
     if (this->beamCorrectorSum == 0)
     {
@@ -1248,6 +1265,7 @@ void MultibeamSonarSensor::Implementation::ComputeSonarImage()
   input.seed = this->sonarSeed;
 
   SonarComputeOutput backendOutput;
+  native_trace::Scope traceScope(capturedTrace);
   if (!this->computeBackend->Compute(input, backendOutput))
   {
     RCLCPP_ERROR_STREAM(

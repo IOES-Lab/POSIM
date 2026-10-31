@@ -150,6 +150,12 @@ if(BUILD_TESTING)
     ${CMAKE_CURRENT_SOURCE_DIR} ${OpenCV_INCLUDE_DIRS})
   target_link_libraries(test_ray_surface_normals PRIVATE ${OpenCV_LIBS})
   add_test(NAME ray_surface_normals COMMAND test_ray_surface_normals)
+  add_executable(test_native_trace test/NativeTrace_TEST.cc)
+  find_package(Threads REQUIRED)
+  target_compile_features(test_native_trace PRIVATE cxx_std_17)
+  target_include_directories(test_native_trace PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+  target_link_libraries(test_native_trace PRIVATE Threads::Threads)
+  add_test(NAME bounded_native_trace COMMAND test_native_trace ctest)
 endif()
 
 install(TARGETS ${PROJECT_NAME}

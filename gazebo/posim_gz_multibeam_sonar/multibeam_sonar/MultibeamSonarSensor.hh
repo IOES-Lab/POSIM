@@ -27,6 +27,7 @@
 #include "AcousticBeam.hh"
 #include "AxisAlignedPatch2.hh"
 #include "sonar_compute_backend.hh"
+#include "sonar_native_trace.hh"
 
 namespace gz
 {
@@ -267,6 +268,8 @@ private:
     double lastMeasurementTime = 0.0;
     int64_t renderStamp = 0;    // Protected by rayMutex.
     int64_t snapshotStamp = 0;  // Protected by lock_, with pointCloudImage.
+    native_trace::Frame snapshotTrace;  // Same snapshot and render callback, opt-in only.
+    native_trace::Frame renderTrace;  // Pre-render node pose, protected by rayMutex.
   };
 
   std::unique_ptr<Implementation> dataPtr;
