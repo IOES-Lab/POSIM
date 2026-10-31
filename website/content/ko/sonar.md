@@ -50,13 +50,13 @@ ros2 topic hz /sensor/multibeam_sonar/sonar_image
 | --- | --- | --- |
 | `/sensor/multibeam_sonar/sonar_image` | `sensor_msgs/msg/Image` | RViz의 Image 디스플레이에서 소나 강도 영상 표시 |
 | `/sensor/multibeam_sonar/sonar_image_raw` | `marine_acoustic_msgs/msg/ProjectedSonarImage` | 거리·빔 정보를 포함한 음향 관측값 확인 |
-| `/sensor/multibeam_sonar/point_cloud` | `sensor_msgs/msg/PointCloud2` | RViz의 PointCloud2 디스플레이에서 광선의 기하 정보 표시 |
+| `/sensor/multibeam_sonar/point_cloud` | `sensor_msgs/msg/PointCloud2` | RViz의 PointCloud2 디스플레이에서 음선의 기하 정보 표시 |
 
 소나는 영상과 원시 음향 메시지를 ROS 2에 직접 발행합니다. 센서 설정의 브리지는 Gazebo 점군을 ROS 2로 전달합니다. 토픽 이름을 바꾼 경우 `ros2 topic list -t`로 확인하세요.
 
 ## 센서 계산 흐름
 
-Gazebo는 장면의 광선 거리와 표면 법선을 제공합니다. 소나 모델은 음향 후방 산란을 계산하고 빔 보정과 거리 압축을 수행합니다. 계산된 음향 데이터와 표시 영상은 같은 관측을 나타냅니다. 분석에는 원시 데이터를 사용하고, 영상과 함께 gain·표시 설정을 보관하세요.
+Gazebo는 장면의 음선 거리와 표면 법선을 제공합니다. 소나 모델은 음향 후방 산란을 계산하고 빔 보정과 거리 압축을 수행합니다. 계산된 음향 데이터와 표시 영상은 같은 관측을 나타냅니다. 분석에는 원시 데이터를 사용하고, 영상과 함께 gain·표시 설정을 보관하세요.
 
 ## 센서 구성
 
@@ -81,7 +81,7 @@ Gazebo는 장면의 광선 거리와 표면 법선을 제공합니다. 소나 �
 
 ## 소나 센서와 월드 추가하기
 
-`models/posim_sensor_models/description/blueview_p900/`을 새 센서 이름으로 복사합니다. 같은 이름의 `config/<센서 이름>/sensor_config.py`도 준비하고, SDF의 모델·링크·프레임과 브리지 토픽을 함께 맞춥니다. `<ray>`의 수평 빔·수직 광선 수와 각도, 거리 범위를 센서 사양에 맞게 설정합니다.
+`models/posim_sensor_models/description/blueview_p900/`을 새 센서 이름으로 복사합니다. 같은 이름의 `config/<센서 이름>/sensor_config.py`도 준비하고, SDF의 모델·링크·프레임과 브리지 토픽을 함께 맞춥니다. `<ray>`의 수평 빔·수직 음선 수와 각도, 거리 범위를 센서 사양에 맞게 설정합니다.
 
 월드에는 Gazebo 렌더링 센서 시스템과 소나 시스템을 포함합니다. 물리·장면·사용자 센서의 나머지 구성은 [소나 월드 SDF](https://github.com/IOES-Lab/POSIM/blob/main/models/posim_worlds/worlds/posim_multibeam_sonar.world)를 참고하세요.
 
