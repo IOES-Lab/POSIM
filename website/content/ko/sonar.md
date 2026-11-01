@@ -58,6 +58,10 @@ ros2 topic hz /sensor/multibeam_sonar/sonar_image
 
 Gazebo는 장면의 음선 거리와 표면 법선을 제공합니다. 소나 모델은 음향 후방 산란을 계산하고 빔 보정과 거리 압축을 수행합니다. 계산된 음향 데이터와 표시 영상은 같은 관측을 나타냅니다. 분석에는 원시 데이터를 사용하고, 영상과 함께 gain·표시 설정을 보관하세요.
 
+`spec/receiveBeamWidth`를 양수로 설정하면 Gazebo 기하 표본, 수신 방향과 거리 출력을 분리하는 물리 모드를 사용합니다. 각도 셀은 입체각과 표면 투영 면적에 따라 기여하며, 부호를 유지하는 수신 응답으로 빔을 구성합니다. 고정 대역폭의 단위 피크 기저대역 Hamming 펄스를 사용하고, 내부 계산 구간을 출력 거리 구간보다 길게 둡니다. 거리 간격은 `soundSpeed / (2 × bandwidth)`이며 계산 길이가 펄스 이득을 결정하지 않습니다.
+
+`ray/scan/horizontal/samples`는 기하 열 수, `beams`는 수신 방향 수입니다. `spec/receiveBeamWidth`는 전력 반치전폭을 라디안으로 지정하며, `spec/receiveGain`은 선형 압력 이득입니다(기본값 1). 폭을 생략하거나 0으로 지정하면 기본 격자 기반 방식을 사용합니다. 독립 물리 모드는 CPU·WGPU와 최대 2,048개의 거리 출력을 지원하며 CUDA에서는 지원하지 않습니다. 프레임과 기하 셀마다 산란 계수를 생성합니다. 기저대역 반사를 모델링하며, 반송파 위상 전파와 실측 장비의 절대 진폭 보정은 제공하지 않습니다.
+
 ## 센서 구성
 
 모델은 `type="custom" gz:type="multibeam_sonar"`를, 월드는 `multibeam_sonar_system`을 사용합니다. BlueView P900 예제의 설정은 다음과 같습니다.

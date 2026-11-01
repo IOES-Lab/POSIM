@@ -58,6 +58,10 @@ The sonar publishes image and raw acoustic messages directly to ROS 2. The senso
 
 Gazebo supplies ray depths and surface normals for the scene. The sonar model computes acoustic backscatter, applies beam correction and compresses the returns into range bins. The resulting acoustic data and display image describe the same observation. Use raw data for analysis and retain the gain and display settings with recorded images.
 
+With a positive `spec/receiveBeamWidth`, the physical readout treats Gazebo geometry samples, receiver directions and range outputs independently. Angular cells contribute according to their solid angle and projected surface area, then a signed receive response combines them into beams. A fixed-bandwidth, unit-peak baseband Hamming pulse uses a longer internal calculation interval than the published range interval. Range spacing is `soundSpeed / (2 × bandwidth)`; calculation length does not set pulse gain.
+
+Set `ray/scan/horizontal/samples` for geometry columns and `beams` for receiver directions. `spec/receiveBeamWidth` specifies the full power half-maximum width in radians, and `spec/receiveGain` sets linear pressure gain (default 1). Missing or zero width selects the default grid-based readout. The independent physical mode supports CPU and WGPU, with at most 2,048 output ranges; CUDA does not support this mode. Scattering coefficients are generated per frame and geometry cell. This model represents baseband returns; carrier-phase propagation and hardware amplitude calibration are not provided.
+
 ## Sensor configuration
 
 The sensor model uses `type="custom" gz:type="multibeam_sonar"`. The world loads `multibeam_sonar_system`. The BlueView P900 example requests:
