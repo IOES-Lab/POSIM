@@ -27,6 +27,7 @@
 #include "AcousticBeam.hh"
 #include "AcousticReadout.hh"
 #include "AxisAlignedPatch2.hh"
+#include "PerspectiveSonarGeometry.hh"
 #include "sonar_compute_backend.hh"
 
 namespace gz
@@ -142,6 +143,7 @@ private:
 
     // Sensor properties
     double maximumRange;
+    double minimumRange{0.1};
     double hFOV;
     double vFOV;
     int nRays;
@@ -163,6 +165,7 @@ private:
     float receiveGain{1.f};
     // Immutable after setup; geometry angles stay separate from receiver directions.
     std::unique_ptr<const AcousticReadout> physicalReadout;
+    std::unique_ptr<const PerspectiveSonarGeometry> perspectiveGeometry;
     std::vector<float> receiveAngles;
 
     // Topics and frame names
@@ -198,6 +201,9 @@ private:
 
     // OpenCV images
     cv::Mat pointCloudImage;
+    cv::Mat measuredPoints;
+    int64_t physicalRenderStamp{0};    // Protected by rayMutex.
+    int64_t physicalSnapshotStamp{0};  // Protected by lock_, with both images.
     cv::Mat reflectivityImage;
     cv::Mat randImage;
 
@@ -209,6 +215,7 @@ private:
 
     // Rendering sensors
     gz::rendering::GpuRaysPtr raySensor;
+    gz::rendering::DepthCameraPtr depthSensor;
     gz::rendering::CameraPtr imageSensor;
 
     struct
@@ -221,6 +228,9 @@ private:
     void OnNewFrame(
       const float * _scan, unsigned int _width, unsigned int _height, unsigned int _channels,
       const std::string & /*_format*/);
+    void OnNewDepthFrame(
+      const float * _scan, unsigned int _width, unsigned int _height, unsigned int _channels,
+      const std::string & _format);
     void ComputeSonarImage();
     cv::Mat ComputeNormalImage(cv::Mat & depth);
     void ComputeCorrector(int _snapshotWidth, int _nBeams);

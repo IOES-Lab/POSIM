@@ -152,6 +152,13 @@ if(BUILD_TESTING)
   target_link_libraries(test_ray_surface_normals PRIVATE ${OpenCV_LIBS})
   add_test(NAME ray_surface_normals COMMAND test_ray_surface_normals)
 
+  add_executable(perspective_geometry_test test/PerspectiveGeometry_TEST.cc)
+  target_compile_features(perspective_geometry_test PRIVATE cxx_std_17)
+  target_include_directories(perspective_geometry_test PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR} ${OpenCV_INCLUDE_DIRS})
+  target_link_libraries(perspective_geometry_test PRIVATE ${OpenCV_LIBS})
+  add_test(NAME perspective_geometry COMMAND perspective_geometry_test)
+
   add_executable(scattering_range_test test/ScatteringRange_TEST.cc)
   target_compile_features(scattering_range_test PRIVATE cxx_std_17)
   target_include_directories(scattering_range_test PRIVATE
