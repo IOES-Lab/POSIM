@@ -101,7 +101,7 @@ far.set_title("Far range: target retained", loc="left", fontsize=11)
 near.text(
     0.045,
     57,
-    f"Before: {100*old_share[x<.5].sum():.2f}%\nAfter: <0.000001%",
+    f"Before: {100 * old_share[x < 0.5].sum():.2f}%\nAfter: <0.000001%",
     fontsize=11,
     linespacing=1.6,
     color="#142639",
