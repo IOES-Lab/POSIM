@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
+#include "PerspectiveSonarGeometry.hh"
 #include "PhysicalPulse.hh"
 #include "PhysicalSonarInput.hh"
 
@@ -241,6 +242,26 @@ void Selection(const std::string & name, bool radixOnly)
     Compute(*automatic, odd.input);
   }
 }
+
+void PerspectiveInput(ComputeBackend & backend)
+{
+  Scene scene(17, 3, 64, 1);
+  const auto grid =
+    MakePerspectiveSonarGeometry(17, 7, M_PI / 3, M_PI / 18, 2, {-.25f, 0.f, .25f}, .08);
+  scene.model = grid.readout;
+  SonarComputeOutput reference;
+  Require(ComputePhysicalSonarCpu(scene.input, reference), "perspective CPU input rejected");
+  const auto output = Compute(backend, scene.input);
+  double difference = 0.;
+  for (size_t i = 0; i < output.beamSpectrum.size(); ++i)
+  {
+    difference += std::norm(
+      std::complex<double>(output.beamSpectrum[i]) -
+      std::complex<double>(reference.beamSpectrum[i]));
+  }
+  Require(
+    std::sqrt(difference / Energy(reference)) < 3e-4, "CPU/GPU perspective cell response differs");
+}
 }  // namespace
 
 int main(int argc, char ** argv)
@@ -254,6 +275,7 @@ int main(int argc, char ** argv)
     Require(backend->Initialize(SonarComputeInput{}), "initialization failed");
     Geometry();
     Selection(name, radixOnly);
+    PerspectiveInput(*backend);
     Controls(*backend);
     PulseControls(*backend);
     std::ofstream arrays;

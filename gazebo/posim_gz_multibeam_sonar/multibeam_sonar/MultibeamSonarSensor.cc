@@ -37,6 +37,7 @@
 #include <gz/math/TimeVaryingVolumetricGrid.hh>
 
 #include <gz/rendering/Camera.hh>
+#include <gz/rendering/DepthCamera.hh>
 #include <gz/rendering/GpuRays.hh>
 #include <gz/rendering/RayQuery.hh>
 
@@ -345,6 +346,11 @@ bool MultibeamSonarSensor::Implementation::Initialize(MultibeamSonarSensor * _se
       _sensor->Scene()->DestroySensor(this->raySensor);
       this->raySensor.reset();
     }
+    if (this->depthSensor)
+    {
+      _sensor->Scene()->DestroySensor(this->depthSensor);
+      this->depthSensor.reset();
+    }
     this->computeBackend.reset();
     return false;
   }
@@ -388,17 +394,6 @@ bool MultibeamSonarSensor::Implementation::InitializeBeamArrangement(MultibeamSo
   const char * backendEnv = std::getenv("POSIM_SONAR_COMPUTE_BACKEND");
   this->requestedBackend = backendEnv ? backendEnv : "auto";
 
-  this->raySensor = _sensor->Scene()->CreateGpuRays(_sensor->Name() + "_ray_sensor");
-  if (!this->raySensor)
-  {
-    gzerr << "Failed to create Ray (GPU Ray) sensor for "
-          << "for [" << _sensor->Name() << "] sensor." << std::endl;
-    return false;
-  }
-
-  // The renderer is attached to the parent link; retain the sensor mounting pose.
-  this->raySensor->SetLocalPose(_sensor->Pose());
-
   // Read ray definition from SDF
   sdf::ElementPtr rayElement = this->sensorSdf->GetElement("ray");
   sdf::ElementPtr sensorElement = this->sensorSdf->GetElement("spec");
@@ -422,14 +417,12 @@ bool MultibeamSonarSensor::Implementation::InitializeBeamArrangement(MultibeamSo
 
   // -------- Assign ray sensor properties
   sdf::ElementPtr rangeElement = rayElement->GetElement("range");
-  const double minimumRange = rangeElement->Get<double>("min", 0.1).first;
-  gzmsg << "Setting minimum range to " << minimumRange << " m for [" << _sensor->Name()
+  this->minimumRange = rangeElement->Get<double>("min", 0.1).first;
+  gzmsg << "Setting minimum range to " << this->minimumRange << " m for [" << _sensor->Name()
         << "] sensor." << std::endl;
-  this->raySensor->SetNearClipPlane(minimumRange);
   this->maximumRange = rangeElement->Get<double>("max", 5.).first;
   gzmsg << "Setting maximum range to " << this->maximumRange << " m for [" << _sensor->Name()
         << "] sensor." << std::endl;
-  this->raySensor->SetFarClipPlane(this->maximumRange);
 
   // Read sonar properties from model.sdf
 
@@ -553,9 +546,6 @@ bool MultibeamSonarSensor::Implementation::InitializeBeamArrangement(MultibeamSo
     }
   }
 
-  // Mask ranges outside of min/max to +/- inf, as per REP 117
-  this->raySensor->SetClamp(false);
-
   sdf::ElementPtr horizontalElement = rayElement->GetElement("scan")->GetElement("horizontal");
   const double horizAngleMin = horizontalElement->Get<double>("min_angle", -M_PI / 4.0).first;
   const double horizAngleMax = horizontalElement->Get<double>("max_angle", M_PI / 4.0).first;
@@ -609,7 +599,7 @@ bool MultibeamSonarSensor::Implementation::InitializeBeamArrangement(MultibeamSo
   int beamId = 0;
 
   // Iterate through the rays
-  for (int v = 0; v < rayCount; ++v)
+  for (int v = 0; receiveBeamWidth == 0 && v < rayCount; ++v)
   {
     for (int h = 0; h < horizontalSamples; ++h)
     {
@@ -657,41 +647,80 @@ bool MultibeamSonarSensor::Implementation::InitializeBeamArrangement(MultibeamSo
   const double scanHorizontalMax = horizAngleMax * angleUnit.Radian();
   const double scanVerticalMin = verticalAngleMin * angleUnit.Radian();
   const double scanVerticalMax = verticalAngleMax * angleUnit.Radian();
-  this->raySensor->SetAngleMin(scanHorizontalMin);
-  this->raySensor->SetAngleMax(scanHorizontalMax);
-  this->raySensor->SetVerticalAngleMin(scanVerticalMin);
-  this->raySensor->SetVerticalAngleMax(scanVerticalMax);
-  gzmsg << "Rendered horizontal limits: " << scanHorizontalMin << ", " << scanHorizontalMax
-        << "; vertical limits: " << scanVerticalMin << ", " << scanVerticalMax << std::endl;
-
-  const auto horizontalRayCount = horizontalSamples;
-  const auto verticalRayCount = rayCount;
-  this->raySensor->SetRayCount(horizontalRayCount);
   this->nBeams = beamCount;
-
-  this->raySensor->SetVerticalRayCount(verticalRayCount);
-  this->nRays = verticalRayCount;
-
+  this->nRays = rayCount;
   this->ray_nElevationRays = this->nRays;
   this->ray_nAzimuthRays = 1;
-  if (
-    this->raySensor->RangeCount() != static_cast<unsigned int>(horizontalSamples) ||
-    this->raySensor->VerticalRangeCount() != static_cast<unsigned int>(rayCount))
-  {
-    gzerr << "Renderer sampling dimensions differ from the configured sonar geometry." << std::endl;
-    return false;
-  }
+  const auto horizontalRayCount = horizontalSamples;
+  const auto verticalRayCount = rayCount;
   try
   {
-    this->azimuth_angles = AngularCenters(scanHorizontalMin, scanHorizontalMax, horizontalSamples);
-    this->elevation_angles = AngularCenters(scanVerticalMin, scanVerticalMax, rayCount);
     this->receiveAngles = AngularCenters(scanHorizontalMin, scanHorizontalMax, beamCount);
     this->physicalReadout.reset();
+    this->perspectiveGeometry.reset();
     if (receiveBeamWidth > 0)
     {
-      this->physicalReadout = std::make_unique<const AcousticReadout>(MakeAcousticReadout(
-        this->azimuth_angles, this->elevation_angles, scanHorizontalMin, scanHorizontalMax,
-        scanVerticalMin, scanVerticalMax, this->raySkips, this->receiveAngles, receiveBeamWidth));
+      if (
+        std::abs(scanHorizontalMin + scanHorizontalMax) > 1e-6 ||
+        std::abs(scanVerticalMin + scanVerticalMax) > 1e-6 || !std::isfinite(this->minimumRange) ||
+        this->minimumRange <= 0 || !std::isfinite(this->maximumRange) ||
+        this->maximumRange <= this->minimumRange)
+      {
+        throw std::invalid_argument(
+          "perspective sonar requires a symmetric fan and valid range limits");
+      }
+      this->perspectiveGeometry =
+        std::make_unique<const PerspectiveSonarGeometry>(MakePerspectiveSonarGeometry(
+          horizontalSamples, rayCount, scanHorizontalMax, scanVerticalMax, this->raySkips,
+          this->receiveAngles, receiveBeamWidth));
+      const auto & grid = *this->perspectiveGeometry;
+      this->azimuth_angles = grid.azimuth;
+      this->elevation_angles = grid.elevation[horizontalSamples / 2];
+      this->physicalReadout = std::make_unique<const AcousticReadout>(grid.readout);
+      this->depthSensor = _sensor->Scene()->CreateDepthCamera(_sensor->Name() + "_depth_sensor");
+      if (!this->depthSensor)
+      {
+        throw std::invalid_argument("renderer cannot create direct sonar geometry");
+      }
+      this->depthSensor->SetLocalPose(_sensor->Pose());
+      this->depthSensor->SetImageWidth(horizontalSamples);
+      this->depthSensor->SetImageHeight(rayCount);
+      this->depthSensor->SetHFOV(this->hFOV);
+      this->depthSensor->SetAspectRatio(grid.horizontalTangent / grid.verticalTangent);
+      this->depthSensor->SetAntiAliasing(0);
+      // Camera clipping is axial; the callback applies radial sonar limits.
+      this->depthSensor->SetNearClipPlane(
+        this->minimumRange / std::sqrt(
+                               1. + grid.horizontalTangent * grid.horizontalTangent +
+                               grid.verticalTangent * grid.verticalTangent));
+      this->depthSensor->SetFarClipPlane(this->maximumRange);
+    }
+    else
+    {
+      this->azimuth_angles =
+        AngularCenters(scanHorizontalMin, scanHorizontalMax, horizontalSamples);
+      this->elevation_angles = AngularCenters(scanVerticalMin, scanVerticalMax, rayCount);
+      this->raySensor = _sensor->Scene()->CreateGpuRays(_sensor->Name() + "_ray_sensor");
+      if (!this->raySensor)
+      {
+        throw std::invalid_argument("renderer cannot create sonar GpuRays");
+      }
+      this->raySensor->SetLocalPose(_sensor->Pose());
+      this->raySensor->SetNearClipPlane(this->minimumRange);
+      this->raySensor->SetFarClipPlane(this->maximumRange);
+      this->raySensor->SetClamp(false);
+      this->raySensor->SetAngleMin(scanHorizontalMin);
+      this->raySensor->SetAngleMax(scanHorizontalMax);
+      this->raySensor->SetVerticalAngleMin(scanVerticalMin);
+      this->raySensor->SetVerticalAngleMax(scanVerticalMax);
+      this->raySensor->SetRayCount(horizontalSamples);
+      this->raySensor->SetVerticalRayCount(rayCount);
+      if (
+        this->raySensor->RangeCount() != static_cast<unsigned>(horizontalSamples) ||
+        this->raySensor->VerticalRangeCount() != static_cast<unsigned>(rayCount))
+      {
+        throw std::invalid_argument("renderer dimensions differ from sonar geometry");
+      }
     }
   }
   catch (const std::invalid_argument & error)
@@ -699,20 +728,11 @@ bool MultibeamSonarSensor::Implementation::InitializeBeamArrangement(MultibeamSo
     gzerr << "Invalid sonar readout: " << error.what() << std::endl;
     return false;
   }
-  gzmsg << "Sonar receive model: " << (this->physicalReadout ? "area-sinc-v1" : "legacy-grid")
-        << "; geometry " << horizontalSamples << " x " << rayCount << "; receivers " << this->nBeams
+  gzmsg << "Sonar receive model: "
+        << (this->physicalReadout ? "perspective-area-sinc-v1" : "legacy-grid") << "; geometry "
+        << horizontalSamples << " x " << rayCount << "; receivers " << this->nBeams
         << "; power FWHM " << receiveBeamWidth << " rad; pressure gain " << this->receiveGain
         << std::endl;
-
-  gzmsg << "Horizontal Resolution " << this->raySensor->HorizontalResolution() << " px"
-        << std::endl;
-  gzmsg << "Vertical Resolution " << this->raySensor->VerticalResolution() << " px" << std::endl;
-
-  gzmsg << "Vertical Range " << this->raySensor->VerticalRangeCount() << " px" << std::endl;
-  gzmsg << "Horizontal Range " << this->raySensor->RangeCount() << " px" << std::endl;
-
-  gzmsg << "Vertical Ray " << this->raySensor->RayCount() << " px" << std::endl;
-  gzmsg << "Horizontal Ray " << this->raySensor->VerticalRayCount() << " px" << std::endl;
 
   auto & intrinsics = this->raySensorIntrinsics;
   intrinsics.offset.X(scanHorizontalMin);
@@ -733,19 +753,26 @@ bool MultibeamSonarSensor::Implementation::InitializeBeamArrangement(MultibeamSo
   // the world author assigns it a dedicated visibility category.
   const auto visibilityMask =
     sensorElement->Get<unsigned int>("visibilityMask", GZ_VISIBILITY_ALL).first;
-  this->raySensor->SetVisibilityMask(visibilityMask);
   gzmsg << "Acoustic visibility mask: " << visibilityMask << std::endl;
-
-  _sensor->AddSensor(this->raySensor);
-
-  // Set the values on the point message.
-  this->pointMsg.set_width(this->raySensor->RangeCount());
-  this->pointMsg.set_height(this->raySensor->VerticalRangeCount());
+  this->pointMsg.set_width(horizontalSamples);
+  this->pointMsg.set_height(rayCount);
   this->pointMsg.set_row_step(this->pointMsg.point_step() * this->pointMsg.width());
-
-  this->rayConnection = this->raySensor->ConnectNewGpuRaysFrame(std::bind(
-    &MultibeamSonarSensor::Implementation::OnNewFrame, this, std::placeholders::_1,
-    std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5));
+  if (this->depthSensor)
+  {
+    this->depthSensor->SetVisibilityMask(visibilityMask);
+    _sensor->AddSensor(this->depthSensor);
+    this->rayConnection = this->depthSensor->ConnectNewRgbPointCloud(std::bind(
+      &MultibeamSonarSensor::Implementation::OnNewDepthFrame, this, std::placeholders::_1,
+      std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5));
+  }
+  else
+  {
+    this->raySensor->SetVisibilityMask(visibilityMask);
+    _sensor->AddSensor(this->raySensor);
+    this->rayConnection = this->raySensor->ConnectNewGpuRaysFrame(std::bind(
+      &MultibeamSonarSensor::Implementation::OnNewFrame, this, std::placeholders::_1,
+      std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5));
+  }
 
   // Transmission path properties (typical model used here)
   // More sophisticated model by Francois-Garrison model is available
@@ -904,6 +931,10 @@ bool MultibeamSonarSensor::Implementation::InitializeBeamArrangement(MultibeamSo
 //////////////////////////////////////////////////
 std::vector<gz::rendering::SensorPtr> MultibeamSonarSensor::RenderingSensors() const
 {
+  if (this->dataPtr->depthSensor)
+  {
+    return {this->dataPtr->depthSensor};
+  }
   if (!this->dataPtr->raySensor)
   {
     return {};
@@ -958,13 +989,66 @@ void MultibeamSonarSensor::Implementation::OnNewFrame(
   }
 }
 
+void MultibeamSonarSensor::Implementation::OnNewDepthFrame(
+  const float * _scan, unsigned int _width, unsigned int _height, unsigned int _channels,
+  const std::string & /*_format*/)
+{
+  std::lock_guard<std::mutex> lock(this->rayMutex);
+  if (
+    !this->perspectiveGeometry || _channels != 4 ||
+    _width != static_cast<unsigned>(this->perspectiveGeometry->columns) ||
+    _height != static_cast<unsigned>(this->perspectiveGeometry->rows))
+  {
+    gzerr << "Direct sonar geometry dimensions differ from the initialized readout." << std::endl;
+    return;
+  }
+  cv::Mat points, ranges;
+  ReadPerspectiveSonarFrame(
+    _scan, *this->perspectiveGeometry, this->minimumRange,
+    std::min(this->maximumRange, this->maxDistance), points, ranges);
+  std::string * buffer = this->pointMsg.mutable_data();
+  buffer->assign(static_cast<size_t>(this->pointMsg.row_step()) * _height, '\0');
+  bool dense = true;
+  for (unsigned r = 0; r < _height; ++r)
+  {
+    for (unsigned c = 0; c < _width; ++c)
+    {
+      const auto p = points.at<cv::Vec3f>(r, c);
+      dense = dense && std::isfinite(p[0]);
+      char * destination = buffer->data() + static_cast<size_t>(r) * this->pointMsg.row_step() +
+                           c * this->pointMsg.point_step();
+      for (int k = 0; k < 3; ++k)
+      {
+        std::memcpy(destination + this->pointMsg.field(k).offset(), &p[k], sizeof(float));
+      }
+      // Geometry has no measured acoustic intensity; RGB is never used as one.
+      const uint16_t ring = r;
+      std::memcpy(destination + this->pointMsg.field(4).offset(), &ring, sizeof(ring));
+    }
+  }
+  this->pointMsg.set_is_dense(dense);
+  {
+    std::lock_guard<std::mutex> snapshotLock(this->lock_);
+    this->pointCloudImage = std::move(ranges);
+    this->measuredPoints = std::move(points);
+    this->snapshotStamp = this->renderStamp;
+  }
+  {
+    std::lock_guard<std::mutex> computeLock(this->computeMutex_);
+    this->newFrameReady_ = true;
+  }
+  this->computeCV_.notify_one();
+}
+
 /////////////////////////////////////////////////
 void MultibeamSonarSensor::SetScene(gz::rendering::ScenePtr _scene)
 {
   // APIs make it possible for the scene pointer to change
   if (this->Scene() != _scene)
   {
-    // Reset the ray sensor and its buffer when the scene changes.
+    // Reset rendering inputs when the scene changes.
+    this->dataPtr->rayConnection.reset();
+    this->dataPtr->depthSensor.reset();
     this->dataPtr->raySensor = nullptr;
     if (this->dataPtr->rayBuffer)
     {
@@ -1005,9 +1089,9 @@ bool MultibeamSonarSensor::Update(const std::chrono::steady_clock::duration & _n
     return false;
   }
 
-  if (!this->dataPtr->raySensor)
+  if (!this->dataPtr->raySensor && !this->dataPtr->depthSensor)
   {
-    gzerr << "Ray (GpuRays) Sensor for Multibeam Sonar doesn't exist.\n";
+    gzerr << "Geometry sensor for Multibeam Sonar does not exist.\n";
     return false;
   }
 
@@ -1209,7 +1293,7 @@ void MultibeamSonarSensor::Implementation::ComputeSonarImage()
 {
   // Snapshot the depth image quickly, then release the lock so the render
   // thread can fill the next frame without waiting for GPU compute.
-  cv::Mat depthSnapshot;
+  cv::Mat depthSnapshot, pointsSnapshot;
   // Capture the timestamp and image dimensions while holding the lock so that
   // all published messages share one coherent stamp matching when the data was
   // recorded -- mismatched stamps are the primary cause of RViz flicker.
@@ -1222,6 +1306,10 @@ void MultibeamSonarSensor::Implementation::ComputeSonarImage()
     }
     depthSnapshot = this->pointCloudImage.clone();
     capturedStamp = rclcpp::Time(this->snapshotStamp, RCL_ROS_TIME);
+    if (this->perspectiveGeometry)
+    {
+      pointsSnapshot = this->measuredPoints.clone();
+    }
 
     if (!this->physicalReadout && this->beamCorrectorSum == 0)
     {
@@ -1251,7 +1339,11 @@ void MultibeamSonarSensor::Implementation::ComputeSonarImage()
   double vPixelSize = this->vFOV / (snapHeight - 1);
   double hPixelSize = this->hFOV / (snapWidth - 1);
 
-  cv::Mat normal_image = this->ComputeNormalImage(depthSnapshot);
+  cv::Mat normal_image = this->perspectiveGeometry
+                           ? CartesianSurfaceNormals(
+                               pointsSnapshot, depthSnapshot,
+                               this->perspectiveGeometry->normalCalibration, this->maxDistance)
+                           : this->ComputeNormalImage(depthSnapshot);
 
   auto start = std::chrono::high_resolution_clock::now();
 
