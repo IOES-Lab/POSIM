@@ -1,6 +1,6 @@
 # 소나 빌드와 성능
 
-멀티빔 소나를 빌드한 뒤 실행할 때 WGPU·CUDA·CPU 계산 방식을 선택합니다. WGPU는 Linux에서 Vulkan, macOS에서 직접 실행할 때 Metal을 사용합니다. 모든 계산 방식에서 광선 센서의 Gazebo 렌더링이 필요합니다.
+멀티빔 소나를 빌드한 뒤 실행할 때 WGPU·CUDA·CPU 계산 방식을 선택합니다. WGPU는 Linux에서 Vulkan, macOS에서 직접 실행할 때 Metal을 사용합니다. 모든 계산 방식에서 음선 센서의 Gazebo 렌더링이 필요합니다.
 
 ## 도구 준비
 
