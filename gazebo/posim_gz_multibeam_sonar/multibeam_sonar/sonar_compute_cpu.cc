@@ -88,13 +88,16 @@ public:
           reflectivity = input.reflectivityImage->at<float>(r, c);
         }
 
-        // CUDA-aligned physics: spread + lambert + stochastic phase term
+        // RaySurfaceNormals already expresses the normal in the ray-local basis.
+        // Preserve this fallback's angular law; it is not identical to GPU scattering.
         const float lambert = std::sqrt(nz);  // sqrt(cos(incidence)); nz == cos(acos(nz))
         const float spread = 1.0f / std::max(1e-6f, d * d);
-        const float target_area = std::sqrt(d * area_scaler);
+        // The projected footprint of an angular cell is r^2 * dtheta * dphi.
+        // Pressure amplitude uses its square root (Choi et al. 2021, Eq. 14).
+        const float target_area_sqrt = d * std::sqrt(area_scaler);
         const float amplitude_mag = input.sensorGain * source_term * spread *
                                     std::exp(-2.0f * attenuation * d) * lambert *
-                                    std::sqrt(reflectivity) * target_area;
+                                    std::sqrt(reflectivity) * target_area_sqrt;
 
         const float phase_noise = static_cast<float>((beam * input.nRays + r) % input.nFreq) /
                                   static_cast<float>(input.nFreq) * 2.0f * static_cast<float>(M_PI);
