@@ -115,25 +115,18 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
     return;
   }
 
-  let nx = normals[dr * 3u + 0u];
-  let ny = normals[dr * 3u + 1u];
   let nz = normals[dr * 3u + 2u];
   let refl = reflectivity[dr];
 
-  // Compute sensor-frame ray unit direction from (beam, actual_ray) pixel indices.
-  // Direction formula (sin(θ_b)cos(θ_r), sin(θ_r), cos(θ_b)cos(θ_r)) is unit-length by construction.
-  let beam_ang = params.h_fov * (f32(beam)       / max(f32(params.n_beams) - 1.0, 1.0) - 0.5);
-  let ray_ang  = params.v_fov * (f32(actual_ray) / max(f32(params.n_rays)  - 1.0, 1.0) - 0.5);
-  let rd_x = sin(beam_ang) * cos(ray_ang);
-  let rd_y = sin(ray_ang);
-  let rd_z = cos(beam_ang) * cos(ray_ang);
-  // let cos_inc = abs(rd_x * nx + rd_y * ny + rd_z * nz);
+  // RaySurfaceNormals supplies ray-local normals: z already is cos(incidence).
+  // Do not take another dot product with a sensor-frame ray direction.
   let cos_inc = abs(nz);
   let lambert_sqrt = sqrt(max(refl, 0.0)) * cos_inc;
 
   let source_term = sqrt(pow(10.0, params.source_level / 10.0)) * 1e-6;
   let propagation = exp(-2.0 * params.attenuation * d) / (d * d);
-  let target_area_sqrt = sqrt(d * params.area_scaler);
+  // Projected angular-cell footprint is r^2 * dtheta * dphi (Choi 2021, Eq. 14).
+  let target_area_sqrt = d * sqrt(params.area_scaler);
   // let amp_scale = source_term * propagation * lambert_sqrt * target_area_sqrt * params.sensor_gain;
   let amp_scale = source_term * propagation * lambert_sqrt * target_area_sqrt;
 

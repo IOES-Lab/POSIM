@@ -150,6 +150,13 @@ if(BUILD_TESTING)
     ${CMAKE_CURRENT_SOURCE_DIR} ${OpenCV_INCLUDE_DIRS})
   target_link_libraries(test_ray_surface_normals PRIVATE ${OpenCV_LIBS})
   add_test(NAME ray_surface_normals COMMAND test_ray_surface_normals)
+
+  add_executable(scattering_range_test test/ScatteringRange_TEST.cc)
+  target_compile_features(scattering_range_test PRIVATE cxx_std_17)
+  target_include_directories(scattering_range_test PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR} ${OpenCV_INCLUDE_DIRS})
+  target_link_libraries(scattering_range_test PRIVATE ${PROJECT_NAME} ${OpenCV_LIBS})
+  add_test(NAME scattering_range_cpu COMMAND scattering_range_test cpu)
 endif()
 
 install(TARGETS ${PROJECT_NAME}

@@ -233,7 +233,7 @@ __global__ void sonar_calculation(
 
     // printf("angles %f", ray_elevationAngles[ray]);
 
-    // incidence angle (taking that of normal_image)
+    // RaySurfaceNormals supplies ray-local normals: z is cos(incidence).
     float incidence =
       acos(normal[2]);  // compute_incidence(ray_azimuthAngle, ray_elevationAngle, normal);
 
@@ -252,8 +252,9 @@ __global__ void sonar_calculation(
       thrust::complex<float>(sqrt(reflectivity_image[reflectivity_index]) * cos(incidence), 0.0);
     thrust::complex<float> beamPattern =
       thrust::complex<float>(azimuthBeamPattern * elevationBeamPattern, 0.0);
+    // Projected angular-cell footprint is r^2 * dtheta * dphi (Choi 2021, Eq. 14).
     thrust::complex<float> targetArea_sqrt =
-      thrust::complex<float>(sqrt(distance * area_scaler), 0.0);
+      thrust::complex<float>(distance * sqrt(area_scaler), 0.0);
     thrust::complex<float> propagationTerm =
       thrust::complex<float>(1.0 / pow(distance, 2.0) * exp(-2.0 * attenuation * distance), 0.0);
     thrust::complex<float> amplitude = randomAmps * thrust::complex<float>(sourceTerm, 0.0) *
