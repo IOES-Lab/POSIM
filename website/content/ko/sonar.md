@@ -1,6 +1,6 @@
 # 멀티빔 소나
 
-POSIM 멀티빔 소나는 광선 기반 점 산란 모델로 강도·거리 데이터, 소나 영상과 점군을 생성합니다. 실행할 때 WGPU·CUDA·CPU 계산 방식을 선택합니다. 먼저 [소나 빌드와 렌더링 환경](sonar-tuning.md)을 준비하세요.
+POSIM 멀티빔 소나는 음선 기반 점 산란 모델로 강도·거리 데이터, 소나 영상과 점군을 생성합니다. 실행할 때 WGPU·CUDA·CPU 계산 방식을 선택합니다. 먼저 [소나 빌드와 렌더링 환경](sonar-tuning.md)을 준비하세요.
 
 ## 소나 예제 실행
 
@@ -50,13 +50,13 @@ ros2 topic hz /sensor/multibeam_sonar/sonar_image
 | --- | --- | --- |
 | `/sensor/multibeam_sonar/sonar_image` | `sensor_msgs/msg/Image` | RViz의 Image 디스플레이에서 소나 강도 영상 표시 |
 | `/sensor/multibeam_sonar/sonar_image_raw` | `marine_acoustic_msgs/msg/ProjectedSonarImage` | 거리·빔 정보를 포함한 음향 관측값 확인 |
-| `/sensor/multibeam_sonar/point_cloud` | `sensor_msgs/msg/PointCloud2` | RViz의 PointCloud2 디스플레이에서 광선의 기하 정보 표시 |
+| `/sensor/multibeam_sonar/point_cloud` | `sensor_msgs/msg/PointCloud2` | RViz의 PointCloud2 디스플레이에서 음선의 기하 정보 표시 |
 
 소나는 영상과 원시 음향 메시지를 ROS 2에 직접 발행합니다. 센서 설정의 브리지는 Gazebo 점군을 ROS 2로 전달합니다. 토픽 이름을 바꾼 경우 `ros2 topic list -t`로 확인하세요.
 
 ## 센서 계산 흐름
 
-Gazebo는 장면의 광선 거리와 표면 법선을 제공합니다. 소나 모델은 음향 후방 산란을 계산하고 빔 보정과 거리 압축을 수행합니다. 계산된 음향 데이터와 표시 영상은 같은 관측을 나타냅니다. 분석에는 원시 데이터를 사용하고, 영상과 함께 gain·표시 설정을 보관하세요.
+Gazebo는 장면의 음선 거리와 표면 법선을 제공합니다. 소나 모델은 음향 후방 산란을 계산하고 빔 보정과 거리 압축을 수행합니다. 계산된 음향 데이터와 표시 영상은 같은 관측을 나타냅니다. 분석에는 원시 데이터를 사용하고, 영상과 함께 gain·표시 설정을 보관하세요.
 
 ## 센서 구성
 
@@ -65,7 +65,7 @@ Gazebo는 장면의 광선 거리와 표면 법선을 제공합니다. 소나 �
 | 설정 | 값 |
 | --- | --- |
 | 수평 빔 | 512개, 약 130° 시야 |
-| 수직 광선 | 300개, 약 12° 시야 |
+| 수직 음선 | 300개, 약 12° 시야 |
 | 범위 | 0.1–10 m |
 | 주파수·대역폭 | 900 kHz / 29.9 kHz |
 | 음속 | 1500 m/s |
@@ -75,13 +75,13 @@ Gazebo는 장면의 광선 거리와 표면 법선을 제공합니다. 소나 �
 
 ## 변경할 설정
 
-`<spec>`에서 `sonarFreq`, `bandwidth`, `soundSpeed`, `sourceLevel`, `maxDistance`, `raySkips`, `sensorGain`과 출력 이름을 설정합니다. 광선 거리 범위와 처리 거리를 맞추세요. `pointCloudTopicName`은 ROS–Gazebo 브리지 설정과 일치시키고 `frameName`에 소나 광학 좌표계를 지정합니다.
+`<spec>`에서 `sonarFreq`, `bandwidth`, `soundSpeed`, `sourceLevel`, `maxDistance`, `raySkips`, `sensorGain`과 출력 이름을 설정합니다. 음선 거리 범위와 처리 거리를 맞추세요. `pointCloudTopicName`은 ROS–Gazebo 브리지 설정과 일치시키고 `frameName`에 소나 광학 좌표계를 지정합니다.
 
 `writeLog`, `writeFrameInterval`, `debugFlag`로 진단 기록과 처리 시간을 확인할 수 있습니다. 기록 자체가 실험 목적이 아니라면 처리율 측정 시 기록을 끄세요. 반복 가능한 조절 순서는 [소나 빌드와 성능](sonar-tuning.md), 모델의 연구 출처는 [인용 안내](citation.md)에 있습니다.
 
 ## 소나 센서와 월드 추가하기
 
-`models/posim_sensor_models/description/blueview_p900/`을 새 센서 이름으로 복사합니다. 같은 이름의 `config/<센서 이름>/sensor_config.py`도 준비하고, SDF의 모델·링크·프레임과 브리지 토픽을 함께 맞춥니다. `<ray>`의 수평 빔·수직 광선 수와 각도, 거리 범위를 센서 사양에 맞게 설정합니다.
+`models/posim_sensor_models/description/blueview_p900/`을 새 센서 이름으로 복사합니다. 같은 이름의 `config/<센서 이름>/sensor_config.py`도 준비하고, SDF의 모델·링크·프레임과 브리지 토픽을 함께 맞춥니다. `<ray>`의 수평 빔·수직 음선 수와 각도, 거리 범위를 센서 사양에 맞게 설정합니다.
 
 월드에는 Gazebo 렌더링 센서 시스템과 소나 시스템을 포함합니다. 물리·장면·사용자 센서의 나머지 구성은 [소나 월드 SDF](https://github.com/IOES-Lab/POSIM/blob/main/models/posim_worlds/worlds/posim_multibeam_sonar.world)를 참고하세요.
 

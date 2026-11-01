@@ -1,6 +1,6 @@
 # 소나 빌드와 성능
 
-멀티빔 소나를 빌드한 뒤 실행할 때 WGPU·CUDA·CPU 계산 방식을 선택합니다. WGPU는 Linux에서 Vulkan, macOS에서 직접 실행할 때 Metal을 사용합니다. 모든 계산 방식에서 광선 센서의 Gazebo 렌더링이 필요합니다.
+멀티빔 소나를 빌드한 뒤 실행할 때 WGPU·CUDA·CPU 계산 방식을 선택합니다. WGPU는 Linux에서 Vulkan, macOS에서 직접 실행할 때 Metal을 사용합니다. 모든 계산 방식에서 음선 센서의 Gazebo 렌더링이 필요합니다.
 
 ## 도구 준비
 
@@ -121,7 +121,7 @@ Apple Silicon 호스트의 Linux ARM64 컨테이너는 [Docker 설치와 가상 
 
 | 설정 | 확인할 영향 |
 | --- | --- |
-| 수평 빔·수직 광선 수 | 각도 샘플링과 계산량 |
+| 수평 빔·수직 음선 수 | 각도 샘플링과 계산량 |
 | 거리·`maxDistance` | 관측 범위와 거리 처리 |
 | `raySkips` | 샘플링과 계산량의 균형 |
 | 센서 `update_rate` | 요청하는 센서 처리율 |
