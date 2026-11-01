@@ -149,7 +149,8 @@ private:
     int nRays;
     int nBeams;
     std::vector<float> elevation_angles;
-    int nFreq;
+    int nFreq;               // published range samples
+    int spectrumSamples{0};  // physical frequency quadrature, including guard
     double sonarFreq;
     double bandwidth;
     double soundSpeed;

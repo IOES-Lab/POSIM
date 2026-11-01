@@ -71,7 +71,7 @@ bool ComputePhysicalSonarCpu(const SonarComputeInput & input, SonarComputeOutput
         ScatterNoise(input.seed, input.frameIndex, uint32_t(i)) / std::sqrt(2.f) * magnitude;
       for (int f = 0; f < count; ++f)
       {
-        const float frequency = delta * (-(count - (count % 2)) + 2.f * (f + 1)) / 2.f;
+        const float frequency = delta * (f + .5f - .5f * count);
         const float phase = 2.f * range * (2.f * float(M_PI) * frequency / float(input.soundSpeed));
         const auto value = amplitude * std::complex<float>(std::cos(phase), std::sin(phase));
         real.at<float>(column, f) += value.real();
@@ -100,14 +100,19 @@ bool ComputePhysicalSonarCpu(const SonarComputeInput & input, SonarComputeOutput
     return false;
   }
   output.nBeams = input.nBeams;
-  output.nFreq = count;
-  output.beamSpectrum.resize(size_t(input.nBeams) * count);
+  output.nFreq = input.nOutputRanges ? input.nOutputRanges : count;
+  output.beamSpectrum.resize(size_t(input.nBeams) * output.nFreq);
   for (int beam = 0; beam < input.nBeams; ++beam)
   {
-    for (int f = 0; f < count; ++f)
+    for (int f = 0; f < output.nFreq; ++f)
     {
       const auto value = transformed.at<cv::Vec2f>(beam, f);
-      output.At(beam, f) = std::complex<float>(value[0], value[1]) * delta;
+      // Undo the midpoint frequency-grid origin. Apply normalized quadrature
+      // after accumulation to retain fixed-point backend precision.
+      const float phase = -float(M_PI) * f / count;
+      const float sign = (f % 2) ? -1.f : 1.f;
+      output.At(beam, f) = std::complex<float>(value[0], value[1]) *
+                           std::complex<float>(std::cos(phase), std::sin(phase)) * (sign / count);
     }
   }
   output.computeMicros =

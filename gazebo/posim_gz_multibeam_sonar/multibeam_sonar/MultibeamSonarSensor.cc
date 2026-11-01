@@ -22,6 +22,7 @@
 
 #include <eigen3/Eigen/Core>
 #include <eigen3/Eigen/SVD>
+#include "PhysicalPulse.hh"
 
 #include <gz/common/Console.hh>
 #include <gz/common/Event.hh>
@@ -751,24 +752,39 @@ bool MultibeamSonarSensor::Implementation::InitializeBeamArrangement(MultibeamSo
   this->absorption = 0.0354;  // [dB/m]
   this->attenuation = this->absorption * log(10) / 20.0;
 
-  // Range vector
+  // Published range interval and internal pulse quadrature are independent.
   const float delta_t = 1.0 / this->bandwidth;
-  this->nFreq = RangeSampleCount(this->maxDistance, this->soundSpeed, this->bandwidth);
+  PhysicalPulse pulse;
+  if (this->physicalReadout)
+  {
+    try
+    {
+      pulse = MakePhysicalPulse(this->maxDistance, this->soundSpeed, this->bandwidth);
+    }
+    catch (const std::invalid_argument & error)
+    {
+      gzerr << error.what() << std::endl;
+      return false;
+    }
+    this->nFreq = static_cast<int>(pulse.ranges.size());
+    this->spectrumSamples = static_cast<int>(pulse.spectrum.size());
+  }
+  else
+  {
+    this->nFreq = RangeSampleCount(this->maxDistance, this->soundSpeed, this->bandwidth);
+    this->spectrumSamples = this->nFreq;
+  }
   if (this->nFreq < 2)
   {
     gzerr << "Invalid or unrepresentable sonar range sampling parameters." << std::endl;
     return false;
   }
-  if (this->nFreq < 2 || (this->physicalReadout && this->nFreq > 4096))
-  {
-    gzerr << "Unsupported sonar frequency count: " << this->nFreq << std::endl;
-    return false;
-  }
-  const int nTime = nFreq;
+  const int nTime = this->nFreq;
   this->rangeVector = new float[nTime];
   for (int i = 0; i < nTime; i++)
   {
-    this->rangeVector[i] = delta_t * i * this->soundSpeed / 2.0;
+    this->rangeVector[i] =
+      this->physicalReadout ? pulse.ranges[i] : delta_t * i * this->soundSpeed / 2.0;
   }
 
   // Print sonar calculation settings
@@ -802,26 +818,26 @@ bool MultibeamSonarSensor::Implementation::InitializeBeamArrangement(MultibeamSo
 
   // -- Pre calculations for sonar -- //
 
-  // Hamming window
-  gzmsg << "Computing Hamming window for " << this->nFreq << " frequencies." << std::endl;
-  this->window = new float[this->nFreq];
-  float windowSum = 0;
-
-  for (size_t f = 0; f < this->nFreq; f++)
+  this->window = new float[this->spectrumSamples];
+  if (this->physicalReadout)
   {
-    this->window[f] = 0.54 - 0.46 * cos(2.0 * M_PI * (f + 1) / this->nFreq);
-    windowSum += pow(this->window[f], 2.0);
+    std::copy(pulse.spectrum.begin(), pulse.spectrum.end(), this->window);
+    gzmsg << "Physical unit-peak Hamming pulse: " << this->nFreq << " output ranges, "
+          << this->spectrumSamples << " midpoint frequency samples including guard." << std::endl;
   }
-
-  gzmsg << "Window sum before normalization: " << windowSum << std::endl;
-
-  for (size_t f = 0; f < this->nFreq; f++)
+  else
   {
-    this->window[f] = this->window[f] / sqrt(windowSum);
-    // gzmsg << "Normalized Window[" << f << "] = " << this->window[f] << std::endl;
+    float windowSum = 0;
+    for (int f = 0; f < this->nFreq; ++f)
+    {
+      this->window[f] = 0.54 - 0.46 * cos(2.0 * M_PI * (f + 1) / this->nFreq);
+      windowSum += pow(this->window[f], 2.0);
+    }
+    for (int f = 0; f < this->nFreq; ++f)
+    {
+      this->window[f] /= sqrt(windowSum);
+    }
   }
-
-  gzmsg << "Hamming window computation complete." << std::endl;
 
   // Only the legacy model uses the square grid-coupled corrector.
   this->beamCorrector = nullptr;
@@ -851,7 +867,8 @@ bool MultibeamSonarSensor::Implementation::InitializeBeamArrangement(MultibeamSo
   prototype.receiveGain = this->receiveGain;
   prototype.nBeams = this->nBeams;
   prototype.nRays = this->nRays;
-  prototype.nFreq = this->nFreq;
+  prototype.nFreq = this->spectrumSamples;
+  prototype.nOutputRanges = this->physicalReadout ? this->nFreq : 0;
   prototype.raySkips = this->raySkips;
   prototype.hFOV = this->hFOV;
   prototype.vFOV = this->vFOV;
@@ -875,8 +892,8 @@ bool MultibeamSonarSensor::Implementation::InitializeBeamArrangement(MultibeamSo
   if (!this->computeBackend)
   {
     gzerr << "Sonar backend [" << this->requestedBackend << "] cannot initialize the configured "
-          << (this->physicalReadout ? "area-sinc-v1" : "legacy-grid") << " readout (" << this->nFreq
-          << " frequencies)." << std::endl;
+          << (this->physicalReadout ? "area-sinc-v1" : "legacy-grid") << " readout ("
+          << this->spectrumSamples << " frequencies)." << std::endl;
     return false;
   }
   gzmsg << "Using sonar compute backend: " << this->computeBackend->Name() << std::endl;
@@ -1250,7 +1267,8 @@ void MultibeamSonarSensor::Implementation::ComputeSonarImage()
   input.reflectivityImage = &this->reflectivityImage;
   input.nBeams = this->nBeams;
   input.nRays = this->nRays;
-  input.nFreq = this->nFreq;
+  input.nFreq = this->spectrumSamples;
+  input.nOutputRanges = this->physicalReadout ? this->nFreq : 0;
   input.raySkips = this->raySkips;
   input.hFOV = this->hFOV;
   input.vFOV = this->vFOV;

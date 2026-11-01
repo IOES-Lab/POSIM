@@ -1,0 +1,1224 @@
+{
+  "calls": 118,
+  "elapsed_seconds": 0.42974074999801815,
+  "source_binary": "/Volumes/ExternalHDD/POSIM/validation-data/posim-slam/sonar-native-input-trace-20261031/fundamental-review-20261101/physical-readout/wiring/integrated-v1/libmultibeam_sonar.dylib",
+  "resolved_symbol_library": "/Volumes/ExternalHDD/POSIM/validation-data/posim-slam/sonar-native-input-trace-20261031/fundamental-review-20261101/physical-readout/wiring/integrated-v1/libmultibeam_sonar.dylib",
+  "source_binary_sha256": "0771c5fb2e4bd3893e8c4e9dfc7d3e2d7f2d35e9a392f6c7c91b9c1ed27d59ce",
+  "rows": [
+    {
+      "key": "n598_r0.2_sensor_l2",
+      "n": 598,
+      "range_m": 0.2,
+      "mode": "sensor_l2",
+      "peak_range_m": 0.20066889632107024,
+      "total_power": 245640041.04431358,
+      "near_half_meter_power_fraction": 0.9999977631272137,
+      "far_half_meter_power_fraction": 8.648219637762757e-07,
+      "reference_relative_complex_error": 4.1944878914502174e-07,
+      "scatter_amplitude": [
+        12.692232666015625,
+        -1.7930319213867187
+      ],
+      "output_has_599_bins": false
+    },
+    {
+      "key": "n598_r0.2_fixed_peak_pulse",
+      "n": 598,
+      "range_m": 0.2,
+      "mode": "fixed_peak_pulse",
+      "peak_range_m": 0.20066889632107024,
+      "total_power": 223.92279819594125,
+      "near_half_meter_power_fraction": 0.9999977631553402,
+      "far_half_meter_power_fraction": 8.648080919244156e-07,
+      "reference_relative_complex_error": 4.3365420801474667e-07,
+      "scatter_amplitude": [
+        12.692232666015625,
+        -1.7930319213867187
+      ],
+      "output_has_599_bins": false
+    },
+    {
+      "key": "n598_r0.21_sensor_l2",
+      "n": 598,
+      "range_m": 0.21,
+      "mode": "sensor_l2",
+      "peak_range_m": 0.20066889632107024,
+      "total_power": 222535698.68823576,
+      "near_half_meter_power_fraction": 0.9997317707944683,
+      "far_half_meter_power_fraction": 9.908287625177411e-05,
+      "reference_relative_complex_error": 5.54478640871568e-07,
+      "scatter_amplitude": [
+        12.080594482421875,
+        -1.7066259765625
+      ],
+      "output_has_599_bins": false
+    },
+    {
+      "key": "n598_r0.21_fixed_peak_pulse",
+      "n": 598,
+      "range_m": 0.21,
+      "mode": "fixed_peak_pulse",
+      "peak_range_m": 0.20066889632107024,
+      "total_power": 202.8611356266536,
+      "near_half_meter_power_fraction": 0.9997317709698648,
+      "far_half_meter_power_fraction": 9.908283109869129e-05,
+      "reference_relative_complex_error": 5.034678284739094e-07,
+      "scatter_amplitude": [
+        12.080594482421875,
+        -1.7066259765625
+      ],
+      "output_has_599_bins": false
+    },
+    {
+      "key": "n598_r4.0_sensor_l2",
+      "n": 598,
+      "range_m": 4.0,
+      "mode": "sensor_l2",
+      "peak_range_m": 3.988294314381271,
+      "total_power": 389225.3139805436,
+      "near_half_meter_power_fraction": 1.7790323605446787e-06,
+      "far_half_meter_power_fraction": 1.4038806511635684e-06,
+      "reference_relative_complex_error": 6.538187553582721e-06,
+      "scatter_amplitude": [
+        0.5052297592163086,
+        -0.07137389659881592
+      ],
+      "output_has_599_bins": false
+    },
+    {
+      "key": "n598_r4.0_fixed_peak_pulse",
+      "n": 598,
+      "range_m": 4.0,
+      "mode": "fixed_peak_pulse",
+      "peak_range_m": 3.988294314381271,
+      "total_power": 0.35481357042960343,
+      "near_half_meter_power_fraction": 1.7790417989567775e-06,
+      "far_half_meter_power_fraction": 1.4038735935340586e-06,
+      "reference_relative_complex_error": 6.4737207714048026e-06,
+      "scatter_amplitude": [
+        0.5052297592163086,
+        -0.07137389659881592
+      ],
+      "output_has_599_bins": false
+    },
+    {
+      "key": "n598_r14.95_sensor_l2",
+      "n": 598,
+      "range_m": 14.95,
+      "mode": "sensor_l2",
+      "peak_range_m": 14.949832775919733,
+      "total_power": 7488.168577859837,
+      "near_half_meter_power_fraction": 2.822715572623406e-07,
+      "far_half_meter_power_fraction": 0.999999643318669,
+      "reference_relative_complex_error": 1.0035290636314948e-05,
+      "scatter_amplitude": [
+        0.0700771141052246,
+        -0.009899804592132569
+      ],
+      "output_has_599_bins": false
+    },
+    {
+      "key": "n598_r14.95_fixed_peak_pulse",
+      "n": 598,
+      "range_m": 14.95,
+      "mode": "fixed_peak_pulse",
+      "peak_range_m": 14.949832775919733,
+      "total_power": 0.0068261348151656956,
+      "near_half_meter_power_fraction": 2.82270513013295e-07,
+      "far_half_meter_power_fraction": 0.9999996433188342,
+      "reference_relative_complex_error": 1.0064958874327704e-05,
+      "scatter_amplitude": [
+        0.0700771141052246,
+        -0.009899804592132569
+      ],
+      "output_has_599_bins": false
+    },
+    {
+      "key": "n598_r14.99_sensor_l2",
+      "n": 598,
+      "range_m": 14.99,
+      "mode": "sensor_l2",
+      "peak_range_m": 0.0,
+      "total_power": 7412.595864013641,
+      "near_half_meter_power_fraction": 0.5879216860551296,
+      "far_half_meter_power_fraction": 0.4119293532166464,
+      "reference_relative_complex_error": 6.301345083797333e-06,
+      "scatter_amplitude": [
+        0.06972259521484375,
+        -0.009849715828895569
+      ],
+      "output_has_599_bins": false
+    },
+    {
+      "key": "n598_r14.99_fixed_peak_pulse",
+      "n": 598,
+      "range_m": 14.99,
+      "mode": "fixed_peak_pulse",
+      "peak_range_m": 0.0,
+      "total_power": 0.006757243996336997,
+      "near_half_meter_power_fraction": 0.5879216117169582,
+      "far_half_meter_power_fraction": 0.4119294275366819,
+      "reference_relative_complex_error": 6.104379886212055e-06,
+      "scatter_amplitude": [
+        0.06972259521484375,
+        -0.009849715828895569
+      ],
+      "output_has_599_bins": false
+    },
+    {
+      "key": "n598_r15.0_sensor_l2",
+      "n": 598,
+      "range_m": 15.0,
+      "mode": "sensor_l2",
+      "peak_range_m": 0.0,
+      "total_power": 7393.837209916068,
+      "near_half_meter_power_fraction": 0.8669068413502709,
+      "far_half_meter_power_fraction": 0.13309315797279617,
+      "reference_relative_complex_error": 3.414499626066058e-05,
+      "scatter_amplitude": [
+        0.0696343183517456,
+        -0.009837246537208556
+      ],
+      "output_has_599_bins": false
+    },
+    {
+      "key": "n598_r15.0_fixed_peak_pulse",
+      "n": 598,
+      "range_m": 15.0,
+      "mode": "fixed_peak_pulse",
+      "peak_range_m": 0.0,
+      "total_power": 0.006740141979552616,
+      "near_half_meter_power_fraction": 0.8669068364763,
+      "far_half_meter_power_fraction": 0.13309316284667258,
+      "reference_relative_complex_error": 3.41550546279456e-05,
+      "scatter_amplitude": [
+        0.0696343183517456,
+        -0.009837246537208556
+      ],
+      "output_has_599_bins": false
+    },
+    {
+      "key": "n599_r0.2_sensor_l2",
+      "n": 599,
+      "range_m": 0.2,
+      "mode": "sensor_l2",
+      "peak_range_m": 0.20066889632107024,
+      "total_power": 245230113.54172567,
+      "near_half_meter_power_fraction": 0.9999977631030558,
+      "far_half_meter_power_fraction": 8.79307549391674e-07,
+      "reference_relative_complex_error": 2.887335041764258e-07,
+      "scatter_amplitude": [
+        12.692231514717026,
+        -1.7930330502309129
+      ],
+      "output_has_599_bins": true
+    },
+    {
+      "key": "n599_r0.2_fixed_peak_pulse",
+      "n": 599,
+      "range_m": 0.2,
+      "mode": "fixed_peak_pulse",
+      "peak_range_m": 0.20066889632107024,
+      "total_power": 223.9227869220487,
+      "near_half_meter_power_fraction": 0.9999977631147026,
+      "far_half_meter_power_fraction": 8.793103135520989e-07,
+      "reference_relative_complex_error": 2.5165569202543016e-07,
+      "scatter_amplitude": [
+        12.692231514717026,
+        -1.7930330502309129
+      ],
+      "output_has_599_bins": true
+    },
+    {
+      "key": "n599_r0.21_sensor_l2",
+      "n": 599,
+      "range_m": 0.21,
+      "mode": "sensor_l2",
+      "peak_range_m": 0.20066889632107024,
+      "total_power": 222164334.85547403,
+      "near_half_meter_power_fraction": 0.999731770329207,
+      "far_half_meter_power_fraction": 0.00010078676906602214,
+      "reference_relative_complex_error": 4.655868037459823e-07,
+      "scatter_amplitude": [
+        12.0805927391435,
+        -1.7066262863312278
+      ],
+      "output_has_599_bins": true
+    },
+    {
+      "key": "n599_r0.21_fixed_peak_pulse",
+      "n": 599,
+      "range_m": 0.21,
+      "mode": "fixed_peak_pulse",
+      "peak_range_m": 0.20066889632107024,
+      "total_power": 202.86113553503876,
+      "near_half_meter_power_fraction": 0.999731770325808,
+      "far_half_meter_power_fraction": 0.00010078672724341185,
+      "reference_relative_complex_error": 5.267499556444784e-07,
+      "scatter_amplitude": [
+        12.0805927391435,
+        -1.7066262863312278
+      ],
+      "output_has_599_bins": true
+    },
+    {
+      "key": "n599_r4.0_sensor_l2",
+      "n": 599,
+      "range_m": 4.0,
+      "mode": "sensor_l2",
+      "peak_range_m": 3.988294314381271,
+      "total_power": 388575.740658526,
+      "near_half_meter_power_fraction": 1.7776608084560358e-06,
+      "far_half_meter_power_fraction": 1.4706741463387528e-06,
+      "reference_relative_complex_error": 3.8229709355647226e-06,
+      "scatter_amplitude": [
+        0.5052297468408693,
+        -0.07137384230476558
+      ],
+      "output_has_599_bins": true
+    },
+    {
+      "key": "n599_r4.0_fixed_peak_pulse",
+      "n": 599,
+      "range_m": 4.0,
+      "mode": "fixed_peak_pulse",
+      "peak_range_m": 3.988294314381271,
+      "total_power": 0.35481358003333535,
+      "near_half_meter_power_fraction": 1.7776755781868632e-06,
+      "far_half_meter_power_fraction": 1.4706706125601281e-06,
+      "reference_relative_complex_error": 3.855633580635613e-06,
+      "scatter_amplitude": [
+        0.5052297468408693,
+        -0.07137384230476558
+      ],
+      "output_has_599_bins": true
+    },
+    {
+      "key": "n599_r14.95_sensor_l2",
+      "n": 599,
+      "range_m": 14.95,
+      "mode": "sensor_l2",
+      "peak_range_m": 14.949832775919733,
+      "total_power": 7475.673921920127,
+      "near_half_meter_power_fraction": 1.2329221778971223e-07,
+      "far_half_meter_power_fraction": 0.9999998039490487,
+      "reference_relative_complex_error": 4.116631382360526e-06,
+      "scatter_amplitude": [
+        0.07007712660824575,
+        -0.009899807024161553
+      ],
+      "output_has_599_bins": true
+    },
+    {
+      "key": "n599_r14.95_fixed_peak_pulse",
+      "n": 599,
+      "range_m": 14.95,
+      "mode": "fixed_peak_pulse",
+      "peak_range_m": 14.949832775919733,
+      "total_power": 0.0068261347118631155,
+      "near_half_meter_power_fraction": 1.232897960233732e-07,
+      "far_half_meter_power_fraction": 0.9999998039514164,
+      "reference_relative_complex_error": 4.124758951469204e-06,
+      "scatter_amplitude": [
+        0.07007712660824575,
+        -0.009899807024161553
+      ],
+      "output_has_599_bins": true
+    },
+    {
+      "key": "n599_r14.99_sensor_l2",
+      "n": 599,
+      "range_m": 14.99,
+      "mode": "sensor_l2",
+      "peak_range_m": 15.0,
+      "total_power": 7400.225524484664,
+      "near_half_meter_power_fraction": 0.019169433323950404,
+      "far_half_meter_power_fraction": 0.9806850705033748,
+      "reference_relative_complex_error": 6.078433509696287e-06,
+      "scatter_amplitude": [
+        0.06972259759105567,
+        -0.009849723459884873
+      ],
+      "output_has_599_bins": true
+    },
+    {
+      "key": "n599_r14.99_fixed_peak_pulse",
+      "n": 599,
+      "range_m": 14.99,
+      "mode": "fixed_peak_pulse",
+      "peak_range_m": 15.0,
+      "total_power": 0.006757241114040683,
+      "near_half_meter_power_fraction": 0.0191694356105437,
+      "far_half_meter_power_fraction": 0.9806850681341548,
+      "reference_relative_complex_error": 6.0773355522628754e-06,
+      "scatter_amplitude": [
+        0.06972259759105567,
+        -0.009849723459884873
+      ],
+      "output_has_599_bins": true
+    },
+    {
+      "key": "n599_r15.0_sensor_l2",
+      "n": 599,
+      "range_m": 15.0,
+      "mode": "sensor_l2",
+      "peak_range_m": 15.0,
+      "total_power": 7381.497158349881,
+      "near_half_meter_power_fraction": 0.13313251242629162,
+      "far_half_meter_power_fraction": 0.8668674869680529,
+      "reference_relative_complex_error": 2.6436477947903394e-05,
+      "scatter_amplitude": [
+        0.06963431639814856,
+        -0.009837251824878131
+      ],
+      "output_has_599_bins": true
+    },
+    {
+      "key": "n599_r15.0_fixed_peak_pulse",
+      "n": 599,
+      "range_m": 15.0,
+      "mode": "fixed_peak_pulse",
+      "peak_range_m": 15.0,
+      "total_power": 0.0067401399638444635,
+      "near_half_meter_power_fraction": 0.1331325192861453,
+      "far_half_meter_power_fraction": 0.866867480108086,
+      "reference_relative_complex_error": 2.6419153624594022e-05,
+      "scatter_amplitude": [
+        0.06963431639814856,
+        -0.009837251824878131
+      ],
+      "output_has_599_bins": true
+    },
+    {
+      "key": "n600_r0.2_sensor_l2",
+      "n": 600,
+      "range_m": 0.2,
+      "mode": "sensor_l2",
+      "peak_range_m": 0.20066889632107024,
+      "total_power": 244821294.28680304,
+      "near_half_meter_power_fraction": 0.999997763116081,
+      "far_half_meter_power_fraction": 8.928208986240356e-07,
+      "reference_relative_complex_error": 5.083895967053861e-07,
+      "scatter_amplitude": [
+        12.692232980377298,
+        -1.7930336636444397
+      ],
+      "output_has_599_bins": true
+    },
+    {
+      "key": "n600_r0.2_fixed_peak_pulse",
+      "n": 600,
+      "range_m": 0.2,
+      "mode": "fixed_peak_pulse",
+      "peak_range_m": 0.20066889632107024,
+      "total_power": 223.92280260491012,
+      "near_half_meter_power_fraction": 0.9999977631174388,
+      "far_half_meter_power_fraction": 8.928209200586554e-07,
+      "reference_relative_complex_error": 4.88915746859046e-07,
+      "scatter_amplitude": [
+        12.692232980377298,
+        -1.7930336636444397
+      ],
+      "output_has_599_bins": true
+    },
+    {
+      "key": "n600_r0.21_sensor_l2",
+      "n": 600,
+      "range_m": 0.21,
+      "mode": "sensor_l2",
+      "peak_range_m": 0.20066889632107024,
+      "total_power": 221793933.543603,
+      "near_half_meter_power_fraction": 0.999731769185148,
+      "far_half_meter_power_fraction": 0.00010237928761377866,
+      "reference_relative_complex_error": 5.996934459984678e-07,
+      "scatter_amplitude": [
+        12.08059335153637,
+        -1.706626866573474
+      ],
+      "output_has_599_bins": true
+    },
+    {
+      "key": "n600_r0.21_fixed_peak_pulse",
+      "n": 600,
+      "range_m": 0.21,
+      "mode": "fixed_peak_pulse",
+      "peak_range_m": 0.20066889632107024,
+      "total_power": 202.86109827118855,
+      "near_half_meter_power_fraction": 0.9997317693344687,
+      "far_half_meter_power_fraction": 0.00010237936683820179,
+      "reference_relative_complex_error": 6.207339936208537e-07,
+      "scatter_amplitude": [
+        12.08059335153637,
+        -1.706626866573474
+      ],
+      "output_has_599_bins": true
+    },
+    {
+      "key": "n600_r4.0_sensor_l2",
+      "n": 600,
+      "range_m": 4.0,
+      "mode": "sensor_l2",
+      "peak_range_m": 3.988294314381271,
+      "total_power": 387927.93521078303,
+      "near_half_meter_power_fraction": 1.7764559089111004e-06,
+      "far_half_meter_power_fraction": 1.5366719978767596e-06,
+      "reference_relative_complex_error": 7.469231992548551e-06,
+      "scatter_amplitude": [
+        0.50522970754566,
+        -0.07137387253368976
+      ],
+      "output_has_599_bins": true
+    },
+    {
+      "key": "n600_r4.0_fixed_peak_pulse",
+      "n": 600,
+      "range_m": 4.0,
+      "mode": "fixed_peak_pulse",
+      "peak_range_m": 3.988294314381271,
+      "total_power": 0.3548135648382072,
+      "near_half_meter_power_fraction": 1.776461918964339e-06,
+      "far_half_meter_power_fraction": 1.5366664061389432e-06,
+      "reference_relative_complex_error": 7.519496469864463e-06,
+      "scatter_amplitude": [
+        0.50522970754566,
+        -0.07137387253368976
+      ],
+      "output_has_599_bins": true
+    },
+    {
+      "key": "n600_r14.95_sensor_l2",
+      "n": 600,
+      "range_m": 14.95,
+      "mode": "sensor_l2",
+      "peak_range_m": 14.949832775919733,
+      "total_power": 7463.211623714122,
+      "near_half_meter_power_fraction": 1.1926983900396907e-07,
+      "far_half_meter_power_fraction": 0.9999998088459735,
+      "reference_relative_complex_error": 1.338088322039584e-05,
+      "scatter_amplitude": [
+        0.07007712105843535,
+        -0.009899805022721307
+      ],
+      "output_has_599_bins": true
+    },
+    {
+      "key": "n600_r14.95_fixed_peak_pulse",
+      "n": 600,
+      "range_m": 14.95,
+      "mode": "fixed_peak_pulse",
+      "peak_range_m": 14.949832775919733,
+      "total_power": 0.006826134327488253,
+      "near_half_meter_power_fraction": 1.1927423558183725e-07,
+      "far_half_meter_power_fraction": 0.9999998088417955,
+      "reference_relative_complex_error": 1.3376515884869901e-05,
+      "scatter_amplitude": [
+        0.07007712105843535,
+        -0.009899805022721307
+      ],
+      "output_has_599_bins": true
+    },
+    {
+      "key": "n600_r14.99_sensor_l2",
+      "n": 600,
+      "range_m": 14.99,
+      "mode": "sensor_l2",
+      "peak_range_m": 15.0,
+      "total_power": 7387.887868065397,
+      "near_half_meter_power_fraction": 0.00026187136348118867,
+      "far_half_meter_power_fraction": 0.99959578185966,
+      "reference_relative_complex_error": 1.2369890945625533e-05,
+      "scatter_amplitude": [
+        0.06972260778165582,
+        -0.009849712003433585
+      ],
+      "output_has_599_bins": true
+    },
+    {
+      "key": "n600_r14.99_fixed_peak_pulse",
+      "n": 600,
+      "range_m": 14.99,
+      "mode": "fixed_peak_pulse",
+      "peak_range_m": 15.0,
+      "total_power": 0.006757241897026926,
+      "near_half_meter_power_fraction": 0.00026187113743881434,
+      "far_half_meter_power_fraction": 0.9995957819959511,
+      "reference_relative_complex_error": 1.2384838029354112e-05,
+      "scatter_amplitude": [
+        0.06972260778165582,
+        -0.009849712003433585
+      ],
+      "output_has_599_bins": true
+    },
+    {
+      "key": "n600_r15.0_sensor_l2",
+      "n": 600,
+      "range_m": 15.0,
+      "mode": "sensor_l2",
+      "peak_range_m": 15.0,
+      "total_power": 7369.1913039117935,
+      "near_half_meter_power_fraction": 1.5462951877062898e-11,
+      "far_half_meter_power_fraction": 0.9999999993318045,
+      "reference_relative_complex_error": 3.781613384174505e-05,
+      "scatter_amplitude": [
+        0.06963431795305233,
+        -0.009837246459463368
+      ],
+      "output_has_599_bins": true
+    },
+    {
+      "key": "n600_r15.0_fixed_peak_pulse",
+      "n": 600,
+      "range_m": 15.0,
+      "mode": "fixed_peak_pulse",
+      "peak_range_m": 15.0,
+      "total_power": 0.006740141459319776,
+      "near_half_meter_power_fraction": 1.5489040211235628e-11,
+      "far_half_meter_power_fraction": 0.9999999993315611,
+      "reference_relative_complex_error": 3.7789258701073496e-05,
+      "scatter_amplitude": [
+        0.06963431795305233,
+        -0.009837246459463368
+      ],
+      "output_has_599_bins": true
+    },
+    {
+      "key": "n1024_r0.2_sensor_l2",
+      "n": 1024,
+      "range_m": 0.2,
+      "mode": "sensor_l2",
+      "peak_range_m": 0.20066889632107024,
+      "total_power": 143450107.66400027,
+      "near_half_meter_power_fraction": 0.9999977619072404,
+      "far_half_meter_power_fraction": 1.2697923635205054e-06,
+      "reference_relative_complex_error": 1.9876232303262779e-07,
+      "scatter_amplitude": [
+        12.692233486622074,
+        -1.793033418687291
+      ],
+      "output_has_599_bins": true
+    },
+    {
+      "key": "n1024_r0.2_fixed_peak_pulse",
+      "n": 1024,
+      "range_m": 0.2,
+      "mode": "fixed_peak_pulse",
+      "peak_range_m": 0.20066889632107024,
+      "total_power": 223.92281516284675,
+      "near_half_meter_power_fraction": 0.9999977619065068,
+      "far_half_meter_power_fraction": 1.2697926811765904e-06,
+      "reference_relative_complex_error": 1.890340646069982e-07,
+      "scatter_amplitude": [
+        12.692233486622074,
+        -1.793033418687291
+      ],
+      "output_has_599_bins": true
+    },
+    {
+      "key": "n1024_r0.21_sensor_l2",
+      "n": 1024,
+      "range_m": 0.21,
+      "mode": "sensor_l2",
+      "peak_range_m": 0.20066889632107024,
+      "total_power": 129957489.13558254,
+      "near_half_meter_power_fraction": 0.9997316229306764,
+      "far_half_meter_power_fraction": 0.00014735974722747047,
+      "reference_relative_complex_error": 3.4093982513910174e-07,
+      "scatter_amplitude": [
+        12.08059364548495,
+        -1.7066270380434783
+      ],
+      "output_has_599_bins": true
+    },
+    {
+      "key": "n1024_r0.21_fixed_peak_pulse",
+      "n": 1024,
+      "range_m": 0.21,
+      "mode": "fixed_peak_pulse",
+      "peak_range_m": 0.20066889632107024,
+      "total_power": 202.86114780548183,
+      "near_half_meter_power_fraction": 0.999731622931612,
+      "far_half_meter_power_fraction": 0.00014735974356235563,
+      "reference_relative_complex_error": 2.918381107033228e-07,
+      "scatter_amplitude": [
+        12.08059364548495,
+        -1.7066270380434783
+      ],
+      "output_has_599_bins": true
+    },
+    {
+      "key": "n1024_r4.0_sensor_l2",
+      "n": 1024,
+      "range_m": 4.0,
+      "mode": "sensor_l2",
+      "peak_range_m": 3.988294314381271,
+      "total_power": 227301.7164171901,
+      "near_half_meter_power_fraction": 1.5469620739513535e-06,
+      "far_half_meter_power_fraction": 1.0716319122680274e-05,
+      "reference_relative_complex_error": 1.4195959521025635e-06,
+      "scatter_amplitude": [
+        0.5052298351275084,
+        -0.07137388299540134
+      ],
+      "output_has_599_bins": true
+    },
+    {
+      "key": "n1024_r4.0_fixed_peak_pulse",
+      "n": 1024,
+      "range_m": 4.0,
+      "mode": "fixed_peak_pulse",
+      "peak_range_m": 3.988294314381271,
+      "total_power": 0.35481364849655683,
+      "near_half_meter_power_fraction": 1.5469633670669499e-06,
+      "far_half_meter_power_fraction": 1.0716336137531823e-05,
+      "reference_relative_complex_error": 1.4657110679898707e-06,
+      "scatter_amplitude": [
+        0.5052298351275084,
+        -0.07137388299540134
+      ],
+      "output_has_599_bins": true
+    },
+    {
+      "key": "n1024_r14.95_sensor_l2",
+      "n": 1024,
+      "range_m": 14.95,
+      "mode": "sensor_l2",
+      "peak_range_m": 14.949832775919733,
+      "total_power": 4372.977904764633,
+      "near_half_meter_power_fraction": 1.4629166060268899e-10,
+      "far_half_meter_power_fraction": 0.9999999585237633,
+      "reference_relative_complex_error": 6.654538074592742e-06,
+      "scatter_amplitude": [
+        0.0700771288409281,
+        -0.009899805381545255
+      ],
+      "output_has_599_bins": true
+    },
+    {
+      "key": "n1024_r14.95_fixed_peak_pulse",
+      "n": 1024,
+      "range_m": 14.95,
+      "mode": "fixed_peak_pulse",
+      "peak_range_m": 14.949832775919733,
+      "total_power": 0.006826135782552358,
+      "near_half_meter_power_fraction": 1.4633873454971339e-10,
+      "far_half_meter_power_fraction": 0.9999999585221785,
+      "reference_relative_complex_error": 6.6310458193083835e-06,
+      "scatter_amplitude": [
+        0.0700771288409281,
+        -0.009899805381545255
+      ],
+      "output_has_599_bins": true
+    },
+    {
+      "key": "n1024_r14.99_sensor_l2",
+      "n": 1024,
+      "range_m": 14.99,
+      "mode": "sensor_l2",
+      "peak_range_m": 15.0,
+      "total_power": 4328.844382066453,
+      "near_half_meter_power_fraction": 2.928014955310942e-07,
+      "far_half_meter_power_fraction": 0.9999226322400855,
+      "reference_relative_complex_error": 9.433164867895599e-06,
+      "scatter_amplitude": [
+        0.06972261052466555,
+        -0.009849721851157504
+      ],
+      "output_has_599_bins": true
+    },
+    {
+      "key": "n1024_r14.99_fixed_peak_pulse",
+      "n": 1024,
+      "range_m": 14.99,
+      "mode": "fixed_peak_pulse",
+      "peak_range_m": 15.0,
+      "total_power": 0.00675724274477612,
+      "near_half_meter_power_fraction": 2.928006792137104e-07,
+      "far_half_meter_power_fraction": 0.9999226321629915,
+      "reference_relative_complex_error": 9.489790263003718e-06,
+      "scatter_amplitude": [
+        0.06972261052466555,
+        -0.009849721851157504
+      ],
+      "output_has_599_bins": true
+    },
+    {
+      "key": "n1024_r15.0_sensor_l2",
+      "n": 1024,
+      "range_m": 15.0,
+      "mode": "sensor_l2",
+      "peak_range_m": 15.0,
+      "total_power": 4317.889923296025,
+      "near_half_meter_power_fraction": 4.339670604467275e-11,
+      "far_half_meter_power_fraction": 0.9999999996607141,
+      "reference_relative_complex_error": 1.828085125857799e-05,
+      "scatter_amplitude": [
+        0.06963432796822742,
+        -0.009837250470317726
+      ],
+      "output_has_599_bins": true
+    },
+    {
+      "key": "n1024_r15.0_fixed_peak_pulse",
+      "n": 1024,
+      "range_m": 15.0,
+      "mode": "fixed_peak_pulse",
+      "peak_range_m": 15.0,
+      "total_power": 0.006740141757722655,
+      "near_half_meter_power_fraction": 4.3446976283329013e-11,
+      "far_half_meter_power_fraction": 0.9999999996608724,
+      "reference_relative_complex_error": 1.8308368188305655e-05,
+      "scatter_amplitude": [
+        0.06963432796822742,
+        -0.009837250470317726
+      ],
+      "output_has_599_bins": true
+    },
+    {
+      "key": "n1198_r0.2_sensor_l2",
+      "n": 1198,
+      "range_m": 0.2,
+      "mode": "sensor_l2",
+      "peak_range_m": 0.20066889632107024,
+      "total_power": 122614963.06346262,
+      "near_half_meter_power_fraction": 0.9999977617355069,
+      "far_half_meter_power_fraction": 1.2784730565212452e-06,
+      "reference_relative_complex_error": 3.1919711932237346e-07,
+      "scatter_amplitude": [
+        12.69223273746146,
+        -1.7930338144461846
+      ],
+      "output_has_599_bins": true
+    },
+    {
+      "key": "n1198_r0.2_fixed_peak_pulse",
+      "n": 1198,
+      "range_m": 0.2,
+      "mode": "fixed_peak_pulse",
+      "peak_range_m": 0.20066889632107024,
+      "total_power": 223.92275684743194,
+      "near_half_meter_power_fraction": 0.9999977617324407,
+      "far_half_meter_power_fraction": 1.278481260599186e-06,
+      "reference_relative_complex_error": 2.934339891991001e-07,
+      "scatter_amplitude": [
+        12.69223273746146,
+        -1.7930338144461846
+      ],
+      "output_has_599_bins": true
+    },
+    {
+      "key": "n1198_r0.21_sensor_l2",
+      "n": 1198,
+      "range_m": 0.21,
+      "mode": "sensor_l2",
+      "peak_range_m": 0.20066889632107024,
+      "total_power": 111082053.56908497,
+      "near_half_meter_power_fraction": 0.9997316020646754,
+      "far_half_meter_power_fraction": 0.0001484076752351226,
+      "reference_relative_complex_error": 5.787808575717365e-07,
+      "scatter_amplitude": [
+        12.080595184632369,
+        -1.7066275090756624
+      ],
+      "output_has_599_bins": true
+    },
+    {
+      "key": "n1198_r0.21_fixed_peak_pulse",
+      "n": 1198,
+      "range_m": 0.21,
+      "mode": "fixed_peak_pulse",
+      "peak_range_m": 0.20066889632107024,
+      "total_power": 202.86107476626114,
+      "near_half_meter_power_fraction": 0.9997316020494379,
+      "far_half_meter_power_fraction": 0.00014840763883936477,
+      "reference_relative_complex_error": 6.421124995844762e-07,
+      "scatter_amplitude": [
+        12.080595184632369,
+        -1.7066275090756624
+      ],
+      "output_has_599_bins": true
+    },
+    {
+      "key": "n1198_r4.0_sensor_l2",
+      "n": 1198,
+      "range_m": 4.0,
+      "mode": "sensor_l2",
+      "peak_range_m": 3.988294314381271,
+      "total_power": 194287.74385954972,
+      "near_half_meter_power_fraction": 1.5172682662495278e-06,
+      "far_half_meter_power_fraction": 1.1649504240396255e-05,
+      "reference_relative_complex_error": 3.5368587765030655e-06,
+      "scatter_amplitude": [
+        0.5052298232623964,
+        -0.07137383275207468
+      ],
+      "output_has_599_bins": true
+    },
+    {
+      "key": "n1198_r4.0_fixed_peak_pulse",
+      "n": 1198,
+      "range_m": 4.0,
+      "mode": "fixed_peak_pulse",
+      "peak_range_m": 3.988294314381271,
+      "total_power": 0.35481357978307015,
+      "near_half_meter_power_fraction": 1.517259229206306e-06,
+      "far_half_meter_power_fraction": 1.1649512760751004e-05,
+      "reference_relative_complex_error": 3.4846106308646905e-06,
+      "scatter_amplitude": [
+        0.5052298232623964,
+        -0.07137383275207468
+      ],
+      "output_has_599_bins": true
+    },
+    {
+      "key": "n1198_r14.95_sensor_l2",
+      "n": 1198,
+      "range_m": 14.95,
+      "mode": "sensor_l2",
+      "peak_range_m": 14.949832775919733,
+      "total_power": 3737.833247853328,
+      "near_half_meter_power_fraction": 1.016855351497341e-10,
+      "far_half_meter_power_fraction": 0.9999999589560392,
+      "reference_relative_complex_error": 4.160640062638316e-06,
+      "scatter_amplitude": [
+        0.07007713616093664,
+        -0.009899808218247914
+      ],
+      "output_has_599_bins": true
+    },
+    {
+      "key": "n1198_r14.95_fixed_peak_pulse",
+      "n": 1198,
+      "range_m": 14.95,
+      "mode": "fixed_peak_pulse",
+      "peak_range_m": 14.949832775919733,
+      "total_power": 0.006826134379207595,
+      "near_half_meter_power_fraction": 1.0161186025983462e-10,
+      "far_half_meter_power_fraction": 0.9999999589561548,
+      "reference_relative_complex_error": 4.157385473392248e-06,
+      "scatter_amplitude": [
+        0.07007713616093664,
+        -0.009899808218247914
+      ],
+      "output_has_599_bins": true
+    },
+    {
+      "key": "n1198_r14.99_sensor_l2",
+      "n": 1198,
+      "range_m": 14.99,
+      "mode": "sensor_l2",
+      "peak_range_m": 15.0,
+      "total_power": 3700.109655242052,
+      "near_half_meter_power_fraction": 2.0264968276833616e-07,
+      "far_half_meter_power_fraction": 0.999923849421294,
+      "reference_relative_complex_error": 5.265579115508095e-06,
+      "scatter_amplitude": [
+        0.06972259759105567,
+        -0.00984971569832352
+      ],
+      "output_has_599_bins": true
+    },
+    {
+      "key": "n1198_r14.99_fixed_peak_pulse",
+      "n": 1198,
+      "range_m": 14.99,
+      "mode": "fixed_peak_pulse",
+      "peak_range_m": 15.0,
+      "total_power": 0.00675724140419788,
+      "near_half_meter_power_fraction": 2.0265443299094142e-07,
+      "far_half_meter_power_fraction": 0.9999238494670222,
+      "reference_relative_complex_error": 5.26421422150542e-06,
+      "scatter_amplitude": [
+        0.06972259759105567,
+        -0.00984971569832352
+      ],
+      "output_has_599_bins": true
+    },
+    {
+      "key": "n1198_r15.0_sensor_l2",
+      "n": 1198,
+      "range_m": 15.0,
+      "mode": "sensor_l2",
+      "peak_range_m": 15.0,
+      "total_power": 3690.746007738359,
+      "near_half_meter_power_fraction": 2.0697010411375624e-12,
+      "far_half_meter_power_fraction": 0.999999999693992,
+      "reference_relative_complex_error": 2.612211205247265e-05,
+      "scatter_amplitude": [
+        0.06963432595083945,
+        -0.009837250033748588
+      ],
+      "output_has_599_bins": true
+    },
+    {
+      "key": "n1198_r15.0_fixed_peak_pulse",
+      "n": 1198,
+      "range_m": 15.0,
+      "mode": "fixed_peak_pulse",
+      "peak_range_m": 15.0,
+      "total_power": 0.006740141209566855,
+      "near_half_meter_power_fraction": 2.071872230185102e-12,
+      "far_half_meter_power_fraction": 0.9999999996937863,
+      "reference_relative_complex_error": 2.6132971988662825e-05,
+      "scatter_amplitude": [
+        0.06963432595083945,
+        -0.009837250033748588
+      ],
+      "output_has_599_bins": true
+    },
+    {
+      "key": "n2396_r0.2_sensor_l2",
+      "n": 2396,
+      "range_m": 0.2,
+      "mode": "sensor_l2",
+      "peak_range_m": 0.20066889632107024,
+      "total_power": 61307474.04388354,
+      "near_half_meter_power_fraction": 0.9999977613872361,
+      "far_half_meter_power_fraction": 1.292516839024544e-06,
+      "reference_relative_complex_error": 3.456778783391813e-07,
+      "scatter_amplitude": [
+        12.69223273746146,
+        -1.793033508760076
+      ],
+      "output_has_599_bins": true
+    },
+    {
+      "key": "n2396_r0.2_fixed_peak_pulse",
+      "n": 2396,
+      "range_m": 0.2,
+      "mode": "fixed_peak_pulse",
+      "peak_range_m": 0.20066889632107024,
+      "total_power": 223.92274574540536,
+      "near_half_meter_power_fraction": 0.9999977613842166,
+      "far_half_meter_power_fraction": 1.2925224861430028e-06,
+      "reference_relative_complex_error": 3.139628010911322e-07,
+      "scatter_amplitude": [
+        12.69223273746146,
+        -1.793033508760076
+      ],
+      "output_has_599_bins": true
+    },
+    {
+      "key": "n2396_r0.21_sensor_l2",
+      "n": 2396,
+      "range_m": 0.21,
+      "mode": "sensor_l2",
+      "peak_range_m": 0.20066889632107024,
+      "total_power": 55541036.59115736,
+      "near_half_meter_power_fraction": 0.999731560291525,
+      "far_half_meter_power_fraction": 0.0001501051163341126,
+      "reference_relative_complex_error": 4.812343290966616e-07,
+      "scatter_amplitude": [
+        12.0805927391435,
+        -1.7066262863312278
+      ],
+      "output_has_599_bins": true
+    },
+    {
+      "key": "n2396_r0.21_fixed_peak_pulse",
+      "n": 2396,
+      "range_m": 0.21,
+      "mode": "fixed_peak_pulse",
+      "peak_range_m": 0.20066889632107024,
+      "total_power": 202.8611049743837,
+      "near_half_meter_power_fraction": 0.9997315602657898,
+      "far_half_meter_power_fraction": 0.0001501050785930653,
+      "reference_relative_complex_error": 4.4580612416782705e-07,
+      "scatter_amplitude": [
+        12.0805927391435,
+        -1.7066262863312278
+      ],
+      "output_has_599_bins": true
+    },
+    {
+      "key": "n2396_r4.0_sensor_l2",
+      "n": 2396,
+      "range_m": 4.0,
+      "mode": "sensor_l2",
+      "peak_range_m": 3.988294314381271,
+      "total_power": 97143.86036786383,
+      "near_half_meter_power_fraction": 1.4595080970575042e-06,
+      "far_half_meter_power_fraction": 1.3395517675114785e-05,
+      "reference_relative_complex_error": 3.5547220063183777e-06,
+      "scatter_amplitude": [
+        0.5052298232623964,
+        -0.07137381842303835
+      ],
+      "output_has_599_bins": true
+    },
+    {
+      "key": "n2396_r4.0_fixed_peak_pulse",
+      "n": 2396,
+      "range_m": 4.0,
+      "mode": "fixed_peak_pulse",
+      "peak_range_m": 3.988294314381271,
+      "total_power": 0.3548135637275209,
+      "near_half_meter_power_fraction": 1.4595135230522734e-06,
+      "far_half_meter_power_fraction": 1.3395507380719565e-05,
+      "reference_relative_complex_error": 3.573431916645538e-06,
+      "scatter_amplitude": [
+        0.5052298232623964,
+        -0.07137381842303835
+      ],
+      "output_has_599_bins": true
+    },
+    {
+      "key": "n2396_r14.95_sensor_l2",
+      "n": 2396,
+      "range_m": 14.95,
+      "mode": "sensor_l2",
+      "peak_range_m": 14.949832775919733,
+      "total_power": 1868.9168504958218,
+      "near_half_meter_power_fraction": 5.418681788331133e-11,
+      "far_half_meter_power_fraction": 0.9999999601939457,
+      "reference_relative_complex_error": 3.6253128628905807e-06,
+      "scatter_amplitude": [
+        0.0700771218319003,
+        -0.009899802247816105
+      ],
+      "output_has_599_bins": true
+    },
+    {
+      "key": "n2396_r14.95_fixed_peak_pulse",
+      "n": 2396,
+      "range_m": 14.95,
+      "mode": "fixed_peak_pulse",
+      "peak_range_m": 14.949832775919733,
+      "total_power": 0.006826135115258104,
+      "near_half_meter_power_fraction": 5.4197924204404396e-11,
+      "far_half_meter_power_fraction": 0.9999999601943006,
+      "reference_relative_complex_error": 3.6240817328298597e-06,
+      "scatter_amplitude": [
+        0.0700771218319003,
+        -0.009899802247816105
+      ],
+      "output_has_599_bins": true
+    },
+    {
+      "key": "n2396_r14.99_sensor_l2",
+      "n": 2396,
+      "range_m": 14.99,
+      "mode": "sensor_l2",
+      "peak_range_m": 15.0,
+      "total_power": 1850.055126714232,
+      "near_half_meter_power_fraction": 1.0410996929560577e-07,
+      "far_half_meter_power_fraction": 0.9999257230089306,
+      "reference_relative_complex_error": 5.019732001722405e-06,
+      "scatter_amplitude": [
+        0.06972260714374656,
+        -0.009849718683539425
+      ],
+      "output_has_599_bins": true
+    },
+    {
+      "key": "n2396_r14.99_fixed_peak_pulse",
+      "n": 2396,
+      "range_m": 14.99,
+      "mode": "fixed_peak_pulse",
+      "peak_range_m": 15.0,
+      "total_power": 0.006757242757205732,
+      "near_half_meter_power_fraction": 1.0411328964593239e-07,
+      "far_half_meter_power_fraction": 0.999925723001381,
+      "reference_relative_complex_error": 5.0220572929227435e-06,
+      "scatter_amplitude": [
+        0.06972260714374656,
+        -0.009849718683539425
+      ],
+      "output_has_599_bins": true
+    },
+    {
+      "key": "n2396_r15.0_sensor_l2",
+      "n": 2396,
+      "range_m": 15.0,
+      "mode": "sensor_l2",
+      "peak_range_m": 15.0,
+      "total_power": 1845.373159782341,
+      "near_half_meter_power_fraction": 7.030334125112146e-13,
+      "far_half_meter_power_fraction": 0.9999999999011893,
+      "reference_relative_complex_error": 2.5621871615908044e-05,
+      "scatter_amplitude": [
+        0.06963431639814856,
+        -0.009837258392353122
+      ],
+      "output_has_599_bins": true
+    },
+    {
+      "key": "n2396_r15.0_fixed_peak_pulse",
+      "n": 2396,
+      "range_m": 15.0,
+      "mode": "fixed_peak_pulse",
+      "peak_range_m": 15.0,
+      "total_power": 0.006740141434896733,
+      "near_half_meter_power_fraction": 6.992503470508031e-13,
+      "far_half_meter_power_fraction": 0.9999999999012273,
+      "reference_relative_complex_error": 2.55771200238947e-05,
+      "scatter_amplitude": [
+        0.06963431639814856,
+        -0.009837258392353122
+      ],
+      "output_has_599_bins": true
+    },
+    {
+      "key": "two_n599",
+      "n": 599,
+      "range_m": [
+        4.0,
+        15.0
+      ],
+      "mode": "two_fixed_peak_pulse",
+      "reference_relative_complex_error": 1.2707150836721396e-05
+    },
+    {
+      "key": "two_n1198",
+      "n": 1198,
+      "range_m": [
+        4.0,
+        15.0
+      ],
+      "mode": "two_fixed_peak_pulse",
+      "reference_relative_complex_error": 1.2480289252577442e-05
+    },
+    {
+      "key": "two_n2396",
+      "n": 2396,
+      "range_m": [
+        4.0,
+        15.0
+      ],
+      "mode": "two_fixed_peak_pulse",
+      "reference_relative_complex_error": 1.2236448457691095e-05
+    }
+  ],
+  "energy_scaling": [
+    {
+      "mode": "sensor_l2",
+      "ratios": {
+        "598": 1.0016716774982317,
+        "599": 1.0,
+        "600": 0.9983328721277218,
+        "1024": 0.5849611610647076,
+        "1198": 0.499999674530085,
+        "2396": 0.2499998075104546
+      }
+    },
+    {
+      "mode": "fixed_peak_pulse",
+      "ratios": {
+        "598": 0.9999999729330205,
+        "599": 1.0,
+        "600": 0.9999999571743332,
+        "1024": 1.0000001929554712,
+        "1198": 0.9999999992946572,
+        "2396": 0.9999999540439956
+      }
+    }
+  ],
+  "invalid_contract": {
+    "n": 599,
+    "max_distance": 15.5,
+    "target_m": 15.4,
+    "reported_peak_m": 0.3762541806020067,
+    "accepted": true
+  },
+  "max_reference_error": 3.781613384174505e-05,
+  "arrays_sha256": "672814ead5a86c9da02175cb6b46a74ba59f8615d5a74d511273731baea54306"
+}

@@ -111,13 +111,17 @@ bool WgpuComputeBackend::Compute(const SonarComputeInput & input, SonarComputeOu
       return false;
     }
     output.nBeams = input.nBeams;
-    output.nFreq = input.nFreq;
-    output.beamSpectrum.resize(size_t(input.nBeams) * input.nFreq);
-    for (size_t i = 0; i < output.beamSpectrum.size(); ++i)
+    output.nFreq = input.nOutputRanges ? input.nOutputRanges : input.nFreq;
+    output.beamSpectrum.resize(size_t(input.nBeams) * output.nFreq);
+    for (int beam = 0; beam < input.nBeams; ++beam)
     {
-      output.beamSpectrum[i] = {result[2 * i], result[2 * i + 1]};
+      for (int range = 0; range < output.nFreq; ++range)
+      {
+        const size_t i = size_t(beam) * input.nFreq + range;
+        output.At(beam, range) = {result[2 * i], result[2 * i + 1]};
+      }
     }
-    sonar_wgpu_free(result, output.beamSpectrum.size() * 2);
+    sonar_wgpu_free(result, size_t(input.nBeams) * input.nFreq * 2);
     output.computeMicros =
       std::chrono::duration<double, std::micro>(std::chrono::steady_clock::now() - start).count();
     return true;

@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
+#include "PhysicalPulse.hh"
 #include "PhysicalSonarInput.hh"
 
 #include <fstream>
@@ -93,7 +94,7 @@ struct Scene
     input.nBeams = receivers;
     input.nRays = 7;
     input.nFreq = frequencies;
-    input.maxDistance = 15;
+    input.maxDistance = 14;  // below the shortest control transform period
     input.soundSpeed = 1500;
     input.bandwidth = 3200;
     input.sourceLevel = 220;
@@ -109,9 +110,10 @@ SonarComputeOutput Compute(ComputeBackend & backend, const SonarComputeInput & i
 {
   SonarComputeOutput output;
   Require(backend.Compute(input, output), "compute rejected valid physical input");
+  const int count = input.nOutputRanges ? input.nOutputRanges : input.nFreq;
   Require(
-    output.nBeams == input.nBeams && output.nFreq == input.nFreq &&
-      output.beamSpectrum.size() == size_t(input.nBeams) * input.nFreq,
+    output.nBeams == input.nBeams && output.nFreq == count &&
+      output.beamSpectrum.size() == size_t(input.nBeams) * count,
     "wrong receiver shape");
   Energy(output);
   return output;
@@ -147,6 +149,76 @@ void Controls(ComputeBackend & backend)
   scene.model.elevationIndices.back() = 7;
   Require(!backend.Compute(scene.input, rejected), "invalid selected row accepted");
 }
+void PulseControls(ComputeBackend & backend)
+{
+  auto pulse = MakePhysicalPulse(15, 1500, 29900);
+  Require(pulse.ranges.size() == 599 && pulse.spectrum.size() == 2048, "pulse sampling plan");
+  Require(std::abs(pulse.ranges.back() - 15) < 1e-6, "far endpoint absent");
+  Require(
+    std::abs(
+      std::accumulate(pulse.spectrum.begin(), pulse.spectrum.end(), 0.) / pulse.spectrum.size() -
+      1) < 1e-7,
+    "pulse peak depends on transform length");
+  for (double invalid : {0., -1., std::numeric_limits<double>::infinity(), 1000.})
+  {
+    bool rejected = false;
+    try
+    {
+      MakePhysicalPulse(invalid, 1500, 29900);
+    }
+    catch (const std::invalid_argument &)
+    {
+      rejected = true;
+    }
+    Require(rejected, "unsupported pulse accepted");
+  }
+  Scene scene(5, 3, 2048, 1);
+  scene.depth.setTo(0);
+  scene.input.bandwidth = 29900;
+  scene.input.maxDistance = 15;
+  scene.input.nOutputRanges = 599;
+  scene.input.window = pulse.spectrum.data();
+  for (float range : {14.99f, 15.f})
+  {
+    scene.depth.at<float>(3, 2) = range;
+    auto result = Compute(backend, scene.input);
+    double nearPower = 0;
+    for (int beam = 0; beam < result.nBeams; ++beam)
+    {
+      for (int r = 0; r < 20; ++r)
+      {
+        nearPower += std::norm(std::complex<double>(result.At(beam, r)));
+      }
+    }
+    Require(nearPower / Energy(result) < 1e-5, "far pulse wrapped into near range");
+  }
+  scene.depth.at<float>(3, 2) = 4;
+  const auto original = Compute(backend, scene.input);
+  auto longer = MakePhysicalPulse(30, 1500, 29900);
+  scene.input.nFreq = static_cast<int>(longer.spectrum.size());
+  scene.input.window = longer.spectrum.data();
+  scene.input.maxDistance = 30;
+  // Compare the identical complete original output interval, no peak fitting.
+  const auto extended = Compute(backend, scene.input);
+  double difference = 0;
+  for (size_t i = 0; i < original.beamSpectrum.size(); ++i)
+  {
+    difference += std::norm(
+      std::complex<double>(original.beamSpectrum[i]) -
+      std::complex<double>(extended.beamSpectrum[i]));
+  }
+  Require(std::sqrt(difference / Energy(original)) < 3e-4, "record length changed pulse");
+  SonarComputeOutput rejected;
+  scene.input.maxDistance =
+    scene.input.nFreq * scene.input.soundSpeed / (2 * scene.input.bandwidth);
+  Require(!backend.Compute(scene.input, rejected), "period boundary accepted");
+  scene.input.maxDistance = 30;
+  scene.input.nOutputRanges = scene.input.nFreq / 2 + 1;
+  Require(!backend.Compute(scene.input, rejected), "missing pulse guard accepted");
+  scene.input.nOutputRanges = -1;
+  Require(!backend.Compute(scene.input, rejected), "negative output count accepted");
+}
+
 void Selection(const std::string & name, bool radixOnly)
 {
   Scene prototype(17, 256, 64, 4);
@@ -183,6 +255,7 @@ int main(int argc, char ** argv)
     Geometry();
     Selection(name, radixOnly);
     Controls(*backend);
+    PulseControls(*backend);
     std::ofstream arrays;
     if (argc > 3)
     {

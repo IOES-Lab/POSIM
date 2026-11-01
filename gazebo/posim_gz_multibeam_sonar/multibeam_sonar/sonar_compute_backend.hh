@@ -52,6 +52,9 @@ struct SonarComputeInput
   // Explicit physical readout; null retains the historical square-grid API.
   const AcousticReadout * physicalReadout{nullptr};
   float receiveGain{1.0f};  // linear pressure gain, independent of preview gain
+  // Physical mode only: nFreq is quadrature length; 0 requests the full
+  // transform for diagnostics. Sensors publish the first nOutputRanges bins.
+  int nOutputRanges{0};
 };
 
 struct SonarComputeOutput

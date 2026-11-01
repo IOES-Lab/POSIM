@@ -26,6 +26,13 @@ inline bool PackPhysicalSonar(const SonarComputeInput & input, PackedPhysicalSon
   {
     return false;
   }
+  if (
+    input.maxDistance >= double(input.nFreq) * input.soundSpeed / (2. * input.bandwidth) ||
+    input.nOutputRanges < 0 || input.nOutputRanges > input.nFreq ||
+    (input.nOutputRanges > 0 && input.nFreq < 2 * input.nOutputRanges))
+  {
+    return false;
+  }
   const auto & model = *input.physicalReadout;
   const auto & depth = *input.depthImage;
   const auto & normal = *input.normalImage;

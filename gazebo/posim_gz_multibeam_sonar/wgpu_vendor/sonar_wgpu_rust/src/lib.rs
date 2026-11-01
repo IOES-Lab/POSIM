@@ -135,6 +135,9 @@ pub unsafe extern "C" fn sonar_wgpu_compute(
 /// depth, reflectivity and angular_area have n_geometry*n_selected_rays floats;
 /// normal has three times that length, pressure_response has n_receivers*n_geometry,
 /// and window has n_freq. All pointers must be valid for those lengths.
+/// window is dimensionless B*S(f), sampled at B*((j+0.5)/n_freq-0.5).
+/// A unit-mean window has unit time-domain peak; normalization is 1/n_freq.
+/// The result is complex baseband pressure at t=k/B, including the full guard.
 /// The result has n_receivers*n_freq*2 floats, released with sonar_wgpu_free.
 #[no_mangle]
 pub unsafe extern "C" fn sonar_wgpu_compute_v2(
@@ -268,7 +271,9 @@ unsafe fn compute_impl(
             || !sensor_gain.is_finite()
             || sensor_gain < 0.0
             || !bandwidth.is_finite()
-            || bandwidth <= 0.0)
+            || bandwidth <= 0.0
+            || f64::from(max_distance)
+                >= f64::from(n_freq) * f64::from(sound_speed) / (2.0 * f64::from(bandwidth)))
     {
         return std::ptr::null_mut();
     }
@@ -675,11 +680,24 @@ unsafe fn compute_impl(
     buf.stg_re.unmap();
     buf.stg_im.unmap();
 
-    // Matches CUDA's post-FFT * delta_f scaling
-    let delta_f = bandwidth / (n_freq as f32);
+    // Physical v2 integrates dimensionless B*S(f) with 1/M, independent of
+    // acquisition length. Undo the midpoint frequency origin after the DFT.
+    // Legacy v1 retains its historical delta_f scaling and phase convention.
     for i in 0..output_len {
-        p_re[i] *= delta_f;
-        p_im[i] *= delta_f;
+        if physical {
+            let k = i % n_freq_us;
+            let phase = -std::f32::consts::PI * k as f32 / n_freq as f32;
+            let sign = if k % 2 == 0 { 1.0 } else { -1.0 };
+            let (s, c) = phase.sin_cos();
+            let re = p_re[i];
+            let im = p_im[i];
+            p_re[i] = (re * c - im * s) * sign / n_freq as f32;
+            p_im[i] = (re * s + im * c) * sign / n_freq as f32;
+        } else {
+            let delta_f = bandwidth / n_freq as f32;
+            p_re[i] *= delta_f;
+            p_im[i] *= delta_f;
+        }
     }
 
     // Pack into interleaved [re0, im0, re1, im1, ...] for C++ caller

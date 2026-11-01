@@ -43,7 +43,9 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
     let delta_f = params.bandwidth / f32(params.n_freq);
     let n = f32(params.n_freq);
     var freq: f32;
-    if ((params.n_freq % 2u) == 0u) {
+    if (params._pad0 != 0u) {
+        freq = delta_f * (f32(f) + 0.5 - 0.5 * n);
+    } else if ((params.n_freq % 2u) == 0u) {
         freq = delta_f * (-n + 2.0 * (f32(f) + 1.0)) / 2.0;
     } else {
         freq = delta_f * (-(n - 1.0) + 2.0 * (f32(f) + 1.0)) / 2.0;
