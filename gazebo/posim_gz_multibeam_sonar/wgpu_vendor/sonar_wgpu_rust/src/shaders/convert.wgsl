@@ -55,7 +55,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
     for (var ray: u32 = 0u; ray < params.n_rays; ray = ray + ray_step) {
         let dr = beam * params.n_rays + ray;
         let d = depth[dr];
-        if (d <= 0.0 || d > params.max_distance) { continue; }
+        if (!(d > 0.0 && d <= params.max_distance)) { continue; }
         let ar = amplitude_re[dr];
         let ai = amplitude_im[dr];
         let phase = 2.0 * d * kw;

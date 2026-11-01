@@ -18,7 +18,7 @@ struct Params {
   area_scaler: f32,
   h_fov: f32,
   v_fov: f32,
-  _pad0: u32,
+  use_area_weights: u32,
   _pad1: u32,
   _pad2: u32,
 };
@@ -29,6 +29,7 @@ struct Params {
 @group(0) @binding(3) var<storage, read> reflectivity: array<f32>;
 @group(0) @binding(4) var<storage, read_write> out_re: array<f32>;
 @group(0) @binding(5) var<storage, read_write> out_im: array<f32>;
+@group(0) @binding(7) var<storage, read> angular_areas: array<f32>;
 
 const PI: f32 = 3.14159265358979323846;
 
@@ -111,7 +112,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
 
   let dr = beam * params.n_rays + actual_ray;
   let d = depth[dr];
-  if (d <= 0.0 || d > params.max_distance) {
+  if (!(d > 0.0 && d <= params.max_distance)) {
     return;
   }
 
@@ -126,9 +127,12 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
   let source_term = sqrt(pow(10.0, params.source_level / 10.0)) * 1e-6;
   let propagation = exp(-2.0 * params.attenuation * d) / (d * d);
   // Projected angular-cell footprint is r^2 * dtheta * dphi (Choi 2021, Eq. 14).
-  let target_area_sqrt = d * sqrt(params.area_scaler);
+  var solid_angle = params.area_scaler;
+  var gain = 1.0;
+  if (params.use_area_weights != 0u) { solid_angle = angular_areas[dr]; gain = params.sensor_gain; }
+  let target_area_sqrt = d * sqrt(solid_angle);
   // let amp_scale = source_term * propagation * lambert_sqrt * target_area_sqrt * params.sensor_gain;
-  let amp_scale = source_term * propagation * lambert_sqrt * target_area_sqrt;
+  let amp_scale = source_term * propagation * lambert_sqrt * target_area_sqrt * gain;
 
   let subsequence = beam * params.n_rays + actual_ray;
   let xi = philox_normal4(params.seed_lo, params.seed_hi, params.frame_lo, params.frame_hi, subsequence);

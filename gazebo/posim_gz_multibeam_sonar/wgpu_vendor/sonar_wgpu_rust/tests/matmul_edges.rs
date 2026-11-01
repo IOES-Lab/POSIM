@@ -63,7 +63,7 @@ impl GpuMatmul {
             .device
             .create_buffer_init(&wgpu::util::BufferInitDescriptor {
                 label: None,
-                contents: bytemuck::cast_slice(&[beams, freq, norm.to_bits()]),
+                contents: bytemuck::cast_slice(&[beams, freq, norm.to_bits(), beams]),
                 usage: wgpu::BufferUsages::UNIFORM,
             });
         let storage = |v: &[f32], usage| {

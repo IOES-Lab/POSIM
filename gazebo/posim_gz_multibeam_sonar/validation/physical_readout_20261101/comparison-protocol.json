@@ -1,0 +1,25 @@
+{
+  "source_record": "../aperture_quadrature_20261101",
+  "grids": [
+    65,
+    129,
+    257
+  ],
+  "frames": [
+    1000,
+    1256
+  ],
+  "output_count": 301,
+  "nfreq": 64,
+  "nrays": 3,
+  "hfov": 0.5235987755982988,
+  "vfov": 0.002,
+  "bandwidth": 3200.0,
+  "source_level": 180,
+  "plane_x_m": 5,
+  "synthetic_power_fwhm": 0.026179938779914945,
+  "hardware_calibration": false,
+  "binary_sha256": "d8f7c1e69564fb91a4084ca4ff3c65e5372bc27fe1ab2f48ce100c6259f40329",
+  "maximum_new_native_calls": 771,
+  "maximum_output_bytes": 8388608
+}

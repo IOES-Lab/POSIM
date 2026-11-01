@@ -1,0 +1,80 @@
+# Physical readout independent of geometry sampling
+
+[한국어](README.ko.md)
+
+![Same scene: coupled and independent receive models](readout-comparison.png)
+
+The opt-in native `AcousticReadout` / `sonar_wgpu_compute_v2` path separates
+geometry columns, selected elevation rows and represented solid angles from
+output receiver directions, signed pressure response and receive gain.
+Endpoint cells cover the complete angular domain even when the elevation
+stride does not divide the row count. Reflectivity does not hide cell area.
+The rectangular operator owns its input/output buffer sizes and cache key.
+
+CPU physical mode now performs the frequency-domain phase sum, physical
+receive weighting and original-length forward DFT. It uses the same declared
+projected-area / cosine-squared power convention and counter-based random
+scattering as WGPU. The old CPU fallback is retained as a different legacy
+model. CUDA explicitly rejects this new readout instead of using square
+buffers with the wrong interpretation.
+
+The PR6 owning source retains its fixed-point/radix-2 implementation and
+rejects non-power-of-two lengths in v2. The separate integration retains the
+follow-up floating-point/exact-length transform fixes. No follow-up PR was
+merged into PR6. The extended matrix input bounds also apply the existing
+partial-tile correctness rule to rectangular inputs. The integration's
+direct shader test supplies the new trailing output-count uniform.
+
+## Actual native evidence
+
+- Owning CPU: 64 rectangular cases; owning Metal: 16 radix-2 cases, maximum
+  relative complex-signal difference from CPU `1.9983e-5`.
+- Integrated Metal: 64 cases, including lengths 63, 64, 65 and 599, with
+  5/17 geometry columns and 1/3/19 receiver rows. Maximum relative complex
+  difference from CPU is `2.5344e-6`; the declared bound is `3e-4`.
+- Both lineages pass endpoint/stride, no-return NaN, zero-window, receive-gain
+  and invalid-input controls, plus the existing CPU/Metal range regressions.
+- The integration passes its Rust unit tests, two explicit Metal matrix tests,
+  three explicit Metal window/input tests, and the new CMake/CTest CPU target.
+
+A second 2,307-call native control holds nine receiver directions fixed while
+changing geometry columns 65/129/257 and elevation strides 1/2/4. The smooth
+plane's conditional mean-energy prediction changes by at most **0.4823%**
+across all nine quadratures, below the predeclared 1% convergence bound.
+Actual 256-frame means differ from their respective conditional expectations
+by at most **11.734%**. Every mean lies within the predeclared conservative
+Gaussian-quadratic-form family bound, `[-25.054%, +30.098%]`, for 81 comparisons
+at family error bound 1%. This is statistical consistency, not a 0.4823%
+hardware-error claim. Native fluctuations are retained without rescaling.
+
+Three single-patch controls preserve the signed receive response while
+geometry density changes; maximum complex response error is `3.85e-8`.
+This test's power FWHM is **0.08 radians**, a specified synthetic pattern,
+not a Sonoptix measurement or a reinterpretation of catalogue resolution.
+
+`arrays.npz` retains every plane energy from every frame/receiver, all three
+complete point returns, and the first/last complete plane returns. Canonical
+raw C++ comparisons, builds, command logs and source snapshots remain once
+at `physical-readout/` beneath the 2026-11-01 fundamental review. Their hashes,
+exact source files and binary identities are in `source-receipts.json`.
+The native function address resolves to the isolated binary in `result.json`.
+
+Run `python verify_record.py` with NumPy to independently check the portable
+data, conditional energy and point response. This does not execute a sensor.
+
+## Remaining work
+
+The sensor's SDF loading, renderer dimensions, outgoing direction/beamwidth
+metadata and demo profile are **not connected to v2 yet**. Existing demos,
+installed SDK, LIVE and runners have not been replaced or restarted.
+The current GPU timing log still uses the historical word "beams" for input
+geometry columns; v2 output dimensions are explicitly recorded here.
+
+Next connect that complete sensor path and make model/backend provenance
+truthful. Qualify range-axis/pulse support, point/two-point/occluder scenes,
+temporal scattering under unchanged and moved views, and physical-pattern
+assumptions before collecting a replacement field. CUDA and installed runtime
+acceptance remain open. This is established numerical/acoustic engineering;
+it neither accepts a useful sonar SLAM map nor establishes research novelty.
+
+The full BlueROV/SLAM, product, VRX and subsequent WAM-V survey goal remains active.

@@ -1,3 +1,4 @@
+#include "PhysicalSonarInput.hh"
 #include "sonar_compute_backend.hh"
 
 #include <algorithm>
@@ -33,6 +34,11 @@ public:
 
   bool Compute(const SonarComputeInput & input, SonarComputeOutput & output) override
   {
+    if (input.physicalReadout)
+    {
+      return ComputePhysicalSonarCpu(input, output);
+    }
+
     if (!input.depthImage || !input.normalImage || input.nBeams <= 0 || input.nFreq <= 0)
     {
       return false;

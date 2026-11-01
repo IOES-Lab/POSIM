@@ -1,4 +1,5 @@
 #include "sonar_compute_wgpu.hh"
+#include "PhysicalSonarInput.hh"
 
 #include <algorithm>
 #include <chrono>
@@ -9,6 +10,13 @@
 
 extern "C"
 {
+  float * sonar_wgpu_compute_v2(
+    const float * depth, const float * normal, const float * reflectivity,
+    const float * angular_area, const float * pressure_response, const float * window,
+    uint32_t n_geometry, uint32_t n_selected_rays, uint32_t n_receivers, uint32_t n_freq,
+    float sound_speed, float max_distance, float source_level, float attenuation,
+    float receive_gain, float bandwidth, uint64_t frame_index, uint64_t seed, bool debug_flag);
+
   float * sonar_wgpu_compute(
     const float * depth_flat, const float * normal_flat, const float * reflectivity_flat,
     const float * beam_corrector_flat, const float * window_flat, uint32_t n_beams, uint32_t n_rays,
@@ -66,6 +74,37 @@ bool WgpuComputeBackend::Compute(const SonarComputeInput & input, SonarComputeOu
   if (!this->initialized)
   {
     return false;
+  }
+
+  if (input.physicalReadout)
+  {
+    const auto start = std::chrono::steady_clock::now();
+    PackedPhysicalSonar cells;
+    if (!PackPhysicalSonar(input, cells))
+    {
+      return false;
+    }
+    float * result = sonar_wgpu_compute_v2(
+      cells.depth.data(), cells.normal.data(), cells.reflectivity.data(), cells.angularArea.data(),
+      input.physicalReadout->pressureResponse.data(), input.window, cells.geometryColumns,
+      cells.selectedRows, input.nBeams, input.nFreq, input.soundSpeed, input.maxDistance,
+      input.sourceLevel, input.attenuation, input.receiveGain, input.bandwidth, input.frameIndex,
+      input.seed, input.debugFlag);
+    if (!result)
+    {
+      return false;
+    }
+    output.nBeams = input.nBeams;
+    output.nFreq = input.nFreq;
+    output.beamSpectrum.resize(size_t(input.nBeams) * input.nFreq);
+    for (size_t i = 0; i < output.beamSpectrum.size(); ++i)
+    {
+      output.beamSpectrum[i] = {result[2 * i], result[2 * i + 1]};
+    }
+    sonar_wgpu_free(result, output.beamSpectrum.size() * 2);
+    output.computeMicros =
+      std::chrono::duration<double, std::micro>(std::chrono::steady_clock::now() - start).count();
+    return true;
   }
 
   if (!input.depthImage || !input.normalImage || !input.reflectivityImage)
