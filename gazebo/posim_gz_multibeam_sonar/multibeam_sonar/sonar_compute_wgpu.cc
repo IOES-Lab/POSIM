@@ -45,6 +45,22 @@ bool WgpuComputeBackend::Initialize(const SonarComputeInput & prototype)
     std::cerr << "[sonar_wgpu] Frequency count must not exceed 4096." << std::endl;
     return false;
   }
+  if (prototype.physicalReadout)
+  {
+    // Exercise v2 with its actual shape and transform length. An adapter-only
+    // legacy probe cannot establish physical-model or exact-length support.
+    this->initialized = true;
+    SonarComputeOutput probeOutput;
+    this->initialized = this->Compute(prototype, probeOutput);
+    if (!this->initialized)
+    {
+      std::cerr << "[sonar_wgpu] Physical readout probe failed (geometry "
+                << prototype.physicalReadout->geometryColumns << " x " << prototype.nRays
+                << ", receivers " << prototype.nBeams << ", frequencies " << prototype.nFreq
+                << "). Check backend transform support and input parameters." << std::endl;
+    }
+    return this->initialized;
+  }
   // Probe the Rust FFI to check if a GPU adapter is available. If it is not, report failure
   // so the factory can pick another backend instead of silently computing on the CPU.
   std::vector<float> depth(1, 0.0f);

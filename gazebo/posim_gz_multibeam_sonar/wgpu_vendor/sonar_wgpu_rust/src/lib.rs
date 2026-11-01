@@ -704,12 +704,13 @@ unsafe fn compute_impl(
     if gpu_frame == 0 || gpu_frame % 50 == 49 {
         let active_rays = n_rays.div_ceil(std::cmp::max(1, ray_skips));
         eprintln!(
-            "[sonar_wgpu] GPU #{:<5} | {:6.1} ms | {} beams × {} rays × {} freq",
+            "[sonar_wgpu] GPU #{:<5} | {:6.1} ms | {} geometry columns × {} selected rays × {} freq -> {} receivers",
             gpu_frame + 1,
             elapsed_ms,
             n_beams,
             active_rays,
-            n_freq
+            n_freq,
+            n_outputs
         );
     }
 

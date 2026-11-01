@@ -30,7 +30,11 @@ class CpuComputeBackend : public ComputeBackend
 public:
   const char * Name() const override { return "cpu"; }
 
-  bool Initialize(const SonarComputeInput &) override { return true; }
+  bool Initialize(const SonarComputeInput & input) override
+  {
+    PackedPhysicalSonar packed;
+    return !input.physicalReadout || PackPhysicalSonar(input, packed);
+  }
 
   bool Compute(const SonarComputeInput & input, SonarComputeOutput & output) override
   {
@@ -165,6 +169,12 @@ public:
 
 std::unique_ptr<ComputeBackend> CreateComputeBackend(const std::string & requestedBackend)
 {
+  return CreateComputeBackend(requestedBackend, SonarComputeInput{});
+}
+
+std::unique_ptr<ComputeBackend> CreateComputeBackend(
+  const std::string & requestedBackend, const SonarComputeInput & prototype)
+{
   std::cerr << "[sonar_compute_factory] CreateComputeBackend called with: " << requestedBackend
             << std::endl;
 
@@ -184,8 +194,7 @@ std::unique_ptr<ComputeBackend> CreateComputeBackend(const std::string & request
     std::cerr << "[sonar_compute_factory] Attempting WgpuComputeBackend initialization..."
               << std::endl;
     auto wgpuBackend = std::make_unique<WgpuComputeBackend>();
-    SonarComputeInput probe;
-    if (wgpuBackend->Initialize(probe))
+    if (wgpuBackend->Initialize(prototype))
     {
       std::cerr << "[sonar_compute_factory] SUCCESS: WgpuComputeBackend initialized!" << std::endl;
       return wgpuBackend;
@@ -200,8 +209,7 @@ std::unique_ptr<ComputeBackend> CreateComputeBackend(const std::string & request
     std::cerr << "[sonar_compute_factory] Attempting CudaComputeBackend initialization..."
               << std::endl;
     auto cudaBackend = std::make_unique<CudaComputeBackend>();
-    SonarComputeInput probe;
-    if (cudaBackend->Initialize(probe))
+    if (cudaBackend->Initialize(prototype))
     {
       std::cerr << "[sonar_compute_factory] SUCCESS: CudaComputeBackend initialized!" << std::endl;
       return cudaBackend;
@@ -214,31 +222,42 @@ std::unique_ptr<ComputeBackend> CreateComputeBackend(const std::string & request
   if (backend == "cpu")
   {
     std::cerr << "[sonar_compute_factory] Creating CPU backend" << std::endl;
-    return std::make_unique<CpuComputeBackend>();
+    auto cpuBackend = std::make_unique<CpuComputeBackend>();
+    if (cpuBackend->Initialize(prototype))
+    {
+      return cpuBackend;
+    }
+    std::cerr << "[sonar_compute_factory] Invalid physical readout for CPU." << std::endl;
+    return nullptr;
   }
 
   if (backend == "auto")
   {
     std::cerr << "[sonar_compute_factory] Auto-selecting best available backend..." << std::endl;
-    SonarComputeInput probe;
     auto cudaBackend = std::make_unique<CudaComputeBackend>();
-    if (cudaBackend->Initialize(probe))
+    if (cudaBackend->Initialize(prototype))
     {
       std::cerr << "[sonar_compute_factory] SUCCESS: Auto-selected CUDA backend" << std::endl;
       return cudaBackend;
     }
 
     auto wgpuBackend = std::make_unique<WgpuComputeBackend>();
-    if (wgpuBackend->Initialize(probe))
+    if (wgpuBackend->Initialize(prototype))
     {
       std::cerr << "[sonar_compute_factory] SUCCESS: Auto-selected WGPU backend (CUDA unavailable)"
                 << std::endl;
       return wgpuBackend;
     }
-    std::cerr << "[sonar_compute_factory] SUCCESS: Auto-selected CPU backend (both CUDA and WGPU "
-                 "unavailable)"
-              << std::endl;
-    return std::make_unique<CpuComputeBackend>();
+    auto cpuBackend = std::make_unique<CpuComputeBackend>();
+    if (cpuBackend->Initialize(prototype))
+    {
+      std::cerr << "[sonar_compute_factory] Auto-selected CPU: CUDA/WGPU do not support the "
+                   "configured readout on this host."
+                << std::endl;
+      return cpuBackend;
+    }
+    std::cerr << "[sonar_compute_factory] No backend supports the configured readout." << std::endl;
+    return nullptr;
   }
 
   // Reject unknown values rather than silently substituting a different backend.

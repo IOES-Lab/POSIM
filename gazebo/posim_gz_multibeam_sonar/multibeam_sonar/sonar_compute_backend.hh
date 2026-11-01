@@ -85,6 +85,9 @@ public:
 };
 
 std::unique_ptr<ComputeBackend> CreateComputeBackend(const std::string & requestedBackend);
+// Select against the real readout so auto never chooses an incompatible model.
+std::unique_ptr<ComputeBackend> CreateComputeBackend(
+  const std::string & requestedBackend, const SonarComputeInput & prototype);
 
 }  // namespace sensors
 }  // namespace gz

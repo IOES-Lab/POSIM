@@ -62,19 +62,57 @@ The native function address resolves to the isolated binary in `result.json`.
 Run `python verify_record.py` with NumPy to independently check the portable
 data, conditional energy and point response. This does not execute a sensor.
 
+## Actual sensor wiring
+
+![Native sensor at three geometry densities](sensor-wiring.png)
+
+The sensor now connects SDF, immutable geometry/receiver angles, render-frame
+snapshots, the v2 compute path and outgoing ROS/fan directions. In
+`ray/scan/horizontal`, `samples` sets geometry columns and `beams` sets output
+receivers. In `spec`, positive `receiveBeamWidth` selects the signed-sinc model
+and is the **full power FWHM in radians**, regardless of `ray degrees`;
+`receiveGain` is linear pressure gain (default 1). Missing/zero width retains
+the reported legacy model; independent geometry counts require positive width.
+
+The actual Gazebo/Metal integration keeps **256 receivers and 599 range bins**
+for 129/257/513 geometry columns, all with 256 elevation samples and a 15 m
+range. Five sensor controls retain at least four timestamp-matched raw,
+normal, XYZ and preview sets each: three geometry densities, an unchanged
+legacy configuration, and zero receive gain. Zero gain leaves the physical
+wall geometry intact while publishing zero return and a black preview.
+All ten owned server/bridge processes exit normally without escalation.
+The 1.5-degree response is a declared synthetic model, not a Sonoptix calibration.
+
+The recorder's first domain choice (235) exceeded the DDS UDP port range.
+After returning to qualified domain 222, the best-effort 513-column observer
+received 71 raw pings but no geometry/normal packets and failed its original
+40-second bound. Requesting **reliable** QoS from the already reliable publishers
+passes with the **same sensor binary, rates and deadline**. Preserve both failures;
+this diagnoses the observer's delivery contract, not a sensor or SLAM improvement.
+
+Backend selection now probes the real physical shape and transform length.
+Owning PR6 WGPU rejects odd lengths and auto selects physical CPU; the separate
+#34 integration accepts exact lengths. Explicit CUDA physical selection fails.
+Native selection/malformed-input controls and the prior CPU/Metal comparisons
+pass. Timing logs distinguish geometry columns from output receivers.
+
+`wiring/summary.json` records all control outcomes and original capture hashes.
+`wiring/data.npz` includes the first raw ping and one synchronized sonar/image/XYZ
+set per case; complete original captures remain once in the canonical record.
+Run `python wiring/verify.py` to independently check arrays, SDF and metadata;
+`python wiring/render.py` redraws the shared-scale metric comparison.
+
 ## Remaining work
 
-The sensor's SDF loading, renderer dimensions, outgoing direction/beamwidth
-metadata and demo profile are **not connected to v2 yet**. Existing demos,
-installed SDK, LIVE and runners have not been replaced or restarted.
-The current GPU timing log still uses the historical word "beams" for input
-geometry columns; v2 output dimensions are explicitly recorded here.
+The source sensor path is connected and exercised. The application demo profile
+and qualified provider bundle have not been switched; installed SDK, LIVE and
+runners remain unchanged. The comparison at the top records the earlier native
+primitive stage; the additional figure above records the complete sensor path.
 
-Next connect that complete sensor path and make model/backend provenance
-truthful. Qualify range-axis/pulse support, point/two-point/occluder scenes,
-temporal scattering under unchanged and moved views, and physical-pattern
-assumptions before collecting a replacement field. CUDA and installed runtime
-acceptance remain open. This is established numerical/acoustic engineering;
-it neither accepts a useful sonar SLAM map nor establishes research novelty.
-
-The full BlueROV/SLAM, product, VRX and subsequent WAM-V survey goal remains active.
+Next qualify pulse/range support and guard circular range aliasing, multiple
+physical targets/occlusion and unchanged/moved temporal returns. Then enable the
+qualified demo profile, collect one replacement field and evaluate unused-view
+support before native SLAM fusion. CUDA and installed runtime acceptance remain
+open. This is established numerical/acoustic engineering, not useful sonar-map
+acceptance or an academic novelty claim. The full BlueROV/SLAM, product, VRX and
+subsequent WAM-V survey goal remains active.

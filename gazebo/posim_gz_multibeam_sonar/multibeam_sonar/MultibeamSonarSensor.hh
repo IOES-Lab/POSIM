@@ -25,6 +25,7 @@
 #include <sensor_msgs/msg/image.hpp>
 #include <sensor_msgs/msg/point_cloud2.hpp>
 #include "AcousticBeam.hh"
+#include "AcousticReadout.hh"
 #include "AxisAlignedPatch2.hh"
 #include "sonar_compute_backend.hh"
 
@@ -147,7 +148,7 @@ private:
     double vFOV;
     int nRays;
     int nBeams;
-    float * elevation_angles;
+    std::vector<float> elevation_angles;
     int nFreq;
     double sonarFreq;
     double bandwidth;
@@ -160,6 +161,10 @@ private:
     float * window;
     float plotScaler;
     float sensorGain;
+    float receiveGain{1.f};
+    // Immutable after setup; geometry angles stay separate from receiver directions.
+    std::unique_ptr<const AcousticReadout> physicalReadout;
+    std::vector<float> receiveAngles;
 
     // Topics and frame names
     std::string pointCloudTopicName;

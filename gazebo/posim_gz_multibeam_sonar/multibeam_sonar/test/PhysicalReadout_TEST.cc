@@ -147,6 +147,28 @@ void Controls(ComputeBackend & backend)
   scene.model.elevationIndices.back() = 7;
   Require(!backend.Compute(scene.input, rejected), "invalid selected row accepted");
 }
+void Selection(const std::string & name, bool radixOnly)
+{
+  Scene prototype(17, 256, 64, 4);
+  Require(bool(CreateComputeBackend("cpu", prototype.input)), "physical CPU selection failed");
+  Require(!CreateComputeBackend("cuda", prototype.input), "unsupported physical CUDA selected");
+  auto bad = prototype.input;
+  bad.nBeams = 17;
+  Require(!CreateComputeBackend("cpu", bad), "malformed prototype accepted by CPU selection");
+  if (name == "wgpu")
+  {
+    Require(bool(CreateComputeBackend("wgpu", prototype.input)), "physical WGPU probe failed");
+    Require(!CreateComputeBackend("wgpu", bad), "malformed prototype accepted by WGPU selection");
+    Scene odd(17, 256, 63, 4);
+    auto explicitGpu = CreateComputeBackend("wgpu", odd.input);
+    Require(bool(explicitGpu) != radixOnly, "exact-length capability not reflected at selection");
+    auto automatic = CreateComputeBackend("auto", odd.input);
+    Require(
+      automatic && std::string(automatic->Name()) == (radixOnly ? "cpu" : "wgpu"),
+      "auto selected an incompatible physical model");
+    Compute(*automatic, odd.input);
+  }
+}
 }  // namespace
 
 int main(int argc, char ** argv)
@@ -159,6 +181,7 @@ int main(int argc, char ** argv)
     Require(backend && std::string(backend->Name()) == name, "requested backend unavailable");
     Require(backend->Initialize(SonarComputeInput{}), "initialization failed");
     Geometry();
+    Selection(name, radixOnly);
     Controls(*backend);
     std::ofstream arrays;
     if (argc > 3)
