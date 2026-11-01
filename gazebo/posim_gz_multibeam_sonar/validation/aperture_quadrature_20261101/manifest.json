@@ -1,0 +1,17 @@
+{
+  "files": {
+    "README.ko.md": "ec4d6136f535ac6e3f986c01f451bca7324b5679f777df18f588ad6e955913d8",
+    "README.md": "364629bc30432fea3091b681606ba3f92ddaa6f06b1600712b07f0ccd23dcfb2",
+    "aperture-comparison.png": "7f63952d4b38b268316ee4fcd8052558be1af94874189b9571e4153b79270e26",
+    "aperture-comparison.svg": "f1d12eed8336a5cb9441276ed1b08971c0b6d2a03cbbdbb37e4e3d6d2b876608",
+    "predeclared.json": "b137b4ff8800a330b031caad9722f38d8103b864adff4b64041949409ec85676",
+    "profiles-and-moments.npz": "8e57a2b35841df5333cdfe4268bf5c419d2111e5e5dd1f27c6dfb96d5ab7e06d",
+    "result.json": "c0db753efac0b3687d1618e21aba04093cc29887a0d406376ea630808a81f1b5",
+    "source_corrector.cc.txt": "9b1c7ca10d47376d0aca15be42cc78d47b9df877b148d46dc55fe866300660e3",
+    "stride-predeclared.json": "cbfe153e08f4ffbe00e660b2a629e3e7c725a072f400ab0245dea914311347fa",
+    "stride-results.csv": "1d08093ca21d0a12f88f2be3cc8304f4371253527380d7815a5ca6d21ed15c16",
+    "stride_control.cc": "a85338651f1dffb671c363d97d2bfc257dfe07f03ecea78cdb1f48f62e3d98c5",
+    "verify_record.py": "0648f5c2eceae78f70162183e51deb62dc8267e582628e598301540e95b365ac"
+  },
+  "scope": "native point transfer and conditional moment/stride controls; not field or hardware acceptance"
+}

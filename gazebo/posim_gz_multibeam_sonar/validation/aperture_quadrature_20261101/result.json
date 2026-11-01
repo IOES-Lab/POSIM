@@ -1,0 +1,594 @@
+{
+  "rows": [
+    {
+      "kind": "point",
+      "n": 65,
+      "frame": 20,
+      "model": "source",
+      "on_axis_power_relative_to_same_grid_identity": 0.013729863429222385,
+      "response_max_relative_error": 5.922023620900839e-08,
+      "normalization": 8.534279823303223
+    },
+    {
+      "kind": "point",
+      "n": 65,
+      "frame": 20,
+      "model": "fixed_global",
+      "on_axis_power_relative_to_same_grid_identity": 0.004411435844204861,
+      "response_max_relative_error": 2.3274669420624096e-08,
+      "normalization": 15.056014263417515
+    },
+    {
+      "kind": "point",
+      "n": 65,
+      "frame": 20,
+      "model": "fixed_row_l2",
+      "on_axis_power_relative_to_same_grid_identity": 0.27988325032982264,
+      "response_max_relative_error": 5.56364092053623e-08,
+      "normalization": 1.0
+    },
+    {
+      "kind": "point",
+      "n": 65,
+      "frame": 20,
+      "model": "fixed_peak_abs",
+      "on_axis_power_relative_to_same_grid_identity": 0.9999999999999998,
+      "response_max_relative_error": 7.927057199541565e-08,
+      "normalization": 1.0
+    },
+    {
+      "kind": "point",
+      "n": 65,
+      "frame": 20,
+      "model": "fixed_peak_signed",
+      "on_axis_power_relative_to_same_grid_identity": 0.9999999999999998,
+      "response_max_relative_error": 7.927057199541565e-08,
+      "normalization": 1.0
+    },
+    {
+      "kind": "point",
+      "n": 65,
+      "frame": 21,
+      "model": "source",
+      "on_axis_power_relative_to_same_grid_identity": 0.013729863971930467,
+      "response_max_relative_error": 1.969267264234411e-08,
+      "normalization": 8.534279823303223
+    },
+    {
+      "kind": "point",
+      "n": 65,
+      "frame": 21,
+      "model": "fixed_global",
+      "on_axis_power_relative_to_same_grid_identity": 0.004411435230251758,
+      "response_max_relative_error": 1.330331963176085e-07,
+      "normalization": 15.056014263417515
+    },
+    {
+      "kind": "point",
+      "n": 65,
+      "frame": 21,
+      "model": "fixed_row_l2",
+      "on_axis_power_relative_to_same_grid_identity": 0.27988321823975065,
+      "response_max_relative_error": 1.6662183776134578e-07,
+      "normalization": 1.0
+    },
+    {
+      "kind": "point",
+      "n": 65,
+      "frame": 21,
+      "model": "fixed_peak_abs",
+      "on_axis_power_relative_to_same_grid_identity": 0.9999999999999999,
+      "response_max_relative_error": 2.0577257497933488e-07,
+      "normalization": 1.0
+    },
+    {
+      "kind": "point",
+      "n": 65,
+      "frame": 21,
+      "model": "fixed_peak_signed",
+      "on_axis_power_relative_to_same_grid_identity": 0.9999999999999999,
+      "response_max_relative_error": 2.0577257497933488e-07,
+      "normalization": 1.0
+    },
+    {
+      "kind": "diffuse",
+      "n": 65,
+      "model": "source",
+      "on_axis_mean": 765.2242869000563,
+      "on_axis_expected": 809.9776384472867,
+      "on_axis_sem": 51.321106314827865,
+      "all_beams_mean_ratio_min": 0.8866277663193121,
+      "all_beams_mean_ratio_max": 1.1314057890231306,
+      "familywise_moment_control_passed": true
+    },
+    {
+      "kind": "diffuse",
+      "n": 65,
+      "model": "fixed_global",
+      "on_axis_mean": 785.4581484635979,
+      "on_axis_expected": 823.8251834314168,
+      "on_axis_sem": 49.296759475639,
+      "all_beams_mean_ratio_min": 0.839769162681781,
+      "all_beams_mean_ratio_max": 1.142854719743834,
+      "familywise_moment_control_passed": true
+    },
+    {
+      "kind": "diffuse",
+      "n": 65,
+      "model": "fixed_row_l2",
+      "on_axis_mean": 49833.342274420975,
+      "on_axis_expected": 52267.53469109889,
+      "on_axis_sem": 3127.629756136386,
+      "all_beams_mean_ratio_min": 0.8397691805079294,
+      "all_beams_mean_ratio_max": 1.1428546856058424,
+      "familywise_moment_control_passed": true
+    },
+    {
+      "kind": "diffuse",
+      "n": 65,
+      "model": "fixed_peak_abs",
+      "on_axis_mean": 178050.4592336633,
+      "on_axis_expected": 186747.62992911594,
+      "on_axis_sem": 11174.765647465518,
+      "all_beams_mean_ratio_min": 0.8397691714433033,
+      "all_beams_mean_ratio_max": 1.1428547301985263,
+      "familywise_moment_control_passed": true
+    },
+    {
+      "kind": "diffuse",
+      "n": 65,
+      "model": "fixed_peak_signed",
+      "on_axis_mean": 171133.10511114425,
+      "on_axis_expected": 186747.62992911594,
+      "on_axis_sem": 11358.836711751777,
+      "all_beams_mean_ratio_min": 0.8232453045425618,
+      "all_beams_mean_ratio_max": 1.1213969082603612,
+      "familywise_moment_control_passed": true
+    },
+    {
+      "kind": "point",
+      "n": 129,
+      "frame": 20,
+      "model": "source",
+      "on_axis_power_relative_to_same_grid_identity": 0.006889824202831828,
+      "response_max_relative_error": 1.4002115014744506e-07,
+      "normalization": 12.047472953796387
+    },
+    {
+      "kind": "point",
+      "n": 129,
+      "frame": 20,
+      "model": "fixed_global",
+      "on_axis_power_relative_to_same_grid_identity": 0.0011123092396500057,
+      "response_max_relative_error": 2.0958954568008395e-07,
+      "normalization": 29.983841476233795
+    },
+    {
+      "kind": "point",
+      "n": 129,
+      "frame": 20,
+      "model": "fixed_row_l2",
+      "on_axis_power_relative_to_same_grid_identity": 0.13994792375372386,
+      "response_max_relative_error": 9.104201001495159e-08,
+      "normalization": 1.0
+    },
+    {
+      "kind": "point",
+      "n": 129,
+      "frame": 20,
+      "model": "fixed_peak_abs",
+      "on_axis_power_relative_to_same_grid_identity": 0.9999999999999999,
+      "response_max_relative_error": 4.750312332379991e-08,
+      "normalization": 1.0
+    },
+    {
+      "kind": "point",
+      "n": 129,
+      "frame": 20,
+      "model": "fixed_peak_signed",
+      "on_axis_power_relative_to_same_grid_identity": 0.9999999999999999,
+      "response_max_relative_error": 4.750312332379991e-08,
+      "normalization": 1.0
+    },
+    {
+      "kind": "point",
+      "n": 129,
+      "frame": 21,
+      "model": "source",
+      "on_axis_power_relative_to_same_grid_identity": 0.0068898243079751845,
+      "response_max_relative_error": 1.5528182564826446e-07,
+      "normalization": 12.047472953796387
+    },
+    {
+      "kind": "point",
+      "n": 129,
+      "frame": 21,
+      "model": "fixed_global",
+      "on_axis_power_relative_to_same_grid_identity": 0.0011123091409952636,
+      "response_max_relative_error": 2.1961197113594987e-07,
+      "normalization": 29.983841476233795
+    },
+    {
+      "kind": "point",
+      "n": 129,
+      "frame": 21,
+      "model": "fixed_row_l2",
+      "on_axis_power_relative_to_same_grid_identity": 0.13994793829656607,
+      "response_max_relative_error": 1.9495811782270658e-07,
+      "normalization": 1.0
+    },
+    {
+      "kind": "point",
+      "n": 129,
+      "frame": 21,
+      "model": "fixed_peak_abs",
+      "on_axis_power_relative_to_same_grid_identity": 1.0000000000000002,
+      "response_max_relative_error": 6.533262431052123e-08,
+      "normalization": 1.0
+    },
+    {
+      "kind": "point",
+      "n": 129,
+      "frame": 21,
+      "model": "fixed_peak_signed",
+      "on_axis_power_relative_to_same_grid_identity": 1.0000000000000002,
+      "response_max_relative_error": 6.533262431052123e-08,
+      "normalization": 1.0
+    },
+    {
+      "kind": "diffuse",
+      "n": 129,
+      "model": "source",
+      "on_axis_mean": 200.4241680604309,
+      "on_axis_expected": 203.63587881924676,
+      "on_axis_sem": 12.647466944304217,
+      "all_beams_mean_ratio_min": 0.867073316913488,
+      "all_beams_mean_ratio_max": 1.1632503781968562,
+      "familywise_moment_control_passed": true
+    },
+    {
+      "kind": "diffuse",
+      "n": 129,
+      "model": "fixed_global",
+      "on_axis_mean": 218.71041007651985,
+      "on_axis_expected": 207.7288454142733,
+      "on_axis_sem": 14.17951173043351,
+      "all_beams_mean_ratio_min": 0.8803572048418695,
+      "all_beams_mean_ratio_max": 1.1259905822322687,
+      "familywise_moment_control_passed": true
+    },
+    {
+      "kind": "diffuse",
+      "n": 129,
+      "model": "fixed_row_l2",
+      "on_axis_mean": 27517.588484030166,
+      "on_axis_expected": 26135.91827274544,
+      "on_axis_sem": 1784.0301807295423,
+      "all_beams_mean_ratio_min": 0.8803571185439488,
+      "all_beams_mean_ratio_max": 1.1259904720472724,
+      "familywise_moment_control_passed": true
+    },
+    {
+      "kind": "diffuse",
+      "n": 129,
+      "model": "fixed_peak_abs",
+      "on_axis_mean": 196627.36650619004,
+      "on_axis_expected": 186754.61962127604,
+      "on_axis_sem": 12747.816076832847,
+      "all_beams_mean_ratio_min": 0.8803571197403091,
+      "all_beams_mean_ratio_max": 1.1259904719389926,
+      "familywise_moment_control_passed": true
+    },
+    {
+      "kind": "diffuse",
+      "n": 129,
+      "model": "fixed_peak_signed",
+      "on_axis_mean": 205052.05085920365,
+      "on_axis_expected": 186754.61962127604,
+      "on_axis_sem": 12366.794640927625,
+      "all_beams_mean_ratio_min": 0.8945384084045097,
+      "all_beams_mean_ratio_max": 1.1335711710241443,
+      "familywise_moment_control_passed": true
+    },
+    {
+      "kind": "point",
+      "n": 257,
+      "frame": 20,
+      "model": "source",
+      "on_axis_power_relative_to_same_grid_identity": 0.0034505460833616423,
+      "response_max_relative_error": 7.440560744433661e-08,
+      "normalization": 17.02378273010254
+    },
+    {
+      "kind": "point",
+      "n": 257,
+      "frame": 20,
+      "model": "fixed_global",
+      "on_axis_power_relative_to_same_grid_identity": 0.00027923249411177626,
+      "response_max_relative_error": 1.2001972105676614e-07,
+      "normalization": 59.84350622493492
+    },
+    {
+      "kind": "point",
+      "n": 257,
+      "frame": 20,
+      "model": "fixed_row_l2",
+      "on_axis_power_relative_to_same_grid_identity": 0.06997630306473625,
+      "response_max_relative_error": 2.2381282914272562e-07,
+      "normalization": 1.0
+    },
+    {
+      "kind": "point",
+      "n": 257,
+      "frame": 20,
+      "model": "fixed_peak_abs",
+      "on_axis_power_relative_to_same_grid_identity": 0.9999999999999999,
+      "response_max_relative_error": 7.880528329895498e-08,
+      "normalization": 1.0
+    },
+    {
+      "kind": "point",
+      "n": 257,
+      "frame": 20,
+      "model": "fixed_peak_signed",
+      "on_axis_power_relative_to_same_grid_identity": 0.9999999999999999,
+      "response_max_relative_error": 7.880528329895498e-08,
+      "normalization": 1.0
+    },
+    {
+      "kind": "point",
+      "n": 257,
+      "frame": 21,
+      "model": "source",
+      "on_axis_power_relative_to_same_grid_identity": 0.003450546330092885,
+      "response_max_relative_error": 2.900628718432978e-09,
+      "normalization": 17.02378273010254
+    },
+    {
+      "kind": "point",
+      "n": 257,
+      "frame": 21,
+      "model": "fixed_global",
+      "on_axis_power_relative_to_same_grid_identity": 0.0002792324634555974,
+      "response_max_relative_error": 1.933855967072283e-07,
+      "normalization": 59.84350622493492
+    },
+    {
+      "kind": "point",
+      "n": 257,
+      "frame": 21,
+      "model": "fixed_row_l2",
+      "on_axis_power_relative_to_same_grid_identity": 0.06997630005567161,
+      "response_max_relative_error": 1.4955715812016738e-07,
+      "normalization": 1.0
+    },
+    {
+      "kind": "point",
+      "n": 257,
+      "frame": 21,
+      "model": "fixed_peak_abs",
+      "on_axis_power_relative_to_same_grid_identity": 1.0,
+      "response_max_relative_error": 1.2885315436861333e-07,
+      "normalization": 1.0
+    },
+    {
+      "kind": "point",
+      "n": 257,
+      "frame": 21,
+      "model": "fixed_peak_signed",
+      "on_axis_power_relative_to_same_grid_identity": 1.0,
+      "response_max_relative_error": 1.2885315436861333e-07,
+      "normalization": 1.0
+    },
+    {
+      "kind": "diffuse",
+      "n": 257,
+      "model": "source",
+      "on_axis_mean": 52.51163322135736,
+      "on_axis_expected": 51.04347319449537,
+      "on_axis_sem": 3.1237515095784567,
+      "all_beams_mean_ratio_min": 0.8049012426233533,
+      "all_beams_mean_ratio_max": 1.1632940167270214,
+      "familywise_moment_control_passed": true
+    },
+    {
+      "kind": "diffuse",
+      "n": 257,
+      "model": "fixed_global",
+      "on_axis_mean": 45.74144408818958,
+      "on_axis_expected": 52.14842371697062,
+      "on_axis_sem": 2.770101557894087,
+      "all_beams_mean_ratio_min": 0.8458326889114219,
+      "all_beams_mean_ratio_max": 1.1271254610643486,
+      "familywise_moment_control_passed": true
+    },
+    {
+      "kind": "diffuse",
+      "n": 257,
+      "model": "fixed_row_l2",
+      "on_axis_mean": 11462.910320733718,
+      "on_axis_expected": 13068.515206493223,
+      "on_axis_sem": 694.1937789268818,
+      "all_beams_mean_ratio_min": 0.8458326197054331,
+      "all_beams_mean_ratio_max": 1.1271253593326342,
+      "familywise_moment_control_passed": true
+    },
+    {
+      "kind": "diffuse",
+      "n": 257,
+      "model": "fixed_peak_abs",
+      "on_axis_mean": 163811.31400183943,
+      "on_axis_expected": 186756.29406878137,
+      "on_axis_sem": 9920.412052620497,
+      "all_beams_mean_ratio_min": 0.845832623703361,
+      "all_beams_mean_ratio_max": 1.1271253496659042,
+      "familywise_moment_control_passed": true
+    },
+    {
+      "kind": "diffuse",
+      "n": 257,
+      "model": "fixed_peak_signed",
+      "on_axis_mean": 172991.85057755664,
+      "on_axis_expected": 186756.29406878137,
+      "on_axis_sem": 10229.73329072248,
+      "all_beams_mean_ratio_min": 0.8991302515460745,
+      "all_beams_mean_ratio_max": 1.121768824050403,
+      "familywise_moment_control_passed": true
+    }
+  ],
+  "binary_sha256": "f9e19c1c5a309cd75c7ff603347f173813b8eb2073745bd0c8e144570ff1db7e",
+  "actual_symbol_path_verified": true,
+  "script_sha256": "0043ae7725f9b4cef73cc572cca8fbc2ff1fd58a7f8e243a4a750ace3dab1958",
+  "source_corrector_sha256": "9b1c7ca10d47376d0aca15be42cc78d47b9df877b148d46dc55fe866300660e3",
+  "source_sensor_sha256": "cb4333127d971a80c0440c63bab2f6cff1ed1080a23c10a0ea52414a9744910e",
+  "source_header_sha256": "6fb914f0093edae614753093447c0445854654e52fe36da0ed3e0bbe130f4df6",
+  "calls": 3876,
+  "lower_relative_bound": 0.307283177566361,
+  "upper_relative_bound": 0.3869783261845091,
+  "elapsed_seconds": 23.33396379102487,
+  "complete_control_record_sha256": "13ca572c82680f8475b2baf6334a6f1bdba4eb8c56efccc076d95d735089778a",
+  "physical_sensor_qualified": false,
+  "map_accepted": false,
+  "renderer_started": false,
+  "portable_reduction": "All point receive-transfer profiles and their full 64-bin baselines; all receive-beam means/SEMs; every frame at the three predeclared directions. Full raw complex controls remain in the source-hashed canonical record.",
+  "maximum_point_reconstruction_relative_error": 1.518302607975189e-07,
+  "raw_record_bytes": 14047318,
+  "native_control_script_sha256": "0043ae7725f9b4cef73cc572cca8fbc2ff1fd58a7f8e243a4a750ace3dab1958",
+  "fixed_input_parameters": {
+    "sound_speed_m_s": 1500.0,
+    "bandwidth_hz": 3200.0,
+    "source_level_db": 180.0,
+    "plane_x_m": 5.0,
+    "maximum_range_m": 15.0,
+    "attenuation_np_m": 0.0,
+    "seed": 73,
+    "stride": 1
+  },
+  "stride_control": {
+    "rows": [
+      {
+        "backend": "cpu",
+        "stride": 1,
+        "selected_rows": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "relative_powers": [
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "backend": "cpu",
+        "stride": 2,
+        "selected_rows": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "relative_powers": [
+          1.499999996120368,
+          1.499999995945394,
+          1.4999999324423496,
+          1.499999974159347,
+          1.4999998546830253,
+          1.5000000368296156,
+          1.50000030043472
+        ]
+      },
+      {
+        "backend": "cpu",
+        "stride": 3,
+        "selected_rows": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "relative_powers": [
+          2.000000329096364,
+          2.000000497631668,
+          2.000000463227411,
+          2.000000303252529,
+          2.000000459900634,
+          2.000000666924616,
+          2.0000009438866577
+        ]
+      },
+      {
+        "backend": "wgpu",
+        "stride": 1,
+        "selected_rows": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "relative_powers": [
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      {
+        "backend": "wgpu",
+        "stride": 2,
+        "selected_rows": [
+          0,
+          2,
+          4,
+          6
+        ],
+        "relative_powers": [
+          1.4999999616444797,
+          1.5000000434518905,
+          1.4999997253523707,
+          1.5000002086397515
+        ]
+      },
+      {
+        "backend": "wgpu",
+        "stride": 3,
+        "selected_rows": [
+          0,
+          3,
+          6
+        ],
+        "relative_powers": [
+          1.9999998485888808,
+          2.0000003555595978,
+          2.000000473745744
+        ]
+      }
+    ],
+    "calls": 42,
+    "installed_sdk_changed": false,
+    "renderer_started": false
+  },
+  "stride_export_cpp_sha256": "a85338651f1dffb671c363d97d2bfc257dfe07f03ecea78cdb1f48f62e3d98c5",
+  "stride_export_cpp_change": "clang-format 19.1.6 only; source-equivalence checked"
+}
