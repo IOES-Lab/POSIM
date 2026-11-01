@@ -3,8 +3,8 @@
 use std::collections::HashMap;
 use std::sync::OnceLock;
 
-/// Buffer-set key: (n_beams, n_rays, n_freq).
-pub type BufferKey = (u32, u32, u32);
+/// Buffer-set key: (geometry columns, selected rays, frequencies, receivers).
+pub type BufferKey = (u32, u32, u32, u32);
 
 /// Upper bound on cached buffer sets; the cache is cleared when it is full.
 pub const MAX_BUFFER_SETS: usize = 8;
@@ -16,6 +16,7 @@ pub struct SonarBuffers {
     pub depth_buf: wgpu::Buffer,
     pub normal_buf: wgpu::Buffer,
     pub refl_buf: wgpu::Buffer,
+    pub area_buf: wgpu::Buffer,
     pub window_buf: wgpu::Buffer,
     pub bc_buf: wgpu::Buffer,
     // Backscatter atomic i32 accumulators (zeroed via write_buffer each frame)
@@ -38,10 +39,17 @@ pub struct SonarBuffers {
 impl SonarBuffers {
     /// Buffer allocation for 4 pipeline stages: backscatter, convert, matmul, FFT.
     /// Chain: backscatter→convert→matmul→FFT→readback.
-    pub fn new(device: &wgpu::Device, n_beams: u32, n_rays: u32, n_freq: u32) -> Self {
+    pub fn new(
+        device: &wgpu::Device,
+        n_beams: u32,
+        n_rays: u32,
+        n_freq: u32,
+        n_outputs: u32,
+    ) -> Self {
         let depth_ray = (n_beams as usize) * (n_rays as usize);
         let spectrum = (n_beams as usize) * (n_freq as usize);
-        let bc = (n_beams as usize) * (n_beams as usize);
+        let bc = (n_outputs as usize) * (n_beams as usize);
+        let output = (n_outputs as usize) * (n_freq as usize);
         let f32_bytes = |n: usize| (n * std::mem::size_of::<f32>()) as u64;
         let i32_bytes = |n: usize| (n * std::mem::size_of::<i32>()) as u64;
 
@@ -60,6 +68,12 @@ impl SonarBuffers {
             }),
             refl_buf: device.create_buffer(&wgpu::BufferDescriptor {
                 label: Some("pb_refl"),
+                size: f32_bytes(depth_ray),
+                usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST,
+                mapped_at_creation: false,
+            }),
+            area_buf: device.create_buffer(&wgpu::BufferDescriptor {
+                label: Some("pb_area"),
                 size: f32_bytes(depth_ray),
                 usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST,
                 mapped_at_creation: false,
@@ -102,19 +116,19 @@ impl SonarBuffers {
             }),
             mm_re_out: device.create_buffer(&wgpu::BufferDescriptor {
                 label: Some("pb_mm_re_out"),
-                size: f32_bytes(spectrum),
+                size: f32_bytes(output),
                 usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
                 mapped_at_creation: false,
             }),
             mm_im_out: device.create_buffer(&wgpu::BufferDescriptor {
                 label: Some("pb_mm_im_out"),
-                size: f32_bytes(spectrum),
+                size: f32_bytes(output),
                 usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
                 mapped_at_creation: false,
             }),
             p_re_buf: device.create_buffer(&wgpu::BufferDescriptor {
                 label: Some("pb_p_re"),
-                size: f32_bytes(spectrum),
+                size: f32_bytes(output),
                 usage: wgpu::BufferUsages::STORAGE
                     | wgpu::BufferUsages::COPY_SRC
                     | wgpu::BufferUsages::COPY_DST,
@@ -122,7 +136,7 @@ impl SonarBuffers {
             }),
             p_im_buf: device.create_buffer(&wgpu::BufferDescriptor {
                 label: Some("pb_p_im"),
-                size: f32_bytes(spectrum),
+                size: f32_bytes(output),
                 usage: wgpu::BufferUsages::STORAGE
                     | wgpu::BufferUsages::COPY_SRC
                     | wgpu::BufferUsages::COPY_DST,
@@ -130,13 +144,13 @@ impl SonarBuffers {
             }),
             stg_re: device.create_buffer(&wgpu::BufferDescriptor {
                 label: Some("pb_stg_re"),
-                size: f32_bytes(spectrum),
+                size: f32_bytes(output),
                 usage: wgpu::BufferUsages::MAP_READ | wgpu::BufferUsages::COPY_DST,
                 mapped_at_creation: false,
             }),
             stg_im: device.create_buffer(&wgpu::BufferDescriptor {
                 label: Some("pb_stg_im"),
-                size: f32_bytes(spectrum),
+                size: f32_bytes(output),
                 usage: wgpu::BufferUsages::MAP_READ | wgpu::BufferUsages::COPY_DST,
                 mapped_at_creation: false,
             }),
@@ -222,6 +236,7 @@ fn build_bgls(
             make_storage_entry(4, false), // (out_re_i32)     false = read_write
             make_storage_entry(5, false), // (out_im_i32)
             make_storage_entry(6, true),  // (window)
+            make_storage_entry(7, true),  // represented cell solid angles
         ],
     });
 

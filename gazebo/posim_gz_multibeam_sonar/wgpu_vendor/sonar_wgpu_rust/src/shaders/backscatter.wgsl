@@ -18,7 +18,7 @@ struct Params {
   area_scaler: f32,
   h_fov: f32,
   v_fov: f32,
-  _pad0: u32,
+  use_area_weights: u32,
   _pad1: u32,
   _pad2: u32,
 };
@@ -30,6 +30,7 @@ struct Params {
 @group(0) @binding(4) var<storage, read_write> out_re: array<atomic<i32>>;
 @group(0) @binding(5) var<storage, read_write> out_im: array<atomic<i32>>;
 @group(0) @binding(6) var<storage, read> window_vals: array<f32>;
+@group(0) @binding(7) var<storage, read> angular_areas: array<f32>;
 
 const PI: f32 = 3.14159265358979323846;
 const SCALE: f32 = 1024.0;
@@ -114,31 +115,27 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
 
   let dr = beam * params.n_rays + actual_ray;
   let d = depth[dr];
-  if (d <= 0.0 || d > params.max_distance) {
+  if (!(d > 0.0 && d <= params.max_distance)) {
     return;
   }
 
-  let nx = normals[dr * 3u + 0u];
-  let ny = normals[dr * 3u + 1u];
   let nz = normals[dr * 3u + 2u];
   let refl = reflectivity[dr];
 
-  // Compute sensor-frame ray unit direction from (beam, actual_ray) pixel indices.
-  // Direction formula (sin(θ_b)cos(θ_r), sin(θ_r), cos(θ_b)cos(θ_r)) is unit-length by construction.
-  let beam_ang = params.h_fov * (f32(beam)       / max(f32(params.n_beams) - 1.0, 1.0) - 0.5);
-  let ray_ang  = params.v_fov * (f32(actual_ray) / max(f32(params.n_rays)  - 1.0, 1.0) - 0.5);
-  let rd_x = sin(beam_ang) * cos(ray_ang);
-  let rd_y = sin(ray_ang);
-  let rd_z = cos(beam_ang) * cos(ray_ang);
-  // let cos_inc = abs(rd_x * nx + rd_y * ny + rd_z * nz);
+  // RaySurfaceNormals supplies ray-local normals: z already is cos(incidence).
+  // Do not take another dot product with a sensor-frame ray direction.
   let cos_inc = abs(nz);
   let lambert_sqrt = sqrt(max(refl, 0.0)) * cos_inc;
 
   let source_term = sqrt(pow(10.0, params.source_level / 10.0)) * 1e-6;
   let propagation = exp(-2.0 * params.attenuation * d) / (d * d);
-  let target_area_sqrt = sqrt(d * params.area_scaler);
+  // Projected angular-cell footprint is r^2 * dtheta * dphi (Choi 2021, Eq. 14).
+  var solid_angle = params.area_scaler;
+  var gain = 1.0;
+  if (params.use_area_weights != 0u) { solid_angle = angular_areas[dr]; gain = params.sensor_gain; }
+  let target_area_sqrt = d * sqrt(solid_angle);
   // let amp_scale = source_term * propagation * lambert_sqrt * target_area_sqrt * params.sensor_gain;
-  let amp_scale = source_term * propagation * lambert_sqrt * target_area_sqrt;
+  let amp_scale = source_term * propagation * lambert_sqrt * target_area_sqrt * gain;
 
   let subsequence = beam * params.n_rays + actual_ray;
   let xi = philox_normal4(params.seed_lo, params.seed_hi, params.frame_lo, params.frame_hi, subsequence);
@@ -156,7 +153,9 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
   // Per-frequency phase sweep
   for (var f: u32 = 0u; f < params.n_freq; f = f + 1u) {
     var freq: f32;
-    if (is_even) {
+    if (params.use_area_weights != 0u) {
+      freq = delta_f * (f32(f) + 0.5 - 0.5 * n_freq_f);
+    } else if (is_even) {
       freq = delta_f * (-n_freq_f + 2.0 * (f32(f) + 1.0)) / 2.0;
     } else {
       freq = delta_f * (-(n_freq_f - 1.0) + 2.0 * (f32(f) + 1.0)) / 2.0;
@@ -169,8 +168,10 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
 
     // let re_val = clamp((amp_re * c - amp_im * s) * SCALE, -LIMIT, LIMIT);
     // let im_val = clamp((amp_re * s + amp_im * c) * SCALE, -LIMIT, LIMIT);
-    let re_val = clamp(i32(round((amp_re * c - amp_im * s) * SCALE)), -LIMIT, LIMIT);
-    let im_val = clamp(i32(round((amp_re * s + amp_im * c) * SCALE)), -LIMIT, LIMIT);
+    var weight = 1.0;
+    if (params.use_area_weights != 0u) { weight = window_vals[f]; }
+    let re_val = clamp(i32(round((amp_re * c - amp_im * s) * weight * SCALE)), -LIMIT, LIMIT);
+    let im_val = clamp(i32(round((amp_re * s + amp_im * c) * weight * SCALE)), -LIMIT, LIMIT);
 
     let idx = beam * params.n_freq + f;
     atomicAdd(&out_re[idx], i32(re_val));

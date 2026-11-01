@@ -51,6 +51,7 @@ endif()
 set(SONAR_SOURCES
   MultibeamSonarSensor.cc
   sonar_compute_cpu.cc
+  PhysicalSonarCpu.cc
   sonar_compute_wgpu.cc
   sonar_compute_cuda.cc
 )
@@ -150,6 +151,22 @@ if(BUILD_TESTING)
     ${CMAKE_CURRENT_SOURCE_DIR} ${OpenCV_INCLUDE_DIRS})
   target_link_libraries(test_ray_surface_normals PRIVATE ${OpenCV_LIBS})
   add_test(NAME ray_surface_normals COMMAND test_ray_surface_normals)
+
+  add_executable(scattering_range_test test/ScatteringRange_TEST.cc)
+  target_compile_features(scattering_range_test PRIVATE cxx_std_17)
+  target_include_directories(scattering_range_test PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR} ${OpenCV_INCLUDE_DIRS})
+  target_link_libraries(scattering_range_test PRIVATE
+    ${PROJECT_NAME} ${OpenCV_LIBS})
+  add_test(NAME scattering_range_cpu COMMAND scattering_range_test cpu)
+  add_executable(physical_readout_test test/PhysicalReadout_TEST.cc)
+  target_compile_features(physical_readout_test PRIVATE cxx_std_17)
+  target_include_directories(physical_readout_test PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR} ${OpenCV_INCLUDE_DIRS})
+  target_link_libraries(physical_readout_test PRIVATE
+    ${PROJECT_NAME} ${OpenCV_LIBS})
+  add_test(NAME physical_readout_cpu COMMAND physical_readout_test cpu)
+
 endif()
 
 install(TARGETS ${PROJECT_NAME}

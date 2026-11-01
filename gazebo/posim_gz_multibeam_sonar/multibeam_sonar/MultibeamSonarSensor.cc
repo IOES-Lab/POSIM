@@ -23,6 +23,7 @@
 // TODO(hidmic): implement SVD in gazebo?
 #include <eigen3/Eigen/Core>
 #include <eigen3/Eigen/SVD>
+#include "PhysicalPulse.hh"
 
 #include <gz/common/Console.hh>
 #include <gz/common/Event.hh>
@@ -376,27 +377,10 @@ bool MultibeamSonarSensor::Implementation::InitializeBeamArrangement(MultibeamSo
   this->beams.clear();
   this->beamTargets.clear();
 
-  // Select the compute backend before adding anything to the scene, so an unavailable
-  // backend fails this sensor without leaving a half-configured GpuRays behind.
-  if (const char * backendEnv = std::getenv("POSIM_SONAR_COMPUTE_BACKEND"))
-  {
-    this->requestedBackend = backendEnv;
-    gzmsg << "POSIM_SONAR_COMPUTE_BACKEND=" << this->requestedBackend << std::endl;
-  }
-  else
-  {
-    this->requestedBackend = "auto";
-    gzmsg << "POSIM_SONAR_COMPUTE_BACKEND not set. Using default backend=auto" << std::endl;
-  }
-
-  this->computeBackend = CreateComputeBackend(this->requestedBackend);
-  if (!this->computeBackend)
-  {
-    gzerr << "Unable to initialize requested sonar backend [" << this->requestedBackend << "]."
-          << std::endl;
-    return false;
-  }
-  gzmsg << "Using sonar compute backend: " << this->computeBackend->Name() << std::endl;
+  // Backend selection uses the complete readout prototype below. Auto mode
+  // must test the requested acoustic model, not just GPU availability.
+  const char * backendEnv = std::getenv("POSIM_SONAR_COMPUTE_BACKEND");
+  this->requestedBackend = backendEnv ? backendEnv : "auto";
 
   this->raySensor = _sensor->Scene()->CreateGpuRays(_sensor->Name() + "_ray_sensor");
   if (!this->raySensor)
@@ -566,6 +550,22 @@ bool MultibeamSonarSensor::Implementation::InitializeBeamArrangement(MultibeamSo
 
   const int beamCount = horizontalElement->Get<int>("beams", 256).first;
   const int rayCount = verticalElement->Get<int>("rays", 3).first;
+  const int horizontalSamples = horizontalElement->Get<int>("samples", beamCount).first;
+  // Full power FWHM in radians, independent of the scan's degrees attribute.
+  // Zero/missing retains the explicitly reported legacy grid-coupled model.
+  const double receiveBeamWidth = sensorElement->Get<double>("receiveBeamWidth", 0.).first;
+  this->receiveGain = sensorElement->Get<float>("receiveGain", 1.f).first;
+  if (
+    beamCount < 2 || horizontalSamples < 2 || rayCount < 2 || !std::isfinite(receiveBeamWidth) ||
+    receiveBeamWidth < 0 || receiveBeamWidth >= M_PI || !std::isfinite(this->receiveGain) ||
+    this->receiveGain < 0 || this->raySkips < 1 ||
+    (receiveBeamWidth == 0 && horizontalSamples != beamCount))
+  {
+    gzerr << "Invalid sonar sampling/readout: counts must be >= 2, stride >= 1; independent "
+             "horizontal samples require a positive receiveBeamWidth (power FWHM, radians)."
+          << std::endl;
+    return false;
+  }
 
   // Compute FOVs
   this->hFOV = horizAngleMax - horizAngleMin;  // Horizontal Field of View
@@ -595,16 +595,18 @@ bool MultibeamSonarSensor::Implementation::InitializeBeamArrangement(MultibeamSo
   // Iterate through the rays
   for (int v = 0; v < rayCount; ++v)
   {
-    for (int h = 0; h < beamCount; ++h)
+    for (int h = 0; h < horizontalSamples; ++h)
     {
       // Calculate beam angles
       gz::math::Angle beamApertureAngle =
         gz::math::Angle(verticalAngleMax - verticalAngleMin) * angleUnit;
       gz::math::Angle beamRotationAngle =
-        gz::math::Angle(horizAngleMin + (h * (horizAngleMax - horizAngleMin) / beamCount)) *
+        gz::math::Angle(
+          horizAngleMin + (h * (horizAngleMax - horizAngleMin) / (horizontalSamples - 1))) *
         angleUnit;
       gz::math::Angle beamTiltAngle =
-        gz::math::Angle(verticalAngleMin + (v * (verticalAngleMax - verticalAngleMin) / rayCount)) *
+        gz::math::Angle(
+          verticalAngleMin + (v * (verticalAngleMax - verticalAngleMin) / (rayCount - 1))) *
         angleUnit;
 
       // Normalize angles
@@ -646,21 +648,45 @@ bool MultibeamSonarSensor::Implementation::InitializeBeamArrangement(MultibeamSo
   gzmsg << "Rendered horizontal limits: " << scanHorizontalMin << ", " << scanHorizontalMax
         << "; vertical limits: " << scanVerticalMin << ", " << scanVerticalMax << std::endl;
 
-  const auto horizontalRayCount = beamCount;
+  const auto horizontalRayCount = horizontalSamples;
   const auto verticalRayCount = rayCount;
   this->raySensor->SetRayCount(horizontalRayCount);
-  this->nBeams = horizontalRayCount;
-
-  // Currently, this->width equals # of beams, and this->height equals # of rays
-  // Each beam consists of (elevation,azimuth)=(this->height,1) rays
-  // Beam patterns
+  this->nBeams = beamCount;
 
   this->raySensor->SetVerticalRayCount(verticalRayCount);
   this->nRays = verticalRayCount;
 
   this->ray_nElevationRays = this->nRays;
   this->ray_nAzimuthRays = 1;
-  this->elevation_angles = new float[this->nRays];
+  if (
+    this->raySensor->RangeCount() != static_cast<unsigned int>(horizontalSamples) ||
+    this->raySensor->VerticalRangeCount() != static_cast<unsigned int>(rayCount))
+  {
+    gzerr << "Renderer sampling dimensions differ from the configured sonar geometry." << std::endl;
+    return false;
+  }
+  try
+  {
+    this->azimuth_angles = AngularCenters(scanHorizontalMin, scanHorizontalMax, horizontalSamples);
+    this->elevation_angles = AngularCenters(scanVerticalMin, scanVerticalMax, rayCount);
+    this->receiveAngles = AngularCenters(scanHorizontalMin, scanHorizontalMax, beamCount);
+    this->physicalReadout.reset();
+    if (receiveBeamWidth > 0)
+    {
+      this->physicalReadout = std::make_unique<const AcousticReadout>(MakeAcousticReadout(
+        this->azimuth_angles, this->elevation_angles, scanHorizontalMin, scanHorizontalMax,
+        scanVerticalMin, scanVerticalMax, this->raySkips, this->receiveAngles, receiveBeamWidth));
+    }
+  }
+  catch (const std::invalid_argument & error)
+  {
+    gzerr << "Invalid sonar readout: " << error.what() << std::endl;
+    return false;
+  }
+  gzmsg << "Sonar receive model: " << (this->physicalReadout ? "area-sinc-v1" : "legacy-grid")
+        << "; geometry " << horizontalSamples << " x " << rayCount << "; receivers " << this->nBeams
+        << "; power FWHM " << receiveBeamWidth << " rad; pressure gain " << this->receiveGain
+        << std::endl;
 
   gzmsg << "Horizontal Resolution " << this->raySensor->HorizontalResolution() << " px"
         << std::endl;
@@ -710,17 +736,41 @@ bool MultibeamSonarSensor::Implementation::InitializeBeamArrangement(MultibeamSo
   this->absorption = 0.0354;  // [dB/m]
   this->attenuation = this->absorption * log(10) / 20.0;
 
-  // Range vector
-  const float max_T = this->maxDistance * 2.0 / this->soundSpeed;
-  float delta_f = 1.0 / max_T;
+  // Published range interval and internal pulse quadrature are independent.
   const float delta_t = 1.0 / this->bandwidth;
-  this->nFreq = ceil(this->bandwidth / delta_f);
-  delta_f = this->bandwidth / this->nFreq;
-  const int nTime = nFreq;
+  PhysicalPulse pulse;
+  if (this->physicalReadout)
+  {
+    try
+    {
+      pulse = MakePhysicalPulse(this->maxDistance, this->soundSpeed, this->bandwidth);
+    }
+    catch (const std::invalid_argument & error)
+    {
+      gzerr << error.what() << std::endl;
+      return false;
+    }
+    this->nFreq = static_cast<int>(pulse.ranges.size());
+    this->spectrumSamples = static_cast<int>(pulse.spectrum.size());
+  }
+  else
+  {
+    const float max_T = this->maxDistance * 2.0 / this->soundSpeed;
+    const float legacyDelta = 1.0 / max_T;
+    this->nFreq = ceil(this->bandwidth / legacyDelta);
+    this->spectrumSamples = this->nFreq;
+  }
+  if (this->nFreq < 2)
+  {
+    gzerr << "Invalid or unrepresentable sonar range sampling parameters." << std::endl;
+    return false;
+  }
+  const int nTime = this->nFreq;
   this->rangeVector = new float[nTime];
   for (int i = 0; i < nTime; i++)
   {
-    this->rangeVector[i] = delta_t * i * this->soundSpeed / 2.0;
+    this->rangeVector[i] =
+      this->physicalReadout ? pulse.ranges[i] : delta_t * i * this->soundSpeed / 2.0;
   }
 
   // Print sonar calculation settings
@@ -739,7 +789,7 @@ bool MultibeamSonarSensor::Implementation::InitializeBeamArrangement(MultibeamSo
     this->ros_node_->get_logger(), "Maximum view range  [m] = " << this->maxDistance);
   RCLCPP_INFO_STREAM(
     this->ros_node_->get_logger(),
-    "Distance resolution [m] = " << this->soundSpeed * (1.0 / (this->nFreq * delta_f)));
+    "Range sample spacing [m] = " << this->soundSpeed / (2.0 * this->bandwidth));
   RCLCPP_INFO_STREAM(this->ros_node_->get_logger(), "# of Beams = " << this->nBeams);
   RCLCPP_INFO_STREAM(
     this->ros_node_->get_logger(), "# of Rays / Beam (Elevation, Azimuth) = ("
@@ -754,43 +804,57 @@ bool MultibeamSonarSensor::Implementation::InitializeBeamArrangement(MultibeamSo
 
   // -- Pre calculations for sonar -- //
 
-  // Hamming window
-  gzmsg << "Computing Hamming window for " << this->nFreq << " frequencies." << std::endl;
-  this->window = new float[this->nFreq];
-  float windowSum = 0;
-
-  for (size_t f = 0; f < this->nFreq; f++)
+  this->window = new float[this->spectrumSamples];
+  if (this->physicalReadout)
   {
-    this->window[f] = 0.54 - 0.46 * cos(2.0 * M_PI * (f + 1) / this->nFreq);
-    windowSum += pow(this->window[f], 2.0);
+    std::copy(pulse.spectrum.begin(), pulse.spectrum.end(), this->window);
+    gzmsg << "Physical unit-peak Hamming pulse: " << this->nFreq << " output ranges, "
+          << this->spectrumSamples << " midpoint frequency samples including guard." << std::endl;
+  }
+  else
+  {
+    float windowSum = 0;
+    for (int f = 0; f < this->nFreq; ++f)
+    {
+      this->window[f] = 0.54 - 0.46 * cos(2.0 * M_PI * (f + 1) / this->nFreq);
+      windowSum += pow(this->window[f], 2.0);
+    }
+    for (int f = 0; f < this->nFreq; ++f)
+    {
+      this->window[f] /= sqrt(windowSum);
+    }
   }
 
-  gzmsg << "Window sum before normalization: " << windowSum << std::endl;
-
-  for (size_t f = 0; f < this->nFreq; f++)
-  {
-    this->window[f] = this->window[f] / sqrt(windowSum);
-    // gzmsg << "Normalized Window[" << f << "] = " << this->window[f] << std::endl;
-  }
-
-  gzmsg << "Hamming window computation complete." << std::endl;
-
-  // Sonar corrector preallocation
-  this->beamCorrector = new float *[this->nBeams];
-  for (int i = 0; i < this->nBeams; i++)
-  {
-    this->beamCorrector[i] = new float[this->nBeams];
-  }
+  // Only the legacy model uses the square grid-coupled corrector.
+  this->beamCorrector = nullptr;
   this->beamCorrectorSum = 0.0;
+  if (!this->physicalReadout)
+  {
+    this->beamCorrector = new float *[this->nBeams];
+    for (int i = 0; i < this->nBeams; i++)
+    {
+      this->beamCorrector[i] = new float[this->nBeams];
+    }
+  }
 
   this->constMu = true;
   this->mu = 1e-3;
 
+  // Probe the actual geometry/output/transform shape before starting the
+  // compute thread. These zero-return images live through backend selection.
+  const cv::Mat probeDepth = cv::Mat::zeros(this->nRays, horizontalSamples, CV_32FC1);
+  const cv::Mat probeNormal = cv::Mat::zeros(this->nRays, horizontalSamples, CV_32FC3);
+  const cv::Mat probeReflectivity = cv::Mat::zeros(this->nRays, horizontalSamples, CV_32FC1);
   SonarComputeInput prototype;
-  prototype.depthImage = &this->pointCloudImage;
+  prototype.depthImage = &probeDepth;
+  prototype.normalImage = &probeNormal;
+  prototype.reflectivityImage = &probeReflectivity;
+  prototype.physicalReadout = this->physicalReadout.get();
+  prototype.receiveGain = this->receiveGain;
   prototype.nBeams = this->nBeams;
   prototype.nRays = this->nRays;
-  prototype.nFreq = this->nFreq;
+  prototype.nFreq = this->spectrumSamples;
+  prototype.nOutputRanges = this->physicalReadout ? this->nFreq : 0;
   prototype.raySkips = this->raySkips;
   prototype.hFOV = this->hFOV;
   prototype.vFOV = this->vFOV;
@@ -807,15 +871,18 @@ bool MultibeamSonarSensor::Implementation::InitializeBeamArrangement(MultibeamSo
   prototype.sourceLevel = this->sourceLevel;
   prototype.bandwidth = this->bandwidth;
   prototype.sonarFreq = this->sonarFreq;
-  prototype.elevation_angles.assign(this->elevation_angles, this->elevation_angles + this->nRays);
+  prototype.elevation_angles = this->elevation_angles;
   prototype.seed = this->sonarSeed;
 
-  if (!this->computeBackend->Initialize(prototype))
+  this->computeBackend = CreateComputeBackend(this->requestedBackend, prototype);
+  if (!this->computeBackend)
   {
-    gzerr << "Failed to initialize sonar backend [" << this->computeBackend->Name() << "]."
-          << std::endl;
+    gzerr << "Sonar backend [" << this->requestedBackend << "] cannot initialize the configured "
+          << (this->physicalReadout ? "area-sinc-v1" : "legacy-grid") << " readout ("
+          << this->spectrumSamples << " frequencies)." << std::endl;
     return false;
   }
+  gzmsg << "Using sonar compute backend: " << this->computeBackend->Name() << std::endl;
 
   return true;
 }
@@ -837,6 +904,16 @@ void MultibeamSonarSensor::Implementation::OnNewFrame(
 {
   // Lock the ray buffer for thread safety
   std::lock_guard<std::mutex> lock(this->rayMutex);
+
+  // A dimension mismatch must not resize the renderer's immutable acoustic
+  // model or overrun the frame buffer while the compute thread uses a snapshot.
+  if (
+    _width != this->azimuth_angles.size() || _height != this->elevation_angles.size() ||
+    _channels != this->kChannelCount)
+  {
+    gzerr << "Sonar render frame dimensions differ from the initialized readout." << std::endl;
+    return;
+  }
 
   // Total number of points in the scan
   unsigned int samples = _width * _height * _channels;
@@ -1055,48 +1132,16 @@ void MultibeamSonarSensor::Implementation::FillPointCloudMsg(const float * _rayB
   this->pointCloudImage.create(height, width, CV_32FC1);
   cv::MatIterator_<float> iter_image = this->pointCloudImage.begin<float>();
 
-  bool angles_calculation_flag = false;
-  if (this->azimuth_angles.size() == 0)
-  {
-    angles_calculation_flag = true;
-  }
-
-  // Vertical angle min and max
-  float elevation_min = this->raySensor->VerticalAngleMin().Radian();
-  float elevation_max = this->raySensor->VerticalAngleMax().Radian();
-  float elevation_step = verticleAngleStep;
-
-  // Horizontal angle min and max
-  float azimuth_min = this->raySensor->AngleMin().Radian();
-  float azimuth_max = this->raySensor->AngleMax().Radian();
-  float azimuth_step = angleStep;
-
   for (uint32_t j = 0; j < height; ++j)
   {
-    float inclination = elevation_min + j * elevation_step;
-
     for (uint32_t i = 0; i < width; ++i, ++iter_image)
     {
-      float azimuth = azimuth_min + i * azimuth_step;
-
       // Index in _rayBuffer
       auto index = j * width * channels + i * channels;
       float depth = _rayBuffer[index];
 
       float range = std::isfinite(depth) ? depth : 100000.0f;
       *iter_image = range;
-
-      // Store azimuth angles on the first row only
-      if (angles_calculation_flag && j == 0)
-      {
-        this->azimuth_angles.push_back(azimuth);
-      }
-
-      // Store elevation angles on first column
-      if (angles_calculation_flag && i == 0)
-      {
-        this->elevation_angles[j] = inclination;
-      }
 
       if (!std::isfinite(*iter_image) || std::isnan(*iter_image))
       {
@@ -1110,9 +1155,7 @@ void MultibeamSonarSensor::Implementation::FillPointCloudMsg(const float * _rayB
 cv::Mat MultibeamSonarSensor::Implementation::ComputeNormalImage(cv::Mat & depth)
 {
   return gz::sensors::RaySurfaceNormals(
-    depth, this->azimuth_angles,
-    std::vector<float>(this->elevation_angles, this->elevation_angles + depth.rows),
-    this->maxDistance);
+    depth, this->azimuth_angles, this->elevation_angles, this->maxDistance);
 }
 
 // Precalculation of corrector sonar calculation
@@ -1160,7 +1203,7 @@ void MultibeamSonarSensor::Implementation::ComputeSonarImage()
     depthSnapshot = this->pointCloudImage.clone();
     capturedStamp = this->ros_node_->now();
 
-    if (this->beamCorrectorSum == 0)
+    if (!this->physicalReadout && this->beamCorrectorSum == 0)
     {
       ComputeCorrector(depthSnapshot.cols, this->nBeams);
     }
@@ -1198,11 +1241,14 @@ void MultibeamSonarSensor::Implementation::ComputeSonarImage()
 
   SonarComputeInput input;
   input.depthImage = &depthSnapshot;
+  input.physicalReadout = this->physicalReadout.get();
+  input.receiveGain = this->receiveGain;
   input.normalImage = &normal_image;
   input.reflectivityImage = &this->reflectivityImage;
   input.nBeams = this->nBeams;
   input.nRays = this->nRays;
-  input.nFreq = this->nFreq;
+  input.nFreq = this->spectrumSamples;
+  input.nOutputRanges = this->physicalReadout ? this->nFreq : 0;
   input.raySkips = this->raySkips;
   input.hFOV = this->hFOV;
   input.vFOV = this->vFOV;
@@ -1219,7 +1265,7 @@ void MultibeamSonarSensor::Implementation::ComputeSonarImage()
   input.sourceLevel = this->sourceLevel;
   input.bandwidth = this->bandwidth;
   input.sonarFreq = this->sonarFreq;
-  input.elevation_angles.assign(this->elevation_angles, this->elevation_angles + this->nRays);
+  input.elevation_angles = this->elevation_angles;
   input.frameIndex = this->frameCounter++;
   input.seed = this->sonarSeed;
 
@@ -1301,9 +1347,9 @@ void MultibeamSonarSensor::Implementation::ComputeSonarImage()
         writeLog << "# Beam (azimuth) angles of rays\n";
         writeLog << "#  nBeams : " << nBeams << "\n";
         writeLog << "# Simulation time : " << time << "\n";
-        for (size_t i = 0; i < this->azimuth_angles.size(); i++)
+        for (size_t i = 0; i < this->receiveAngles.size(); i++)
         {
-          writeLog << this->azimuth_angles[i] << "\n";
+          writeLog << this->receiveAngles[i] << "\n";
         }
         writeLog.close();
       }
@@ -1340,7 +1386,8 @@ void MultibeamSonarSensor::Implementation::ComputeSonarImage()
   for (size_t beam = 0; beam < this->nBeams; beam++)
   {
     ping_info_msg_.rx_beamwidths.push_back(
-      static_cast<float>(hFOV / floor(this->nBeams * 2.0 - 2.0) * 2.0));
+      this->physicalReadout ? this->physicalReadout->powerBeamwidth
+                            : static_cast<float>(hFOV / (this->nBeams - 1)));
     ping_info_msg_.tx_beamwidths.push_back(static_cast<float>(vFOV));
   }
 
@@ -1349,8 +1396,8 @@ void MultibeamSonarSensor::Implementation::ComputeSonarImage()
   for (size_t beam = 0; beam < this->nBeams; beam++)
   {
     geometry_msgs::msg::Vector3 beam_direction;
-    beam_direction.x = cos(this->azimuth_angles[beam]);
-    beam_direction.y = sin(this->azimuth_angles[beam]);
+    beam_direction.x = cos(this->receiveAngles[beam]);
+    beam_direction.y = sin(this->receiveAngles[beam]);
     beam_direction.z = 0.0;
     this->sonarRawDataMsg.beam_directions.push_back(beam_direction);
   }
@@ -1406,11 +1453,11 @@ void MultibeamSonarSensor::Implementation::ComputeSonarImage()
 
   for (int b = 0; b < this->nBeams; ++b)
   {
-    const float center = this->azimuth_angles[b];
+    const float center = this->receiveAngles[b];
     float begin = 0.0, end = 0.0;
     if (b == 0)
     {
-      end = (this->azimuth_angles[b + 1] + center) / 2.0;
+      end = (this->receiveAngles[b + 1] + center) / 2.0;
       begin = 2 * center - end;
     }
     else if (b == this->nBeams - 1)
@@ -1421,7 +1468,7 @@ void MultibeamSonarSensor::Implementation::ComputeSonarImage()
     else
     {
       begin = angles[b - 1].end;
-      end = (this->azimuth_angles[b + 1] + center) / 2.0;
+      end = (this->receiveAngles[b + 1] + center) / 2.0;
     }
     angles.push_back(BearingEntry(begin, center, end));
   }
