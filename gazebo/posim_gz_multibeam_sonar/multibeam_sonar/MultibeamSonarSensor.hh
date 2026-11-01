@@ -13,6 +13,7 @@
 #include <vector>
 
 #include <gz/msgs/pointcloud_packed.pb.h>
+#include <gz/common/Event.hh>
 #include <gz/math/Pose3.hh>
 #include <gz/math/Vector2.hh>
 #include <gz/math/Vector3.hh>
@@ -102,6 +103,8 @@ public:
   std::vector<gz::rendering::SensorPtr> RenderingSensors() const;
 
 private:
+  void Reset();
+
   class Implementation
   {
   public:
@@ -136,9 +139,10 @@ private:
     // Initialization methods
     bool Initialize(MultibeamSonarSensor * _sensor);
     bool InitializeBeamArrangement(MultibeamSonarSensor * _sensor);
+    void Shutdown(MultibeamSonarSensor * _sensor);
 
     // Ray buffer and channels
-    float * rayBuffer = nullptr;
+    std::vector<float> rayBuffer;
     const unsigned int kChannelCount = 3u;
 
     // Sensor properties
@@ -147,7 +151,7 @@ private:
     double vFOV;
     int nRays;
     int nBeams;
-    float * elevation_angles;
+    std::vector<float> elevation_angles;
     int nFreq;
     double sonarFreq;
     double bandwidth;
@@ -157,7 +161,7 @@ private:
     double absorption;
     double attenuation;
     double verticalFOV;
-    float * window;
+    std::vector<float> window;
     float plotScaler;
     float sensorGain;
 
@@ -172,7 +176,7 @@ private:
     int raySkips;
     int ray_nAzimuthRays;
     int ray_nElevationRays;
-    float * rangeVector;
+    std::vector<float> rangeVector;
 
     // Sonar image parameters
     bool blazingFlag;
@@ -190,7 +194,8 @@ private:
 
     // Beam corrector
     float beamCorrectorSum;
-    float ** beamCorrector;
+    std::vector<float> beamCorrectorStorage;
+    std::vector<float *> beamCorrector;
 
     // OpenCV images
     cv::Mat pointCloudImage;
@@ -201,7 +206,7 @@ private:
     std::vector<float> azimuth_angles;
 
     // World state pointer
-    const WorldState * worldState;
+    const WorldState * worldState{nullptr};
 
     // Rendering sensors
     gz::rendering::GpuRaysPtr raySensor;
@@ -258,8 +263,8 @@ private:
 
     // Logging
     std::ofstream writeLog;
-    u_int64_t writeCounter;
-    u_int64_t writeNumber;
+    u_int64_t writeCounter{0};
+    u_int64_t writeNumber{1};
     u_int64_t writeInterval;
     bool writeLogFlag;
 
