@@ -174,10 +174,12 @@ if(BUILD_TESTING)
     ${PROJECT_NAME} ${OpenCV_LIBS})
   add_test(NAME physical_readout_cpu COMMAND physical_readout_test cpu)
 
-  option(POSIM_SONAR_GPU_TESTS "Run sonar numerical tests requiring a WGPU adapter" OFF)
+  option(POSIM_SONAR_GPU_TESTS
+    "Run sonar numerical tests requiring a WGPU adapter" OFF)
   if(POSIM_SONAR_GPU_TESTS)
     add_test(NAME scattering_range_wgpu COMMAND scattering_range_test wgpu)
-    add_test(NAME physical_readout_wgpu COMMAND physical_readout_test wgpu radix2)
+    add_test(NAME physical_readout_wgpu
+      COMMAND physical_readout_test wgpu radix2)
     set_tests_properties(scattering_range_wgpu physical_readout_wgpu PROPERTIES
       RUN_SERIAL TRUE TIMEOUT 60)
   endif()

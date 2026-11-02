@@ -795,21 +795,17 @@ bool MultibeamSonarSensor::Implementation::InitializeBeamArrangement(MultibeamSo
   {
     this->depthSensor->SetVisibilityMask(visibilityMask);
     _sensor->AddSensor(this->depthSensor);
-    this->rayConnection = this->depthSensor->ConnectNewRgbPointCloud(
-      std::bind(
-        &MultibeamSonarSensor::Implementation::OnNewDepthFrame, this, std::placeholders::_1,
-        std::placeholders::_2, std::placeholders::_3, std::placeholders::_4,
-        std::placeholders::_5));
+    this->rayConnection = this->depthSensor->ConnectNewRgbPointCloud(std::bind(
+      &MultibeamSonarSensor::Implementation::OnNewDepthFrame, this, std::placeholders::_1,
+      std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5));
   }
   else
   {
     this->raySensor->SetVisibilityMask(visibilityMask);
     _sensor->AddSensor(this->raySensor);
-    this->rayConnection = this->raySensor->ConnectNewGpuRaysFrame(
-      std::bind(
-        &MultibeamSonarSensor::Implementation::OnNewFrame, this, std::placeholders::_1,
-        std::placeholders::_2, std::placeholders::_3, std::placeholders::_4,
-        std::placeholders::_5));
+    this->rayConnection = this->raySensor->ConnectNewGpuRaysFrame(std::bind(
+      &MultibeamSonarSensor::Implementation::OnNewFrame, this, std::placeholders::_1,
+      std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5));
   }
 
   // Transmission path properties (typical model used here)
