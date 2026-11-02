@@ -44,13 +44,19 @@ rosdep install --rosdistro lyrical --from-paths src --ignore-src -r -y
 
 `--skip-existing` keeps the POSIM checkout already in `src/posim`. Check every reported dependency failure before building.
 
+The manifest also imports pinned `ros_gz` sources, including the bridge lifetime and POSIX launch corrections. An existing `src/ros_gz` is preserved by `--skip-existing`; compare its origin and commit with the manifest before building. Use a fresh workspace when retaining an older checkout. Source this workspace after building so ROS uses its bridge and launch files.
+
 ## 4. Build and source
 
 ```bash
 colcon build --merge-install --executor sequential --symlink-install
 source install/setup.bash
 ros2 pkg prefix posim_demos
+ros2 pkg prefix ros_gz_bridge
+ros2 pkg prefix ros_gz_sim
 ```
+
+Both `ros_gz` prefixes must point into this workspace installation. A prefix under `/opt/ros/lyrical` means the system package is still selected.
 
 The last command prints an installed package prefix. In every new terminal, load the same environment:
 
