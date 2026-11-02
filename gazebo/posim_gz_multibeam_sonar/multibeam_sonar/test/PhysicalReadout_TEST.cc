@@ -220,6 +220,65 @@ void PulseControls(ComputeBackend & backend)
   Require(!backend.Compute(scene.input, rejected), "negative output count accepted");
 }
 
+// Keep the geometry, random realization and pulse fixed while varying only
+// receive gain. A nonzero CPU return must not disappear at a fixed-point floor.
+void WeakReturns(ComputeBackend & backend)
+{
+  for (int columns : {1, 17})
+  {
+    Scene scene(columns, 3, 64, 1);
+    for (bool sparse : {true, false})
+    {
+      scene.depth.setTo(5);
+      if (sparse)
+      {
+        scene.depth.setTo(0);
+        scene.depth.at<float>(3, columns / 2) = 5;
+      }
+      for (float gain : {1.f, .1f, .01f, .001f, .0001f, 1e-5f, 1e-6f, 1e-7f, 0.f, 1.f})
+      {
+        scene.input.receiveGain = gain;
+        SonarComputeOutput reference;
+        Require(ComputePhysicalSonarCpu(scene.input, reference), "weak-return CPU reference");
+        auto actual = Compute(backend, scene.input);
+        if (gain == 0)
+        {
+          Require(Energy(actual) == 0, "zero gain retained a previous spectrum");
+          continue;
+        }
+        Require(Energy(reference) > 0 && Energy(actual) > 0, "weak return erased");
+        double difference = 0;
+        for (size_t i = 0; i < actual.beamSpectrum.size(); ++i)
+        {
+          difference += std::norm(
+            std::complex<double>(actual.beamSpectrum[i]) -
+            std::complex<double>(reference.beamSpectrum[i]));
+        }
+        Require(
+          std::sqrt(difference / Energy(reference)) < 3e-4,
+          "weak-return CPU/GPU relative error exceeds physical tolerance");
+      }
+      // Low reflectivity is not equivalent to moving receiveGain after a
+      // quantized reduction: the scattering sum itself must remain floating point.
+      scene.input.receiveGain = 1;
+      scene.reflectivity.setTo(1e-16f);
+      SonarComputeOutput reference;
+      Require(ComputePhysicalSonarCpu(scene.input, reference), "low-reflectivity CPU reference");
+      auto actual = Compute(backend, scene.input);
+      double difference = 0;
+      for (size_t i = 0; i < actual.beamSpectrum.size(); ++i)
+      {
+        difference += std::norm(
+          std::complex<double>(actual.beamSpectrum[i]) -
+          std::complex<double>(reference.beamSpectrum[i]));
+      }
+      Require(Energy(reference) > 0 && Energy(actual) > 0, "low reflectivity erased");
+      Require(std::sqrt(difference / Energy(reference)) < 3e-4, "low-reflectivity parity");
+      scene.reflectivity.setTo(.3f);
+    }
+  }
+}
+
 void Selection(const std::string & name, bool radixOnly)
 {
   Scene prototype(17, 256, 64, 4);
@@ -278,6 +337,7 @@ int main(int argc, char ** argv)
     PerspectiveInput(*backend);
     Controls(*backend);
     PulseControls(*backend);
+    WeakReturns(*backend);
     std::ofstream arrays;
     if (argc > 3)
     {

@@ -178,3 +178,49 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
     atomicAdd(&out_im[idx], i32(im_val));
   }
 }
+
+// Physical readout owns one complete (geometry column, frequency) cell per
+// invocation. Sum selected rays in f32 instead of quantizing each contribution
+// to 1/SCALE. This needs no floating-point atomic feature or ray-sized scratch.
+// The shared binding layout is atomic<i32> for the legacy entry point. Here a
+// single atomicStore writes the f32 bit pattern, not a fixed-point integer.
+// The host binds float spectrum buffers and skips the legacy conversion pass.
+@compute @workgroup_size(8, 8, 1)
+fn physical_main(@builtin(global_invocation_id) gid: vec3<u32>) {
+  let beam = gid.x;
+  let f = gid.y;
+  if (beam >= params.n_beams || f >= params.n_freq) {
+    return;
+  }
+
+  let delta_f = params.bandwidth / f32(params.n_freq);
+  let freq = delta_f * (f32(f) + 0.5 - 0.5 * f32(params.n_freq));
+  let kw = 2.0 * PI * freq / params.sound_speed;
+  let source_term = sqrt(pow(10.0, params.source_level / 10.0)) * 1e-6;
+  let weight = window_vals[f];
+  var sum_re = 0.0;
+  var sum_im = 0.0;
+  for (var ray = 0u; ray < params.n_rays; ray += max(1u, params.ray_skips)) {
+    let dr = beam * params.n_rays + ray;
+    let d = depth[dr];
+    if (!(d > 0.0 && d <= params.max_distance)) {
+      continue;
+    }
+    let lambert_sqrt = sqrt(max(reflectivity[dr], 0.0)) * abs(normals[dr * 3u + 2u]);
+    let propagation = exp(-2.0 * params.attenuation * d) / (d * d);
+    let target_area_sqrt = d * sqrt(angular_areas[dr]);
+    let amp_scale = source_term * propagation * lambert_sqrt * target_area_sqrt * params.sensor_gain;
+    let xi = philox_normal4(params.seed_lo, params.seed_hi, params.frame_lo, params.frame_hi, dr);
+    let amp_re = (xi.x / sqrt(2.0)) * amp_scale;
+    let amp_im = (xi.y / sqrt(2.0)) * amp_scale;
+    let phase = 2.0 * d * kw;
+    let c = cos(phase);
+    let s = sin(phase);
+    sum_re += (amp_re * c - amp_im * s) * weight;
+    sum_im += (amp_re * s + amp_im * c) * weight;
+  }
+  let idx = beam * params.n_freq + f;
+  // Always overwrite, including empty rays and zero gain/window, on cache reuse.
+  atomicStore(&out_re[idx], bitcast<i32>(sum_re));
+  atomicStore(&out_im[idx], bitcast<i32>(sum_im));
+}
