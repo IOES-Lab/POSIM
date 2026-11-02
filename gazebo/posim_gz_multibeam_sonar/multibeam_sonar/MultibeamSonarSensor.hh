@@ -13,6 +13,7 @@
 #include <vector>
 
 #include <gz/msgs/pointcloud_packed.pb.h>
+#include <gz/common/Event.hh>
 #include <gz/math/Pose3.hh>
 #include <gz/math/Vector2.hh>
 #include <gz/math/Vector3.hh>
@@ -25,7 +26,9 @@
 #include <sensor_msgs/msg/image.hpp>
 #include <sensor_msgs/msg/point_cloud2.hpp>
 #include "AcousticBeam.hh"
+#include "AcousticReadout.hh"
 #include "AxisAlignedPatch2.hh"
+#include "PerspectiveSonarGeometry.hh"
 #include "sonar_compute_backend.hh"
 
 namespace gz
@@ -102,6 +105,8 @@ public:
   std::vector<gz::rendering::SensorPtr> RenderingSensors() const;
 
 private:
+  void Reset();
+
   class Implementation
   {
   public:
@@ -136,19 +141,22 @@ private:
     // Initialization methods
     bool Initialize(MultibeamSonarSensor * _sensor);
     bool InitializeBeamArrangement(MultibeamSonarSensor * _sensor);
+    void Shutdown(MultibeamSonarSensor * _sensor);
 
     // Ray buffer and channels
-    float * rayBuffer = nullptr;
+    std::vector<float> rayBuffer;
     const unsigned int kChannelCount = 3u;
 
     // Sensor properties
     double maximumRange;
+    double minimumRange{0.1};
     double hFOV;
     double vFOV;
     int nRays;
     int nBeams;
-    float * elevation_angles;
-    int nFreq;
+    std::vector<float> elevation_angles;
+    int nFreq;               // published range samples
+    int spectrumSamples{0};  // physical frequency quadrature, including guard
     double sonarFreq;
     double bandwidth;
     double soundSpeed;
@@ -157,9 +165,14 @@ private:
     double absorption;
     double attenuation;
     double verticalFOV;
-    float * window;
+    std::vector<float> window;
     float plotScaler;
     float sensorGain;
+    float receiveGain{1.f};
+    // Immutable after setup; geometry angles stay separate from receiver directions.
+    std::unique_ptr<const AcousticReadout> physicalReadout;
+    std::unique_ptr<const PerspectiveSonarGeometry> perspectiveGeometry;
+    std::vector<float> receiveAngles;
 
     // Topics and frame names
     std::string pointCloudTopicName;
@@ -172,7 +185,7 @@ private:
     int raySkips;
     int ray_nAzimuthRays;
     int ray_nElevationRays;
-    float * rangeVector;
+    std::vector<float> rangeVector;
 
     // Sonar image parameters
     bool blazingFlag;
@@ -190,10 +203,14 @@ private:
 
     // Beam corrector
     float beamCorrectorSum;
-    float ** beamCorrector;
+    std::vector<float> beamCorrectorStorage;
+    std::vector<float *> beamCorrector;
 
     // OpenCV images
     cv::Mat pointCloudImage;
+    cv::Mat measuredPoints;
+    int64_t physicalRenderStamp{0};    // Protected by rayMutex.
+    int64_t physicalSnapshotStamp{0};  // Protected by lock_, with both images.
     cv::Mat reflectivityImage;
     cv::Mat randImage;
 
@@ -201,10 +218,11 @@ private:
     std::vector<float> azimuth_angles;
 
     // World state pointer
-    const WorldState * worldState;
+    const WorldState * worldState{nullptr};
 
     // Rendering sensors
     gz::rendering::GpuRaysPtr raySensor;
+    gz::rendering::DepthCameraPtr depthSensor;
     gz::rendering::CameraPtr imageSensor;
 
     struct
@@ -217,6 +235,9 @@ private:
     void OnNewFrame(
       const float * _scan, unsigned int _width, unsigned int _height, unsigned int _channels,
       const std::string & /*_format*/);
+    void OnNewDepthFrame(
+      const float * _scan, unsigned int _width, unsigned int _height, unsigned int _channels,
+      const std::string & _format);
     void ComputeSonarImage();
     cv::Mat ComputeNormalImage(cv::Mat & depth);
     void ComputeCorrector(int _snapshotWidth, int _nBeams);
@@ -258,8 +279,8 @@ private:
 
     // Logging
     std::ofstream writeLog;
-    u_int64_t writeCounter;
-    u_int64_t writeNumber;
+    u_int64_t writeCounter{0};
+    u_int64_t writeNumber{1};
     u_int64_t writeInterval;
     bool writeLogFlag;
 
