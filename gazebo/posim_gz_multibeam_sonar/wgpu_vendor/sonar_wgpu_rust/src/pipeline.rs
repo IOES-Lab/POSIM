@@ -3,8 +3,8 @@
 use std::collections::HashMap;
 use std::sync::OnceLock;
 
-/// Buffer-set key: (n_beams, n_rays, n_freq).
-pub type BufferKey = (u32, u32, u32);
+/// Buffer-set key: (geometry columns, selected rays, frequencies, receivers).
+pub type BufferKey = (u32, u32, u32, u32);
 
 /// Upper bound on cached buffer sets; the cache is cleared when it is full.
 pub const MAX_BUFFER_SETS: usize = 8;
@@ -17,6 +17,7 @@ pub struct SonarBuffers {
     pub depth_buf: wgpu::Buffer,
     pub normal_buf: wgpu::Buffer,
     pub refl_buf: wgpu::Buffer,
+    pub area_buf: wgpu::Buffer,
     pub window_buf: wgpu::Buffer,
     pub bc_buf: wgpu::Buffer,
     // Per-ray complex amplitudes (zeroed via write_buffer each frame)
@@ -44,11 +45,13 @@ impl SonarBuffers {
         n_beams: u32,
         n_rays: u32,
         n_freq: u32,
+        n_outputs: u32,
         exact: &super::exact_fft::Pipeline,
     ) -> Self {
         let depth_ray = (n_beams as usize) * (n_rays as usize);
         let spectrum = (n_beams as usize) * (n_freq as usize);
-        let bc = (n_beams as usize) * (n_beams as usize);
+        let bc = (n_outputs as usize) * (n_beams as usize);
+        let output = (n_outputs as usize) * (n_freq as usize);
         let f32_bytes = |n: usize| (n * std::mem::size_of::<f32>()) as u64;
 
         let mut buffers = SonarBuffers {
@@ -67,6 +70,12 @@ impl SonarBuffers {
             }),
             refl_buf: device.create_buffer(&wgpu::BufferDescriptor {
                 label: Some("pb_refl"),
+                size: f32_bytes(depth_ray),
+                usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST,
+                mapped_at_creation: false,
+            }),
+            area_buf: device.create_buffer(&wgpu::BufferDescriptor {
+                label: Some("pb_area"),
                 size: f32_bytes(depth_ray),
                 usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST,
                 mapped_at_creation: false,
@@ -109,19 +118,19 @@ impl SonarBuffers {
             }),
             mm_re_out: device.create_buffer(&wgpu::BufferDescriptor {
                 label: Some("pb_mm_re_out"),
-                size: f32_bytes(spectrum),
+                size: f32_bytes(output),
                 usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
                 mapped_at_creation: false,
             }),
             mm_im_out: device.create_buffer(&wgpu::BufferDescriptor {
                 label: Some("pb_mm_im_out"),
-                size: f32_bytes(spectrum),
+                size: f32_bytes(output),
                 usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
                 mapped_at_creation: false,
             }),
             p_re_buf: device.create_buffer(&wgpu::BufferDescriptor {
                 label: Some("pb_p_re"),
-                size: f32_bytes(spectrum),
+                size: f32_bytes(output),
                 usage: wgpu::BufferUsages::STORAGE
                     | wgpu::BufferUsages::COPY_SRC
                     | wgpu::BufferUsages::COPY_DST,
@@ -129,7 +138,7 @@ impl SonarBuffers {
             }),
             p_im_buf: device.create_buffer(&wgpu::BufferDescriptor {
                 label: Some("pb_p_im"),
-                size: f32_bytes(spectrum),
+                size: f32_bytes(output),
                 usage: wgpu::BufferUsages::STORAGE
                     | wgpu::BufferUsages::COPY_SRC
                     | wgpu::BufferUsages::COPY_DST,
@@ -137,13 +146,13 @@ impl SonarBuffers {
             }),
             stg_re: device.create_buffer(&wgpu::BufferDescriptor {
                 label: Some("pb_stg_re"),
-                size: f32_bytes(spectrum),
+                size: f32_bytes(output),
                 usage: wgpu::BufferUsages::MAP_READ | wgpu::BufferUsages::COPY_DST,
                 mapped_at_creation: false,
             }),
             stg_im: device.create_buffer(&wgpu::BufferDescriptor {
                 label: Some("pb_stg_im"),
-                size: f32_bytes(spectrum),
+                size: f32_bytes(output),
                 usage: wgpu::BufferUsages::MAP_READ | wgpu::BufferUsages::COPY_DST,
                 mapped_at_creation: false,
             }),
@@ -152,7 +161,7 @@ impl SonarBuffers {
             buffers.exact_fft = Some(exact.plan(
                 device,
                 n_freq,
-                n_beams,
+                n_outputs,
                 &buffers.p_re_buf,
                 &buffers.p_im_buf,
             ));
@@ -162,16 +171,17 @@ impl SonarBuffers {
 }
 
 /// GPU compute context: device handle + compiled shader pipelines.
-/// Four pipelines compiled once at init: backscatter, convert, matmul, FFT.
+/// Pipelines compiled once: legacy/physical backscatter, convert, matmul, FFT.
 pub struct GpuContext {
     pub device: wgpu::Device, // the GPU -> used to create everything
     pub queue: wgpu::Queue,   // the command queue -> used to submit work
 
     // Backscatter kernel: ray-surface interactions with Lambert scatter.
-    pub bs_pipeline: wgpu::ComputePipeline, // compiled backscatter shader
+    pub bs_pipeline: wgpu::ComputePipeline, // legacy per-ray float amplitudes
+    pub physical_bs_pipeline: wgpu::ComputePipeline, // physical f32 ray reduction
     pub bs_bgl: wgpu::BindGroupLayout,      // describes bs shader's buffer slots
 
-    // i32→f32 conversion: fixed-point atomic backscatter output to float spectrum.
+    // Legacy frequency synthesis from per-ray floating amplitudes.
     pub convert_pipeline: wgpu::ComputePipeline,
     pub convert_bgl: wgpu::BindGroupLayout,
 
@@ -237,8 +247,10 @@ fn build_bgls(
             make_storage_entry(1, true),  // (depth)          true = read_only
             make_storage_entry(2, true),  // (normal)
             make_storage_entry(3, true),  // (reflectivity)
-            make_storage_entry(4, false), // (amp_re)     false = read_write
-            make_storage_entry(5, false), // (amp_im)
+            make_storage_entry(4, false), // (out_re_i32)     false = read_write
+            make_storage_entry(5, false), // (out_im_i32)
+            make_storage_entry(6, true),  // (window)
+            make_storage_entry(7, true),  // represented cell solid angles
         ],
     });
 
@@ -285,6 +297,7 @@ fn compile_pipeline(
     device: &wgpu::Device,
     label: &str,
     wgsl: &str,
+    entry_point: &str,
     bgl: &wgpu::BindGroupLayout,
 ) -> wgpu::ComputePipeline {
     let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
@@ -300,7 +313,7 @@ fn compile_pipeline(
         label: Some(label),
         layout: Some(&layout),
         module: &shader,
-        entry_point: "main",
+        entry_point,
         compilation_options: wgpu::PipelineCompilationOptions::default(),
     })
 }
@@ -394,24 +407,35 @@ fn try_init_gpu_context(backends: wgpu::Backends, label: &str) -> Option<GpuCont
             &device,
             "bs_pipeline",
             include_str!("shaders/backscatter.wgsl"),
+            "main",
+            &bs_bgl,
+        );
+        let physical_bs_pipeline = compile_pipeline(
+            &device,
+            "physical_bs_pipeline",
+            include_str!("shaders/physical_backscatter.wgsl"),
+            "physical_main",
             &bs_bgl,
         );
         let convert_pipeline = compile_pipeline(
             &device,
             "convert_pipeline",
             include_str!("shaders/convert.wgsl"),
+            "main",
             &convert_bgl,
         );
         let mm_pipeline = compile_pipeline(
             &device,
             "mm_pipeline",
             include_str!("shaders/matmul.wgsl"),
+            "main",
             &mm_bgl,
         );
         let fft_pipeline = compile_pipeline(
             &device,
             "fft_pipeline",
             include_str!("shaders/fft.wgsl"),
+            "main",
             &fft_bgl,
         );
         eprintln!(
@@ -424,6 +448,7 @@ fn try_init_gpu_context(backends: wgpu::Backends, label: &str) -> Option<GpuCont
             device,
             queue,
             bs_pipeline,
+            physical_bs_pipeline,
             bs_bgl,
             convert_pipeline,
             convert_bgl,

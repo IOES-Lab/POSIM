@@ -51,6 +51,7 @@ endif()
 set(SONAR_SOURCES
   MultibeamSonarSensor.cc
   sonar_compute_cpu.cc
+  PhysicalSonarCpu.cc
   sonar_compute_wgpu.cc
   sonar_compute_cuda.cc
 )
@@ -150,6 +151,37 @@ if(BUILD_TESTING)
     ${CMAKE_CURRENT_SOURCE_DIR} ${OpenCV_INCLUDE_DIRS})
   target_link_libraries(test_ray_surface_normals PRIVATE ${OpenCV_LIBS})
   add_test(NAME ray_surface_normals COMMAND test_ray_surface_normals)
+
+  add_executable(perspective_geometry_test test/PerspectiveGeometry_TEST.cc)
+  target_compile_features(perspective_geometry_test PRIVATE cxx_std_17)
+  target_include_directories(perspective_geometry_test PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR} ${OpenCV_INCLUDE_DIRS})
+  target_link_libraries(perspective_geometry_test PRIVATE ${OpenCV_LIBS})
+  add_test(NAME perspective_geometry COMMAND perspective_geometry_test)
+
+  add_executable(scattering_range_test test/ScatteringRange_TEST.cc)
+  target_compile_features(scattering_range_test PRIVATE cxx_std_17)
+  target_include_directories(scattering_range_test PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR} ${OpenCV_INCLUDE_DIRS})
+  target_link_libraries(scattering_range_test PRIVATE
+    ${PROJECT_NAME} ${OpenCV_LIBS})
+  add_test(NAME scattering_range_cpu COMMAND scattering_range_test cpu)
+  add_executable(physical_readout_test test/PhysicalReadout_TEST.cc)
+  target_compile_features(physical_readout_test PRIVATE cxx_std_17)
+  target_include_directories(physical_readout_test PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR} ${OpenCV_INCLUDE_DIRS})
+  target_link_libraries(physical_readout_test PRIVATE
+    ${PROJECT_NAME} ${OpenCV_LIBS})
+  add_test(NAME physical_readout_cpu COMMAND physical_readout_test cpu)
+
+  option(POSIM_SONAR_GPU_TESTS "Run sonar numerical tests requiring a WGPU adapter" OFF)
+  if(POSIM_SONAR_GPU_TESTS)
+    add_test(NAME scattering_range_wgpu COMMAND scattering_range_test wgpu)
+    add_test(NAME physical_readout_wgpu COMMAND physical_readout_test wgpu radix2)
+    set_tests_properties(scattering_range_wgpu physical_readout_wgpu PROPERTIES
+      RUN_SERIAL TRUE TIMEOUT 60)
+  endif()
+
 endif()
 
 install(TARGETS ${PROJECT_NAME}
@@ -167,6 +199,34 @@ if(BUILD_TESTING)
     PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
   target_link_libraries(range_sampling_test ${PROJECT_NAME})
   add_test(NAME range_sampling COMMAND range_sampling_test)
+endif()
+
+if(BUILD_TESTING)
+  option(POSIM_SONAR_RENDERING_TESTS
+    "Run sonar lifecycle tests requiring an Ogre2 rendering device" OFF)
+  if(POSIM_SONAR_RENDERING_TESTS)
+    if(APPLE)
+      enable_language(OBJCXX)
+      set_source_files_properties(test/SensorLifecycle_TEST.cc
+        PROPERTIES LANGUAGE OBJCXX)
+    endif()
+    add_executable(test_sensor_lifecycle test/SensorLifecycle_TEST.cc)
+    target_compile_features(test_sensor_lifecycle PRIVATE cxx_std_17)
+    target_include_directories(test_sensor_lifecycle PRIVATE
+      ${CMAKE_CURRENT_SOURCE_DIR})
+    target_link_libraries(test_sensor_lifecycle PRIVATE ${PROJECT_NAME})
+    if(APPLE)
+      target_link_libraries(test_sensor_lifecycle PRIVATE "-framework Cocoa")
+    endif()
+    foreach(sonar_backend cpu wgpu)
+      add_test(NAME sonar_scene_lifecycle_${sonar_backend}
+        COMMAND test_sensor_lifecycle
+          ${CMAKE_CURRENT_SOURCE_DIR}/test/lifecycle_sonar.sdf)
+      set_tests_properties(sonar_scene_lifecycle_${sonar_backend} PROPERTIES
+        ENVIRONMENT "POSIM_SONAR_COMPUTE_BACKEND=${sonar_backend}"
+        RUN_SERIAL TRUE TIMEOUT 60)
+    endforeach()
+  endif()
 endif()
 
 ament_package()

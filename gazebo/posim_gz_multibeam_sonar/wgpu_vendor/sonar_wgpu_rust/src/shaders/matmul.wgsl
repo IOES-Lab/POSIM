@@ -5,6 +5,7 @@ struct Params {
   n_beams: u32,
   n_freq: u32,
   beam_corrector_sum: f32,
+  n_outputs: u32,
 };
 
 @group(0) @binding(0) var<uniform> params: Params;
@@ -24,7 +25,7 @@ fn main(
 ) {
   let row = gid.y;
   let col = gid.x;
-  let in_bounds = (row < params.n_beams) && (col < params.n_freq);
+  let in_bounds = (row < params.n_outputs) && (col < params.n_freq);
 
   // Accumulator: accumulates partial products across tiles.
   var acc = 0.0;
@@ -40,7 +41,7 @@ fn main(
     // A thread outside the output bounds may still load data needed by a
     // valid neighbor. Check A and B input coordinates independently.
     // Load A tile: each thread loads one A[row, k_a].
-    if (row < params.n_beams && k_a < params.n_beams) {
+    if (row < params.n_outputs && k_a < params.n_beams) {
       tile_a[lid.y][lid.x] = a[row * params.n_beams + k_a];
     } else {
       tile_a[lid.y][lid.x] = 0.0;

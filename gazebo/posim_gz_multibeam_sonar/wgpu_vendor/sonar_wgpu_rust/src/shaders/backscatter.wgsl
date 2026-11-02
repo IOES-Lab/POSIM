@@ -111,7 +111,7 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
 
   let dr = beam * params.n_rays + actual_ray;
   let d = depth[dr];
-  if (d <= 0.0 || d > params.max_distance) {
+  if (!(d > 0.0 && d <= params.max_distance)) {
     return;
   }
 
@@ -133,7 +133,9 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
 
   let source_term = sqrt(pow(10.0, params.source_level / 10.0)) * 1e-6;
   let propagation = exp(-2.0 * params.attenuation * d) / (d * d);
-  let target_area_sqrt = sqrt(d * params.area_scaler);
+  // Preserve the projected angular-cell footprint used by the CPU/CUDA model.
+  // The footprint is r^2 * solid_angle; PR34's float summation remains below.
+  let target_area_sqrt = d * sqrt(params.area_scaler);
   // let amp_scale = source_term * propagation * lambert_sqrt * target_area_sqrt * params.sensor_gain;
   let amp_scale = source_term * propagation * lambert_sqrt * target_area_sqrt;
 
