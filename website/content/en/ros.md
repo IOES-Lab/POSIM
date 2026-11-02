@@ -84,7 +84,7 @@ Choose RViz displays matching the message type.
 POSIM-specific messages are defined in `posim_interfaces`. Install and source these definitions on each separate ROS client.
 
 ```bash
-ros2 bag record /model/rexrov/odometry /model/rexrov/imu
+ros2 bag record --topics /model/rexrov/odometry /model/rexrov/imu
 ```
 
 A remote ROS client requires:
