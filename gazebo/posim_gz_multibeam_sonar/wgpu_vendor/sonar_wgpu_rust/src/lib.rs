@@ -404,10 +404,13 @@ unsafe fn compute_impl(
     if physical {
         queue.write_buffer(&buf.area_buf, 0, bytemuck::cast_slice(areas));
     }
-    // Zero atomic accumulators (reused each frame)
-    let zeros_i32 = vec![0i32; spectrum_len];
-    queue.write_buffer(&buf.out_re_i32, 0, bytemuck::cast_slice(&zeros_i32));
-    queue.write_buffer(&buf.out_im_i32, 0, bytemuck::cast_slice(&zeros_i32));
+    // Legacy rays atomically accumulate fixed-point values. Physical readout
+    // overwrites every float spectrum cell, including empty-return cells.
+    if !physical {
+        let zeros_i32 = vec![0i32; spectrum_len];
+        queue.write_buffer(&buf.out_re_i32, 0, bytemuck::cast_slice(&zeros_i32));
+        queue.write_buffer(&buf.out_im_i32, 0, bytemuck::cast_slice(&zeros_i32));
+    }
 
     // ---- Bind groups (metadata only -> no GPU allocation) ----
     let bs_bg = device.create_bind_group(&wgpu::BindGroupDescriptor {
@@ -432,11 +435,19 @@ unsafe fn compute_impl(
             },
             wgpu::BindGroupEntry {
                 binding: 4,
-                resource: buf.out_re_i32.as_entire_binding(),
+                resource: if physical {
+                    buf.mm_re_in.as_entire_binding()
+                } else {
+                    buf.out_re_i32.as_entire_binding()
+                },
             },
             wgpu::BindGroupEntry {
                 binding: 5,
-                resource: buf.out_im_i32.as_entire_binding(),
+                resource: if physical {
+                    buf.mm_im_in.as_entire_binding()
+                } else {
+                    buf.out_im_i32.as_entire_binding()
+                },
             },
             wgpu::BindGroupEntry {
                 binding: 6,
@@ -524,23 +535,27 @@ unsafe fn compute_impl(
         label: Some("sonar_enc"),
     });
 
-    // Backscatter dispatch: depth/normals/refl → i32 fixed-point spectrum
+    // Physical: one f32 spectrum cell per invocation. Legacy: atomic ray sum.
     {
         let mut pass = enc.begin_compute_pass(&wgpu::ComputePassDescriptor {
             label: Some("bs_pass"),
             timestamp_writes: None,
         });
-        pass.set_pipeline(&ctx.bs_pipeline);
+        pass.set_pipeline(if physical {
+            &ctx.physical_bs_pipeline
+        } else {
+            &ctx.bs_pipeline
+        });
         pass.set_bind_group(0, &bs_bg, &[]);
         let gx = n_beams.div_ceil(8);
         let ray_step = std::cmp::max(1, ray_skips);
         let reduced_rays = n_rays.div_ceil(ray_step);
-        let gy = reduced_rays.div_ceil(8);
+        let gy = if physical { n_freq } else { reduced_rays }.div_ceil(8);
         pass.dispatch_workgroups(gx, gy, 1);
     }
 
-    // Convert dispatch: i32 fixed-point → f32 (GPU-side, eliminates CPU readback round-trip)
-    {
+    // Only legacy readout needs fixed-point conversion; physical wrote f32 bits.
+    if !physical {
         let mut pass = enc.begin_compute_pass(&wgpu::ComputePassDescriptor {
             label: Some("conv_pass"),
             timestamp_writes: None,

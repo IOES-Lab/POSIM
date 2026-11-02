@@ -159,13 +159,14 @@ impl SonarBuffers {
 }
 
 /// GPU compute context: device handle + compiled shader pipelines.
-/// Four pipelines compiled once at init: backscatter, convert, matmul, FFT.
+/// Pipelines compiled once: legacy/physical backscatter, convert, matmul, FFT.
 pub struct GpuContext {
     pub device: wgpu::Device, // the GPU -> used to create everything
     pub queue: wgpu::Queue,   // the command queue -> used to submit work
 
     // Backscatter kernel: ray-surface interactions with Lambert scatter.
-    pub bs_pipeline: wgpu::ComputePipeline, // compiled backscatter shader
+    pub bs_pipeline: wgpu::ComputePipeline, // legacy fixed-point backscatter
+    pub physical_bs_pipeline: wgpu::ComputePipeline, // physical f32 ray reduction
     pub bs_bgl: wgpu::BindGroupLayout,      // describes bs shader's buffer slots
 
     // i32→f32 conversion: fixed-point atomic backscatter output to float spectrum.
@@ -280,6 +281,7 @@ fn compile_pipeline(
     device: &wgpu::Device,
     label: &str,
     wgsl: &str,
+    entry_point: &str,
     bgl: &wgpu::BindGroupLayout,
 ) -> wgpu::ComputePipeline {
     let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
@@ -295,7 +297,7 @@ fn compile_pipeline(
         label: Some(label),
         layout: Some(&layout),
         module: &shader,
-        entry_point: "main",
+        entry_point,
         compilation_options: wgpu::PipelineCompilationOptions::default(),
     })
 }
@@ -389,24 +391,35 @@ fn try_init_gpu_context(backends: wgpu::Backends, label: &str) -> Option<GpuCont
             &device,
             "bs_pipeline",
             include_str!("shaders/backscatter.wgsl"),
+            "main",
+            &bs_bgl,
+        );
+        let physical_bs_pipeline = compile_pipeline(
+            &device,
+            "physical_bs_pipeline",
+            include_str!("shaders/backscatter.wgsl"),
+            "physical_main",
             &bs_bgl,
         );
         let convert_pipeline = compile_pipeline(
             &device,
             "convert_pipeline",
             include_str!("shaders/convert.wgsl"),
+            "main",
             &convert_bgl,
         );
         let mm_pipeline = compile_pipeline(
             &device,
             "mm_pipeline",
             include_str!("shaders/matmul.wgsl"),
+            "main",
             &mm_bgl,
         );
         let fft_pipeline = compile_pipeline(
             &device,
             "fft_pipeline",
             include_str!("shaders/fft.wgsl"),
+            "main",
             &fft_bgl,
         );
         eprintln!(
@@ -418,6 +431,7 @@ fn try_init_gpu_context(backends: wgpu::Backends, label: &str) -> Option<GpuCont
             device,
             queue,
             bs_pipeline,
+            physical_bs_pipeline,
             bs_bgl,
             convert_pipeline,
             convert_bgl,
