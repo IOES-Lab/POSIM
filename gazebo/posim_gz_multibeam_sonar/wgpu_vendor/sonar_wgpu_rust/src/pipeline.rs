@@ -9,6 +9,45 @@ pub type BufferKey = (u32, u32, u32);
 /// Upper bound on cached buffer sets; the cache is cleared when it is full.
 pub const MAX_BUFFER_SETS: usize = 8;
 
+/// Validate every storage allocation and dispatch before reading FFI inputs.
+/// Limits describe the selected device, rather than a fixed frequency count.
+pub fn dimensions_fit(limits: &wgpu::Limits, beams: u32, rays: u32, n: u32) -> bool {
+    if beams == 0 || rays == 0 || n == 0 {
+        return false;
+    }
+    let b = u64::from(beams);
+    let r = u64::from(rays);
+    let f = u64::from(n);
+    let buffer_limit = limits
+        .max_buffer_size
+        .min(u64::from(limits.max_storage_buffer_binding_size));
+    let fits = |elements: u64, bytes: u64| {
+        elements <= u64::from(u32::MAX)
+            && elements
+                .checked_mul(bytes)
+                .is_some_and(|size| size <= buffer_limit)
+    };
+    if !fits(b * r, 12) || !fits(b * b, 4) || !fits(b * f, 4) || !fits(f, 4) {
+        return false;
+    }
+    let groups = limits.max_compute_workgroups_per_dimension;
+    if beams > groups || rays.div_ceil(8) > groups || n.div_ceil(16) > groups {
+        return false;
+    }
+    if super::exact_fft::uses_global_stages(n) {
+        let Some(m) = super::exact_fft::convolution_size(n) else {
+            return false;
+        };
+        if m.div_ceil(256) > groups
+            || !fits(b * u64::from(m), 4)
+            || !fits(f + u64::from(m) + u64::from(m / 2), 8)
+        {
+            return false;
+        }
+    }
+    true
+}
+
 /// GPU buffer lifetime: persistent allocation across frames via queue.write_buffer.
 /// One set per sonar dimensions (see `GpuContext::buffers`).
 pub struct SonarBuffers {
@@ -148,7 +187,7 @@ impl SonarBuffers {
                 mapped_at_creation: false,
             }),
         };
-        if !n_freq.is_power_of_two() {
+        if super::exact_fft::uses_global_stages(n_freq) {
             buffers.exact_fft = Some(exact.plan(
                 device,
                 n_freq,
@@ -179,7 +218,7 @@ pub struct GpuContext {
     pub mm_pipeline: wgpu::ComputePipeline,
     pub mm_bgl: wgpu::BindGroupLayout,
 
-    // Radix-2 for powers of two, exact GPU Bluestein otherwise (N <= 4096).
+    // Shared-memory radix-2 for small powers of two; global GPU stages otherwise.
     pub exact_fft: super::exact_fft::Pipeline,
     pub fft_pipeline: wgpu::ComputePipeline,
     pub fft_bgl: wgpu::BindGroupLayout,

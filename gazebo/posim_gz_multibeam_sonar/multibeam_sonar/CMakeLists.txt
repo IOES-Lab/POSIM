@@ -175,6 +175,14 @@ if(BUILD_TESTING)
         ENVIRONMENT "POSIM_SONAR_COMPUTE_BACKEND=${sonar_backend}"
         RUN_SERIAL TRUE TIMEOUT 60)
     endforeach()
+    add_executable(test_wgpu_range_sampling test/WgpuRangeSampling_TEST.cc)
+    target_compile_features(test_wgpu_range_sampling PRIVATE cxx_std_17)
+    target_include_directories(test_wgpu_range_sampling PRIVATE
+      ${CMAKE_CURRENT_SOURCE_DIR})
+    target_link_libraries(test_wgpu_range_sampling PRIVATE ${PROJECT_NAME})
+    add_test(NAME sonar_wgpu_range_sampling COMMAND test_wgpu_range_sampling)
+    set_tests_properties(sonar_wgpu_range_sampling PROPERTIES
+      RUN_SERIAL TRUE TIMEOUT 120)
   endif()
 endif()
 

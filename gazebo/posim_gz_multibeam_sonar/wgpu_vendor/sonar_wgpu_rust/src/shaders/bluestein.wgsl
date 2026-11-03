@@ -1,5 +1,5 @@
 // Exact N-point forward DFT by Bluestein convolution, without range-grid interpolation.
-// Global-memory radix-2 stages keep N <= 4096 within portable workgroup-memory limits.
+// Global-memory radix-2 stages support lengths beyond the shared-memory FFT capacity.
 // Each phase is a separate dispatch / compute pass: no cross-workgroup barrier assumed.
 struct Params { n: u32, beams: u32, m: u32, phase: u32 };
 @group(0) @binding(0) var<uniform> p: Params;
