@@ -44,13 +44,19 @@ rosdep install --rosdistro lyrical --from-paths src --ignore-src -r -y
 
 `--skip-existing`은 이미 받은 `src/posim`을 유지합니다. 의존성 오류가 있다면 빌드를 시작하기 전에 해당 패키지를 확인합니다.
 
+저장소 목록은 브리지 수명 관리와 POSIX 실행 수정을 포함한 `ros_gz` 소스를 지정된 커밋으로 가져옵니다. 기존 `src/ros_gz`도 `--skip-existing`으로 유지되므로 빌드 전에 원격 저장소와 커밋을 목록과 대조하세요. 이전 체크아웃을 보존하려면 새 작업 공간을 사용하세요. 빌드 후 이 작업 공간의 환경을 불러와야 해당 브리지와 실행 파일이 선택됩니다.
+
 ## 4. 빌드하고 환경 불러오기
 
 ```bash
 colcon build --merge-install --executor sequential --symlink-install
 source install/setup.bash
 ros2 pkg prefix posim_demos
+ros2 pkg prefix ros_gz_bridge
+ros2 pkg prefix ros_gz_sim
 ```
+
+두 `ros_gz` 경로는 이 작업 공간의 설치 경로여야 합니다. `/opt/ros/lyrical`이 표시되면 시스템 패키지가 선택된 상태입니다.
 
 마지막 명령은 설치된 패키지 경로를 확인합니다. 실행과 데이터 수신은 [첫 시뮬레이션](quickstart.md)에서 확인하세요. 새 터미널에서는 아래 환경을 불러옵니다.
 
