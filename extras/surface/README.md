@@ -40,6 +40,8 @@ The spectral wave model simulates surface waves. Tide, current and weather forec
 
 `dependency.json` pins the upstream source revision. `extras/install-waves.sh` fetches that commit and installs libraries under `/opt/waves`. The standard ARM64 Dockerfile and Ubuntu installer call it; the AMD64 Dockerfile uses the Ubuntu installer.
 
+The pinned source includes ocean material ownership and render-thread cleanup. The build recipe includes the source commit, so a different pin cannot reuse an older wave installation. Rebuild the standard base image before building the optional surface image when its dependency revision changes. For an existing source installation, preserve it and use a fresh dependency directory with matching source/resource paths.
+
 `patch_external_waves.py` adapts CMake targets, library ordering and symbol visibility for Jetty's vendor packages. The upstream source remains under `/opt/asv_wave_sim`. Wave Sim is fetched during the build and requires no recursive Git clone.
 
 ## Operating limits
