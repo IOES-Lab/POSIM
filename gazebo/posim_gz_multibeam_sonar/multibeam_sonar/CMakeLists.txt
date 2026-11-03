@@ -150,6 +150,32 @@ if(BUILD_TESTING)
     ${CMAKE_CURRENT_SOURCE_DIR} ${OpenCV_INCLUDE_DIRS})
   target_link_libraries(test_ray_surface_normals PRIVATE ${OpenCV_LIBS})
   add_test(NAME ray_surface_normals COMMAND test_ray_surface_normals)
+
+  option(POSIM_SONAR_RENDERING_TESTS
+    "Run sonar lifecycle tests requiring an Ogre2 rendering device" OFF)
+  if(POSIM_SONAR_RENDERING_TESTS)
+    if(APPLE)
+      enable_language(OBJCXX)
+      set_source_files_properties(test/SensorLifecycle_TEST.cc
+        PROPERTIES LANGUAGE OBJCXX)
+    endif()
+    add_executable(test_sensor_lifecycle test/SensorLifecycle_TEST.cc)
+    target_compile_features(test_sensor_lifecycle PRIVATE cxx_std_17)
+    target_include_directories(test_sensor_lifecycle PRIVATE
+      ${CMAKE_CURRENT_SOURCE_DIR})
+    target_link_libraries(test_sensor_lifecycle PRIVATE ${PROJECT_NAME})
+    if(APPLE)
+      target_link_libraries(test_sensor_lifecycle PRIVATE "-framework Cocoa")
+    endif()
+    foreach(sonar_backend cpu wgpu)
+      add_test(NAME sonar_scene_lifecycle_${sonar_backend}
+        COMMAND test_sensor_lifecycle
+          ${CMAKE_CURRENT_SOURCE_DIR}/test/lifecycle_sonar.sdf)
+      set_tests_properties(sonar_scene_lifecycle_${sonar_backend} PROPERTIES
+        ENVIRONMENT "POSIM_SONAR_COMPUTE_BACKEND=${sonar_backend}"
+        RUN_SERIAL TRUE TIMEOUT 60)
+    endforeach()
+  endif()
 endif()
 
 install(TARGETS ${PROJECT_NAME}
