@@ -262,6 +262,12 @@ bool MultibeamSonarSystem::Implementation::RequestCreateSensor(
   const gz::sim::components::ParentEntity * _parent, gz::sim::EntityComponentManager & _ecm)
 {
   using namespace gz::sim;
+  // Configure and the first PreUpdate can see the same new entity. Reserve its
+  // creation only once; DoPostUpdate releases the reservation on removal.
+  if (this->knownSensorEntities.count(_entity))
+  {
+    return true;
+  }
   // Get sensor's scoped name without the world
   std::string sensorScopedName = removeParentScope(scopedName(_entity, _ecm, "::", false), "::");
 
