@@ -57,6 +57,11 @@ public:
     const int rows = depth.rows;
     const int cols = depth.cols;
     const float maxDistance = static_cast<float>(std::max(1e-6, input.maxDistance));
+    const double rangeResolution = input.soundSpeed / (2.0 * input.bandwidth);
+    if (!std::isfinite(rangeResolution) || rangeResolution <= 0.0)
+    {
+      return false;
+    }
     const float attenuation = static_cast<float>(input.attenuation);
 
     const float source_term =
@@ -78,8 +83,11 @@ public:
         }
 
         const int beam = std::min(input.nBeams - 1, (c * input.nBeams) / std::max(1, cols));
-        const int bin =
-          std::min(input.nFreq - 1, static_cast<int>((d / maxDistance) * input.nFreq));
+        // Use the same physical range grid as the published range vector.
+        // nFreq includes the endpoint; scaling by nFreq/maxDistance stretches
+        // the grid and moves otherwise valid interior echoes by a bin.
+        const double nearest = std::floor(d / rangeResolution + 0.5);
+        const int bin = static_cast<int>(std::min<double>(input.nFreq - 1, nearest));
 
         const float nz = std::max(0.0f, normalRow[c][2]);
         float reflectivity = 1.0f;
