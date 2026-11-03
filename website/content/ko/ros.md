@@ -84,7 +84,7 @@ RViz에서 자료형에 맞는 디스플레이를 선택합니다.
 POSIM 전용 메시지는 `posim_interfaces`에 정의되어 있습니다. 별도 ROS 클라이언트에도 이를 설치하고 환경을 불러오세요.
 
 ```bash
-ros2 bag record /model/rexrov/odometry /model/rexrov/imu
+ros2 bag record --topics /model/rexrov/odometry /model/rexrov/imu
 ```
 
 원격 ROS 클라이언트에는 다음 설정이 필요합니다.

@@ -23,6 +23,7 @@ def generate_launch_description():
         package="ros_gz_bridge",
         executable="parameter_bridge",
         arguments=[
+            "/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock",
             "/sensor/camera@sensor_msgs/msg/Image@gz.msgs.Image",  # for the multibeam world
             "/sensor/camera_info@sensor_msgs/msg/CameraInfo@gz.msgs.CameraInfo",  # for the multibeam world
             "/sensor/depth_camera@sensor_msgs/msg/Image@gz.msgs.Image",  # for the multibeam world
