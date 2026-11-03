@@ -25,6 +25,14 @@ ros2 topic hz /underwater_camera/simulated_image
 
 Use an RViz Image display to inspect the resulting image. A working renderer is needed even when no GUI is shown.
 
+## Suspended particles
+
+The native renderer can show suspended specks in RGB and RGBD color images. Specks are off by default. Enable them through the host application's appearance controls or the renderer's [appearance service](https://github.com/IOES-Lab/POSIM/tree/main/gazebo/posim_gz_rendering).
+
+Particles occupy shared positions in the world and drift uniformly with simulation time. Different camera views observe the same positions at the same time. Opaque surfaces hide particles behind them. The visible interval is 0.05–3 m, clipped by the scene and the mean water level. Numeric depth and acoustic rays retain their values.
+
+This is a procedural optical effect. Its drift is independent of simulated currents. When evaluating visual navigation, treat suspended particles as moving observations and keep appearance settings fixed across comparisons.
+
 ## Configure the plugin
 
 The model uses an RGBD sensor and the plugin `UnderwaterCamera`, class `posim_gz_sensor_plugins::UnderwaterCamera`. Keep its sensor/data topics consistent with the model configuration.

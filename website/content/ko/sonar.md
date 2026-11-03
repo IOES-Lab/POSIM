@@ -28,6 +28,8 @@ ros2 topic echo /sensor/multibeam_sonar/sonar_image \
 
 RViz에서 소나 영상은 Image, `/sensor/multibeam_sonar/point_cloud`는 PointCloud2 디스플레이를 추가합니다. 원시 반사값은 `marine_acoustic_msgs`의 음향 메시지를 사용합니다. 정확한 자료형은 `ros2 topic list -t`로 찾습니다.
 
+BlueView 센서 Launch는 Gazebo 시뮬레이션 시간을 ROS `/clock`으로 전달합니다. `use_sim_time`을 사용하는 도구에서는 월드가 실행 중이고 `/clock`이 증가하는지 확인하세요.
+
 ## 센서 구성
 
 모델은 `type="custom" gz:type="multibeam_sonar"`를, 월드는 `multibeam_sonar_system`을 사용합니다. BlueView P900 예제의 설정은 다음과 같습니다.
@@ -67,6 +69,8 @@ CUDA와 렌더링 환경을 준비한 뒤 작업 공간을 다시 빌드하고 �
 ## 원시 소나 데이터 기록하기
 
 `writeLog`를 켜면 실행 작업 폴더에 CSV가 생성됩니다. `writeFrameInterval`로 기록 간격을 지정하고, 디스크 사용량을 확인합니다. [plotdata.py](https://github.com/IOES-Lab/POSIM/blob/main/gazebo/posim_gz_multibeam_sonar/multibeam_sonar_demo/scripts/plotdata.py)로 기록을 분석할 수 있습니다. `sonarImageRawTopicName`은 원시 음향 관측, `sonarImageTopicName`은 표시용 영상의 이름을 지정합니다. `sensorGain`과 `blazingSonarImage` 같은 표시 설정의 영향도 실험 설정에 기록하세요.
+
+CSV의 첫 열은 거리이며, 나머지 열은 빔별 복소 반사값입니다. 그래프 스크립트는 파일에서 빔 수를 읽습니다. 각 기록에 대응하는 빔 각도 CSV를 함께 보관하고, 그래프에는 기록된 거리 값을 사용하세요.
 
 ## 소나 장면과 관측 영상
 
