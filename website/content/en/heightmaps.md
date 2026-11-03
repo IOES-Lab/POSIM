@@ -35,3 +35,7 @@ Set the world origin with `<spherical_coordinates>` when geographic positions ma
 ## Build and verify
 
 Rebuild and source the workspace after adding resources. Launch the new world from outside the checkout. Check recognizable elevation landmarks, the visual/collision alignment, sensor depth and a controlled contact probe. Confirm the intended sea level and robot start height before using the terrain in navigation experiments.
+
+## Check collision placement on Jetty
+
+Validate vertical placement with a falling-body contact test. A nonzero `<heightmap><pos>` can affect the rendered terrain without producing the same collision offset with the selected physics backend. Keep the heightmap offset at zero and apply the common translation in the enclosing model pose when this occurs. Check visual and collision alignment again before using the terrain.

@@ -4,9 +4,9 @@ import matplotlib.pyplot as plt
 # -------------------------------------------
 # CONFIGURATION
 # -------------------------------------------
-titletext = "Ray Range Reduced/10m Range/512 Beams/300 Rays"
+titletext = "Recorded sonar data"
 clims_base = [-60, 0]
-nBeams = 512
+nBeams = None  # Set from the recorded CSV below.
 maxRange = 5
 xPlotRange = 10
 yPlotRange = xPlotRange * np.cos(45 * np.pi / 180)
@@ -36,6 +36,8 @@ def load_complex_csv(filepath):
 
 
 Data = load_complex_csv(filename)
+nBeams = Data.shape[1] - 1  # The first column contains the range vector.
+titletext = f"Recorded sonar / {nBeams} beams / {Data.shape[0]} range samples"
 
 # -------------------------------------------
 # PROCESS DATA
