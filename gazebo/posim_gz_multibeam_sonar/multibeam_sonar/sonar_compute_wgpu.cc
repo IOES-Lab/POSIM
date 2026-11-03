@@ -9,6 +9,8 @@
 
 extern "C"
 {
+  bool sonar_wgpu_dimensions_supported(uint32_t n_beams, uint32_t n_rays, uint32_t n_freq);
+
   float * sonar_wgpu_compute(
     const float * depth_flat, const float * normal_flat, const float * reflectivity_flat,
     const float * beam_corrector_flat, const float * window_flat, uint32_t n_beams, uint32_t n_rays,
@@ -30,11 +32,21 @@ const char * WgpuComputeBackend::Name() const { return "wgpu"; }
 bool WgpuComputeBackend::Initialize(const SonarComputeInput & prototype)
 {
   // The factory uses nFreq == 0 for its adapter-only probe. A real sensor
-  // prototype must not exceed the FFT shader's fixed workgroup storage.
-  if (prototype.nFreq < 0 || prototype.nFreq > 4096)
+  // prototype needs a valid count. Rust selects the FFT stages automatically.
+  if (prototype.nFreq < 0)
   {
     this->initialized = false;
-    std::cerr << "[sonar_wgpu] Frequency count must not exceed 4096." << std::endl;
+    std::cerr << "[sonar_wgpu] Frequency count must not be negative." << std::endl;
+    return false;
+  }
+  if (
+    prototype.nFreq > 0 &&
+    (prototype.nBeams <= 0 || prototype.nRays <= 0 ||
+     !sonar_wgpu_dimensions_supported(prototype.nBeams, prototype.nRays, prototype.nFreq)))
+  {
+    this->initialized = false;
+    std::cerr << "[sonar_wgpu] Sensor dimensions exceed GPU buffer or dispatch resources."
+              << std::endl;
     return false;
   }
   // Probe the Rust FFI to check if a GPU adapter is available. If it is not, report failure
@@ -86,8 +98,14 @@ bool WgpuComputeBackend::Compute(const SonarComputeInput & input, SonarComputeOu
   const int nRays = input.nRays;
   const int nFreq = input.nFreq;
 
-  if (nBeams <= 0 || nRays <= 0 || nFreq <= 0 || nFreq > 4096)
+  if (nBeams <= 0 || nRays <= 0 || nFreq <= 0)
   {
+    return false;
+  }
+  if (!sonar_wgpu_dimensions_supported(nBeams, nRays, nFreq))
+  {
+    std::cerr << "[sonar_wgpu] Sensor dimensions exceed GPU buffer or dispatch resources."
+              << std::endl;
     return false;
   }
 

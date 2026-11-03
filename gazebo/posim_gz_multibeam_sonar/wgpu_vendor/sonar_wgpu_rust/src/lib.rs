@@ -65,6 +65,16 @@ fn emit_debug_timing(line: &str) {
     }
 }
 
+/// Check resource requirements before the caller allocates input arrays.
+#[no_mangle]
+pub extern "C" fn sonar_wgpu_dimensions_supported(beams: u32, rays: u32, n: u32) -> bool {
+    if beams == 0 || rays == 0 || n == 0 {
+        return false;
+    }
+    pipeline::get_or_init()
+        .is_some_and(|ctx| pipeline::dimensions_fit(&ctx.device.limits(), beams, rays, n))
+}
+
 /// The function receives flat arrays from C++ and returns a heap-allocated array.
 ///
 /// # Safety
@@ -72,7 +82,8 @@ fn emit_debug_timing(line: &str) {
 /// Each input pointer must be null or valid for reads of its full length:
 /// `depth_flat` and `reflectivity_flat` `n_beams * n_rays` floats, `normal_flat`
 /// `n_beams * n_rays * 3`, `beam_corrector_flat` `n_beams * n_beams` and `window_flat` `n_freq`.
-/// Frequency lengths outside 1..=4096 are rejected before allocating GPU buffers.
+/// Zero dimensions and dimensions exceeding device resources are rejected before
+/// reading the inputs or allocating GPU buffers.
 /// A non-null result holds `n_beams * n_freq * 2` floats and must be released with
 /// [`sonar_wgpu_free`].
 #[no_mangle]
@@ -113,22 +124,11 @@ pub unsafe extern "C" fn sonar_wgpu_compute(
     let n_rays_us = n_rays as usize;
     let n_freq_us = n_freq as usize;
 
-    if n_beams_us == 0 || n_rays_us == 0 || n_freq_us == 0 || n_freq_us > 4096 {
+    if n_beams_us == 0 || n_rays_us == 0 || n_freq_us == 0 {
         return std::ptr::null_mut();
     }
 
     use std::sync::Once;
-
-    let depth_len = n_beams_us * n_rays_us;
-    let normal_len = depth_len * 3;
-    let refl_len = depth_len;
-    let bc_len = n_beams_us * n_beams_us;
-    let spectrum_len = n_beams_us * n_freq_us;
-
-    let depth = unsafe { std::slice::from_raw_parts(depth_flat, depth_len) };
-    let normals = unsafe { std::slice::from_raw_parts(normal_flat, normal_len) };
-    let reflectivity = unsafe { std::slice::from_raw_parts(reflectivity_flat, refl_len) };
-    let beam_corrector = unsafe { std::slice::from_raw_parts(beam_corrector_flat, bc_len) };
 
     let ctx = match pipeline::get_or_init() {
         Some(c) => {
@@ -144,6 +144,18 @@ pub unsafe extern "C" fn sonar_wgpu_compute(
     };
     let device = &ctx.device;
     let queue = &ctx.queue;
+    if !pipeline::dimensions_fit(&device.limits(), n_beams, n_rays, n_freq) {
+        eprintln!("[sonar_wgpu] Dimensions {n_beams}x{n_rays}x{n_freq} exceed GPU buffer or dispatch resources.");
+        return std::ptr::null_mut();
+    }
+    let depth_len = n_beams_us * n_rays_us;
+    let normal_len = depth_len * 3;
+    let bc_len = n_beams_us * n_beams_us;
+    let spectrum_len = n_beams_us * n_freq_us;
+    let depth = unsafe { std::slice::from_raw_parts(depth_flat, depth_len) };
+    let normals = unsafe { std::slice::from_raw_parts(normal_flat, normal_len) };
+    let reflectivity = unsafe { std::slice::from_raw_parts(reflectivity_flat, depth_len) };
+    let beam_corrector = unsafe { std::slice::from_raw_parts(beam_corrector_flat, bc_len) };
 
     static GPU_FRAME_COUNT: AtomicU64 = AtomicU64::new(0);
     let gpu_frame = GPU_FRAME_COUNT.fetch_add(1, Ordering::Relaxed);
@@ -332,8 +344,6 @@ pub unsafe extern "C" fn sonar_wgpu_compute(
     });
 
     let spectrum_bytes = (spectrum_len * std::mem::size_of::<f32>()) as u64;
-    // Radix-2 path is used only for power-of-two lengths.
-    let padded_n = n_freq_us.next_power_of_two() as u32;
 
     // ---- Single command encoder: all passes + staging copy in one GPU submission ----
     let mut enc = device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
@@ -363,8 +373,7 @@ pub unsafe extern "C" fn sonar_wgpu_compute(
         });
         pass.set_pipeline(&ctx.convert_pipeline);
         pass.set_bind_group(0, &conv_bg, &[]);
-        let gx = (spectrum_len as u32).div_ceil(64);
-        pass.dispatch_workgroups(gx, 1, 1);
+        pass.dispatch_workgroups(n_freq.div_ceil(64), n_beams, 1);
     }
 
     // Matmul dispatch: beam-corrector matrix multiply, re and im in same encoder
@@ -399,6 +408,7 @@ pub unsafe extern "C" fn sonar_wgpu_compute(
     if let Some(plan) = &buf.exact_fft {
         ctx.exact_fft.encode(&mut enc, plan);
     } else {
+        let padded_n = n_freq;
         let fft_params = FftParams {
             n_beams,
             n_freq,
@@ -557,7 +567,7 @@ mod input_length_tests {
         let normal = [1.0f32, 0.0, 0.0];
         let reflectivity = [1.0f32];
         let corrector = [1.0f32];
-        for n_freq in [0u32, 4097, 5000, 8192] {
+        for n_freq in [0u32] {
             let window = vec![1.0f32; n_freq as usize];
             // Each pointer is valid for its documented length. Rejection must
             // happen before an adapter is requested or GPU buffers are allocated.
@@ -598,7 +608,7 @@ mod input_length_tests {
         let reflectivity = [1.0f32];
         let corrector = [1.0f32];
         // Exercise the production FFI, plan cache, invalid-input recovery and both FFT routes.
-        for n_freq in [1u32, 399, 4095, 4096, 4097, 399, 512] {
+        for n_freq in [1u32, 399, 4095, 4096, 0, 4097, 5000, 8192, 8193, 399, 512] {
             let window = vec![1.0f32; n_freq as usize];
             let result = unsafe {
                 sonar_wgpu_compute(
@@ -626,7 +636,7 @@ mod input_length_tests {
                     false,
                 )
             };
-            if n_freq > 4096 {
+            if n_freq == 0 {
                 assert!(result.is_null());
             } else {
                 assert!(
@@ -641,5 +651,32 @@ mod input_length_tests {
                 assert!(finite, "non-finite output at length {n_freq}");
             }
         }
+    }
+
+    #[test]
+    fn device_limits_allow_large_grids_and_reject_overflow() {
+        let limits = wgpu::Limits::default();
+        for n in [4095, 4096, 4097, 5000, 8192, 8193] {
+            assert!(super::pipeline::dimensions_fit(&limits, 512, 300, n));
+        }
+        for dimensions in [
+            (0, 3, 399),
+            (17, 0, 399),
+            (17, 3, 0),
+            (u32::MAX, u32::MAX, u32::MAX),
+            (17, 3, u32::MAX),
+            (65536, 1, 1),
+        ] {
+            assert!(!super::pipeline::dimensions_fit(
+                &limits,
+                dimensions.0,
+                dimensions.1,
+                dimensions.2
+            ));
+        }
+        let mut constrained = limits;
+        constrained.max_storage_buffer_binding_size = 1024;
+        assert!(!super::pipeline::dimensions_fit(&constrained, 17, 3, 4097));
+        assert!(super::pipeline::dimensions_fit(&constrained, 1, 1, 4));
     }
 }

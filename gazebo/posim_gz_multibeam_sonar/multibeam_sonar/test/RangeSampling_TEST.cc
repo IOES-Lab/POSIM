@@ -28,10 +28,9 @@ int main()
     Require(RangeSampleCount(10, 1500, 29925) == 400, "odd integer endpoint");
     Require(RangeSampleCount(10, 1500, 38325) == 512, "avoid intermediate quotient rounding");
     Require(RangeSampleCount(10, 1500, 75) == 2, "single interval");
-    Require(RangeSampleCount(10, 1500, 307125) == 4096, "last supported WGPU grid");
-    // Do not silently clamp the grid to a backend's limit: the backend must
-    // reject 4097 rather than publish an axis that cannot cover the endpoint.
-    Require(RangeSampleCount(10, 1500, 307200) == 4097, "backend limit remains explicit");
+    Require(RangeSampleCount(10, 1500, 307125) == 4096, "shared-memory FFT boundary");
+    // Preserve the endpoint; the backend selects global-memory FFT stages.
+    Require(RangeSampleCount(10, 1500, 307200) == 4097, "endpoint beyond shared-memory FFT");
     Require(
       RangeSampleCount(1, 2, std::numeric_limits<int>::max() - 1.0) ==
         std::numeric_limits<int>::max(),

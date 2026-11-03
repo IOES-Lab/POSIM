@@ -132,6 +132,14 @@ Record frame processing time, received topic rate, Gazebo real-time factor and C
 
 Use raw intensity–range data when comparing backends or sensor settings, and keep gain and display settings fixed. Research sources and attribution are listed under [Citation](citation.md).
 
+## Range sampling and raw data
+
+Range spacing is `dr = soundSpeed / (2 * bandwidth)` metres. The sensor allocates `ceil(maxDistance / dr) + 1` samples to include the far-range cell. For 1500 m/s, 29.9 kHz bandwidth and 15 m maximum range, this gives 599 samples. Read the published `ranges` array and beam count instead of assuming a fixed image size or stretching the samples to `maxDistance`. The final sample coordinate can exceed the configured maximum by less than one spacing; returns beyond `maxDistance` are excluded.
+
+WGPU computes the configured transform length, including lengths that are not powers of two. It automatically selects GPU stages for larger sample counts while preserving the requested distance, bandwidth and range grid. Processing time and memory use increase with the number of beams and range samples.
+
+An entirely empty return produces a finite blank display image and zero-valued raw returns. Compare raw values for numerical analysis. The CPU path places echoes in the nearest physical range bin, while GPU paths perform frequency-domain range compression; their amplitudes and images need separate comparison. These sampling rules do not establish scene-level range accuracy or acoustic calibration.
+
 ## GPU processing flow
 
 <figure><a href="{{ASSET_PREFIX}}media/notion/sonar-optimization-a26c9419.png"><img width="1049" height="554" src="{{ASSET_PREFIX}}media/notion/sonar-optimization-a26c9419.png" alt="GPU stages in sonar processing" loading="lazy" decoding="async"></a><figcaption>GPU stages in sonar processing</figcaption></figure>

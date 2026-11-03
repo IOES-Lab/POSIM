@@ -132,6 +132,14 @@ Apple Silicon 호스트의 Linux ARM64 컨테이너는 [Docker 설치와 가상 
 
 계산 방식이나 센서 설정을 비교할 때는 원시 강도·거리 데이터를 사용하고 gain·표시 설정을 일정하게 유지하세요. 연구 출처와 저자 표시는 [인용 안내](citation.md)에 있습니다.
 
+## 거리 샘플링과 원시 데이터
+
+거리 간격은 미터 단위로 `dr = soundSpeed / (2 * bandwidth)`입니다. 센서는 최대 거리 셀을 포함하도록 `ceil(maxDistance / dr) + 1`개 샘플을 만듭니다. 음속 1500 m/s, 대역폭 29.9 kHz, 최대 거리 15 m이면 599개입니다. 고정된 영상 크기를 가정하거나 샘플을 `maxDistance`까지 늘리지 말고, 발행된 `ranges` 배열과 빔 수를 읽으세요. 마지막 샘플 좌표는 설정한 최대 거리를 한 간격 미만으로 초과할 수 있으며, `maxDistance` 밖의 반사값은 제외합니다.
+
+WGPU는 2의 거듭제곱이 아닌 길이를 포함해 설정한 길이 그대로 변환합니다. 샘플 수가 커지면 요청한 거리·대역폭·거리 격자를 유지하면서 GPU 처리 단계를 자동으로 선택합니다. 빔과 거리 샘플이 많아질수록 처리 시간과 메모리 사용량이 늘어납니다.
+
+전체 반사값이 없는 프레임은 유한한 값의 빈 표시 영상과 값이 0인 원시 반사 데이터를 생성합니다. 수치 분석에는 원시 값을 비교하세요. CPU는 반사값을 가장 가까운 실제 거리 구간에 배치하고, GPU는 주파수 영역에서 거리를 압축하므로 진폭과 영상은 별도로 비교해야 합니다. 이 샘플링 규칙만으로 장면 전체의 거리 정확도나 음향 보정이 검증되지는 않습니다.
+
 ## GPU 계산 흐름
 
 <figure><a href="{{ASSET_PREFIX}}media/notion/sonar-optimization-a26c9419.png"><img width="1049" height="554" src="{{ASSET_PREFIX}}media/notion/sonar-optimization-a26c9419.png" alt="소나 계산의 GPU 처리 단계" loading="lazy" decoding="async"></a><figcaption>소나 계산의 GPU 처리 단계</figcaption></figure>

@@ -36,10 +36,10 @@ const PI: f32 = 3.14159265358979323846;
 
 @compute @workgroup_size(64)
 fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
-    let i = gid.x;
-    if (i >= arrayLength(&out_re)) { return; }
-    let beam = i / params.n_freq;
-    let f = i % params.n_freq;
+    let f = gid.x;
+    let beam = gid.y;
+    if (f >= params.n_freq || beam >= params.n_beams) { return; }
+    let i = beam * params.n_freq + f;
     let delta_f = params.bandwidth / f32(params.n_freq);
     let n = f32(params.n_freq);
     var freq: f32;
