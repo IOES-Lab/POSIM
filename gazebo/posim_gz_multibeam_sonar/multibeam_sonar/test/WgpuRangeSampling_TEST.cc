@@ -3,6 +3,7 @@
 
 #include <cmath>
 #include <iostream>
+#include <limits>
 #include <stdexcept>
 
 int main()
@@ -16,6 +17,14 @@ int main()
       throw std::runtime_error("WGPU adapter required");
     }
     constexpr int beams = 17;
+    SonarComputeInput oversized;
+    oversized.nBeams = beams;
+    oversized.nRays = 3;
+    oversized.nFreq = std::numeric_limits<int>::max();
+    if (gpu->Initialize(oversized))
+    {
+      throw std::runtime_error("oversized input must fail before allocation");
+    }
     std::vector<std::vector<float>> matrix(beams, std::vector<float>(beams, 0));
     std::vector<float *> rows(beams);
     for (int beam = 0; beam < beams; ++beam)
