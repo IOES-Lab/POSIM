@@ -1,6 +1,7 @@
 """Optional external-wave WAM-V + ArduRover demo; does not change BlueROV defaults."""
 
 from pathlib import Path
+import shlex
 import sys
 import xml.etree.ElementTree as ET
 from launch import LaunchDescription
@@ -20,10 +21,11 @@ from waves import prepare  # noqa: E402 - sibling module after launch loader pat
 
 
 def setup(context):
+    world_name = LaunchConfiguration("world_name").perform(context)
     folder = Path("/tmp/posim-surface")
     folder.mkdir(exist_ok=True)
     sdf = ET.Element("sdf", version="1.10")
-    world = ET.SubElement(sdf, "world", name="wwos_gebco")
+    world = ET.SubElement(sdf, "world", name=world_name)
     physics = ET.SubElement(world, "physics", name="default", type="ignored")
     ET.SubElement(physics, "max_step_size").text = ".005"
     ET.SubElement(physics, "real_time_factor").text = "1"
@@ -64,7 +66,7 @@ def setup(context):
         executable="create",
         arguments=[
             "-world",
-            "wwos_gebco",
+            world_name,
             "-file",
             make_model(folder / "wamv.sdf"),
             "-name",
@@ -74,7 +76,7 @@ def setup(context):
         ],
         output="screen",
     )
-    imu = "/world/wwos_gebco/model/wamv/link/imu_link/sensor/imu_sensor/imu"
+    imu = f"/world/{world_name}/model/wamv/link/imu_link/sensor/imu_sensor/imu"
     bridge = Node(
         package="ros_gz_bridge",
         executable="parameter_bridge",
@@ -90,7 +92,7 @@ def setup(context):
         cmd=[
             "bash",
             "-c",
-            f"until timeout 2 gz topic -e -t {imu} -n 1 >/dev/null 2>&1; do :; done",
+            f"until timeout 2 gz topic -e -t {shlex.quote(imu)} -n 1 >/dev/null 2>&1; do :; done",
         ],
         output="screen",
     )
@@ -130,5 +132,13 @@ def setup(context):
 
 def generate_launch_description():
     return LaunchDescription(
-        [DeclareLaunchArgument("headless", default_value="true"), OpaqueFunction(function=setup)]
+        [
+            DeclareLaunchArgument("headless", default_value="true"),
+            DeclareLaunchArgument(
+                "world_name",
+                default_value="posim_surface",
+                description="Name of the generated SDF world and its Gazebo topic namespace",
+            ),
+            OpaqueFunction(function=setup),
+        ]
     )

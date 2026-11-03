@@ -31,7 +31,16 @@ Wave controls use `gz.msgs.Param` on `/world/<world_name>/waves`. Replace `<worl
 gz topic -l
 ```
 
-The [WAM-V launcher](https://github.com/IOES-Lab/POSIM/blob/main/extras/surface/wamv.launch.py) above names its world `wwos_gebco`, so its topic is `/world/wwos_gebco/waves`. This example uses a flat seabed at z = −10 m and loads no GEBCO bathymetry. Geographic terrain, including GEBCO data, is available through the separate public [POSIM-Terrain library](libraries.md#posim-terrain).
+The [WAM-V launcher](https://github.com/IOES-Lab/POSIM/blob/main/extras/surface/wamv.launch.py) defaults to `posim_surface`, so its wave topic is `/world/posim_surface/waves`. Set the `world_name` launch argument to match your application's existing Gazebo namespace. Inside the configured surface container, for example:
+
+```bash
+SURFACE_WORLD=harbour
+ros2 launch /opt/posim-surface/wamv.launch.py headless:=true world_name:="$SURFACE_WORLD"
+```
+
+The generated SDF, vehicle spawner, IMU bridge and startup wait all use this name. The example above exposes `/world/harbour/waves`; the ROS IMU endpoint remains `/model/wamv/imu`. The argument sets the generated world's name; it does not select a terrain file.
+
+This example uses a flat seabed at z = −10 m and loads no GEBCO bathymetry. Geographic terrain, including GEBCO data, is available through the separate public [POSIM-Terrain library](libraries.md#posim-terrain).
 
 Each adjustable value uses the `double` data type:
 

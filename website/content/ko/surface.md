@@ -31,7 +31,16 @@ docker run --rm -it --entrypoint bash posim:surface -lc \
 gz topic -l
 ```
 
-위 [WAM-V 실행 파일](https://github.com/IOES-Lab/POSIM/blob/main/extras/surface/wamv.launch.py)은 월드 이름을 `wwos_gebco`로 지정하므로 토픽은 `/world/wwos_gebco/waves`입니다. 이 예제는 z = −10 m의 평평한 해저면을 사용하며 GEBCO 수심 데이터를 불러오지 않습니다. GEBCO 데이터를 포함한 실제 지형은 별도 공개 라이브러리인 [POSIM-Terrain](libraries.md#posim-terrain)으로 생성할 수 있습니다.
+위 [WAM-V 실행 파일](https://github.com/IOES-Lab/POSIM/blob/main/extras/surface/wamv.launch.py)의 기본 월드 이름은 `posim_surface`이므로 파도 토픽은 `/world/posim_surface/waves`입니다. 앱에서 사용하는 Gazebo 네임스페이스에 맞게 `world_name` 실행 인자를 지정할 수 있습니다. 환경 설정을 마친 수상 로봇 컨테이너 안에서 다음과 같이 실행합니다.
+
+```bash
+SURFACE_WORLD=harbour
+ros2 launch /opt/posim-surface/wamv.launch.py headless:=true world_name:="$SURFACE_WORLD"
+```
+
+생성되는 SDF, 로봇 생성 요청, IMU 브리지와 시작 대기 명령이 모두 이 이름을 사용합니다. 위 예제의 파도 토픽은 `/world/harbour/waves`이고, ROS IMU 토픽은 `/model/wamv/imu`로 유지됩니다. 이 인자는 생성할 월드의 이름을 지정하며 지형 파일을 선택하지 않습니다.
+
+이 예제는 z = −10 m의 평평한 해저면을 사용하며 GEBCO 수심 데이터를 불러오지 않습니다. GEBCO 데이터를 포함한 실제 지형은 별도 공개 라이브러리인 [POSIM-Terrain](libraries.md#posim-terrain)으로 생성할 수 있습니다.
 
 각 설정값의 자료형은 `double`입니다.
 
