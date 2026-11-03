@@ -28,6 +28,8 @@ ros2 topic echo /sensor/multibeam_sonar/sonar_image \
 
 In RViz, add an Image display for the sonar image and PointCloud2 for `/sensor/multibeam_sonar/point_cloud`. Raw returns use the acoustic message interface supplied by `marine_acoustic_msgs`; discover their type with `ros2 topic list -t`.
 
+The BlueView sensor launch bridges Gazebo simulation time to ROS `/clock`. For consumers using `use_sim_time`, confirm that the world is running and `/clock` advances.
+
 ## Sensor configuration
 
 The sensor model uses `type="custom" gz:type="multibeam_sonar"`. The world loads `multibeam_sonar_system`. The BlueView P900 example requests:
@@ -67,6 +69,8 @@ Prepare CUDA and rendering, rebuild the workspace and load its environment, then
 ## Record raw sonar data
 
 Enabling `writeLog` creates CSV files in the launch working directory. Set the recording interval with `writeFrameInterval` and monitor disk usage. Use [plotdata.py](https://github.com/IOES-Lab/POSIM/blob/main/gazebo/posim_gz_multibeam_sonar/multibeam_sonar_demo/scripts/plotdata.py) to analyze recordings. `sonarImageRawTopicName` names raw acoustic observations; `sonarImageTopicName` names the display image. Record display settings such as `sensorGain` and `blazingSonarImage` with your experiment configuration.
+
+The CSV's first column contains range; the remaining columns contain complex beam returns. The plotting script reads the beam count from the file. Keep the matching beam-angle CSV alongside each recording, and use the recorded range values when plotting.
 
 ## Sonar scenes and observations
 

@@ -39,6 +39,10 @@ ros2 topic info /underwater_camera/simulated_image --verbose
 
 데이터 확인 도구를 종료한 뒤 Launch 터미널에서 Ctrl+C를 한 번 누르고 자식 프로세스가 끝날 때까지 기다립니다. Abort, segmentation fault와 강제 종료 로그를 보관하세요. [문제 보고](https://github.com/IOES-Lab/POSIM/issues)에는 명령, 커밋, 운영체제·아키텍처와 렌더러를 함께 기록합니다.
 
+## macOS에서 깊이 카메라 재생성
+
+Ogre-Next 2.3.3을 사용하는 네이티브 arm64 SDK에는 깊이 카메라의 제거·재생성 과정에서 재질 수명을 보장하는 [별도 Ogre 오버레이](https://github.com/IOES-Lab/POSIM/tree/main/extras/ogre)를 사용할 수 있습니다. 안내의 빌드 도구를 실행한 뒤, `run_overlay.py`에 Gazebo 명령을 전달해 실행하세요. 오버레이를 빌드하는 것만으로 실행 중인 프로세스에 적용되지는 않습니다. 호환 SDK를 사용하고 검증 기록을 보관하세요. 이 도구는 시스템 라이브러리를 교체하거나 Linux 컨테이너를 설정하지 않습니다.
+
 ## 재현 가능한 보고 작성
 
 소스 SHA 또는 이미지 digest, 의존성 버전, 명령·인수, 첫 오류, 기대 동작, 관련 토픽 자료형과 짧은 재현 예제를 포함합니다. 토픽이 목록에만 나타나는지, 데이터도 수신되는지 함께 적어주세요.
