@@ -38,6 +38,10 @@ if(CUDAToolkit_FOUND)
     "CUDA ${CUDAToolkit_VERSION} found (SM ${CUDA_ARCHITECTURE}), "
     "enabling CUDA support.")
   include_directories(${CUDA_INCLUDE_DIRS})
+  if(CUDAToolkit_VERSION VERSION_GREATER_EQUAL 13)
+    find_package(CCCL CONFIG REQUIRED
+      HINTS "${CUDAToolkit_LIBRARY_DIR}/cmake/cccl")
+  endif()
 endif()
 
 if(TARGET gz-rendering::ogre)
@@ -67,6 +71,9 @@ if(CUDAToolkit_FOUND)
       CUDA_SEPARABLE_COMPILATION ON
   )
   target_compile_definitions(${PROJECT_NAME} PRIVATE POSIM_HAS_CUDA_BACKEND=1)
+  if(CUDAToolkit_VERSION VERSION_GREATER_EQUAL 13)
+    target_link_libraries(${PROJECT_NAME} CCCL::CCCL)
+  endif()
 endif()
 
 target_include_directories(${PROJECT_NAME} PUBLIC
