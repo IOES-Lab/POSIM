@@ -1,6 +1,7 @@
 //! C-FFI interface, Buffer initialization and write ups and reads + Bind groups created + encoder setup + memory free
 //! + Compute passes for each shader
 
+pub(crate) mod exact_fft;
 mod pipeline; // GPU context + buffer management
 
 use bytemuck::{Pod, Zeroable};
@@ -71,6 +72,7 @@ fn emit_debug_timing(line: &str) {
 /// Each input pointer must be null or valid for reads of its full length:
 /// `depth_flat` and `reflectivity_flat` `n_beams * n_rays` floats, `normal_flat`
 /// `n_beams * n_rays * 3`, `beam_corrector_flat` `n_beams * n_beams` and `window_flat` `n_freq`.
+/// Frequency lengths outside 1..=4096 are rejected before allocating GPU buffers.
 /// A non-null result holds `n_beams * n_freq * 2` floats and must be released with
 /// [`sonar_wgpu_free`].
 #[no_mangle]
@@ -111,7 +113,7 @@ pub unsafe extern "C" fn sonar_wgpu_compute(
     let n_rays_us = n_rays as usize;
     let n_freq_us = n_freq as usize;
 
-    if n_beams_us == 0 || n_rays_us == 0 || n_freq_us == 0 {
+    if n_beams_us == 0 || n_rays_us == 0 || n_freq_us == 0 || n_freq_us > 4096 {
         return std::ptr::null_mut();
     }
 
@@ -199,7 +201,7 @@ pub unsafe extern "C" fn sonar_wgpu_compute(
         }
         buf_guard.insert(
             key,
-            pipeline::SonarBuffers::new(device, n_beams, n_rays, n_freq),
+            pipeline::SonarBuffers::new(device, n_beams, n_rays, n_freq, &ctx.exact_fft),
         );
         eprintln!(
             "[sonar_wgpu] Persistent GPU buffers allocated for {}×{}×{}",
@@ -214,10 +216,10 @@ pub unsafe extern "C" fn sonar_wgpu_compute(
     queue.write_buffer(&buf.refl_buf, 0, bytemuck::cast_slice(reflectivity));
     queue.write_buffer(&buf.window_buf, 0, bytemuck::cast_slice(window_vals));
     queue.write_buffer(&buf.bc_buf, 0, bytemuck::cast_slice(beam_corrector));
-    // Zero atomic accumulators (reused each frame)
-    let zeros_i32 = vec![0i32; spectrum_len];
-    queue.write_buffer(&buf.out_re_i32, 0, bytemuck::cast_slice(&zeros_i32));
-    queue.write_buffer(&buf.out_im_i32, 0, bytemuck::cast_slice(&zeros_i32));
+    // Clear inactive/invalid ray amplitudes in the persistent buffers.
+    let zeros_amp = vec![0.0f32; n_beams_us * n_rays_us];
+    queue.write_buffer(&buf.amp_re, 0, bytemuck::cast_slice(&zeros_amp));
+    queue.write_buffer(&buf.amp_im, 0, bytemuck::cast_slice(&zeros_amp));
 
     // ---- Bind groups (metadata only -> no GPU allocation) ----
     let bs_bg = device.create_bind_group(&wgpu::BindGroupDescriptor {
@@ -242,15 +244,11 @@ pub unsafe extern "C" fn sonar_wgpu_compute(
             },
             wgpu::BindGroupEntry {
                 binding: 4,
-                resource: buf.out_re_i32.as_entire_binding(),
+                resource: buf.amp_re.as_entire_binding(),
             },
             wgpu::BindGroupEntry {
                 binding: 5,
-                resource: buf.out_im_i32.as_entire_binding(),
-            },
-            wgpu::BindGroupEntry {
-                binding: 6,
-                resource: buf.window_buf.as_entire_binding(),
+                resource: buf.amp_im.as_entire_binding(),
             },
         ],
     });
@@ -260,11 +258,11 @@ pub unsafe extern "C" fn sonar_wgpu_compute(
         entries: &[
             wgpu::BindGroupEntry {
                 binding: 0,
-                resource: buf.out_re_i32.as_entire_binding(),
+                resource: buf.amp_re.as_entire_binding(),
             },
             wgpu::BindGroupEntry {
                 binding: 1,
-                resource: buf.out_im_i32.as_entire_binding(),
+                resource: buf.amp_im.as_entire_binding(),
             },
             wgpu::BindGroupEntry {
                 binding: 2,
@@ -273,6 +271,18 @@ pub unsafe extern "C" fn sonar_wgpu_compute(
             wgpu::BindGroupEntry {
                 binding: 3,
                 resource: buf.mm_im_in.as_entire_binding(),
+            },
+            wgpu::BindGroupEntry {
+                binding: 4,
+                resource: buf.depth_buf.as_entire_binding(),
+            },
+            wgpu::BindGroupEntry {
+                binding: 5,
+                resource: buf.window_buf.as_entire_binding(),
+            },
+            wgpu::BindGroupEntry {
+                binding: 6,
+                resource: bs_param_buf.as_entire_binding(),
             },
         ],
     });
@@ -322,15 +332,15 @@ pub unsafe extern "C" fn sonar_wgpu_compute(
     });
 
     let spectrum_bytes = (spectrum_len * std::mem::size_of::<f32>()) as u64;
-    // Zero-pad n_freq to the next power of 2 for the GPU FFT (max 4096 = shared memory limit).
-    let padded_n = (n_freq_us.next_power_of_two() as u32).min(4096);
+    // Radix-2 path is used only for power-of-two lengths.
+    let padded_n = n_freq_us.next_power_of_two() as u32;
 
     // ---- Single command encoder: all passes + staging copy in one GPU submission ----
     let mut enc = device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
         label: Some("sonar_enc"),
     });
 
-    // Backscatter dispatch: depth/normals/refl → i32 fixed-point spectrum
+    // Backscatter dispatch: geometry/material → per-ray complex amplitude
     {
         let mut pass = enc.begin_compute_pass(&wgpu::ComputePassDescriptor {
             label: Some("bs_pass"),
@@ -345,7 +355,7 @@ pub unsafe extern "C" fn sonar_wgpu_compute(
         pass.dispatch_workgroups(gx, gy, 1);
     }
 
-    // Convert dispatch: i32 fixed-point → f32 (GPU-side, eliminates CPU readback round-trip)
+    // Synthesize the frequency spectrum by floating-point ray summation.
     {
         let mut pass = enc.begin_compute_pass(&wgpu::ComputePassDescriptor {
             label: Some("conv_pass"),
@@ -381,48 +391,52 @@ pub unsafe extern "C" fn sonar_wgpu_compute(
         }
     }
 
-    // FFT Dispatch: always runs on GPU via zero-padding to the next power of 2 (max 4096).
+    // Both paths evaluate the original N-point forward DFT on the GPU.
     // Copy MM output -> FFT working buffers -> dispatch FFT shader -> copy to staging.
     enc.copy_buffer_to_buffer(&buf.mm_re_out, 0, &buf.p_re_buf, 0, spectrum_bytes);
     enc.copy_buffer_to_buffer(&buf.mm_im_out, 0, &buf.p_im_buf, 0, spectrum_bytes);
 
-    let fft_params = FftParams {
-        n_beams,
-        n_freq,
-        padded_n,
-        log2_n: padded_n.ilog2(),
-    };
-    let fft_param_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-        label: Some("fft_param"),
-        contents: bytemuck::bytes_of(&fft_params),
-        usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
-    });
-    let fft_bg = device.create_bind_group(&wgpu::BindGroupDescriptor {
-        label: Some("fft_bg"),
-        layout: &ctx.fft_bgl,
-        entries: &[
-            wgpu::BindGroupEntry {
-                binding: 0,
-                resource: fft_param_buf.as_entire_binding(),
-            },
-            wgpu::BindGroupEntry {
-                binding: 1,
-                resource: buf.p_re_buf.as_entire_binding(),
-            },
-            wgpu::BindGroupEntry {
-                binding: 2,
-                resource: buf.p_im_buf.as_entire_binding(),
-            },
-        ],
-    });
-    {
-        let mut pass = enc.begin_compute_pass(&wgpu::ComputePassDescriptor {
-            label: Some("fft_pass"),
-            timestamp_writes: None,
+    if let Some(plan) = &buf.exact_fft {
+        ctx.exact_fft.encode(&mut enc, plan);
+    } else {
+        let fft_params = FftParams {
+            n_beams,
+            n_freq,
+            padded_n,
+            log2_n: padded_n.ilog2(),
+        };
+        let fft_param_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            label: Some("fft_param"),
+            contents: bytemuck::bytes_of(&fft_params),
+            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
         });
-        pass.set_pipeline(&ctx.fft_pipeline);
-        pass.set_bind_group(0, &fft_bg, &[]);
-        pass.dispatch_workgroups(n_beams, 1, 1);
+        let fft_bg = device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: Some("fft_bg"),
+            layout: &ctx.fft_bgl,
+            entries: &[
+                wgpu::BindGroupEntry {
+                    binding: 0,
+                    resource: fft_param_buf.as_entire_binding(),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 1,
+                    resource: buf.p_re_buf.as_entire_binding(),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 2,
+                    resource: buf.p_im_buf.as_entire_binding(),
+                },
+            ],
+        });
+        {
+            let mut pass = enc.begin_compute_pass(&wgpu::ComputePassDescriptor {
+                label: Some("fft_pass"),
+                timestamp_writes: None,
+            });
+            pass.set_pipeline(&ctx.fft_pipeline);
+            pass.set_bind_group(0, &fft_bg, &[]);
+            pass.dispatch_workgroups(n_beams, 1, 1);
+        }
     }
     // Copy FFT output to staging for CPU readback.
     enc.copy_buffer_to_buffer(&buf.p_re_buf, 0, &buf.stg_re, 0, spectrum_bytes);
@@ -530,5 +544,102 @@ pub unsafe extern "C" fn sonar_wgpu_free(ptr: *mut f32, len: usize) {
     }
     unsafe {
         let _ = Vec::from_raw_parts(ptr, len, len);
+    }
+}
+
+#[cfg(test)]
+mod input_length_tests {
+    use super::sonar_wgpu_compute;
+
+    #[test]
+    fn unsupported_lengths_are_rejected_before_gpu_initialization() {
+        let depth = [1.0f32];
+        let normal = [1.0f32, 0.0, 0.0];
+        let reflectivity = [1.0f32];
+        let corrector = [1.0f32];
+        for n_freq in [0u32, 4097, 5000, 8192] {
+            let window = vec![1.0f32; n_freq as usize];
+            // Each pointer is valid for its documented length. Rejection must
+            // happen before an adapter is requested or GPU buffers are allocated.
+            let result = unsafe {
+                sonar_wgpu_compute(
+                    depth.as_ptr(),
+                    normal.as_ptr(),
+                    reflectivity.as_ptr(),
+                    corrector.as_ptr(),
+                    window.as_ptr(),
+                    1,
+                    1,
+                    n_freq,
+                    1,
+                    1500.0,
+                    10.0,
+                    220.0,
+                    0.0,
+                    0.02,
+                    29900.0,
+                    1.0,
+                    1.0,
+                    1.0,
+                    1.0,
+                    0,
+                    7,
+                    false,
+                )
+            };
+            assert!(result.is_null(), "unsupported frequency length {n_freq}");
+        }
+    }
+    #[test]
+    #[ignore = "requires a WGPU compute adapter"]
+    fn valid_lengths_still_compute_after_rejected_input() {
+        let depth = [1.0f32];
+        let normal = [1.0f32, 0.0, 0.0];
+        let reflectivity = [1.0f32];
+        let corrector = [1.0f32];
+        // Exercise the production FFI, plan cache, invalid-input recovery and both FFT routes.
+        for n_freq in [1u32, 399, 4095, 4096, 4097, 399, 512] {
+            let window = vec![1.0f32; n_freq as usize];
+            let result = unsafe {
+                sonar_wgpu_compute(
+                    depth.as_ptr(),
+                    normal.as_ptr(),
+                    reflectivity.as_ptr(),
+                    corrector.as_ptr(),
+                    window.as_ptr(),
+                    1,
+                    1,
+                    n_freq,
+                    1,
+                    1500.0,
+                    10.0,
+                    220.0,
+                    0.0,
+                    0.02,
+                    29900.0,
+                    1.0,
+                    1.0,
+                    1.0,
+                    1.0,
+                    0,
+                    7,
+                    false,
+                )
+            };
+            if n_freq > 4096 {
+                assert!(result.is_null());
+            } else {
+                assert!(
+                    !result.is_null(),
+                    "supported length {n_freq}; GPU must be available"
+                );
+                let values = unsafe { std::slice::from_raw_parts(result, n_freq as usize * 2) };
+                let finite = values.iter().all(|v| v.is_finite());
+                unsafe {
+                    super::sonar_wgpu_free(result, n_freq as usize * 2);
+                }
+                assert!(finite, "non-finite output at length {n_freq}");
+            }
+        }
     }
 }
