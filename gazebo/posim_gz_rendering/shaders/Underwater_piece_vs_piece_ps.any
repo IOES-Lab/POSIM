@@ -67,22 +67,38 @@
   float3 attenuation=passBuf.uwOptics.y>0.5?passBuf.uwCoefficients.xyz:float3(0.06,0.06,0.06);
   if(passBuf.uwOptics.x<0.5 && passBuf.uwOptics.y<0.5)attenuation=float3(0.0,0.0,0.0);
   float3 transmission=exp(-water*attenuation);
-  // Three cheap, world-anchored dust slices; visual approximation, no sensor noise.
+  // World-space particles with uniform visual drift. Traverse at most 24 cells
+  // over a 3 m water path; camera motion does not relocate a particle.
   float specks=0.0;
   if(passBuf.uwParams.w>0.5 && cameraZ<0.0){
    float3 origin=float3(passBuf.uwInverse0.w,passBuf.uwInverse1.w,passBuf.uwInverse2.w);
    float3 ray=(uwWorld-origin)/max(distance,0.0001);
-   for(int layer=1;layer<=3;++layer){
-    float travel=float(layer)*0.8;
-    float3 point=origin+ray*travel;
-    if(travel<distance && point.z<passBuf.uwCoefficients.w){
-     float2 dust=point.xy*9.0+float2(point.z*3.1,passBuf.uwParams.z*0.025);
-     float2 id=floor(dust);
-     float seed=fract(sin(dot(id,float2(127.1,311.7)))*43758.5453);
-     float2 delta=fract(dust)-float2(seed,fract(seed*17.3));
-     float radius=max(length(OGRE_ddx(dust))+length(OGRE_ddy(dust)),0.01);
-     specks+=seed>0.97?(1.0-smoothstep(0.015,0.015+radius,length(delta)))*0.035:0.0;
+   float3 drift=float3(0.004,0.008,0.0)*passBuf.uwParams.z;
+   float3 localOrigin=origin-drift;
+   float3 cell=floor(localOrigin/0.25);
+   float3 stepDirection=float3(ray.x>=0.0?1.0:-1.0,ray.y>=0.0?1.0:-1.0,ray.z>=0.0?1.0:-1.0);
+   float3 inverseDirection=1.0/max(abs(ray),float3(0.0001,0.0001,0.0001));
+   float3 nextBoundary=(cell+max(stepDirection,float3(0.0,0.0,0.0)))*0.25;
+   float3 nextTravel=abs(nextBoundary-localOrigin)*inverseDirection;
+   float3 travelStep=0.25*inverseDirection;
+   float pixelAngle=max(length(OGRE_ddx(ray)),length(OGRE_ddy(ray)));
+   float waterLimit=min(distance,3.0);
+   float entry=0.0;
+   for(int visit=0;visit<24;++visit){
+    if(entry>waterLimit)break;
+    float seed=fract(sin(dot(cell,float3(127.1,311.7,74.7)))*43758.5453);
+    float3 jitter=float3(seed,fract(seed*17.3),fract(seed*43.1));
+    float3 point=(cell+0.15+0.7*jitter)*0.25+drift;
+    float travel=dot(point-origin,ray);
+    if(travel>0.05 && travel<waterLimit && point.z<passBuf.uwCoefficients.w){
+     float separation=length(point-origin-ray*travel);
+     float radius=0.0015+0.0025*seed;
+     float footprint=max(travel*pixelAngle,0.0001);
+     specks+=seed>0.97?(1.0-smoothstep(radius,radius+footprint,separation))*exp(-travel*0.2)*0.035:0.0;
     }
+    if(nextTravel.x<=nextTravel.y && nextTravel.x<=nextTravel.z){entry=nextTravel.x;nextTravel.x+=travelStep.x;cell.x+=stepDirection.x;}
+    else if(nextTravel.y<=nextTravel.z){entry=nextTravel.y;nextTravel.y+=travelStep.y;cell.y+=stepDirection.y;}
+    else{entry=nextTravel.z;nextTravel.z+=travelStep.z;cell.z+=stepDirection.z;}
    }
   }
   float3 radiance=outPs_colour0.xyz;

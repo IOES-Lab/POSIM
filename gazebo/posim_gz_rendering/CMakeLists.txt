@@ -41,4 +41,10 @@ if(BUILD_TESTING)
   target_link_libraries(
     underwater-render-test PRIVATE posim_underwater_render
                                    gz-rendering::gz-rendering)
+  add_executable(underwater-particle-render-test tests/ParticleRenderTest.cc)
+  target_compile_features(underwater-particle-render-test PRIVATE cxx_std_17)
+  target_include_directories(underwater-particle-render-test PRIVATE .)
+  target_link_libraries(
+    underwater-particle-render-test PRIVATE posim_underwater_render
+                                            gz-rendering::gz-rendering)
 endif()
