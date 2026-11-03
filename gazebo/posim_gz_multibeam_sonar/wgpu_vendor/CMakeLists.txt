@@ -23,7 +23,8 @@ file(GLOB_RECURSE RUST_SOURCES
 
 add_custom_command(
   OUTPUT ${RUST_LIB}
-  COMMAND ${CARGO_EXECUTABLE} build --release --target-dir ${RUST_TARGET_DIR}
+  COMMAND ${CARGO_EXECUTABLE} build --locked --release
+    --target-dir ${RUST_TARGET_DIR}
   WORKING_DIRECTORY ${RUST_CRATE_DIR}
   DEPENDS ${RUST_SOURCES}
   COMMENT "Building sonar_wgpu Rust static library"
