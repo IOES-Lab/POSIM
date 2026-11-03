@@ -12,6 +12,8 @@ POSIM is the simulation engine for ocean environments, robot models, sensors and
 
 Generate a land/ocean region from latitude, longitude and dimensions. Available elevation and bathymetry sources form one numeric field for meshes and collision checks. Prepare Sentinel-2 imagery to add land textures. Exported manifests record coverage, hashes and source assumptions.
 
+GEBCO bathymetry is supported by this public library, including the `gebco` source policy for GEBCO-only terrain generation. POSIM can load exported terrain in a world; its core engine and the [flat-seabed WAM-V example](surface.md) do not require GEBCO data.
+
 - [Installation and generation commands](https://github.com/IOES-Lab/POSIM-Terrain#readme)
 - [New York, Busan and Tokyo bundles and 3D captures](https://github.com/IOES-Lab/POSIM-Terrain/tree/main/examples)
 

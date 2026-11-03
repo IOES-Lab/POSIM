@@ -26,7 +26,18 @@ The image contains separate ArduSub and ArduRover binaries. This example runs on
 
 The external-navigation adapter publishes **simulated Gazebo pose and speed** through MAVROS. Check navigation and arming status before sending commands. QGroundControl and MAVROS provide client interfaces.
 
-Wave controls use `gz.msgs.Param` on `/world/wwos_gebco/waves`. Match visual and physics settings.
+## World name and wave controls
+
+The `world_name` launch argument defaults to `posim_surface`. Wave controls use `gz.msgs.Param` on `/world/<world_name>/waves`, so the default topic is `/world/posim_surface/waves`. To match existing application adapters, pass their world name explicitly. Inside the configured surface container:
+
+```sh
+SURFACE_WORLD=harbour
+ros2 launch /opt/posim-surface/wamv.launch.py headless:=true world_name:="$SURFACE_WORLD"
+```
+
+The generated SDF, vehicle spawner, IMU bridge and startup wait all use this name. The ROS IMU endpoint remains `/model/wamv/imu`. This argument names the generated world; it does not select a terrain file.
+
+The example uses a flat seabed at z = −10 m and loads no GEBCO bathymetry. Geographic terrain is available through the separate public [POSIM-Terrain library](../../website/content/en/libraries.md#posim-terrain). Match visual and physics settings.
 
 - `wind_speed`: m/s
 - `wind_angle`: degrees

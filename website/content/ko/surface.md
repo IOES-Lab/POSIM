@@ -21,9 +21,28 @@ docker run --rm -it --entrypoint bash posim:surface -lc \
 
 외부 항법 어댑터는 **Gazebo의 모의 위치·속도**를 MAVROS에 발행합니다. 임무를 실행하기 전에 제어기 상태·항법 유효성·추진 방향을 확인하세요.
 
+[해양 GNSS 시스템](gnss.md)으로 수신기 잡음, 수면 접촉과 재수신을 실험할 수도 있습니다. 안테나·플러그인을 명시적으로 연결하고 적절한 항법 어댑터를 구성합니다. 수상 예제의 외부 위치 어댑터는 별도의 항법 입력입니다.
+
 ## 파도 조절
 
-수상 월드의 파도 제어 토픽은 `/world/wwos_gebco/waves`이며 `gz.msgs.Param` 메시지를 사용합니다. 각 설정값의 자료형은 `double`입니다.
+파도 제어는 `/world/<world_name>/waves` 토픽에서 `gz.msgs.Param` 메시지를 사용합니다. `<world_name>`에는 SDF의 `<world name="...">` 값을 넣습니다. 토픽의 월드 이름은 지형 데이터 공급자가 아니라 실행 중인 월드를 식별합니다. 실행 중인 시뮬레이션의 토픽 목록은 다음 명령으로 확인합니다.
+
+```bash
+gz topic -l
+```
+
+위 [WAM-V 실행 파일](https://github.com/IOES-Lab/POSIM/blob/main/extras/surface/wamv.launch.py)의 기본 월드 이름은 `posim_surface`이므로 파도 토픽은 `/world/posim_surface/waves`입니다. 앱에서 사용하는 Gazebo 네임스페이스에 맞게 `world_name` 실행 인자를 지정할 수 있습니다. 환경 설정을 마친 수상 로봇 컨테이너 안에서 다음과 같이 실행합니다.
+
+```bash
+SURFACE_WORLD=harbour
+ros2 launch /opt/posim-surface/wamv.launch.py headless:=true world_name:="$SURFACE_WORLD"
+```
+
+생성되는 SDF, 로봇 생성 요청, IMU 브리지와 시작 대기 명령이 모두 이 이름을 사용합니다. 위 예제의 파도 토픽은 `/world/harbour/waves`이고, ROS IMU 토픽은 `/model/wamv/imu`로 유지됩니다. 이 인자는 생성할 월드의 이름을 지정하며 지형 파일을 선택하지 않습니다.
+
+이 예제는 z = −10 m의 평평한 해저면을 사용하며 GEBCO 수심 데이터를 불러오지 않습니다. GEBCO 데이터를 포함한 실제 지형은 별도 공개 라이브러리인 [POSIM-Terrain](libraries.md#posim-terrain)으로 생성할 수 있습니다.
+
+각 설정값의 자료형은 `double`입니다.
 
 | 설정 | 단위 | 의미 |
 | --- | --- | --- |

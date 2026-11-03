@@ -25,11 +25,14 @@ POSIM은 ROS 2와 Gazebo에서 사용하는 해양 로봇 시뮬레이션 라이
 
 ## 라이브러리 구성
 
+[공개 기능 목록](features.md)에서 환경 효과·센서·로봇 연동·관련 라이브러리의 소스와 사용 안내를 찾을 수 있습니다.
+
 | 구성 요소 | 용도 | 안내 |
 | --- | --- | --- |
 | 해양 월드 | 수면·해저·작업 장면 | [월드 목록](worlds.md) |
 | 로봇 | REXROV, BlueROV2, Slocum, 수상 로봇 | [ROV](rovs.md), [글라이더](gliders.md), [수상 로봇](surface.md) |
-| 센서 | 카메라·DVL·수압·USBL·CUDA 소나 | [카메라](camera.md), [DVL](dvl.md), [소나](sonar.md) |
+| 수중 렌더링 | 흐림·흡수·햇빛·해저 햇빛 무늬·마린 스노·해저 오버레이 | [장면 효과와 제어](underwater-rendering.md) |
+| 센서 | 카메라·해양 GNSS·DVL·수압·USBL·CUDA 소나 | [카메라](camera.md), [GNSS](gnss.md), [DVL](dvl.md), [소나](sonar.md) |
 | 환경 플러그인 | 해류·위도·경도 좌표 | [해류](currents.md), [좌표](coordinates.md) |
 | ROS 인터페이스 | 센서 구독·제어·실험 기록 | [ROS 2와 제어](ros.md) |
 

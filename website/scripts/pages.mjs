@@ -1,6 +1,7 @@
 export const sections = [
   { en: 'Getting started', ko: '시작하기', pages: [
     ['index', 'Overview', '소개', ['requirements', 'installation']],
+    ['features', 'Public feature catalogue', '공개 기능 목록', []],
     ['requirements', 'System requirements', '시스템 요구 사항', ['requirements']],
     ['install', 'Install on Ubuntu', 'Ubuntu 설치', ['native', 'installation']],
     ['docker', 'Docker environment', 'Docker 환경', ['docker']],
@@ -22,7 +23,9 @@ export const sections = [
   ] },
   { en: 'Plugin reference', ko: '플러그인 참고', pages: [
     ['currents', 'Ocean currents', '해류', ['currents']],
+    ['underwater-rendering', 'Underwater scene effects', '수중 장면 효과', []],
     ['camera', 'Underwater camera', '수중 카메라', ['camera']],
+    ['gnss', 'Marine GNSS', '해양 GNSS', []],
     ['pressure', 'Sea pressure', '수압', ['pressure']],
     ['dvl', 'Doppler velocity log', 'DVL', ['dvl']],
     ['usbl', 'USBL positioning', 'USBL 위치 추정', ['usbl']],

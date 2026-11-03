@@ -19,6 +19,14 @@ Read the first missing URI in the log. Check that its package resources were ins
 
 Image sensors need a renderer even without a desktop window. Check display/offscreen settings, [Docker Xvfb setup](docker.md) and [CUDA libraries](sonar-tuning.md).
 
+For [underwater scene effects](underwater-rendering.md), check the `/posim/appearance/<session_nonce>/state` service, renderer/shader paths and active camera count. Suspended specks start off; enable them explicitly. Confirm applied revision and readiness after rendering. The camera attenuation example alone does not load the scene-effects system.
+
+For the documented **macOS arm64 / Ogre-Next 2.3.3** configuration, an [opt-in lifetime overlay helper](https://github.com/IOES-Lab/POSIM/blob/main/extras/ogre/README.md) builds and selects an isolated Ogre core for one process. Follow its exact SDK/source checks and verify loaded-library paths. It is not enabled by the standard installer, and other Ogre versions or platforms require their own matching profile.
+
+## GNSS has no fix
+
+Read the [GNSS validity state](gnss.md), antenna world height, local water height and acquisition timestamp. Confirm world spherical coordinates, an unblocked dry antenna and enough advancing simulation time for reacquisition and latency. If a wave topic is configured, verify fresh compatible local height samples. Receiver installation alone does not attach it to a model or provide a ROS/autopilot adapter.
+
 ## No messages
 
 First confirm that time advances, then discover the topic and its type:

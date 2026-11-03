@@ -21,9 +21,28 @@ This image contains ArduSub and ArduRover as separate binaries. The single-vehic
 
 The external-navigation adapter publishes **simulated Gazebo pose and velocity** to MAVROS. Check controller state, navigation validity and thruster direction before sending a mission.
 
+For receiver-noise, water-contact and reacquisition experiments, POSIM also provides a [marine GNSS system](gnss.md). Attach its antenna and plugin explicitly and connect a suitable navigation adapter. The surface example's external-pose adapter is a separate navigation input.
+
 ## Adjust waves
 
-The surface world's wave-control topic is `/world/wwos_gebco/waves`, using `gz.msgs.Param`. Each adjustable value uses the `double` data type:
+Wave controls use `gz.msgs.Param` on `/world/<world_name>/waves`. Replace `<world_name>` with the SDF `<world name="...">` value; the topic identifies the running world, not its terrain provider. List the running simulation's topics with:
+
+```bash
+gz topic -l
+```
+
+The [WAM-V launcher](https://github.com/IOES-Lab/POSIM/blob/main/extras/surface/wamv.launch.py) defaults to `posim_surface`, so its wave topic is `/world/posim_surface/waves`. Set the `world_name` launch argument to match your application's existing Gazebo namespace. Inside the configured surface container, for example:
+
+```bash
+SURFACE_WORLD=harbour
+ros2 launch /opt/posim-surface/wamv.launch.py headless:=true world_name:="$SURFACE_WORLD"
+```
+
+The generated SDF, vehicle spawner, IMU bridge and startup wait all use this name. The example above exposes `/world/harbour/waves`; the ROS IMU endpoint remains `/model/wamv/imu`. The argument sets the generated world's name; it does not select a terrain file.
+
+This example uses a flat seabed at z = −10 m and loads no GEBCO bathymetry. Geographic terrain, including GEBCO data, is available through the separate public [POSIM-Terrain library](libraries.md#posim-terrain).
+
+Each adjustable value uses the `double` data type:
 
 | Parameter | Unit | Meaning |
 | --- | --- | --- |

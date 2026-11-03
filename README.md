@@ -14,6 +14,10 @@ simulated sensors, and ROS 2 control interfaces for Gazebo.
 
 Find installation instructions, first simulations, vehicle and sensor examples,
 custom robot guides, and plugin references on the documentation website.
+The [public feature catalogue](https://ioes-lab.github.io/POSIM/features.html)
+maps implementations to their guides, including
+[underwater scene effects and marine snow](https://ioes-lab.github.io/POSIM/underwater-rendering.html)
+and [marine GNSS](https://ioes-lab.github.io/POSIM/gnss.html).
 The `main` branch targets Ubuntu 26.04, ROS 2 Lyrical, and Gazebo Jetty.
 Start with [installation](https://ioes-lab.github.io/POSIM/install.html) or
 [Docker](https://ioes-lab.github.io/POSIM/docker.html), then run your
