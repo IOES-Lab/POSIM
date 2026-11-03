@@ -406,6 +406,9 @@ bool MultibeamSonarSensor::Implementation::InitializeBeamArrangement(MultibeamSo
     return false;
   }
 
+  // The renderer is attached to the parent link; retain the sensor mounting pose.
+  this->raySensor->SetLocalPose(_sensor->Pose());
+
   // Read ray definition from SDF
   sdf::ElementPtr rayElement = this->sensorSdf->GetElement("ray");
   sdf::ElementPtr sensorElement = this->sensorSdf->GetElement("spec");
