@@ -1,12 +1,10 @@
 # 수중 카메라
 
-수중 카메라는 깊이 정보를 이용해 거리가 멀어질수록 RGB 색의 강도를 줄입니다. 표현하려는 물의 특성에 맞춰 감쇠와 배경색을 조절하세요.
+`UnderwaterCamera` 플러그인은 깊이 정보를 이용해 거리가 멀어질수록 RGB 색의 강도를 줄입니다. 표현하려는 물의 특성에 맞춰 감쇠와 배경색을 조절하세요. 장면 전체의 흐림·흡수·햇빛 무늬·부유 입자(마린 스노)·해저 격자와 실시간 제어에는 공개 [수중 장면 렌더러](underwater-rendering.md)를 사용합니다.
 
 ## 예제 실행
 
-[POSIM 수중 렌더러](https://github.com/IOES-Lab/POSIM/tree/main/gazebo/posim_gz_rendering)는 Ogre2 PBR 표면에 수중 광학 효과를 적용합니다. RGB·RGBD 색 영상에는 빛의 이동 경로를 따라 생기는 흐림, 색 흡수, 수심에 따른 햇빛 감쇠와 움직이는 해저 햇빛 무늬를 표현합니다. 깊이 값은 유지합니다. WWW-POSIM에서는 Gazebo 장면과 카메라 영상에 적용할 효과를 실시간 스위치로 바꿉니다.
-
-렌더러는 평균 해수면을 z = 0 m로 근사합니다. 하늘에도 수중 경로 감쇠를 적용합니다. 비조명 재질과 사용자 수면 셰이더는 자체 렌더링을 사용합니다. 호스트에서 `POSIM_UNDERWATER_PLUGIN`으로 네이티브 렌더러를 활성화하면 카메라 플러그인은 이미 색상이 적용된 입력을 호환 출력으로 그대로 전달합니다.
+이 센서 예제는 깊이 기반 카메라 필터를 사용합니다. 장면 렌더러는 별도의 [빌드·월드 플러그인·외관 설정](underwater-rendering.md)을 사용합니다.
 
 ```bash
 ros2 launch posim_demos posim_sensor.launch.py \
@@ -49,7 +47,7 @@ RViz의 Image 디스플레이에서 결과를 확인하세요. GUI가 없어도 
 
 알아보기 쉬운 물체를 알려진 거리에 배치합니다. 위치, 조명, 재질과 카메라 설정을 유지하고 감쇠 채널을 하나씩 변경합니다. 화면과 함께 영상 타임스탬프·수신 주기도 확인하세요.
 
-카메라 감쇠는 센서 영상에 적용되며 Gazebo 화면 전체에 적용되지 않습니다. 월드 화면을 바꾸려면 조명·재질을 별도로 설정합니다. 입력 연결과 출력 이름은 소스와 전체 [카메라 모델](https://github.com/IOES-Lab/POSIM/blob/main/models/posim_sensor_models/description/underwater_camera/model.sdf)에서 확인할 수 있습니다.
+카메라 감쇠는 센서 영상에 적용됩니다. 장면과 카메라의 PBR 표면에 공통 수중 효과를 적용하려면 [장면 렌더러](underwater-rendering.md)를 사용합니다. 네이티브 시스템이 활성화된 경우 `POSIM_UNDERWATER_PLUGIN`은 이 호환 출력을 그대로 통과시켜 같은 픽셀의 중복 감쇠를 막습니다. 입력 연결과 출력 이름은 [카메라 모델](https://github.com/IOES-Lab/POSIM/blob/main/models/posim_sensor_models/description/underwater_camera/model.sdf)에서 확인할 수 있습니다.
 
 ## RGBD 센서와 물 색 설정하기
 
@@ -78,7 +76,7 @@ RGBD 센서는 색 영상과 깊이 영상을 제공합니다. 플러그인은 �
 </sensor>
 ```
 
-수중에서는 빛의 흡수와 산란이 색·대비·가시거리에 영향을 줍니다. 이 센서의 구현은 거리별 RGB 감쇠와 배경 혼합을 사용합니다. 조명·입자 산란을 별도로 연구하려면 그 효과를 구현하는 장면과 센서 모델을 준비하세요.
+이 센서는 거리별 RGB 감쇠와 배경 혼합을 사용합니다. [장면 렌더러](underwater-rendering.md)는 햇빛·해저 햇빛 무늬와 선택형 부유 입자를 시각적으로 표현합니다. 보정된 입자 산란을 연구하려면 이러한 시각 근사를 넘어서는 광학 모델이 필요합니다.
 
 ## 수중 영상 비교
 

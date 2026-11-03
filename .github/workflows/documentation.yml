@@ -7,6 +7,8 @@ on:
   pull_request:
     paths:
       - "website/**"
+      - "gazebo/**"
+      - "extras/**"
       - "models/**"
       - "examples/**"
       - "posim_interfaces/**"
@@ -15,6 +17,8 @@ on:
     branches: [main]
     paths:
       - "website/**"
+      - "gazebo/**"
+      - "extras/**"
       - "models/**"
       - "examples/**"
       - "posim_interfaces/**"

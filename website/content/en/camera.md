@@ -1,12 +1,10 @@
 # Underwater camera
 
-The underwater camera uses depth data to reduce RGB color intensity with distance. Adjust attenuation and background color to match the water conditions you want to simulate.
+The `UnderwaterCamera` plugin uses depth data to reduce RGB color intensity with distance. Adjust attenuation and background color to match the water conditions you want to simulate. For scene-wide haze, absorption, caustics, suspended specks (marine snow), seabed grids and live controls, use the public [underwater scene renderer](underwater-rendering.md).
 
 ## Run the example
 
-The [POSIM underwater renderer](https://github.com/IOES-Lab/POSIM/tree/main/gazebo/posim_gz_rendering) applies underwater optical effects to Ogre2 PBR surfaces. RGB and RGBD color images show haze along the light path, color absorption, sunlight fading with depth and moving patterns of light on the seabed. Depth values remain unchanged. WWW-POSIM exposes live switches for the Gazebo scene and camera feeds.
-
-The renderer approximates mean sea level by z = 0 m. Sky rays use underwater path attenuation. Unlit materials and custom water shaders use their own rendering. When the host enables the native renderer with `POSIM_UNDERWATER_PLUGIN`, the camera plugin passes its already-colored input through to the compatibility output.
+This sensor example uses the depth-based camera filter. The scene renderer has its own [build, world plugin and appearance settings](underwater-rendering.md).
 
 ```bash
 ros2 launch posim_demos posim_sensor.launch.py \
@@ -49,7 +47,7 @@ The example model uses these values. SDF settings override code defaults.
 
 Place a recognizable object at known distances. Keep pose, lighting, scene materials and camera settings fixed while changing one attenuation channel. Verify image timestamps and received rate in addition to the visual result.
 
-Camera-specific attenuation changes the sensor image, not the entire Gazebo desktop view. To change the world view, adjust world lighting/materials separately. The source and [camera model](https://github.com/IOES-Lab/POSIM/blob/main/models/posim_sensor_models/description/underwater_camera/model.sdf) define the input wiring and output names.
+Camera-specific attenuation changes the sensor image. Use the [scene renderer](underwater-rendering.md) to apply shared underwater effects to PBR surfaces in scene and camera views. When that native system is active, `POSIM_UNDERWATER_PLUGIN` enables pass-through in this compatibility output to avoid filtering the same pixels twice. The [camera model](https://github.com/IOES-Lab/POSIM/blob/main/models/posim_sensor_models/description/underwater_camera/model.sdf) defines input wiring and output names.
 
 ## Configure RGBD sensing and water appearance
 
@@ -78,7 +76,7 @@ For an unattenuated comparison, explicitly set `attenuationR`, `attenuationG`, `
 </sensor>
 ```
 
-Underwater absorption and scattering affect color, contrast and visibility. This sensor implements distance-dependent RGB attenuation and background blending. For separate studies of lighting or particle scattering, prepare scene and sensor models implementing those effects.
+This sensor implements distance-dependent RGB attenuation and background blending. The [scene renderer](underwater-rendering.md) supplies visual sunlight, caustics and optional suspended specks. Studies of calibrated particle scattering need a suitable optical model beyond these visual approximations.
 
 ## Compare underwater images
 

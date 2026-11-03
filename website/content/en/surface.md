@@ -21,6 +21,8 @@ This image contains ArduSub and ArduRover as separate binaries. The single-vehic
 
 The external-navigation adapter publishes **simulated Gazebo pose and velocity** to MAVROS. Check controller state, navigation validity and thruster direction before sending a mission.
 
+For receiver-noise, water-contact and reacquisition experiments, POSIM also provides a [marine GNSS system](gnss.md). Attach its antenna and plugin explicitly and connect a suitable navigation adapter. The surface example's external-pose adapter is a separate navigation input.
+
 ## Adjust waves
 
 The surface world's wave-control topic is `/world/wwos_gebco/waves`, using `gz.msgs.Param`. Each adjustable value uses the `double` data type:

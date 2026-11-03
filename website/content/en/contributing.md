@@ -22,6 +22,8 @@ Sensor and dynamics changes need an appropriate numerical comparison. A screensh
 
 English is the default language at `/`; Korean pages live at `/ko/`. Edit paired Markdown files under `website/content/en` and `website/content/ko`. The site maintains a common page order and generates the world/object catalogs from the source tree.
 
+For a public capability, update the [feature catalogue](features.md) and its usage guide alongside the source. Document installation/activation, defaults, units, inputs/outputs, configuration scope, an observable example and model limits. Include opt-in effects and adapters; a package README alone does not make them discoverable in the site. Add new pages to `website/scripts/pages.mjs` so navigation and search include both languages.
+
 Describe the current product, its usage and limitations. Keep development notes, staged plans and validation reports outside the repository. Record change discussions and test results in GitHub issues and pull requests.
 
 From `website`, with Node.js 24 and pnpm 10.11.0:
