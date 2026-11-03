@@ -25,7 +25,15 @@ For receiver-noise, water-contact and reacquisition experiments, POSIM also prov
 
 ## Adjust waves
 
-The surface world's wave-control topic is `/world/wwos_gebco/waves`, using `gz.msgs.Param`. Each adjustable value uses the `double` data type:
+Wave controls use `gz.msgs.Param` on `/world/<world_name>/waves`. Replace `<world_name>` with the SDF `<world name="...">` value; the topic identifies the running world, not its terrain provider. List the running simulation's topics with:
+
+```bash
+gz topic -l
+```
+
+The [WAM-V launcher](https://github.com/IOES-Lab/POSIM/blob/main/extras/surface/wamv.launch.py) above names its world `wwos_gebco`, so its topic is `/world/wwos_gebco/waves`. This example uses a flat seabed at z = −10 m and loads no GEBCO bathymetry. Geographic terrain, including GEBCO data, is available through the separate public [POSIM-Terrain library](libraries.md#posim-terrain).
+
+Each adjustable value uses the `double` data type:
 
 | Parameter | Unit | Meaning |
 | --- | --- | --- |

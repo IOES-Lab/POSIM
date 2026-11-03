@@ -12,6 +12,8 @@ POSIM은 해양 환경·로봇 모델·센서·ROS 2 인터페이스를 제공�
 
 위도·경도·크기로 육지와 해저 지형을 만듭니다. 사용 가능한 고도·수심 자료를 하나의 수치 지형으로 결합해 메시와 충돌 검사에 사용합니다. Sentinel-2 영상을 준비하면 육지 텍스처를 넣을 수 있습니다. 출처 기록에는 자료 범위·해시·가정이 포함됩니다.
 
+이 공개 라이브러리는 GEBCO 수심 데이터를 지원하며, `gebco` 자료 선택 정책으로 GEBCO만 사용해 지형을 생성할 수 있습니다. POSIM은 생성된 지형을 월드에 불러올 수 있습니다. 핵심 엔진과 [평평한 해저면을 사용하는 WAM-V 예제](surface.md)는 GEBCO 데이터 없이 실행됩니다.
+
 - [설치와 지형 생성 명령](https://github.com/IOES-Lab/POSIM-Terrain/blob/main/README.ko.md)
 - [뉴욕·부산·도쿄 지형 묶음과 3D 캡처](https://github.com/IOES-Lab/POSIM-Terrain/blob/main/examples/README.ko.md)
 

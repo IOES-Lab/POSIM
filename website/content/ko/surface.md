@@ -25,7 +25,15 @@ docker run --rm -it --entrypoint bash posim:surface -lc \
 
 ## 파도 조절
 
-수상 월드의 파도 제어 토픽은 `/world/wwos_gebco/waves`이며 `gz.msgs.Param` 메시지를 사용합니다. 각 설정값의 자료형은 `double`입니다.
+파도 제어는 `/world/<world_name>/waves` 토픽에서 `gz.msgs.Param` 메시지를 사용합니다. `<world_name>`에는 SDF의 `<world name="...">` 값을 넣습니다. 토픽의 월드 이름은 지형 데이터 공급자가 아니라 실행 중인 월드를 식별합니다. 실행 중인 시뮬레이션의 토픽 목록은 다음 명령으로 확인합니다.
+
+```bash
+gz topic -l
+```
+
+위 [WAM-V 실행 파일](https://github.com/IOES-Lab/POSIM/blob/main/extras/surface/wamv.launch.py)은 월드 이름을 `wwos_gebco`로 지정하므로 토픽은 `/world/wwos_gebco/waves`입니다. 이 예제는 z = −10 m의 평평한 해저면을 사용하며 GEBCO 수심 데이터를 불러오지 않습니다. GEBCO 데이터를 포함한 실제 지형은 별도 공개 라이브러리인 [POSIM-Terrain](libraries.md#posim-terrain)으로 생성할 수 있습니다.
+
+각 설정값의 자료형은 `double`입니다.
 
 | 설정 | 단위 | 의미 |
 | --- | --- | --- |

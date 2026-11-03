@@ -26,7 +26,7 @@ The image contains separate ArduSub and ArduRover binaries. This example runs on
 
 The external-navigation adapter publishes **simulated Gazebo pose and speed** through MAVROS. Check navigation and arming status before sending commands. QGroundControl and MAVROS provide client interfaces.
 
-Wave controls use `gz.msgs.Param` on `/world/wwos_gebco/waves`. Match visual and physics settings.
+Wave controls use `gz.msgs.Param` on `/world/<world_name>/waves`, where `<world_name>` is the SDF world name. This launcher names its world `wwos_gebco`, so its topic is `/world/wwos_gebco/waves`. The example uses a flat seabed at z = −10 m and loads no GEBCO bathymetry. Geographic terrain is available through the separate public [POSIM-Terrain library](../../website/content/en/libraries.md#posim-terrain). Match visual and physics settings.
 
 - `wind_speed`: m/s
 - `wind_angle`: degrees
