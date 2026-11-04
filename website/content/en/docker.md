@@ -117,3 +117,5 @@ Docker on macOS runs a Linux VM. Use [system requirements](requirements.md) to d
 3. Close the Xvfb and container shells.
 
 Keep the virtual display available until Gazebo exits.
+
+If the launch log says Gazebo did not terminate after SIGINT and was sent SIGTERM, the launch command can still return successfully even though shutdown was forced. Check for a remaining container from the host with `docker ps --filter name=posim-quickstart`. If it is still running and you are finished with it, run `docker stop posim-quickstart`; with `--rm`, Docker removes it after it stops. Investigate repeated shutdown errors before relying on an unattended run.

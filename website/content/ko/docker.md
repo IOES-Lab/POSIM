@@ -117,3 +117,5 @@ macOS의 Docker는 Linux 가상 머신입니다. 컨테이너 렌더링과 호�
 3. Xvfb 셸과 컨테이너 셸을 닫습니다.
 
 Gazebo가 종료될 때까지 가상 디스플레이를 유지하세요.
+
+Launch 로그에 Gazebo가 SIGINT 후 종료되지 않아 SIGTERM을 받았다고 표시되면 강제 종료가 있었더라도 Launch 명령 자체는 성공으로 끝날 수 있습니다. 호스트에서 `docker ps --filter name=posim-quickstart`로 컨테이너가 남아 있는지 확인하세요. 더 이상 사용하지 않는데 실행 중이라면 `docker stop posim-quickstart`로 종료합니다. `--rm`을 지정했으므로 종료 후 컨테이너는 삭제됩니다. 반복되는 종료 오류는 무인 실행에 사용하기 전에 원인을 확인하세요.
