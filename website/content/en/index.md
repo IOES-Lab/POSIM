@@ -16,7 +16,7 @@ Choose an installation guide: [Ubuntu](install.md) (recommended), [macOS with Do
 
 ## Library components
 
-The [public feature catalogue](features.md) maps environment effects, sensors, robot integrations and related libraries to their source and usage guides.
+Use [Features & examples](features.md) to find environment effects, sensors, robot integrations and related libraries with their source and usage guides.
 
 | Component | Purpose | Guide |
 | --- | --- | --- |

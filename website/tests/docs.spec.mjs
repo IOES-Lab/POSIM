@@ -79,7 +79,7 @@ test('theme controls persist and follow system appearance on desktop and mobile'
 
 test('empty search, unavailable search, and denied clipboard remain usable', async ({ page }) => {
   await page.goto('/');
-  const search = page.locator('.docs-sidebar input');
+  const search = page.locator('.docs-sidebar input[type=search]');
   await search.fill('zzno-such-posim-guidezz');
   await expect(page.locator('.docs-sidebar .docs-search-results')).toHaveText('No matching guides.');
   await search.press('Escape');
@@ -94,6 +94,67 @@ test('empty search, unavailable search, and denied clipboard remain usable', asy
   await page.locator('.docs-code-copy').first().click();
   await expect(page.locator('.docs-code-copy').first()).toHaveText('Text selected');
   expect((await page.evaluate(() => getSelection().toString())).trimEnd()).toBe((await page.locator('pre code').first().textContent()).trimEnd());
+});
+
+test('section search finds code and Korean text with language opt-in and keyboard navigation', async ({ page }, info) => {
+  await page.goto('/');
+  const search = page.locator('.docs-sidebar input[type=search]');
+  const results = page.locator('.docs-sidebar .docs-search-results');
+  for (const query of ['ixx', 'ros2 topic echo', 'WSL2']) {
+    await search.fill(query);
+    await expect(results.locator('a').first()).toBeVisible();
+    await expect(results.locator('a[lang=ko]')).toHaveCount(0);
+  }
+  await search.fill('관성');
+  await expect(results).toHaveText('No matching guides.');
+  await page.locator('.docs-sidebar [data-search-other]').check();
+  await expect(results.locator('a[lang=ko]').first()).toBeVisible();
+  await expect(results.locator('a[lang=ko] mark').first()).toHaveText('관성');
+  await results.locator('a[lang=ko]').first().click();
+  await expect(page.locator('html')).toHaveAttribute('lang', 'ko');
+  expect(new URL(page.url()).hash).not.toBe('');
+
+  await page.goto('/');
+  await page.keyboard.press('Control+k');
+  await expect(search).toBeFocused();
+  await search.fill('max_step_size');
+  await expect(results.locator('a[href^="custom-worlds.html#"]').first()).toBeVisible();
+  await expect(results.locator('a').first().locator('mark').first()).toBeInViewport();
+  await page.screenshot({ path: info.outputPath('section-search.png') });
+  const destination = await results.locator('a').first().getAttribute('href');
+  await search.press('ArrowDown');
+  await expect(results.locator('a').first()).toBeFocused();
+  await page.keyboard.press('Enter');
+  await expect.poll(() => {
+    const url = new URL(page.url());
+    return url.pathname + decodeURIComponent(url.hash);
+  }).toBe('/' + destination);
+  await expect(page.locator('[id="' + destination.split('#')[1] + '"]')).toBeInViewport();
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.keyboard.press('Control+k');
+  await expect(page.locator('.docs-mobile-menu')).toHaveAttribute('open', '');
+  await expect(page.locator('.docs-mobile-menu input[type=search]')).toBeFocused();
+  await page.locator('.docs-mobile-menu input[type=search]').fill('max_step_size');
+  await expect(page.locator('.docs-mobile-menu .docs-search-results a').first()).toBeVisible();
+  await page.screenshot({ path: info.outputPath('mobile-section-search.png') });
+});
+
+test('moved tutorial bookmarks open the corresponding English and Korean sections', async ({ page }) => {
+  for (const [oldPath, newPath] of [
+    ['/ros.html#subscribe-from-python', '/python-control.html#subscribe-from-python'],
+    ['/ros.html#visualization-and-recording', '/visualization.html#visualization-and-recording'],
+    ['/quickstart.html#2-spawn-rexrov', '/quickstart.html#1-start-the-robot-and-world'],
+    ['/ko/ros.html#python에서-구독', '/ko/python-control.html#python에서-구독'],
+    ['/ko/quickstart.html#3-카메라-영상-받기', '/ko/visualization.html#카메라-영상-받기'],
+  ]) {
+    await page.goto(oldPath);
+    await expect.poll(() => {
+      const url = new URL(page.url());
+      return url.pathname + decodeURIComponent(url.hash);
+    }).toBe(newPath);
+    await expect(page.locator('[id="' + newPath.split('#')[1] + '"]')).toBeInViewport();
+  }
 });
 
 for (const lang of ['en', 'ko']) {

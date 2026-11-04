@@ -53,7 +53,7 @@ document.querySelectorAll('.docs-search input').forEach(input => {
           highlight(heading, page.heading, words); link.append(heading);
         }
         const positions = words.map(word => normalize(page.text).indexOf(word)).filter(position => position >= 0);
-        const start = Math.max(0, (positions.length ? Math.min(...positions) : 0) - 45);
+        const start = Math.max(0, (positions.length ? Math.min(...positions) : 0) - 20);
         const snippet = page.text.slice(start, start + 170);
         const description = document.createElement('span');
         highlight(description, (start ? '…' : '') + snippet + (start + snippet.length < page.text.length ? '…' : ''), words);

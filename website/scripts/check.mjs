@@ -75,8 +75,11 @@ for (const media of mediaSources) {
   }
 }
 for (const [file, html] of documents) {
-  for (const match of html.matchAll(/\b(?:href|src)="([^"]+)"|<option value="([^"]+\.html)"/g)) {
-    const reference = (match[1] || match[2]).replaceAll('&amp;', '&');
+  const references = [...html.matchAll(/\b(?:href|src)="([^"]+)"|<option value="([^"]+\.html)"/g)]
+    .map(match => (match[1] || match[2]).replaceAll('&amp;', '&'));
+  const redirects = html.match(/<script type="application\/json" id="docs-anchor-redirects">([^<]+)<\/script>/);
+  if (redirects) references.push(...Object.values(JSON.parse(redirects[1])));
+  for (const reference of references) {
     if (/^(https?:|mailto:)/.test(reference)) {
       if (haveSource) {
         const source = reference.match(/^https:\/\/github\.com\/IOES-Lab\/POSIM\/(?:blob|tree|edit)\/main\/(.+)$/i);
