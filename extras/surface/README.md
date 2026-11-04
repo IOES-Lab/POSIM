@@ -18,6 +18,8 @@ docker run --rm -it --entrypoint bash posim:surface -lc 'source /opt/ros/lyrical
 
 The image contains separate ArduSub and ArduRover binaries. This example runs one vehicle. Assign it one controller and port set.
 
+The controller starts after model creation and the first IMU sample. A failed model-creation process or an IMU wait exceeding 180 seconds stops the launch and reports the failed stage; inspect the simulator and sensor logs before retrying.
+
 - Rover boat frame: `FRAME_CLASS=2`
 - Left/right propellers: servo outputs **1 / 3**
 - Start position: water surface

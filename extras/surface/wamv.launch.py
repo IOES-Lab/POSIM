@@ -7,17 +7,28 @@ import xml.etree.ElementTree as ET
 from launch import LaunchDescription
 from launch.actions import (
     DeclareLaunchArgument,
+    EmitEvent,
+    LogError,
     OpaqueFunction,
     ExecuteProcess,
     RegisterEventHandler,
 )
 from launch.event_handlers import OnProcessExit
+from launch.events import Shutdown
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 
 sys.path.insert(0, str(Path(__file__).parent))
 from wamv import make_model  # noqa: E402 - sibling module after launch loader path
 from waves import prepare  # noqa: E402 - sibling module after launch loader path
+
+
+def continue_on_success(event, actions, stage):
+    """Advance only when the preceding startup process completed successfully."""
+    if event.returncode == 0:
+        return actions
+    reason = f"Surface demo {stage} failed (exit {event.returncode})"
+    return [LogError(msg=reason), EmitEvent(event=Shutdown(reason=reason))]
 
 
 def setup(context):
@@ -92,7 +103,9 @@ def setup(context):
         cmd=[
             "bash",
             "-c",
-            f"until timeout 2 gz topic -e -t {shlex.quote(imu)} -n 1 >/dev/null 2>&1; do :; done",
+            f"deadline=$((SECONDS + 180)); until timeout 2 gz topic -e -t {shlex.quote(imu)} "
+            "-n 1 >/dev/null 2>&1; do if (( SECONDS >= deadline )); then "
+            'echo "Timed out waiting for WAM-V IMU data" >&2; exit 1; fi; done',
         ],
         output="screen",
     )
@@ -125,8 +138,22 @@ def setup(context):
         navigation,
         server,
         create,
-        RegisterEventHandler(OnProcessExit(target_action=create, on_exit=[bridge, wait])),
-        RegisterEventHandler(OnProcessExit(target_action=wait, on_exit=[sitl, mavros])),
+        RegisterEventHandler(
+            OnProcessExit(
+                target_action=create,
+                on_exit=lambda event, context: continue_on_success(
+                    event, [bridge, wait], "model spawn"
+                ),
+            )
+        ),
+        RegisterEventHandler(
+            OnProcessExit(
+                target_action=wait,
+                on_exit=lambda event, context: continue_on_success(
+                    event, [sitl, mavros], "IMU readiness"
+                ),
+            )
+        ),
     ]
 
 

@@ -5,12 +5,21 @@ import os
 from pathlib import Path
 import shlex
 import tempfile
+from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 import xml.etree.ElementTree as ET
 
-from launch import LaunchContext
-from launch.actions import DeclareLaunchArgument, ExecuteProcess, OpaqueFunction
+from launch import LaunchContext, LaunchDescription, LaunchService
+from launch.actions import (
+    DeclareLaunchArgument,
+    EmitEvent,
+    ExecuteProcess,
+    LogError,
+    OpaqueFunction,
+    RegisterEventHandler,
+)
+from launch.event_handlers import OnProcessExit
 from launch_ros.actions import Node
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -20,6 +29,43 @@ SPEC.loader.exec_module(surface_launch)
 
 
 class WorldNameTests(unittest.TestCase):
+    def test_process_exit_gates_next_stage(self):
+        for exit_code in (0, 4):
+            with self.subTest(exit_code=exit_code), tempfile.TemporaryDirectory() as temporary:
+                marker = Path(temporary) / "next-stage"
+                first = ExecuteProcess(cmd=["bash", "-c", f"exit {exit_code}"])
+                next_stage = ExecuteProcess(cmd=["touch", str(marker)])
+                handler = RegisterEventHandler(
+                    OnProcessExit(
+                        target_action=first,
+                        on_exit=lambda event, context: surface_launch.continue_on_success(
+                            event, [next_stage], "model spawn"
+                        ),
+                    )
+                )
+                service = LaunchService(noninteractive=True)
+                service.include_launch_description(LaunchDescription([handler, first]))
+                service.run()
+                self.assertEqual(marker.exists(), exit_code == 0)
+
+    def test_failed_startup_does_not_start_the_next_stage(self):
+        next_stage = [object(), object()]
+        for stage in ("model spawn", "IMU readiness"):
+            with self.subTest(stage=stage):
+                self.assertIs(
+                    surface_launch.continue_on_success(
+                        SimpleNamespace(returncode=0), next_stage, stage
+                    ),
+                    next_stage,
+                )
+                failed = surface_launch.continue_on_success(
+                    SimpleNamespace(returncode=1), next_stage, stage
+                )
+                self.assertEqual(len(failed), 2)
+                self.assertIsInstance(failed[0], LogError)
+                self.assertIsInstance(failed[1], EmitEvent)
+                self.assertTrue(all(action not in failed for action in next_stage))
+
     def test_default_and_application_names_keep_world_spawn_and_imu_connected(self):
         for override, expected in (
             (None, "posim_surface"),
