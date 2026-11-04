@@ -1,0 +1,148 @@
+{
+  "name": "Deutsch",
+  "sections": [
+    "POSIM im Überblick",
+    "Erste Schritte",
+    "Grundlagen",
+    "Roboter steuern",
+    "Weiterführende Anleitungen",
+    "Plugin-Referenz",
+    "Referenz und Projekt"
+  ],
+  "pages": {
+    "index": "Überblick",
+    "features": "Funktionen und Beispiele",
+    "requirements": "Umgebung auswählen",
+    "install": "Ubuntu: native Installation",
+    "install-ubuntu-docker": "Linux: Installation mit Docker",
+    "install-windows": "Windows: Installation in WSL",
+    "install-windows-docker": "Windows: WSL und Docker",
+    "install-macos": "macOS: Docker und RDP",
+    "docker": "Docker-Umgebung",
+    "terminals": "Terminals vorbereiten",
+    "quickstart": "Erste Simulation",
+    "visualization": "Sensordaten anzeigen und aufzeichnen",
+    "worlds": "Weltenbibliothek",
+    "rovs": "ROVs und BlueROV2",
+    "gliders": "Slocum-Unterwassergleiter",
+    "objects": "Objekte und Aufgabenszenarien",
+    "ros": "ROS-Terminals und Topics",
+    "python-control": "Mit Python steuern",
+    "robot-control": "Thruster und Joystick-Steuerung",
+    "surface": "Überwasserroboter und Wellen",
+    "custom-worlds": "Eine Welt erstellen",
+    "custom-robots": "Einen Roboter hinzufügen",
+    "custom-sensors": "Sensoren hinzufügen und konfigurieren",
+    "heightmaps": "Gelände aus Höhenkarten",
+    "sonar-tuning": "Sonar konfigurieren und abstimmen",
+    "currents": "Meeresströmungen",
+    "underwater-rendering": "Effekte für Unterwasserszenen",
+    "camera": "Unterwasserkamera",
+    "gnss": "Maritimes GNSS",
+    "pressure": "Wasserdruck",
+    "dvl": "Doppler-Geschwindigkeitsmessung",
+    "usbl": "USBL-Positionierung",
+    "coordinates": "Geografische Koordinaten",
+    "sonar": "Mehrstrahlsonar",
+    "troubleshooting": "Fehlerbehebung",
+    "contributing": "Mitwirken",
+    "citation": "Zitieren und Lizenzen"
+  },
+  "ui": {
+    "documentationLanguage": "Sprache der Dokumentation",
+    "colorTheme": "Farbschema",
+    "system": "System",
+    "light": "Hell",
+    "dark": "Dunkel",
+    "skip": "Zum Inhalt springen",
+    "utility": "Weitere Links",
+    "menu": "Dokumentationsmenü",
+    "search": "Dokumentation durchsuchen",
+    "placeholder": "Titel, Befehle, Themen",
+    "otherLanguages": "In allen Sprachen suchen",
+    "mobileNavigation": "Mobile Dokumentation",
+    "documentation": "Dokumentation",
+    "product": "Platform for Ocean Simulation · Dokumentation",
+    "previousNext": "Vorherige und nächste Anleitung",
+    "previous": "Zurück",
+    "next": "Weiter",
+    "edit": "Diese Seite bearbeiten",
+    "references": "Quellen",
+    "onThisPage": "Auf dieser Seite",
+    "noMatches": "Keine passenden Anleitungen gefunden.",
+    "searchUnavailable": "Wählen Sie eine Anleitung im Dokumentationsmenü.",
+    "copy": "Kopieren",
+    "copyCode": "Code kopieren",
+    "copied": "Kopiert",
+    "textSelected": "Text ausgewählt",
+    "copyShortcut": "Verwenden Sie das Tastenkürzel zum Kopieren.",
+    "videoBuffered": "Gepufferter Videoanteil",
+    "retry": "Erneut versuchen",
+    "openVideo": "Videodatei öffnen",
+    "buffering": "Video wird gepuffert…",
+    "loading": "Video wird geladen…",
+    "videoFailed": "Das Video konnte nicht geladen werden.",
+    "sourceDirectories": "Quellcode-Verzeichnisse"
+  },
+  "media": {
+    "camera": [
+      "Unterwasserkamera in einer Gazebo-Szene",
+      "Bildanzeige der Unterwasserkamera",
+      "Bild ohne RGB-Dämpfung und mit schwarzem Hintergrund",
+      "Trübes Küstenwasser: RGB-Dämpfung 0.8/0.5/0.2 und Hintergrund 85/107/47"
+    ],
+    "currents": [
+      "Tiefenabhängige Strömungsschichten und Fahrzeugreaktion",
+      "Datenfluss zwischen Welt, ROS und den Strömungs-Plugins des Modells",
+      "Fahrzeugreaktion auf eine gleichförmige Strömung",
+      "Fahrzeugreaktion auf eine geschichtete Strömung",
+      "ROS-Ausgabe der gleichförmigen Strömung",
+      "ROS-Ausgabe der geschichteten Strömung",
+      "Ausgabe der Strömungsschicht-Datenbank",
+      "Strömung auf Höhe des Modells anwenden",
+      "Strömungsgeschwindigkeit je Modell",
+      "ROS-Topic für die Modellströmung",
+      "Gazebo-Topic für die Modellströmung"
+    ],
+    "dvl": [
+      "DVL-Schallstrahlen zum Meeresboden",
+      "DVL-Geschwindigkeitsmessungen",
+      "DVL-Topic in Gazebo untersuchen",
+      "DVL-Topic in ROS untersuchen"
+    ],
+    "gliders": [
+      "Unterwasserbewegung des Slocum-Gleiters"
+    ],
+    "objects": [
+      "Modellauswahl im Gazebo Resource Spawner",
+      "Ein Modell zu Fuel hochladen",
+      "Modelldateien und Metadaten in Fuel",
+      "Bestätigung der Veröffentlichung in Fuel"
+    ],
+    "pressure": [
+      "Druckmessungen in ROS",
+      "Druckwerte in Gazebo untersuchen",
+      "Aus dem Druck berechnete Tiefe"
+    ],
+    "rovs": [
+      "Bewegung und Lage des REXROV unter Wasser"
+    ],
+    "sonar-tuning": [
+      "GPU-Verarbeitungsschritte des Sonars"
+    ],
+    "sonar": [
+      "Mehrstrahlsonar-Verarbeitung mit Punktstreuung",
+      "RGB, Tiefe, Sonarbild und Punktwolke derselben Szene",
+      "Bildänderungen im Sonarbeispiel",
+      "Sonarmessungen bei Änderungen der Szene",
+      "Sonarmessungen vom BlueROV2",
+      "Lokale Szenensuche mit Sonar"
+    ],
+    "usbl": [
+      "Anordnung von USBL-Sendeempfänger und Transpondern",
+      "Nachrichtenfluss bei gemeinsamer und einzelner Abfrage",
+      "Positionsmessungen des Transponders"
+    ]
+  },
+  "overview": "Meeresumgebung → Roboter und Dynamik → Sensormessungen → ROS-2-Steuerung. Ein Klick auf ein Bild öffnet die Anleitung."
+}

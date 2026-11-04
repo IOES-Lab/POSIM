@@ -1,0 +1,148 @@
+{
+  "name": "日本語",
+  "sections": [
+    "POSIMについて",
+    "はじめに",
+    "基本ガイド",
+    "ロボット制御",
+    "応用ガイド",
+    "プラグインリファレンス",
+    "参考情報と開発"
+  ],
+  "pages": {
+    "index": "概要",
+    "features": "機能とサンプル",
+    "requirements": "実行環境を選ぶ",
+    "install": "Ubuntu：ネイティブインストール",
+    "install-ubuntu-docker": "Linux：Dockerでのインストール",
+    "install-windows": "Windows：WSLへのインストール",
+    "install-windows-docker": "Windows：WSLとDocker",
+    "install-macos": "macOS：DockerとRDP",
+    "docker": "Docker環境",
+    "terminals": "ターミナルの準備",
+    "quickstart": "初めてのシミュレーション",
+    "visualization": "センサーデータの表示と記録",
+    "worlds": "ワールド一覧",
+    "rovs": "ROVとBlueROV2",
+    "gliders": "Slocumグライダー",
+    "objects": "オブジェクトと作業シーン",
+    "ros": "ROSのターミナルとトピック",
+    "python-control": "Pythonによる制御",
+    "robot-control": "スラスターとジョイスティック制御",
+    "surface": "水上ロボットと波",
+    "custom-worlds": "ワールドを作る",
+    "custom-robots": "ロボットを追加する",
+    "custom-sensors": "センサーの追加と設定",
+    "heightmaps": "高さマップによる地形",
+    "sonar-tuning": "ソナーの設定と調整",
+    "currents": "海流",
+    "underwater-rendering": "水中シーンの表現",
+    "camera": "水中カメラ",
+    "gnss": "海洋GNSS",
+    "pressure": "水圧",
+    "dvl": "ドップラー速度計",
+    "usbl": "USBL測位",
+    "coordinates": "地理座標",
+    "sonar": "マルチビームソナー",
+    "troubleshooting": "トラブルシューティング",
+    "contributing": "開発への参加",
+    "citation": "引用とライセンス"
+  },
+  "ui": {
+    "documentationLanguage": "ドキュメントの言語",
+    "colorTheme": "表示テーマ",
+    "system": "システム",
+    "light": "ライト",
+    "dark": "ダーク",
+    "skip": "本文へ移動",
+    "utility": "関連リンク",
+    "menu": "ドキュメントメニュー",
+    "search": "ドキュメントを検索",
+    "placeholder": "見出し・コマンド・トピック",
+    "otherLanguages": "すべての言語を検索",
+    "mobileNavigation": "モバイル用ドキュメント",
+    "documentation": "ドキュメント",
+    "product": "Platform for Ocean Simulation · ドキュメント",
+    "previousNext": "前後のガイド",
+    "previous": "前へ",
+    "next": "次へ",
+    "edit": "このページを編集",
+    "references": "参考資料",
+    "onThisPage": "このページの内容",
+    "noMatches": "該当するガイドがありません。",
+    "searchUnavailable": "ドキュメントメニューからガイドを選んでください。",
+    "copy": "コピー",
+    "copyCode": "コードをコピー",
+    "copied": "コピーしました",
+    "textSelected": "テキストを選択しました",
+    "copyShortcut": "コピーのショートカットキーを押してください。",
+    "videoBuffered": "動画のバッファリング状況",
+    "retry": "再試行",
+    "openVideo": "動画ファイルを開く",
+    "buffering": "動画をバッファリング中…",
+    "loading": "動画を読み込み中…",
+    "videoFailed": "動画を読み込めませんでした。",
+    "sourceDirectories": "ソースディレクトリ"
+  },
+  "media": {
+    "camera": [
+      "Gazeboの水中カメラシーン",
+      "水中カメラ画像の表示",
+      "RGB減衰をゼロにし、背景を黒にした画像",
+      "濁った沿岸水の画像：RGB減衰0.8/0.5/0.2、背景色85/107/47"
+    ],
+    "currents": [
+      "深さごとに異なる海流と機体の応答",
+      "ワールド、ROS、モデルの海流プラグイン間のデータフロー",
+      "一様な海流に対する機体の応答",
+      "成層海流に対する機体の応答",
+      "一様海流のROS出力",
+      "成層海流のROS出力",
+      "成層海流データベースの出力",
+      "モデルの深さに応じた海流の適用",
+      "モデルごとの海流速度",
+      "モデルの海流を扱うROSトピック",
+      "モデルの海流を扱うGazeboトピック"
+    ],
+    "dvl": [
+      "海底に向けたDVLの音響ビーム",
+      "DVLによる速度観測",
+      "GazeboのDVLトピックを確認",
+      "ROSのDVLトピックを確認"
+    ],
+    "gliders": [
+      "Slocumグライダーの水中運動"
+    ],
+    "objects": [
+      "GazeboのResource Spawnerでモデルを選択",
+      "Fuelへのモデルのアップロード",
+      "Fuelのモデルファイルとメタデータ",
+      "Fuelへの公開確認"
+    ],
+    "pressure": [
+      "ROSの圧力観測値",
+      "Gazeboで圧力を確認",
+      "圧力から求めた深度の出力"
+    ],
+    "rovs": [
+      "REXROVの水中運動と姿勢"
+    ],
+    "sonar-tuning": [
+      "ソナー処理のGPU処理段階"
+    ],
+    "sonar": [
+      "点散乱によるマルチビームソナー処理",
+      "同じシーンのRGB画像、深度、ソナー画像、点群",
+      "ソナーサンプルの画像変化",
+      "シーンの変化に伴うソナー観測",
+      "BlueROV2からのソナー観測",
+      "ソナーによる近傍シーンの探索"
+    ],
+    "usbl": [
+      "USBLの送受波器とトランスポンダーの配置",
+      "共通呼び出しと個別呼び出しのメッセージフロー",
+      "トランスポンダーの位置観測"
+    ]
+  },
+  "overview": "海洋環境 → ロボットと動力学 → センサー観測 → ROS 2制御。画像を選ぶとガイドが開きます。"
+}
