@@ -54,3 +54,12 @@ For a native arm64 SDK using Ogre-Next 2.3.3, the [isolated Ogre overlay](https:
 ## Make a useful report
 
 Include source SHA or image digest, dependency versions, command/arguments, first error, expected behavior, relevant topic types and a short reproducible case. Note whether the topic only appears in the list or also delivers data.
+
+## MAVROS 2.16.0 exits with SIGSEGV
+
+For the tested Ubuntu 26.04 / Lyrical profile, the optional
+[Router lifetime overlay](https://github.com/IOES-Lab/POSIM/tree/main/extras/mavros)
+backports the upstream ownership correction without replacing installed ROS
+libraries. Read its exact version prerequisites and verify the loaded library
+paths. It is not automatically enabled by the standard installer. Retain the
+full log and distinguish a MAVROS child crash from the launcher's exit status.
