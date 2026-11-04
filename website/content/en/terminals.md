@@ -47,7 +47,7 @@ cd "$POSIM_WS"
 For **Docker**, including the Linux desktop reached through RDP, run in A and B:
 
 ```bash
-export POSIM_WS="${POSIM_WS:-${POSIM_UNDERLAY:-}}"
+export POSIM_WS="${POSIM_WS:-${POSIM_UNDERLAY:-/home/docker/posim_ws}}"
 source /opt/ros/lyrical/setup.bash
 source "$POSIM_WS/install/setup.bash"
 cd "$POSIM_WS"

@@ -47,7 +47,7 @@ cd "$POSIM_WS"
 **Docker 설치**에서는 RDP로 접속한 Linux 데스크톱을 포함해 A와 B 각각에서 실행합니다.
 
 ```bash
-export POSIM_WS="${POSIM_WS:-${POSIM_UNDERLAY:-}}"
+export POSIM_WS="${POSIM_WS:-${POSIM_UNDERLAY:-/home/docker/posim_ws}}"
 source /opt/ros/lyrical/setup.bash
 source "$POSIM_WS/install/setup.bash"
 cd "$POSIM_WS"
