@@ -7,14 +7,11 @@ import xml.etree.ElementTree as ET
 from launch import LaunchDescription
 from launch.actions import (
     DeclareLaunchArgument,
-    EmitEvent,
-    LogError,
     OpaqueFunction,
     ExecuteProcess,
     RegisterEventHandler,
 )
 from launch.event_handlers import OnProcessExit
-from launch.events import Shutdown
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 
@@ -23,12 +20,13 @@ from wamv import make_model  # noqa: E402 - sibling module after launch loader p
 from waves import prepare  # noqa: E402 - sibling module after launch loader path
 
 
-def continue_on_success(event, actions, stage):
+def continue_on_success(event, context, actions, stage):
     """Advance only when the preceding startup process completed successfully."""
+    if context.is_shutdown:
+        return []
     if event.returncode == 0:
         return actions
-    reason = f"Surface demo {stage} failed (exit {event.returncode})"
-    return [LogError(msg=reason), EmitEvent(event=Shutdown(reason=reason))]
+    raise RuntimeError(f"Surface demo {stage} failed (exit {event.returncode})")
 
 
 def setup(context):
@@ -143,7 +141,7 @@ def setup(context):
             OnProcessExit(
                 target_action=create,
                 on_exit=lambda event, context: continue_on_success(
-                    event, [bridge, wait], "model spawn"
+                    event, context, [bridge, wait], "model spawn"
                 ),
             )
         ),
@@ -151,7 +149,7 @@ def setup(context):
             OnProcessExit(
                 target_action=wait,
                 on_exit=lambda event, context: continue_on_success(
-                    event, [sitl, mavros], "IMU readiness"
+                    event, context, [sitl, mavros], "IMU readiness"
                 ),
             )
         ),

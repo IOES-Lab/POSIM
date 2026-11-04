@@ -15,7 +15,7 @@ docker run --rm -it --entrypoint bash posim:surface -lc \
 
 This image contains ArduSub and ArduRover as separate binaries. The single-vehicle example selects ArduRover's boat configuration (`FRAME_CLASS=2`). Separate vehicles need separate controller identities and network ports.
 
-The controller starts after the vehicle spawns and its IMU publishes data. If spawning fails or takes more than 180 seconds, or no IMU sample arrives within 180 seconds after spawning, launch stops and reports the failed stage. Check the Gazebo and sensor logs before retrying.
+The controller starts after the vehicle spawns and its IMU publishes data. If spawning fails or takes more than 180 seconds, or no IMU sample arrives within 180 seconds after spawning, launch stops with a nonzero status and reports the failed stage. Check the Gazebo and sensor logs before retrying.
 
 ## Model, controller and navigation
 
