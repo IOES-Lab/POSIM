@@ -7,11 +7,11 @@ It supports any model with a named antenna link; vehicle mounts and receiver
 defaults are in `config/profiles.json`. BlueROV mounts are optional and disabled
 by default. The WAM-V model requires the external Wave Sim `wam-v` model.
 
-Build:
+Build from the configured POSIM workspace root:
 
 ```sh
 source /opt/ros/lyrical/setup.bash
-colcon build --packages-select posim_gz_gnss posim_robot_models
+colcon build --merge-install --packages-select posim_gz_gnss posim_robot_models
 source install/setup.bash
 ```
 
