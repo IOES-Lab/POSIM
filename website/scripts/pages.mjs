@@ -18,7 +18,7 @@ export const sections = [
     ['custom-robots', 'Add a robot', '로봇 추가', ['add-robot']],
     ['heightmaps', 'Heightmap terrain', '높이맵 지형', ['heightmaps']],
     ['ros', 'ROS 2 & control', 'ROS 2와 제어', ['quickstart', 'rovs']],
-    ['sonar-tuning', 'Sonar build & performance', '소나 빌드와 성능', ['sonar-build', 'sonar-optimization']],
+    ['sonar-tuning', 'Configure & tune sonar', '소나 설정과 실험', ['sonar-build', 'sonar-optimization']],
     ['troubleshooting', 'Troubleshooting', '문제 해결', ['quickstart', 'sonar-build']],
   ] },
   { en: 'Plugin reference', ko: '플러그인 참고', pages: [

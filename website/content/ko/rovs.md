@@ -39,11 +39,11 @@ Heavy 모델은 `namespace:=bluerov2_heavy`로 선택합니다. Launch 출력과
 
 ## 로컬 브라우저 조이스틱
 
-별도 터미널에서 포함된 HTML을 제공합니다.
+환경을 불러온 별도 터미널에서 설치된 조이스틱 페이지를 제공합니다.
 
 ```bash
 python3 -m http.server 8080 --bind 127.0.0.1 \
-  --directory "$HOME/posim_ws/src/posim/extras"
+  --directory "$(ros2 pkg prefix --share posim_robot_models)/web"
 ```
 
 Teleoperation을 켜고 BlueROV2를 시작합니다.

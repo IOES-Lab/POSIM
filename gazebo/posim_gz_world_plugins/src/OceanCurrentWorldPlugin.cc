@@ -35,6 +35,7 @@
 #include <ament_index_cpp/get_package_share_directory.hpp>
 
 // Custom plugin headers
+#include "CurrentProfile.hh"
 #include "posim_gz_world_plugins/gauss_markov_process.hh"  // For Gauss-Markov process
 #include "posim_gz_world_plugins/tidal_oscillation.hh"     // For tidal oscillation modeling
 
@@ -52,6 +53,7 @@ struct OceanCurrentWorldPlugin::PrivateData
   gz::sim::World world{gz::sim::kNullEntity};  // Gazebo world instance
   sdf::ElementPtr sdf;                         // Pointer to the SDF element
   bool hasSurface;                             // Flag to check if surface is present
+  bool configured = false;
 
   // Communication Node for Gazebo
   // std::shared_ptr<gz::transport::Node> gz_node;  // Transport node for communication
@@ -118,21 +120,47 @@ void OceanCurrentWorldPlugin::Configure(
   const gz::sim::Entity & _entity, const std::shared_ptr<const sdf::Element> & _sdf,
   gz::sim::EntityComponentManager & _ecm, gz::sim::EventManager & _eventMgr)
 {
-  this->dataPtr->world = gz::sim::World(_ecm.EntityByComponents(gz::sim::components::World()));
+  this->dataPtr->world = gz::sim::World(_entity);
   if (!this->dataPtr->world.Valid(_ecm))  // check
   {
     gzerr << "World entity not found" << std::endl;
     return;
   }
-  this->dataPtr->sdf = std::const_pointer_cast<sdf::Element>(_sdf);
+  if (
+    !_sdf || !_sdf->HasElement("namespace") || !_sdf->HasElement("constant_current") ||
+    !_sdf->HasElement("transient_current"))
+  {
+    gzerr << "OceanCurrentWorldPlugin requires <namespace>, <constant_current> and "
+          << "<transient_current>. Current publication is disabled." << std::endl;
+    return;
+  }
+  this->dataPtr->sdf = _sdf->Clone();
 
   // Read the namespace for topics and services
   this->dataPtr->ns = _sdf->Get<std::string>("namespace");
+  if (this->dataPtr->ns.empty())
+  {
+    gzerr << "OceanCurrentWorldPlugin requires a nonempty namespace." << std::endl;
+    return;
+  }
 
   gzmsg << "Loading Ocean current world plugin" << std::endl;
 
   LoadGlobalCurrentConfig();
-  LoadStratifiedCurrentDatabase();
+  for (auto * model :
+       {&this->sharedDataPtr->currentVelModel, &this->sharedDataPtr->currentHorzAngleModel,
+        &this->sharedDataPtr->currentVertAngleModel})
+  {
+    if (!model->SetModel(model->mean, model->min, model->max, model->mu, model->noiseAmp))
+    {
+      gzerr << "Invalid current model parameters. Current publication is disabled." << std::endl;
+      return;
+    }
+  }
+  if (!LoadStratifiedCurrentDatabase())
+  {
+    return;
+  }
 
   if (_sdf->HasElement("tidal_oscillation"))
   {
@@ -148,6 +176,8 @@ void OceanCurrentWorldPlugin::Configure(
   {
     OceanCurrentWorldPlugin::singletonInstance = this;
   }
+
+  this->dataPtr->configured = true;
 
   gzmsg << "Underwater current plugin loaded!" << std::endl
         << "\tWARNING: Current velocity calculated in the ENU frame" << std::endl;
@@ -393,7 +423,7 @@ void OceanCurrentWorldPlugin::LoadTidalOscillationDatabase()
 }
 
 /////////////////////////////////////////////////
-void OceanCurrentWorldPlugin::LoadStratifiedCurrentDatabase()
+bool OceanCurrentWorldPlugin::LoadStratifiedCurrentDatabase()
 {
   sdf::ElementPtr transientCurrentParams;
 
@@ -404,6 +434,7 @@ void OceanCurrentWorldPlugin::LoadStratifiedCurrentDatabase()
   else
   {
     gzerr << "Transient current configuration not available" << std::endl;
+    return false;
   }
 
   if (transientCurrentParams->HasElement("topic_stratified"))
@@ -441,55 +472,42 @@ void OceanCurrentWorldPlugin::LoadStratifiedCurrentDatabase()
 
   gzmsg << this->dataPtr->databaseFilePath << std::endl;
 
-  // Read database
-  std::ifstream csvFile;
-  std::string line;
-  csvFile.open(this->dataPtr->databaseFilePath);
+  std::ifstream csvFile(this->dataPtr->databaseFilePath);
   if (!csvFile)
   {
-    gz::common::SystemPaths * paths = new gz::common::SystemPaths();
-    this->dataPtr->databaseFilePath = paths->FindFile(this->dataPtr->databaseFilePath, true);
+    gz::common::SystemPaths paths;
+    this->dataPtr->databaseFilePath = paths.FindFile(this->dataPtr->databaseFilePath, true);
+    csvFile.clear();
     csvFile.open(this->dataPtr->databaseFilePath);
   }
 
   if (!csvFile)
   {
     gzerr << "Stratified Ocean database file does not exist" << std::endl;
+    return false;
   }
 
-  gzmsg << "Statified Ocean Current Database loaded : " << this->dataPtr->databaseFilePath
-        << std::endl;
-
-  // skip the 3 lines
-  getline(csvFile, line);
-  getline(csvFile, line);
-  getline(csvFile, line);
-  while (getline(csvFile, line))
+  std::vector<gz::math::Vector3d> profile;
+  try
   {
-    if (line.empty())  // skip empty lines:
-    {
-      continue;
-    }
-    std::istringstream iss(line);
-    std::string lineStream;
-    std::string::size_type sz;
-    std::vector<long double> row;
-    while (getline(iss, lineStream, ','))
-    {
-      row.push_back(stold(lineStream, &sz));  // convert to double
-    }
-    gz::math::Vector3d read;
-    read.X() = row[0];
-    read.Y() = row[1];
-    read.Z() = row[2];
-    this->sharedDataPtr->stratifiedDatabase.push_back(read);
-
+    profile = detail::ReadCurrentProfile(csvFile);
+  }
+  catch (const std::invalid_argument & error)
+  {
+    gzerr << "Invalid current profile " << this->dataPtr->databaseFilePath << ": " << error.what()
+          << std::endl;
+    return false;
+  }
+  this->sharedDataPtr->stratifiedDatabase = std::move(profile);
+  this->sharedDataPtr->stratifiedCurrentModels.clear();
+  for (const auto & row : this->sharedDataPtr->stratifiedDatabase)
+  {
     // Create Gauss-Markov processes for the stratified currents
     // Means are the database-specified magnitudes & angles, and
     // the other values come from the constant current models
 
     posim_gz_world_plugins::GaussMarkovProcess magnitudeModel;
-    magnitudeModel.mean = hypot(row[1], row[0]);
+    magnitudeModel.mean = hypot(row.Y(), row.X());
     magnitudeModel.var = magnitudeModel.mean;
     magnitudeModel.max = this->sharedDataPtr->currentVelModel.max;
     magnitudeModel.min = 0.0;
@@ -498,7 +516,7 @@ void OceanCurrentWorldPlugin::LoadStratifiedCurrentDatabase()
     magnitudeModel.lastUpdate = std::chrono::duration<double>(this->dataPtr->lastUpdate).count();
 
     posim_gz_world_plugins::GaussMarkovProcess hAngleModel;
-    hAngleModel.mean = atan2(row[1], row[0]);
+    hAngleModel.mean = atan2(row.Y(), row.X());
     hAngleModel.var = hAngleModel.mean;
     hAngleModel.max = M_PI;
     hAngleModel.min = -M_PI;
@@ -530,6 +548,7 @@ void OceanCurrentWorldPlugin::LoadStratifiedCurrentDatabase()
   gzmsg << "Stratified current velocity topic name: "
         << this->dataPtr->ns + "/" + this->sharedDataPtr->stratifiedCurrentVelocityTopic
         << std::endl;
+  return true;
 }
 
 /////////////////////////////////////////////////
@@ -611,15 +630,15 @@ void OceanCurrentWorldPlugin::LoadGlobalCurrentConfig()
     }
 
     if (!(this->sharedDataPtr->currentVelModel.mu >= 0 &&
-          this->sharedDataPtr->currentVelModel.mu < 1))
+          this->sharedDataPtr->currentVelModel.mu <= 1))
     {
       gzerr << "Invalid process constant" << std::endl;
     }
 
-    if (!(this->sharedDataPtr->currentVelModel.noiseAmp < 1 &&
+    if (!(std::isfinite(this->sharedDataPtr->currentVelModel.noiseAmp) &&
           this->sharedDataPtr->currentVelModel.noiseAmp >= 0))
     {
-      gzerr << "Noise amplitude has to be smaller than 1" << std::endl;
+      gzerr << "Noise amplitude must be finite and nonnegative" << std::endl;
     }
   }
 
@@ -671,15 +690,15 @@ void OceanCurrentWorldPlugin::LoadGlobalCurrentConfig()
     }
 
     if (!(this->sharedDataPtr->currentHorzAngleModel.mu >= 0 &&
-          this->sharedDataPtr->currentHorzAngleModel.mu < 1))
+          this->sharedDataPtr->currentHorzAngleModel.mu <= 1))
     {
       gzerr << "Invalid process constant" << std::endl;
     }
 
-    if (!(this->sharedDataPtr->currentHorzAngleModel.noiseAmp < 1 &&
+    if (!(std::isfinite(this->sharedDataPtr->currentHorzAngleModel.noiseAmp) &&
           this->sharedDataPtr->currentHorzAngleModel.noiseAmp >= 0))
     {
-      gzerr << "Noise amplitude for horizontal angle has to be between 0 and 1" << std::endl;
+      gzerr << "Horizontal angle noise amplitude must be finite and nonnegative" << std::endl;
     }
   }
 
@@ -731,15 +750,15 @@ void OceanCurrentWorldPlugin::LoadGlobalCurrentConfig()
     }
 
     if (!(this->sharedDataPtr->currentVertAngleModel.mu >= 0 &&
-          this->sharedDataPtr->currentVertAngleModel.mu < 1))
+          this->sharedDataPtr->currentVertAngleModel.mu <= 1))
     {
       gzerr << "Invalid process constant" << std::endl;
     }
 
-    if (!(this->sharedDataPtr->currentVertAngleModel.noiseAmp < 1 &&
+    if (!(std::isfinite(this->sharedDataPtr->currentVertAngleModel.noiseAmp) &&
           this->sharedDataPtr->currentVertAngleModel.noiseAmp >= 0))
     {
-      gzerr << "Noise amplitude for vertical angle has to be between 0 and 1" << std::endl;
+      gzerr << "Vertical angle noise amplitude must be finite and nonnegative" << std::endl;
     }
   }
 
@@ -769,6 +788,10 @@ void OceanCurrentWorldPlugin::LoadGlobalCurrentConfig()
 void OceanCurrentWorldPlugin::Update(
   const gz::sim::UpdateInfo & _info, gz::sim::EntityComponentManager & _ecm)
 {
+  if (!this->dataPtr->configured || _info.paused)
+  {
+    return;
+  }
   // Update the time
   auto time = std::chrono::duration<double>(_info.simTime).count();
 
@@ -838,6 +861,10 @@ void OceanCurrentWorldPlugin::PublishStratifiedCurrentVelocity()
 void OceanCurrentWorldPlugin::PostUpdate(
   const gz::sim::UpdateInfo & _info, const gz::sim::EntityComponentManager & _ecm)
 {
+  if (!this->dataPtr->configured || _info.paused)
+  {
+    return;
+  }
   // gzmsg << "Ocean current world plugin post update" << std::endl;
   // Update time stamp
   this->dataPtr->lastUpdate = _info.simTime;

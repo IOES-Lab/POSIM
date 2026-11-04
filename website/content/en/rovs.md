@@ -39,11 +39,11 @@ In an interactive desktop terminal, set `gui:=true headless:=false use_teleop:=t
 
 ## Local browser joystick
 
-Serve the included HTML from a separate terminal:
+Serve the installed joystick page from a separate sourced terminal:
 
 ```bash
 python3 -m http.server 8080 --bind 127.0.0.1 \
-  --directory "$HOME/posim_ws/src/posim/extras"
+  --directory "$(ros2 pkg prefix --share posim_robot_models)/web"
 ```
 
 Launch BlueROV2 with teleoperation enabled:

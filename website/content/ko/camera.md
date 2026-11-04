@@ -35,6 +35,29 @@ RViz의 Image 디스플레이에서 결과를 확인하세요. GUI가 없어도 
 
 모델은 RGBD 센서와 `UnderwaterCamera` 플러그인, `posim_gz_sensor_plugins::UnderwaterCamera` 클래스를 사용합니다. 센서·데이터 토픽을 모델 설정과 맞춥니다.
 
+모델의 `<link>` 안에 다음 센서를 넣습니다. 월드에는 `<render_engine>ogre2</render_engine>`를 지정한 `gz-sim-sensors-system`도 필요합니다. [카메라 월드](https://github.com/IOES-Lab/POSIM/blob/main/models/posim_worlds/worlds/camera_tutorial.world)를 참고하세요. 플러그인은 Gazebo RGB·깊이 영상을 읽고 ROS 출력 `/underwater_camera/simulated_image`를 직접 발행합니다.
+
+```xml
+<sensor name="underwater_camera" type="rgbd_camera">
+  <update_rate>10</update_rate>
+  <topic>underwater_camera</topic>
+  <camera>
+    <horizontal_fov>1.05</horizontal_fov>
+    <image><width>320</width><height>240</height></image>
+    <clip><near>0.1</near><far>10.0</far></clip>
+  </camera>
+  <plugin filename="UnderwaterCamera"
+          name="posim_gz_sensor_plugins::UnderwaterCamera">
+    <attenuationR>0.8</attenuationR>
+    <attenuationG>0.5</attenuationG>
+    <attenuationB>0.2</attenuationB>
+    <backgroundR>85</backgroundR>
+    <backgroundG>107</backgroundG>
+    <backgroundB>47</backgroundB>
+  </plugin>
+</sensor>
+```
+
 | SDF 설정 | 의미 | 코드 기본값 |
 | --- | --- | --- |
 | `attenuationR` | 미터당 빨강 채널 감쇠 | `1/30` |

@@ -35,6 +35,29 @@ This is a procedural optical effect. Its drift is independent of simulated curre
 
 The model uses an RGBD sensor and the plugin `UnderwaterCamera`, class `posim_gz_sensor_plugins::UnderwaterCamera`. Keep its sensor/data topics consistent with the model configuration.
 
+Place this sensor inside a model `<link>`. The world also needs `gz-sim-sensors-system` with `<render_engine>ogre2</render_engine>`, as in [the camera world](https://github.com/IOES-Lab/POSIM/blob/main/models/posim_worlds/worlds/camera_tutorial.world). The plugin reads Gazebo RGB/depth images and directly publishes the ROS output `/underwater_camera/simulated_image`.
+
+```xml
+<sensor name="underwater_camera" type="rgbd_camera">
+  <update_rate>10</update_rate>
+  <topic>underwater_camera</topic>
+  <camera>
+    <horizontal_fov>1.05</horizontal_fov>
+    <image><width>320</width><height>240</height></image>
+    <clip><near>0.1</near><far>10.0</far></clip>
+  </camera>
+  <plugin filename="UnderwaterCamera"
+          name="posim_gz_sensor_plugins::UnderwaterCamera">
+    <attenuationR>0.8</attenuationR>
+    <attenuationG>0.5</attenuationG>
+    <attenuationB>0.2</attenuationB>
+    <backgroundR>85</backgroundR>
+    <backgroundG>107</backgroundG>
+    <backgroundB>47</backgroundB>
+  </plugin>
+</sensor>
+```
+
 | SDF parameter | Meaning | Code default |
 | --- | --- | --- |
 | `attenuationR` | Red-channel attenuation per meter | `1/30` |

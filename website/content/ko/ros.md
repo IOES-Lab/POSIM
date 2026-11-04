@@ -28,10 +28,10 @@ ros2 topic pub --once /model/rexrov/joint/thruster1_joint/cmd_thrust \
 
 ## BlueROV2와 autopilot
 
-BlueROV2는 MAVROS를 통해 ArduSub와 연결합니다. 상태와 사용할 명령 인터페이스를 확인합니다.
+BlueROV2는 MAVROS를 통해 ArduSub와 연결합니다. [BlueROV2 예제](rovs.md#bluerov2-실행)를 시작한 뒤 연결 상태가 될 때까지 기다리고 명령 인터페이스를 확인합니다.
 
 ```bash
-ros2 topic echo /mavros/state --once
+ros2 topic echo /mavros/state mavros_msgs/msg/State --once --filter 'm.connected'
 ros2 service list -t
 ros2 topic info /mavros/manual_control/send --verbose
 ```
@@ -83,8 +83,22 @@ RViz에서 자료형에 맞는 디스플레이를 선택합니다.
 
 POSIM 전용 메시지는 `posim_interfaces`에 정의되어 있습니다. 별도 ROS 클라이언트에도 이를 설치하고 환경을 불러오세요.
 
+센서 토픽과 메시지 자료형은 [카메라](camera.md), [압력](pressure.md), [DVL](dvl.md), [USBL](usbl.md), [소나](sonar.md) 참고 문서에서 확인합니다. [해류](currents.md)와 [구면 좌표](coordinates.md)는 실험 입력을 바꾸는 ROS 서비스도 제공합니다.
+
 ```bash
-ros2 bag record --topics /model/rexrov/odometry /model/rexrov/imu
+ros2 bag record -o rexrov_run --topics /model/rexrov/odometry /model/rexrov/imu
+```
+
+Ctrl+C를 눌러 기록을 마칩니다. 실행할 때마다 새 출력 디렉터리를 지정하세요. 저장된 토픽별 메시지 수를 확인합니다.
+
+```bash
+ros2 bag info rexrov_run
+```
+
+동일한 토픽으로 관측 데이터를 재생하기 전에 시뮬레이터를 종료합니다.
+
+```bash
+ros2 bag play rexrov_run
 ```
 
 원격 ROS 클라이언트에는 다음 설정이 필요합니다.

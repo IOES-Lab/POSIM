@@ -23,19 +23,11 @@ Start with [installation](https://ioes-lab.github.io/POSIM/install.html) or
 [Docker](https://ioes-lab.github.io/POSIM/docker.html), then run your
 [first simulation](https://ioes-lab.github.io/POSIM/quickstart.html).
 
-## Try WWW-POSIM
-
-[WWW-POSIM](https://www-posim.vercel.app/) uses POSIM as its simulation engine.
-Run it in a web workspace or desktop app.
-
-- Generate seabed and coast from geographic coordinates.
-- Operate surface or underwater robots and inspect sensors.
-- Test ArduPilot waypoint missions or ROS 2 control code.
-- Watch the public LIVE world voyage.
-
 ## Terrain, routing and control libraries
 
-WWW-POSIM connects the POSIM engine to three public libraries. Each repository has English/Korean usage instructions and tests.
+These related libraries support geographic terrain, route planning and vehicle
+control experiments with POSIM. Each repository has English/Korean usage
+instructions and tests.
 
 | Library | Responsibility |
 | --- | --- |
@@ -44,6 +36,10 @@ WWW-POSIM connects the POSIM engine to three public libraries. Each repository h
 | [POSIM-Control](https://github.com/IOES-Lab/POSIM-Control) | Vehicle propulsion, leader/follower control and motion policies |
 
 Read the [library guide](https://ioes-lab.github.io/POSIM/libraries.html) or [한국어 안내](https://ioes-lab.github.io/POSIM/ko/libraries.html) for how they work together and how to use them directly.
+
+[WWW-POSIM](https://www-posim.vercel.app/) is an optional web and desktop
+application built with POSIM. Its application workflows have their own
+documentation; the guides above cover using POSIM directly.
 
 ## Contributing
 

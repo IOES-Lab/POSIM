@@ -1,9 +1,9 @@
 #ifndef POSIM_GZ_WORLD_PLUGINS__OCEAN_CURRENT_WORLD_PLUGIN_HH_
 #define POSIM_GZ_WORLD_PLUGINS__OCEAN_CURRENT_WORLD_PLUGIN_HH_
 
+#include <gz/sim/System.hh>
 #include <posim_gz_world_plugins/gauss_markov_process.hh>
 #include <posim_gz_world_plugins/tidal_oscillation.hh>
-#include <gz/sim/System.hh>
 #include "posim_gz_world_plugins_msgs/msgs/StratifiedCurrentVelocity.pb.h"
 
 // #include <cmath>
@@ -39,7 +39,7 @@ public:
 
   void LoadTidalOscillationDatabase();
 
-  void LoadStratifiedCurrentDatabase();
+  bool LoadStratifiedCurrentDatabase();
 
   void LoadGlobalCurrentConfig();
 

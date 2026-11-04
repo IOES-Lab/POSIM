@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>DAVE Virtual Gamepad</title>
+  <title>POSIM Virtual Gamepad</title>
   <style>
     :root {
       --bg-a: #041018;
@@ -44,7 +44,6 @@
       border-radius: 28px;
       background: var(--panel);
       box-shadow: var(--shadow);
-      backdrop-filter: blur(12px);
     }
 
     .hero {
@@ -156,7 +155,6 @@
       background:
         linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01)),
         rgba(255, 255, 255, 0.03);
-      backdrop-filter: blur(10px);
     }
 
     .controller-card {
@@ -557,17 +555,45 @@
         padding: 14px;
       }
 
+      .controller-stage {
+        display: grid;
+        gap: 24px;
+        aspect-ratio: auto;
+      }
+
+      .controller-bg {
+        display: none;
+      }
+
+      .top-strip,
+      .main-strip {
+        position: static;
+        width: 100%;
+        transform: none;
+      }
+
+      .main-strip {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 24px 16px;
+      }
+
+      .cluster:nth-child(1) { order: 1; }
+      .cluster:nth-child(4) { order: 2; }
+      .cluster:nth-child(2) { order: 3; }
+      .cluster:nth-child(3) { order: 4; }
+
       .top-strip {
-        width: 90%;
+        width: 100%;
       }
 
       .top-strip-controls {
         gap: 6px;
+        flex-wrap: wrap;
       }
 
       .top-btn {
         min-width: 44px;
-        height: 36px;
+        height: 44px;
         padding: 0 10px;
         font-size: 0.68rem;
       }
@@ -577,12 +603,12 @@
       }
 
       .top-btn.guide {
-        min-width: 38px;
-        width: 38px;
+        min-width: 44px;
+        width: 44px;
       }
 
       .cluster-note {
-        font-size: 0.68rem;
+        font-size: 0.76rem;
       }
 
       .status-row {
@@ -606,12 +632,18 @@
         font-size: 0.9rem;
       }
     }
+
+    @media (max-width: 380px) {
+      .main-strip {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
   </style>
 </head>
 <body>
   <main class="shell">
     <section class="hero">
-      <h1>DAVE Virtual Joystick</h1>
+      <h1>POSIM Virtual Joystick</h1>
       <!-- <div class="subtitle">
         Browser-based virtual gamepad for the web teleop backend.
         The layout looks like an Xbox controller, while sending the exact ROS joystick axes and button indices used by the simulator.
@@ -886,6 +918,9 @@
       });
       button.addEventListener("click", (event) => {
         event.preventDefault();
+        if (event.detail === 0) {
+          pulseButton(Number(button.dataset.button));
+        }
       });
     });
 
@@ -1029,6 +1064,11 @@
     function pulseButton(index) {
       buttonPulseUntil[index] = performance.now() + BUTTON_PULSE_MS;
       markVirtualActivity();
+      // A discrete press must reach ROS even when rendering takes longer than
+      // the visual pulse. Continuous stick updates remain in the frame loop.
+      if (ws && ws.readyState === WebSocket.OPEN && selectedMode !== "gamepad") {
+        ws.send(JSON.stringify(buildVirtualPayload(performance.now()).payload));
+      }
     }
 
     function pickBestGamepad() {

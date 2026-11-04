@@ -35,6 +35,7 @@
 #include <rclcpp/rclcpp.hpp>
 #include <std_msgs/msg/string.hpp>
 
+#include "UsblConfig.hh"
 #include "posim_gz_sensor_plugins/UsblTransponder.hh"
 
 using std::placeholders::_1;
@@ -49,6 +50,7 @@ namespace posim_gz_sensor_plugins
 
 struct UsblTransponder::PrivateData
 {
+  bool configured{false};
   // Add any private data members here.
   gz::sim::Model model;
   gz::sim::Entity transceiverEntity;
@@ -83,12 +85,19 @@ UsblTransponder::UsblTransponder() : dataPtr(std::make_unique<PrivateData>())
   dataPtr->m_noiseMu = 0.0;       // Default initialization
 }
 
+UsblTransponder::~UsblTransponder() = default;
+
 void UsblTransponder::Configure(
   const gz::sim::Entity & _entity, const std::shared_ptr<const sdf::Element> & _sdf,
   gz::sim::EntityComponentManager & _ecm, gz::sim::EventManager & _eventManager)
 {
   gzdbg << "posim_gz_sensor_plugins::UsblTransponder::Configure on entity: " << _entity
         << std::endl;
+
+  if (!detail::ValidateUsblConfig(_sdf, false))
+  {
+    return;
+  }
 
   if (!rclcpp::ok())
   {
@@ -99,6 +108,11 @@ void UsblTransponder::Configure(
   this->dataPtr->ecm = &_ecm;
 
   auto model = gz::sim::Model(_entity);
+  if (!model.Valid(_ecm))
+  {
+    gzerr << "UsblTransponder must be attached to a model with a link." << std::endl;
+    return;
+  }
   this->dataPtr->model = model;
   this->dataPtr->modelName = model.Name(_ecm);
 
@@ -115,7 +129,8 @@ void UsblTransponder::Configure(
   }
   else
   {
-    gzmsg << "No links found in the model." << std::endl;
+    gzerr << "UsblTransponder requires a model link." << std::endl;
+    return;
   }
 
   if (!model.Valid(_ecm))
@@ -183,7 +198,8 @@ void UsblTransponder::Configure(
           << "plugin will not be initialized." << std::endl;
     return;
   }
-  this->dataPtr->m_transponderID = _sdf->Get<std::string>("transponder_ID");
+  this->dataPtr->m_transponderID =
+    detail::UsblList(_sdf->Get<std::string>("transponder_ID")).front();
   this->ros_node_ =
     std::make_shared<rclcpp::Node>("usbl_transponder_" + this->dataPtr->m_transponderID + "_node");
 
@@ -260,10 +276,15 @@ void UsblTransponder::Configure(
     this->ros_node_->create_subscription<std_msgs::msg::String>(
       interrogation_mode_topic, 1,
       std::bind(&UsblTransponder::interrogationModeCallback, this, _1));
+  this->dataPtr->configured = true;
 }
 
 void UsblTransponder::sendLocation()
 {
+  if (!this->dataPtr->configured)
+  {
+    return;
+  }
   double noiseX = this->dataPtr->m_noiseMu;
   double noiseY = this->dataPtr->m_noiseMu;
   double noiseZ = this->dataPtr->m_noiseMu;
@@ -290,6 +311,10 @@ void UsblTransponder::sendLocation()
 
 void UsblTransponder::iisRosCallback(const std_msgs::msg::String::SharedPtr msg)
 {
+  if (!this->dataPtr->configured)
+  {
+    return;
+  }
   if (this->dataPtr->m_interrogationMode.compare("individual") == 0)
   {
     gz::math::Pose3d pose_transponder = worldPose(this->dataPtr->linkEntity, *this->dataPtr->ecm);
@@ -327,6 +352,10 @@ void UsblTransponder::iisRosCallback(const std_msgs::msg::String::SharedPtr msg)
 
 void UsblTransponder::cisRosCallback(const std_msgs::msg::String::SharedPtr msg)
 {
+  if (!this->dataPtr->configured)
+  {
+    return;
+  }
   if (this->dataPtr->m_interrogationMode.compare("common") == 0)
   {
     gz::math::Pose3d pose_transponder = worldPose(this->dataPtr->linkEntity, *this->dataPtr->ecm);
@@ -361,6 +390,10 @@ void UsblTransponder::cisRosCallback(const std_msgs::msg::String::SharedPtr msg)
 
 void UsblTransponder::interrogationModeCallback(const std_msgs::msg::String::SharedPtr msg)
 {
+  if (msg->data != "common" && msg->data != "individual")
+  {
+    return;
+  }
   this->dataPtr->m_interrogationMode = msg->data;
 
   gzmsg << "Transponders changed interrogation mode to " << this->dataPtr->m_interrogationMode
@@ -369,6 +402,10 @@ void UsblTransponder::interrogationModeCallback(const std_msgs::msg::String::Sha
 
 void UsblTransponder::temperatureRosCallback(const std_msgs::msg::Float64::SharedPtr msg)
 {
+  if (!this->dataPtr->configured || !std::isfinite(msg->data))
+  {
+    return;
+  }
   gz::math::Pose3d pose_transponder = worldPose(this->dataPtr->linkEntity, *this->dataPtr->ecm);
   gz::math::Vector3<double> position_transponder = pose_transponder.Pos();
 
@@ -383,18 +420,27 @@ void UsblTransponder::temperatureRosCallback(const std_msgs::msg::Float64::Share
 
 void UsblTransponder::commandRosCallback(const posim_interfaces::msg::UsblCommand msg)
 {
+  int transponderId, transceiverId;
+  if (
+    !this->dataPtr->configured ||
+    !detail::ParseUsblId(this->dataPtr->m_transponderID, transponderId) ||
+    !detail::ParseUsblId(this->dataPtr->m_transceiverID, transceiverId) ||
+    msg.transponder_id != transponderId)
+  {
+    return;
+  }
   posim_interfaces::msg::UsblResponse response_msg;
   response_msg.data = "Hi from transponder_" + this->dataPtr->m_transponderID;
   response_msg.response_id = 1;
 
-  response_msg.transceiver_id = this->dataPtr->m_transceiverID.back() - '0';
+  response_msg.transceiver_id = transceiverId;
   this->dataPtr->m_commandResponsePub->publish(response_msg);
 }
 
 void UsblTransponder::PostUpdate(
   const gz::sim::UpdateInfo & _info, const gz::sim::EntityComponentManager & _ecm)
 {
-  if (!this->ros_node_)
+  if (!this->dataPtr->configured || !this->ros_node_)
   {
     return;
   }

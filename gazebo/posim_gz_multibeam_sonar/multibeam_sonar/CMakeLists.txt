@@ -1,28 +1,29 @@
-cmake_minimum_required(VERSION 3.11.0 FATAL_ERROR)
-
-# Suppress developer warnings for the entire workspace.
-
-set(CMAKE_SUPPRESS_DEVELOPER_WARNINGS TRUE CACHE BOOL
-    "Suppress developer warnings" FORCE)
-# Set CMP0144 to NEW to ensure find_package
-# uses upper-case <PACKAGENAME>_ROOT variables.
-
-cmake_policy(SET CMP0144 NEW)
+cmake_minimum_required(VERSION 3.18 FATAL_ERROR)
+if(POLICY CMP0144)
+  cmake_policy(SET CMP0144 NEW)
+endif()
 
 project(multibeam_sonar)
 
-set(CUDA_ARCHITECTURE "60" CACHE STRING "Target CUDA SM version")
+# Preserve explicit settings from existing workspaces while using CMake's
+# architecture property for native CUDA targets.
+if(DEFINED CUDA_ARCHITECTURE AND NOT DEFINED CMAKE_CUDA_ARCHITECTURES)
+  set(CMAKE_CUDA_ARCHITECTURES "${CUDA_ARCHITECTURE}"
+    CACHE STRING "CUDA architectures")
+  message(DEPRECATION
+    "Use CMAKE_CUDA_ARCHITECTURES instead of CUDA_ARCHITECTURE")
+endif()
 
 find_package(ament_cmake REQUIRED)
 find_package(CUDAToolkit QUIET)
 
 if(CUDAToolkit_FOUND)
-
+  if(NOT CMAKE_CUDA_COMPILER)
+    set(CMAKE_CUDA_COMPILER "${CUDAToolkit_NVCC_EXECUTABLE}"
+      CACHE FILEPATH "CUDA compiler")
+  endif()
   enable_language(CUDA)
-  find_package(CUDA REQUIRED)
   message(STATUS "CUDA found, enabling CUDA support.")
-  include_directories(${CUDA_INCLUDE_DIRS})
-  set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -arch=sm_${CUDA_ARCHITECTURE}")
   find_package(tinyxml2 CONFIG REQUIRED)
   find_package(gz-cmake 5 REQUIRED)
   find_package(gz-sim 10 REQUIRED)
@@ -33,7 +34,6 @@ if(CUDAToolkit_FOUND)
   find_package(rclcpp REQUIRED)
   find_package(sensor_msgs REQUIRED)
   find_package(geometry_msgs REQUIRED)
-  find_package(rosidl_default_generators REQUIRED)
   find_package(OpenCV REQUIRED)
   find_package(marine_acoustic_msgs REQUIRED)
   find_package(cv_bridge REQUIRED)
@@ -57,28 +57,22 @@ if(CUDAToolkit_FOUND)
   set_target_properties(${PROJECT_NAME}
     PROPERTIES
     CUDA_SEPARABLE_COMPILATION ON
+    CUDA_STANDARD 17
+    CUDA_STANDARD_REQUIRED ON
   )
+  target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17)
 
   target_include_directories(${PROJECT_NAME}
     PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+    $<INSTALL_INTERFACE:include/${PROJECT_NAME}>
     ${gz-sensors_INCLUDE_DIRS}
     ${gz-rendering_INCLUDE_DIRS}
     ${gz-msgs_INCLUDE_DIRS}
-    ${CUDA_INCLUDE_DIRS}
     ${gz-transport_INCLUDE_DIRS}
     ${gz-sim_INCLUDE_DIRS}
+    ${OpenCV_INCLUDE_DIRS}
   )
-
-  find_library(CUBLAS_LIB cublas
-    HINTS
-      ${CUDAToolkit_LIBRARY_DIR}
-      /usr/local/cuda/lib64
-      /usr/lib/x86_64-linux-gnu
-      /usr/lib
-  )
-  if(NOT CUBLAS_LIB)
-    message(FATAL_ERROR "cuBLAS not found")
-  endif()
 
   target_link_libraries(${PROJECT_NAME}
     gz-sim::gz-sim
@@ -86,9 +80,15 @@ if(CUDAToolkit_FOUND)
     gz-msgs::gz-msgs
     gz-transport::gz-transport
     gz-rendering::gz-rendering
-    ${CUDA_LIBRARIES}
-    ${CUDA_CUFFT_LIBRARIES}
-    ${CUBLAS_LIB}
+    CUDA::cudart
+    CUDA::cufft
+    CUDA::cublas
+    rclcpp::rclcpp
+    ${sensor_msgs_TARGETS}
+    ${geometry_msgs_TARGETS}
+    ${marine_acoustic_msgs_TARGETS}
+    cv_bridge::cv_bridge
+    ${OpenCV_LIBRARIES}
   )
 
   if(TARGET gz-sensors::gz-sensors-rendering)
@@ -96,17 +96,16 @@ if(CUDAToolkit_FOUND)
   endif()
 
   install(TARGETS ${PROJECT_NAME}
+    EXPORT export_${PROJECT_NAME}
     DESTINATION lib/${PROJECT_NAME}
   )
-
-  ament_target_dependencies(${PROJECT_NAME}
-    rclcpp
-    sensor_msgs
-    rosidl_default_generators
-    OpenCV
-    marine_acoustic_msgs
-    geometry_msgs
-    cv_bridge
+  install(FILES MultibeamSonarSensor.hh AcousticBeam.hh AxisAlignedPatch2.hh
+    DESTINATION include/${PROJECT_NAME}
+  )
+  ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
+  ament_export_dependencies(
+    CUDAToolkit gz-sim gz-sensors gz-msgs gz-transport gz-rendering
+    rclcpp sensor_msgs geometry_msgs OpenCV marine_acoustic_msgs cv_bridge
   )
 
   ament_environment_hooks(
@@ -116,6 +115,13 @@ if(CUDAToolkit_FOUND)
 else()
   message(STATUS "CUDA Toolkit not found or disabled: "
                 "Skipping CUDA-specific targets")
+endif()
+
+if(BUILD_TESTING)
+  find_package(ament_cmake_gtest REQUIRED)
+  ament_add_gtest(test_sonar_log test/test_sonar_log.cc)
+  target_include_directories(test_sonar_log PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+  target_compile_features(test_sonar_log PRIVATE cxx_std_17)
 endif()
 
 ament_package()

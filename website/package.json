@@ -3,13 +3,21 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "engines": { "node": "24.x" },
+  "engines": {
+    "node": "24.x"
+  },
   "packageManager": "pnpm@10.11.0",
   "scripts": {
     "catalog": "node scripts/catalog.mjs",
     "build": "node scripts/build.mjs",
     "check": "node scripts/check.mjs",
-    "preview": "node scripts/preview.mjs"
+    "preview": "node scripts/preview.mjs",
+    "test:browser": "playwright test"
   },
-  "dependencies": { "marked": "18.0.14" }
+  "dependencies": {
+    "marked": "18.0.14"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.62.1"
+  }
 }

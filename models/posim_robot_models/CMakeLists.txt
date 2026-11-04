@@ -20,6 +20,9 @@ install(
   DESTINATION share/posim_robot_models
 )
 
+install(FILES ../../extras/virtual_joystick.html
+  DESTINATION share/${PROJECT_NAME}/web)
+
 ament_environment_hooks(
   "${CMAKE_CURRENT_SOURCE_DIR}/hooks/${PROJECT_NAME}.dsv.in")
 

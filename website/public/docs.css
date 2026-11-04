@@ -15,6 +15,29 @@
 
 .docs-abstract-grid img[src*="/overview/"]{object-fit:cover;object-position:50% 55%}
 
+/* Navigation groups carry more visual weight than the individual guide links. */
+.docs-brand{display:flex;align-items:center;gap:9px;flex-shrink:0}
+.docs-brand img{display:block;width:28px;height:28px}
+.docs-sidebar{background:#122238;border-right:0;padding:28px 20px 32px;border-radius:0 0 8px 8px}
+.docs-sidebar h2,.docs-mobile-menu h2{font-size:18px;line-height:1.35;letter-spacing:0;text-transform:none;font-weight:750;color:#fff;margin-bottom:12px}
+.docs-sidebar nav section{margin:30px 0}
+.docs-sidebar nav a,.docs-mobile-menu nav a{color:#cbd8ea}
+.docs-sidebar nav a:hover,.docs-mobile-menu nav a:hover{background:#243a56;color:#fff}
+.docs-sidebar a[aria-current],.docs-mobile-menu a[aria-current]{background:#294675;color:#fff;border-color:#95bcff}
+.docs-sidebar .docs-search,.docs-sidebar .docs-lab{color:#cbd8ea}
+.docs-sidebar .docs-search input,.docs-mobile-menu .docs-search input{background:#1e334e;color:#fff;border-color:#546983}
+.docs-sidebar input::placeholder,.docs-mobile-menu input::placeholder{color:#b8c7db}
+.docs-sidebar :focus-visible,.docs-mobile-menu :focus-visible{outline-color:#a4c7ff}
+.docs-video{position:relative;isolation:isolate}
+.docs-video-feedback{position:absolute;inset:12px 12px 52px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;background:#0b1727df;color:#fff;border-radius:6px;text-align:center;padding:16px;pointer-events:none;font-size:15px}
+.docs-video-feedback progress{width:min(220px,80%);height:5px;accent-color:#9bc4ff}
+.docs-video-feedback button,.docs-video-feedback a{pointer-events:auto;font-size:14px;color:#fff}
+.docs-video-feedback button{padding:6px 18px;border:1px solid #9bc4ff;border-radius:5px;background:#294675}
+.docs-video-feedback button:focus-visible{outline:2px solid #fff;outline-offset:3px}
+.docs-video-spinner{width:30px;height:30px;flex-shrink:0;border:3px solid #ffffff50;border-top-color:#fff;border-radius:50%;animation:docs-video-spin .8s linear infinite}
+@keyframes docs-video-spin{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){.docs-video-spinner{animation:none}}
+@media(max-width:960px){.docs-mobile-menu{background:#122238;color:#fff;border-bottom-color:#344760}.docs-mobile-menu .docs-search{color:#cbd8ea}.docs-mobile-menu nav{background:#122238}.docs-mobile-menu section{margin:26px 0}.docs-video-feedback{font-size:13px;gap:8px;padding:8px}}
 /* Shared reading controls and dark palette. */
 :root{--page:#fff;--header:#ffffffed;--nav-ink:#344760;--active:#edf2ff;--quote:#f3f6ff;--quote-ink:#334b6b;--code:#edf1f7;--field-line:#cad3e1}
 :root[data-theme="dark"]{color-scheme:dark;--ink:#e4eaf4;--muted:#acb9cc;--blue:#93b7ff;--line:#35445b;--soft:#1b293c;--page:#111b2a;--header:#111b2aed;--nav-ink:#c5d2e5;--active:#243a5c;--quote:#1c2d47;--quote-ink:#c5d7ee;--code:#26364c;--field-line:#53647e}

@@ -36,7 +36,9 @@ Use installed resource URIs, following the package's existing mesh examples. Kee
 
 Adapt hydrodynamics, buoyancy, thruster axes and sensor poses to your robot. Choose coefficients that match your robot's physical properties; values from another vehicle may give misleading motion.
 
-Copy a relevant `config/<namespace>/robot_config.py`, updating entity names, joint names, topics, frames and any controller ports together. The package already installs `description`, `meshes`, `config` and resource hooks. Make changes in the source files, then rebuild to update `install/`.
+Use the [ocean-current reference](currents.md) to connect uniform or depth-dependent flow. Add sensors from the [underwater camera](camera.md), [pressure](pressure.md), [DVL](dvl.md), [USBL](usbl.md) and [multibeam sonar](sonar.md) references. Each provides its SDF placement, required systems and topic configuration. Set the world's geographic origin using [spherical coordinates](coordinates.md) when your experiment needs latitude and longitude.
+
+Copy a relevant `config/<namespace>/robot_config.py`, updating entity names, joint names, topics, frames and any controller ports together. The package already installs `description`, `meshes`, `config` and resource hooks. Do not edit generated `install/` files.
 
 ## 4. Build and launch
 

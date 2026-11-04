@@ -28,10 +28,10 @@ A controller must allocate forces across the thrusters using their positions and
 
 ## BlueROV2 and autopilot
 
-BlueROV2 connects to ArduSub through MAVROS. Inspect state and available command interfaces:
+BlueROV2 connects to ArduSub through MAVROS. After starting the [BlueROV2 example](rovs.md#start-bluerov2), wait for a connected state and inspect the command interfaces:
 
 ```bash
-ros2 topic echo /mavros/state --once
+ros2 topic echo /mavros/state mavros_msgs/msg/State --once --filter 'm.connected'
 ros2 service list -t
 ros2 topic info /mavros/manual_control/send --verbose
 ```
@@ -83,8 +83,22 @@ Choose RViz displays matching the message type.
 
 POSIM-specific messages are defined in `posim_interfaces`. Install and source these definitions on each separate ROS client.
 
+Find sensor topics and message types in the [camera](camera.md), [pressure](pressure.md), [DVL](dvl.md), [USBL](usbl.md) and [sonar](sonar.md) references. [Ocean currents](currents.md) and [spherical coordinates](coordinates.md) also expose ROS services for changing experiment inputs.
+
 ```bash
-ros2 bag record --topics /model/rexrov/odometry /model/rexrov/imu
+ros2 bag record -o rexrov_run --topics /model/rexrov/odometry /model/rexrov/imu
+```
+
+Press Ctrl+C to finish recording. Choose a new output directory for each run. Inspect the saved topic counts:
+
+```bash
+ros2 bag info rexrov_run
+```
+
+Stop the simulator before replaying the observations on the same topics:
+
+```bash
+ros2 bag play rexrov_run
 ```
 
 A remote ROS client requires:

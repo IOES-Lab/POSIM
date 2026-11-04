@@ -4,3 +4,8 @@ install
 log
 *.pptx
 *.pdf
+**/__pycache__
+website/node_modules
+website/dist
+website/.validation
+docs/engineering

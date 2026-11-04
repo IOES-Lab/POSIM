@@ -19,6 +19,47 @@ ros2 topic echo /dvl/velocity posim_interfaces/msg/DVL --once
 
 Stop the Gazebo viewer before the ROS command. Match the topic to your descriptor if you create a new sensor.
 
+## SDF integration
+
+Put these systems directly inside `<world>` for DVL processing and rendering:
+
+```xml
+<plugin filename="gz-sim-sensors-system" name="gz::sim::systems::Sensors">
+  <render_engine>ogre2</render_engine>
+</plugin>
+<plugin filename="gz-sim-dvl-system"
+        name="gz::sim::systems::DopplerVelocityLogSystem"/>
+```
+
+Place the POSIM bridge inside the sensor's `<model>`. Match its topic to the DVL sensor's `<topic>` inside `<link>`:
+
+```xml
+<plugin filename="DVLBridge" name="posim_ros_gz_plugins::DVLBridge">
+  <topic>/dvl/velocity</topic>
+</plugin>
+```
+
+The [complete DVL500-300 SDF](https://github.com/IOES-Lab/POSIM/blob/main/models/posim_sensor_models/description/nortek_dvl500_300/model.sdf) defines the `type="custom" gz:type="dvl"` sensor, four beams and tracking blocks. The [world SDF](https://github.com/IOES-Lab/POSIM/blob/main/models/posim_worlds/worlds/dvl_world.world) supplies bottom-tracking geometry.
+
+## Parameters and units
+
+`DVLBridge` accepts one parameter, `topic`, defaulting to `/dvl/velocity`. It subscribes to Gazebo and publishes ROS data on that path. The remaining settings below belong to the Gazebo sensor and show the DVL500-300 example values.
+
+| Sensor SDF field | Meaning | Example value |
+| --- | --- | --- |
+| `topic`, `update_rate` | Observation path and requested Hz | `/dvl/velocity`, 8 |
+| `gz:dvl/type` | Transducer arrangement | `phased_array` |
+| `arrangement` beam `aperture`, `rotation`, `tilt` | Angles; `degrees="true"` selects degrees | Aperture 3°, rotations −135/135/45/−45°, tilt 25° |
+| `minimum_range`, `maximum_range` | Acoustic range, m | 0.3, 200 |
+| `reference_frame` | Reference pose: position in m, rotation in rad | `0 0 0 3.14 0 -1.57` |
+| `tracking/bottom_mode/when`, `tracking/water_mass_mode/when` | Tracking selection | Both `best` |
+| Tracking `noise/stddev` | Velocity noise standard deviation, m/s | Bottom 0.005; water mass 0.015 |
+| Water-mass `water_velocity` | x/y/z components, m/s | 0/0/0 |
+| Water-mass `boundaries/near`, `boundaries/far`, `bins` | Sample bounds in m and bin count | 10, 100, 10 |
+| Tracking `visualize` | Show sampling geometry | true |
+
+See the [bridge implementation](https://github.com/IOES-Lab/POSIM/blob/main/gazebo/posim_ros_gz_plugins/src/DVLBridge.cc) for message conversion. A renderer is needed even in server-only mode; see [Docker rendering setup](docker.md#rendering-image-sensors-without-a-desktop).
+
 ## Available descriptions
 
 | Description | Configuration family |
@@ -42,7 +83,9 @@ Configure `gz:type="dvl"` with beam angles/tilt, bottom/water tracking, velocity
 - DVL500-300 requested rate: **8 Hz**
 - Range: **0.3–200 m**
 
-The example converts east–north–up (ENU) coordinates to its configured forward/starboard/down reference using `<reference_frame>`. The ROS bridge preserves the Gazebo frame ID. Check that your estimator uses the same frame and distinguishes bottom tracking from water-mass tracking.
+The example converts ENU to its configured forward/starboard/down reference using `<reference_frame>`. The ROS bridge preserves the Gazebo frame name, replacing `::` separators with `/`. Check that your estimator uses the same frame and distinguishes bottom tracking from water-mass tracking.
+
+The aggregate velocity and each beam carry a ROS 6×6 twist covariance. The measured 3×3 linear-velocity covariance occupies its upper-left block (units m²/s²). The remaining entries are zero because the DVL supplies no angular-velocity estimate; do not treat them as measured zero uncertainty.
 
 ## Inspect observations
 

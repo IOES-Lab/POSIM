@@ -33,7 +33,8 @@ for (const file of htmlFiles) {
   if (new Set(ids).size !== ids.length) fail(`${file}: duplicate heading/element IDs`);
   if (/notion-file-block:|<mention-page|\{\{[A-Z_]+\}\}/.test(html)) fail(`${file}: unresolved source markup`);
   for (const image of html.matchAll(/<img\b[^>]*>/g)) {
-    if (!/\balt="[^"]+"/.test(image[0])) fail(`${file}: image needs descriptive alt text`);
+    const decorative = /\balt=""/.test(image[0]) && /\baria-hidden="true"/.test(image[0]);
+    if (!/\balt="[^"]+"/.test(image[0]) && !decorative) fail(`${file}: image needs descriptive alt text or explicit decorative treatment`);
   }
   if (/dave_(?:demos|interfaces|robot|sensor|world|gz|ros)|dave_(?:world|robot|sensor)\.launch/.test(html)) fail(`${file}: stale package/launch name`);
   const markdown = await readFile(path.join(root, 'content', lang, path.basename(file, '.html') + '.md'), 'utf8');

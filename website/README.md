@@ -16,6 +16,20 @@ pnpm preview
 Open `http://127.0.0.1:4174` for English, or
 `http://127.0.0.1:4174/ko/` for Korean. Output is in `dist/`.
 
+Run the browser checks after building:
+
+```sh
+pnpm exec playwright install chromium
+pnpm test:browser
+```
+
+Playwright checks desktop and mobile navigation, language switching, search,
+clipboard fallback and video loading/retry. Screenshots and the JSON report
+are written under `.validation/`. The preview server supports MP4 byte ranges
+for seeking. The two current-demo MP4s are tracked in `public/media/notion/`
+and published with the site; playback uses browser-native controls with local
+loading, buffering and retry feedback.
+
 ## Publish on GitHub Pages
 
 The public documentation is published at

@@ -262,6 +262,12 @@ bool MultibeamSonarSystem::Implementation::RequestCreateSensor(
   const gz::sim::components::ParentEntity * _parent, gz::sim::EntityComponentManager & _ecm)
 {
   using namespace gz::sim;
+  // Initial world sensors are visible to both Configure and the first
+  // PreUpdate. Queue each entity once, before the rendering thread creates it.
+  if (this->knownSensorEntities.count(_entity))
+  {
+    return true;
+  }
   // Get sensor's scoped name without the world
   std::string sensorScopedName = removeParentScope(scopedName(_entity, _ecm, "::", false), "::");
 
