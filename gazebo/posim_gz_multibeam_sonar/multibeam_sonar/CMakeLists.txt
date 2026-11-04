@@ -122,6 +122,11 @@ if(BUILD_TESTING)
   ament_add_gtest(test_sonar_log test/test_sonar_log.cc)
   target_include_directories(test_sonar_log PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
   target_compile_features(test_sonar_log PRIVATE cxx_std_17)
+  if(TARGET ${PROJECT_NAME})
+    find_package(ament_cmake_pytest REQUIRED)
+    ament_add_pytest_test(test_library_load test/test_library_load.py
+      ENV "POSIM_SONAR_LIBRARY=$<TARGET_FILE:${PROJECT_NAME}>")
+  endif()
 endif()
 
 ament_package()
