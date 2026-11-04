@@ -37,3 +37,24 @@ The list below is generated from the world files in this checkout when the websi
 ## Compose another environment
 
 Copy a suitable SDF into `models/posim_worlds/worlds` with a new filename and world name. Use installed resource URIs for local models. Rebuild and source the workspace, then launch the new filename. See [Heightmap terrain](heightmaps.md) for terrain geometry and [Objects](objects.md) for task assets.
+
+## Check first-use Fuel downloads
+
+`posim_integrated` and `posim_ocean_models` include remote Fuel models. A clock
+topic alone does not prove that these scenes have finished loading. Allow the
+first-use downloads to finish; do not start repeated launches while they are
+still downloading. Use `verbose:=true` to inspect resource loading.
+
+In another terminal with the same environment, request the loaded scene:
+
+```bash
+# posim_integrated.world uses the internal name posim_integrated.
+gz service -s /world/posim_integrated/scene/info \
+  --reqtype gz.msgs.Empty --reptype gz.msgs.Scene --timeout 5000 --req ''
+# For posim_ocean_models.world, use /world/posim_ocean_model/scene/info.
+```
+
+A populated scene response, advancing simulation time and the expected sensor
+outputs are separate checks. If a download stalls, preserve the verbose log
+and check network access from the machine/container running Gazebo. A startup
+interrupted during a download is not a successful runtime/shutdown test.

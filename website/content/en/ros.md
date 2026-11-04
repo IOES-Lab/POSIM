@@ -31,7 +31,8 @@ A controller must allocate forces across the thrusters using their positions and
 BlueROV2 connects to ArduSub through MAVROS. Inspect state and available command interfaces:
 
 ```bash
-ros2 topic echo /mavros/state --once
+ros2 topic echo /mavros/state mavros_msgs/msg/State \
+  --qos-reliability best_effort --qos-durability volatile --once
 ros2 service list -t
 ros2 topic info /mavros/manual_control/send --verbose
 ```
@@ -94,3 +95,5 @@ A remote ROS client requires:
 - Matching domain and discovery settings
 
 Configure remote gateways in the application hosting the simulator.
+
+For a current MAVROS state sample, use volatile durability as above rather than replaying retained startup history. Check `connected` after the autopilot handshake; a single early sample is not a connectivity verdict.

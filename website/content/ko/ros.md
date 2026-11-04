@@ -31,7 +31,8 @@ ros2 topic pub --once /model/rexrov/joint/thruster1_joint/cmd_thrust \
 BlueROV2는 MAVROS를 통해 ArduSub와 연결합니다. 상태와 사용할 명령 인터페이스를 확인합니다.
 
 ```bash
-ros2 topic echo /mavros/state --once
+ros2 topic echo /mavros/state mavros_msgs/msg/State \
+  --qos-reliability best_effort --qos-durability volatile --once
 ros2 service list -t
 ros2 topic info /mavros/manual_control/send --verbose
 ```
@@ -94,3 +95,5 @@ ros2 bag record --topics /model/rexrov/odometry /model/rexrov/imu
 - 일치하는 도메인·탐색 설정
 
 원격 연결 게이트웨이는 시뮬레이터 응용 프로그램에서 구성합니다.
+
+현재 MAVROS 상태를 확인할 때는 위와 같이 volatile durability를 사용하여 초기 상태 기록의 재생과 구분하세요. Autopilot 연결 협상이 끝난 뒤 `connected`를 확인해야 하며, 시작 직후 한 번의 응답만으로 연결 여부를 판단하지 마세요.
