@@ -6,9 +6,9 @@ POSIM은 ROS 2와 Gazebo용 오픈소스 해양 로봇 시뮬레이션 라이브
 
 ## 여기서 시작하세요
 
-<div class="docs-architecture"><a href="install.html"><strong>설치</strong><span>Ubuntu에 ROS 2·Gazebo 작업 공간을 구성합니다.</span></a><a href="quickstart.html"><strong>실행</strong><span>해양 월드를 띄우고 센서 데이터를 받습니다.</span></a><a href="custom-robots.html"><strong>확장</strong><span>로봇, 지형과 제어 코드를 추가합니다.</span></a></div>
+<div class="docs-architecture"><a href="requirements.html"><strong>설치</strong><span>Ubuntu, macOS 또는 Windows 환경을 선택합니다.</span></a><a href="quickstart.html"><strong>실행</strong><span>해양 월드를 띄우고 센서 데이터를 받습니다.</span></a><a href="custom-robots.html"><strong>확장</strong><span>로봇, 지형과 제어 코드를 추가합니다.</span></a></div>
 
-[Ubuntu 설치](install.md) 또는 [Docker 환경](docker.md)을 준비한 뒤 [첫 시뮬레이션](quickstart.md)을 실행하세요.
+설치 안내를 선택하세요: [Ubuntu](install.md)(권장), [Docker와 RDP를 사용하는 macOS](install-macos.md), [WSL 2를 사용하는 Windows](install-windows.md). 일반적인 [Docker 안내](docker.md)도 있습니다. 환경을 준비한 뒤 [첫 시뮬레이션](quickstart.md)을 실행하세요.
 
 - 운영체제: **Ubuntu 26.04**
 - ROS: **ROS 2 Lyrical**

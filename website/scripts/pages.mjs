@@ -4,6 +4,8 @@ export const sections = [
     ['features', 'Public feature catalogue', '공개 기능 목록', []],
     ['requirements', 'System requirements', '시스템 요구 사항', ['requirements']],
     ['install', 'Install on Ubuntu', 'Ubuntu 설치', ['native', 'installation']],
+    ['install-macos', 'Install on macOS', 'macOS 설치', []],
+    ['install-windows', 'Install on Windows', 'Windows 설치', []],
     ['docker', 'Docker environment', 'Docker 환경', ['docker']],
     ['quickstart', 'First simulation', '첫 시뮬레이션', ['quickstart']],
   ] },

@@ -6,9 +6,9 @@ POSIM is an open-source maritime robotics simulation library for ROS 2 and Gazeb
 
 ## Start here
 
-<div class="docs-architecture"><a href="install.html"><strong>Install</strong><span>Build the ROS 2 and Gazebo workspace on Ubuntu.</span></a><a href="quickstart.html"><strong>Run</strong><span>Start an ocean world and receive sensor data.</span></a><a href="custom-robots.html"><strong>Extend</strong><span>Add robots, terrain and control code.</span></a></div>
+<div class="docs-architecture"><a href="requirements.html"><strong>Install</strong><span>Choose an Ubuntu, macOS or Windows environment.</span></a><a href="quickstart.html"><strong>Run</strong><span>Start an ocean world and receive sensor data.</span></a><a href="custom-robots.html"><strong>Extend</strong><span>Add robots, terrain and control code.</span></a></div>
 
-Prepare an [Ubuntu installation](install.md) or [Docker environment](docker.md), then run the [first simulation](quickstart.md).
+Choose an installation guide: [Ubuntu](install.md) (recommended), [macOS with Docker and RDP](install-macos.md), or [Windows with WSL 2](install-windows.md). A general [Docker guide](docker.md) is also available. Then run the [first simulation](quickstart.md).
 
 - Operating system: **Ubuntu 26.04**
 - ROS: **ROS 2 Lyrical**
