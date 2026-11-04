@@ -37,7 +37,7 @@ public:
     const gz::sim::Entity & _entity, const std::shared_ptr<const sdf::Element> & _sdf,
     gz::sim::EntityComponentManager & _ecm, gz::sim::EventManager & _eventMgr);
 
-  void LoadTidalOscillationDatabase();
+  bool LoadTidalOscillationDatabase();
 
   bool LoadStratifiedCurrentDatabase();
 

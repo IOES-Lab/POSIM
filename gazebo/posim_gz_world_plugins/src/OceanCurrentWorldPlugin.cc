@@ -36,6 +36,7 @@
 
 // Custom plugin headers
 #include "CurrentProfile.hh"
+#include "TidalProfile.hh"
 #include "posim_gz_world_plugins/gauss_markov_process.hh"  // For Gauss-Markov process
 #include "posim_gz_world_plugins/tidal_oscillation.hh"     // For tidal oscillation modeling
 
@@ -164,7 +165,10 @@ void OceanCurrentWorldPlugin::Configure(
 
   if (_sdf->HasElement("tidal_oscillation"))
   {
-    LoadTidalOscillationDatabase();
+    if (!LoadTidalOscillationDatabase())
+    {
+      return;
+    }
     gzmsg << "Tidal oscillation is enabled" << std::endl;
   }
   else
@@ -183,242 +187,109 @@ void OceanCurrentWorldPlugin::Configure(
         << "\tWARNING: Current velocity calculated in the ENU frame" << std::endl;
 }
 
-void OceanCurrentWorldPlugin::LoadTidalOscillationDatabase()
+bool OceanCurrentWorldPlugin::LoadTidalOscillationDatabase()
 {
-  this->dataPtr->tideFlag = true;
-  this->sharedDataPtr->tidalHarmonicFlag = false;
-
-  sdf::ElementPtr tidalOscillationParams = this->dataPtr->sdf->GetElement("tidal_oscillation");
-  sdf::ElementPtr tidalHarmonicParams;
-
-  // Read the tidal oscillation parameter from the SDF file
-  if (tidalOscillationParams->HasElement("databasefilePath"))
+  const auto params = this->dataPtr->sdf->GetElement("tidal_oscillation");
+  TidalOscillation tide;
+  const auto read = [](const sdf::ElementPtr & element, const char * name, auto & value)
   {
-    this->dataPtr->tidalFilePath = tidalOscillationParams->Get<std::string>("databasefilePath");
-    gzmsg << "Tidal current database configuration found" << std::endl;
-  }
-  else
+    if (
+      !element || !element->HasElement(name) || !element->GetElement(name)->GetValue()->Get(value))
+    {
+      throw std::invalid_argument(std::string("missing or invalid tidal parameter: ") + name);
+    }
+  };
+  try
   {
-    if (tidalOscillationParams->HasElement("harmonic_constituents"))
+    if (!params->HasElement("mean_direction") || !params->HasElement("world_start_time_GMT"))
     {
-      tidalHarmonicParams = tidalOscillationParams->GetElement("harmonic_constituents");
-      gzmsg << "Tidal harmonic constituents " << "configuration found" << std::endl;
-      this->sharedDataPtr->tidalHarmonicFlag = true;
+      throw std::invalid_argument("tidal directions and world start time are required");
     }
-    else
+    const auto direction = params->GetElement("mean_direction");
+    read(direction, "ebb", tide.ebbDirection);
+    read(direction, "flood", tide.floodDirection);
+    const auto start = params->GetElement("world_start_time_GMT");
+    read(start, "year", tide.worldStartTime[0]);
+    read(start, "month", tide.worldStartTime[1]);
+    read(start, "day", tide.worldStartTime[2]);
+    read(start, "hour", tide.worldStartTime[3]);
+    read(start, "minute", tide.worldStartTime[4]);
+    const bool harmonic =
+      !params->HasElement("databasefilePath") && params->HasElement("harmonic_constituents");
+    if (harmonic)
     {
-      this->dataPtr->tidalFilePath = ament_index_cpp::get_package_share_directory("posim_worlds") +
-                                     "/worlds/ACT1951_1_Annual_2021.csv";
-    }
-  }
-
-  // Read the tidal oscillation direction from the SDF file
-  if (!(tidalOscillationParams->HasElement("mean_direction")))
-  {
-    gzerr << "Tidal mean direction not defined" << std::endl;
-  }
-
-  if (tidalOscillationParams->HasElement("mean_direction"))
-  {
-    sdf::ElementPtr elem = tidalOscillationParams->GetElement("mean_direction");
-    if (elem->HasElement("ebb"))
-    {
-      this->sharedDataPtr->ebbDirection = elem->Get<double>("ebb");
-    }
-    else
-    {
-      gzerr << "Tidal mean ebb direction not defined" << std::endl;
-    }
-
-    if (elem->HasElement("flood"))
-    {
-      this->sharedDataPtr->floodDirection = elem->Get<double>("flood");
-    }
-    else
-    {
-      gzerr << "Tidal mean flood direction not defined" << std::endl;
-    }
-  }
-
-  // Read the world start time (GMT) from the SDF file
-
-  if (tidalOscillationParams->HasElement("world_start_time_GMT"))
-  {
-    sdf::ElementPtr elem = tidalOscillationParams->GetElement("world_start_time_GMT");
-
-    if (elem->HasElement("day"))
-    {
-      this->sharedDataPtr->world_start_time_day = elem->Get<double>("day");
-    }
-    else
-    {
-      gzerr << "World start time (day) not defined" << std::endl;
-    }
-
-    if (elem->HasElement("month"))
-    {
-      this->sharedDataPtr->world_start_time_month = elem->Get<double>("month");
-    }
-    else
-    {
-      gzerr << "World start time (month) not defined" << std::endl;
-    }
-
-    if (elem->HasElement("year"))
-    {
-      this->sharedDataPtr->world_start_time_year = elem->Get<double>("year");
-    }
-    else
-    {
-      gzerr << "World start time (year) not defined" << std::endl;
-    }
-
-    if (elem->HasElement("hour"))
-    {
-      this->sharedDataPtr->world_start_time_hour = elem->Get<double>("hour");
-    }
-    else
-    {
-      gzerr << "World start time (hour) not defined" << std::endl;
-    }
-
-    if (elem->HasElement("minute"))
-    {
-      this->sharedDataPtr->world_start_time_minute = elem->Get<double>("minute");
-    }
-    else
-    {
-      gzerr << "World start time (minute) not defined" << std::endl;
-    }
-  }
-  else
-  {
-    gzerr << "World start time (GMT) not defined" << std::endl;
-  }
-
-  if (this->sharedDataPtr->tidalHarmonicFlag)
-  {
-    // Read harmonic constituents
-    if (tidalHarmonicParams->HasElement("M2"))
-    {
-      sdf::ElementPtr M2Params = tidalHarmonicParams->GetElement("M2");
-      this->sharedDataPtr->M2_amp = M2Params->Get<double>("amp");
-      this->sharedDataPtr->M2_phase = M2Params->Get<double>("phase");
-      this->sharedDataPtr->M2_speed = M2Params->Get<double>("speed");
-    }
-    else
-    {
-      gzerr << "Harcomnic constituents M2 not found" << std::endl;
-    }
-
-    if (tidalHarmonicParams->HasElement("S2"))
-    {
-      sdf::ElementPtr S2Params = tidalHarmonicParams->GetElement("S2");
-      this->sharedDataPtr->S2_amp = S2Params->Get<double>("amp");
-      this->sharedDataPtr->S2_phase = S2Params->Get<double>("phase");
-      this->sharedDataPtr->S2_speed = S2Params->Get<double>("speed");
-    }
-    else
-    {
-      gzerr << "Harcomnic constituents S2 not found" << std::endl;
-    }
-
-    if (tidalHarmonicParams->HasElement("N2"))
-    {
-      sdf::ElementPtr N2Params = tidalHarmonicParams->GetElement("N2");
-      this->sharedDataPtr->N2_amp = N2Params->Get<double>("amp");
-      this->sharedDataPtr->N2_phase = N2Params->Get<double>("phase");
-      this->sharedDataPtr->N2_speed = N2Params->Get<double>("speed");
-    }
-    else
-    {
-      gzerr << "Harcomnic constituents N2 not found" << std::endl;
-    }
-
-    gzmsg << "Tidal harmonic constituents loaded : " << std::endl;
-    gzmsg << "M2 amp: " << this->sharedDataPtr->M2_amp
-          << " phase: " << this->sharedDataPtr->M2_phase
-          << " speed: " << this->sharedDataPtr->M2_speed << std::endl;
-    gzmsg << "S2 amp: " << this->sharedDataPtr->S2_amp
-          << " phase: " << this->sharedDataPtr->S2_phase
-          << " speed: " << this->sharedDataPtr->S2_speed << std::endl;
-    gzmsg << "N2 amp: " << this->sharedDataPtr->N2_amp
-          << " phase: " << this->sharedDataPtr->N2_phase
-          << " speed: " << this->sharedDataPtr->N2_speed << std::endl;
-  }
-  else
-  {
-    // Read database
-    std::ifstream csvFile;
-    std::string line;
-    csvFile.open(this->dataPtr->tidalFilePath);
-    if (!csvFile)
-    {
-      gz::common::SystemPaths paths;
-      this->dataPtr->tidalFilePath = paths.FindFile(this->dataPtr->tidalFilePath, true);
-      csvFile.open(this->dataPtr->tidalFilePath);
-    }
-
-    if (!csvFile)
-    {
-      gzerr << "Tidal Oscillation database file does not exist" << std::endl;
-    }
-
-    gzmsg << "Tidal Oscillation  Database loaded : " << this->dataPtr->tidalFilePath << std::endl;
-
-    // skip the first line
-    getline(csvFile, line);
-    while (getline(csvFile, line))
-    {
-      if (line.empty())  // skip empty lines:
+      const auto constituents = params->GetElement("harmonic_constituents");
+      const auto load = [&](const char * name, double & amplitude, double & phase, double & speed)
       {
-        continue;
-      }
-      std::istringstream iss(line);
-      std::string lineStream;
-      std::string::size_type sz;
-      std::vector<std::string> row;
-      std::array<int, 5> tmpDateArray;
-      while (getline(iss, lineStream, ','))
-      {
-        row.push_back(lineStream);
-      }
-      if (strcmp(row[1].c_str(), " slack"))  // skip 'slack' category
-      {
-        tmpDateArray[0] = std::stoi(row[0].substr(0, 4));
-        tmpDateArray[1] = std::stoi(row[0].substr(5, 7));
-        tmpDateArray[2] = std::stoi(row[0].substr(8, 10));
-        tmpDateArray[3] = std::stoi(row[0].substr(11, 13));
-        tmpDateArray[4] = std::stoi(row[0].substr(14, 16));
-
-        this->sharedDataPtr->dateGMT.push_back(tmpDateArray);
-        this->sharedDataPtr->speedcmsec.push_back(stold(row[2], &sz));
-      }
+        if (!constituents->HasElement(name))
+        {
+          throw std::invalid_argument(std::string("missing tidal constituent: ") + name);
+        }
+        const auto element = constituents->GetElement(name);
+        read(element, "amp", amplitude);
+        read(element, "phase", phase);
+        read(element, "speed", speed);
+      };
+      load("M2", tide.M2_amp, tide.M2_phase, tide.M2_speed);
+      load("S2", tide.S2_amp, tide.S2_phase, tide.S2_speed);
+      load("N2", tide.N2_amp, tide.N2_phase, tide.N2_speed);
     }
-    csvFile.close();
-
-    // Eliminate data with same consecutive type
-    std::vector<int> duplicated;
-    for (int i = 0; i < this->sharedDataPtr->dateGMT.size() - 1; i++)
+    else
     {
-      // delete latter if same sign
-      if (
-        ((this->sharedDataPtr->speedcmsec[i] > 0) - (this->sharedDataPtr->speedcmsec[i] < 0)) ==
-        ((this->sharedDataPtr->speedcmsec[i + 1] > 0) -
-         (this->sharedDataPtr->speedcmsec[i + 1] < 0)))
+      this->dataPtr->tidalFilePath =
+        params->HasElement("databasefilePath")
+          ? params->Get<std::string>("databasefilePath")
+          : ament_index_cpp::get_package_share_directory("posim_worlds") +
+              "/worlds/ACT1951_1_Annual_2021.csv";
+      std::ifstream csv(this->dataPtr->tidalFilePath);
+      if (!csv)
       {
-        duplicated.push_back(i + 1);
+        gz::common::SystemPaths paths;
+        this->dataPtr->tidalFilePath = paths.FindFile(this->dataPtr->tidalFilePath, true);
+        csv.clear();
+        csv.open(this->dataPtr->tidalFilePath);
       }
+      if (!csv)
+      {
+        throw std::invalid_argument("tidal CSV file does not exist");
+      }
+      auto profile = detail::ReadTidalProfile(csv);
+      tide.dateGMT = std::move(profile.dateGMT);
+      tide.speedcmsec = std::move(profile.speedcmsec);
     }
-    int eraseCount = 0;
-    for (int i = 0; i < duplicated.size(); i++)
+    if (!tide.Initiate(harmonic))
     {
-      this->sharedDataPtr->dateGMT.erase(
-        this->sharedDataPtr->dateGMT.begin() + duplicated[i] - eraseCount);
-      this->sharedDataPtr->speedcmsec.erase(
-        this->sharedDataPtr->speedcmsec.begin() + duplicated[i] - eraseCount);
-      eraseCount++;
+      throw std::invalid_argument("invalid tidal dates, directions or constituent values");
     }
+    auto & data = *this->sharedDataPtr;
+    data.tidalHarmonicFlag = harmonic;
+    data.dateGMT = tide.dateGMT;
+    data.speedcmsec = tide.speedcmsec;
+    data.ebbDirection = tide.ebbDirection;
+    data.floodDirection = tide.floodDirection;
+    data.world_start_time_year = tide.worldStartTime[0];
+    data.world_start_time_month = tide.worldStartTime[1];
+    data.world_start_time_day = tide.worldStartTime[2];
+    data.world_start_time_hour = tide.worldStartTime[3];
+    data.world_start_time_minute = tide.worldStartTime[4];
+    data.M2_amp = tide.M2_amp;
+    data.M2_phase = tide.M2_phase;
+    data.M2_speed = tide.M2_speed;
+    data.S2_amp = tide.S2_amp;
+    data.S2_phase = tide.S2_phase;
+    data.S2_speed = tide.S2_speed;
+    data.N2_amp = tide.N2_amp;
+    data.N2_phase = tide.N2_phase;
+    data.N2_speed = tide.N2_speed;
+    this->dataPtr->tide = std::move(tide);
+    this->dataPtr->tideFlag = true;
+    return true;
+  }
+  catch (const std::exception & error)
+  {
+    gzerr << "Invalid tidal configuration: " << error.what() << ". Current publication is disabled."
+          << std::endl;
+    return false;
   }
 }
 
@@ -453,7 +324,11 @@ bool OceanCurrentWorldPlugin::LoadStratifiedCurrentDatabase()
   }
 
   // Read the depth dependent ocean current file path from the SDF file
-  if (transientCurrentParams->HasElement("databasefileName"))
+  if (transientCurrentParams->HasElement("databasefilePath"))
+  {
+    this->dataPtr->databaseFilePath = transientCurrentParams->Get<std::string>("databasefilePath");
+  }
+  else if (transientCurrentParams->HasElement("databasefileName"))
   {
     this->dataPtr->databaseFilePath = ament_index_cpp::get_package_share_directory("posim_worlds") +
                                       "/worlds/" +
@@ -468,6 +343,7 @@ bool OceanCurrentWorldPlugin::LoadStratifiedCurrentDatabase()
   if (this->dataPtr->databaseFilePath.empty())
   {
     gzerr << "Empty stratified ocean current database file path" << std::endl;
+    return false;
   }
 
   gzmsg << this->dataPtr->databaseFilePath << std::endl;

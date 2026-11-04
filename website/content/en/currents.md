@@ -30,6 +30,7 @@ Place both plugins directly inside `<world>`, following the [example world SDF](
 | `constant_current/topic` | Gazebo uniform-current topic; default `ocean_current` |
 | `transient_current/topic_stratified` | Gazebo layer topic under the namespace; default `stratified_current_velocity` |
 | `transient_current/databasefileName` | CSV under installed `posim_worlds/worlds`; default `transientOceanCurrentDatabase.csv` |
+| `transient_current/databasefilePath` | Optional custom CSV path; overrides `databasefileName` |
 | Each stochastic model: `mean` | Initial mean speed (m/s) or angle (rad); default 0 |
 | Each stochastic model: `min`, `max` | Bounds; defaults −1 and 1; keep min < max and mean within bounds |
 | Each stochastic model: `noiseAmp` | Random increment amplitude; default 0 |
@@ -82,17 +83,19 @@ The REXROV quickstart uses uniform `/ocean_current`. To use the depth profile, a
 
 | Model-plugin parameter | Meaning / default |
 | --- | --- |
-| `namespace` | Required model name, `rexrov` here |
+| `namespace` | Required topic namespace, `rexrov` here; match the hydrodynamics namespace |
 | `flow_velocity_topic` | Suffix under `/model/<namespace>/`; default `ocean_current` |
 | `transient_current/topic_stratified` | ROS database input; default `hydrodynamics/stratified_current_velocity_topic_database` |
-| `velocity_north`, `velocity_east`, `velocity_down` | Separate stochastic settings for each component; include all three blocks |
+| `velocity_north`, `velocity_east`, `velocity_down` | Optional stochastic settings for each component; omitted components use zero noise |
 | Each component's `mean` | Initial velocity in m/s, default 0; replaced by the interpolated profile when data arrives |
-| Each component's `mu` | Decay coefficient, default 0 |
+| Each component's `mu` | Decay coefficient from 0 to 1, applied using elapsed simulation seconds; default 0 |
 | Each component's `noiseAmp` | Allowed deviation around the interpolated velocity in m/s, default 0 |
 | Each component's `noiseFreq` | Random increment amplitude per update, default 0; despite its name, this value is not a frequency in Hz |
 | `tide_oscillation` | Apply supplied tidal data at the model; default false |
 
 The model plugin publishes `/model/rexrov/ocean_current` on both Gazebo (`gz.msgs.Vector3d`) and ROS (`geometry_msgs/msg/TwistStamped`). Inspect this output and the vehicle response after enabling the profile.
+
+Depth comes from the attached model's world position, with zero depth above the surface. Flow is interpolated between layers and clamped to the nearest layer outside the profile. Paused or repeated simulation timestamps do not advance the current. Invalid database messages are rejected as a whole, preserving the last valid profile.
 
 ## Systems and topics
 
@@ -161,6 +164,8 @@ ros2 service call /hydrodynamics/set_stratified_current_velocity \
 Speed is in m/s, angles in rad and `layer` is a zero-based database index. Check both `success` and observed topics. The ROS service field corresponding to SDF `noiseAmp` is `noise`.
 
 For tides, configure `<tidal_oscillation>` with CSV input or harmonic constituents such as M2/S2/N2, ebb/flood directions and a GMT start time. Example harmonic units are amplitude in m, phase in degrees and angular speed in degrees/hour. Distinguish tidal direction settings from the radian angles used by current services.
+
+Tidal CSV files have one header row followed by `YYYY-MM-DD HH:MM,event,speed` rows. Events are `flood`, `ebb` or `slack`; speed is finite cm/s, with `-` permitted for skipped slack rows. Dates must be valid and strictly increasing. The loader retains alternating positive/negative peaks and requires at least two. Interpolation holds the first or last peak outside the time range. Missing files, incomplete settings or malformed data disable the world-current plugin with an error.
 
 ## Current flow and model response
 

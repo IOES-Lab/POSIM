@@ -30,6 +30,7 @@ ros2 topic echo /hydrodynamics/currentVelocityTopic --once
 | `constant_current/topic` | Gazebo 균일 해류 토픽. 기본값 `ocean_current` |
 | `transient_current/topic_stratified` | 네임스페이스 아래의 Gazebo 층별 토픽. 기본값 `stratified_current_velocity` |
 | `transient_current/databasefileName` | 설치된 `posim_worlds/worlds` 아래의 CSV. 기본값 `transientOceanCurrentDatabase.csv` |
+| `transient_current/databasefilePath` | 선택적인 사용자 CSV 경로. 지정하면 `databasefileName`보다 우선함 |
 | 각 확률 모델의 `mean` | 초기 평균 속도(m/s) 또는 각도(rad). 기본값 0 |
 | 각 확률 모델의 `min`, `max` | 하한·상한. 기본값 −1·1. min < max를 유지하고 mean을 범위 안에 지정 |
 | 각 확률 모델의 `noiseAmp` | 무작위 증분 크기. 기본값 0 |
@@ -82,17 +83,19 @@ REXROV 빠른 시작은 균일한 `/ocean_current`를 사용합니다. 수심별
 
 | 모델 플러그인 설정 | 의미 / 기본값 |
 | --- | --- |
-| `namespace` | 필수 모델 이름. 여기서는 `rexrov` |
+| `namespace` | 필수 토픽 namespace. 여기서는 `rexrov`이며 hydrodynamics의 namespace와 일치시킴 |
 | `flow_velocity_topic` | `/model/<namespace>/` 아래의 토픽 이름. 기본값 `ocean_current` |
 | `transient_current/topic_stratified` | ROS 데이터베이스 입력. 기본값 `hydrodynamics/stratified_current_velocity_topic_database` |
-| `velocity_north`, `velocity_east`, `velocity_down` | 방향별 확률 설정. 세 블록을 모두 포함 |
+| `velocity_north`, `velocity_east`, `velocity_down` | 선택적인 방향별 확률 설정. 생략한 방향은 잡음을 사용하지 않음 |
 | 각 방향의 `mean` | 초기 속도(m/s). 기본값 0. 데이터 수신 후 보간한 프로파일 값으로 대체 |
-| 각 방향의 `mu` | 감쇠 계수. 기본값 0 |
+| 각 방향의 `mu` | 0~1 범위의 감쇠 계수. 경과한 시뮬레이션 시간(초)을 기준으로 적용하며 기본값은 0 |
 | 각 방향의 `noiseAmp` | 보간한 속도에서 허용하는 편차(m/s). 기본값 0 |
 | 각 방향의 `noiseFreq` | 갱신마다 더하는 무작위 증분의 크기. 기본값 0. 이름과 달리 Hz 단위의 주파수가 아님 |
 | `tide_oscillation` | 전달받은 조류 데이터를 모델에 적용. 기본값 false |
 
 모델 플러그인은 `/model/rexrov/ocean_current`를 Gazebo(`gz.msgs.Vector3d`)와 ROS(`geometry_msgs/msg/TwistStamped`)로 발행합니다. 프로파일을 활성화한 뒤 이 출력과 차량 응답을 함께 확인하세요.
+
+깊이는 플러그인이 부착된 모델의 월드 위치에서 구하며 수면 위에서는 0입니다. 층 사이의 흐름은 보간하고 프로파일 범위 밖에서는 가장 가까운 층의 값을 유지합니다. 일시 정지 중이거나 시뮬레이션 시각이 반복되면 해류를 갱신하지 않습니다. 잘못된 데이터베이스 메시지는 전체를 거부하고 마지막 유효한 프로파일을 유지합니다.
 
 ## 시스템과 토픽
 
@@ -161,6 +164,8 @@ ros2 service call /hydrodynamics/set_stratified_current_velocity \
 속도는 m/s, 각도는 rad이며 `layer`는 데이터베이스의 0부터 시작하는 층 인덱스입니다. 응답의 `success`와 관측 토픽을 함께 확인하세요. 해류 SDF의 `noiseAmp`에 대응하는 ROS 서비스 필드는 `noise`입니다.
 
 조석을 사용할 때 `<tidal_oscillation>`에 CSV 입력 또는 M2·S2·N2 같은 조화 성분, 낙조·창조(ebb/flood) 방향과 GMT 시작 시각을 설정합니다. 예제의 조화 성분 단위는 진폭 m, 위상 도, 각속도 도/시간입니다. 조석 방향 설정과 해류 서비스의 rad 단위를 구분하세요.
+
+조류 CSV는 머리글 한 행 다음에 `YYYY-MM-DD HH:MM,event,speed` 형식의 행을 둡니다. event는 `flood`, `ebb`, `slack`이며 speed는 유한한 cm/s 값입니다. 건너뛰는 slack 행에는 `-`를 사용할 수 있습니다. 날짜는 유효하고 엄격히 증가해야 합니다. 로더는 양·음의 극값을 번갈아 유지하며 최소 두 개가 필요합니다. 시간 범위 밖에서는 첫 번째 또는 마지막 극값을 유지합니다. 파일 누락, 불완전한 설정 또는 잘못된 데이터는 오류를 남기고 월드 해류 플러그인을 비활성화합니다.
 
 ## 해류 흐름과 모델 응답 보기
 

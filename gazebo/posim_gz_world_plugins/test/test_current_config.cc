@@ -13,16 +13,47 @@
 // limitations under the License.
 
 #include <gtest/gtest.h>
+#include <unistd.h>
+#include <filesystem>
+#include <fstream>
 #include <gz/sim/components/World.hh>
 #include <limits>
 #include <sdf/Root.hh>
 #include <sstream>
 #include "CurrentProfile.hh"
+#include "TidalProfile.hh"
 #include "posim_gz_world_plugins/OceanCurrentWorldPlugin.hh"
 
 using posim_gz_world_plugins::GaussMarkovProcess;
 using posim_gz_world_plugins::OceanCurrentWorldPlugin;
 using posim_gz_world_plugins::detail::ReadCurrentProfile;
+using posim_gz_world_plugins::detail::ReadTidalProfile;
+
+TEST(TidalProfile, ReadsAlternatingPeaksAndSkipsSlack)
+{
+  std::istringstream input(
+    "Date,Event,Speed\n2020-01-01 00:00, flood,100\n2020-01-01 00:30,slack,-\n"
+    "2020-01-01 01:00, ebb,-200\n2020-01-01 01:30,ebb,-100\n");
+  const auto profile = ReadTidalProfile(input);
+  ASSERT_EQ(profile.dateGMT.size(), 2u);
+  EXPECT_DOUBLE_EQ(profile.speedcmsec[0], 100);
+  EXPECT_DOUBLE_EQ(profile.speedcmsec[1], -200);
+}
+
+TEST(TidalProfile, RejectsMalformedRowsDatesAndSpeeds)
+{
+  for (const std::string & line :
+       {"", "short", "2020-01-01 00:00,flood,100,extra", "2020-01-01 00:00,flood,nan",
+        "2020-01-01 00:00,flood,100m", "2020-02-30 00:00,flood,100", "2020-01-01 00:00,bad,100",
+        "2020-01-01 00:00,flood,100"})
+  {
+    std::istringstream input("Date,Event,Speed\n" + line + "\n");
+    EXPECT_THROW(ReadTidalProfile(input), std::invalid_argument);
+  }
+  std::istringstream duplicate(
+    "Date,Event,Speed\n2020-01-01 00:00,flood,100\n2020-01-01 00:00,ebb,-100\n");
+  EXPECT_THROW(ReadTidalProfile(duplicate), std::invalid_argument);
+}
 
 TEST(CurrentProfile, ReadsDescriptionAndFiniteSortedLayers)
 {
@@ -105,4 +136,43 @@ TEST(CurrentConfiguration, MissingRequiredBlocksLeavesWorldPluginInactive)
     plugin.PostUpdate(gz::sim::UpdateInfo(), ecm);
     EXPECT_TRUE(plugin.sharedDataPtr->stratifiedDatabase.empty());
   }
+}
+
+TEST(CurrentConfiguration, InvalidTidalFilesAndStartTimesLeavePluginInactive)
+{
+  std::string path = (std::filesystem::temp_directory_path() / "posim-current-XXXXXX").string();
+  const auto descriptor = mkstemp(path.data());
+  ASSERT_GE(descriptor, 0);
+  close(descriptor);
+  {
+    std::ofstream file(path);
+    file << "description\nmetadata\ncolumns\n0.2,0,0\n0.4,0,10\n";
+  }
+  gz::sim::EntityComponentManager ecm;
+  gz::sim::EventManager events;
+  const auto world = ecm.CreateEntity();
+  ecm.CreateComponent(world, gz::sim::components::World());
+  const std::string directions = "<mean_direction><ebb>0</ebb><flood>180</flood></mean_direction>";
+  const std::string start =
+    "<world_start_time_GMT><year>2020</year><month>1</month><day>1</day>"
+    "<hour>0</hour><minute>0</minute></world_start_time_GMT>";
+  for (const auto & tide :
+       {directions + start + "<databasefilePath>" + path + ".missing</databasefilePath>",
+        directions + "<harmonic_constituents/>", start + "<harmonic_constituents/>"})
+  {
+    sdf::Root root;
+    const auto errors = root.LoadSdfString(
+      "<sdf version='1.12'><world name='test'><plugin name='test' filename='test'>"
+      "<namespace>test</namespace><constant_current/><transient_current><databasefilePath>" +
+      path + "</databasefilePath></transient_current><tidal_oscillation>" + tide +
+      "</tidal_oscillation></plugin></world></sdf>");
+    ASSERT_TRUE(errors.empty());
+    OceanCurrentWorldPlugin plugin;
+    plugin.Configure(world, root.Element()->GetElement("world")->GetElement("plugin"), ecm, events);
+    EXPECT_EQ(plugin.sharedDataPtr->stratifiedDatabase.size(), 2u);
+    EXPECT_EQ(OceanCurrentWorldPlugin::Instance(), nullptr);
+    plugin.Update(gz::sim::UpdateInfo(), ecm);
+    plugin.PostUpdate(gz::sim::UpdateInfo(), ecm);
+  }
+  std::filesystem::remove(path);
 }

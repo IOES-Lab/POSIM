@@ -40,7 +40,7 @@ public:
     const gz::sim::Entity & _entity, const std::shared_ptr<const sdf::Element> & _sdf,
     gz::sim::EntityComponentManager & _ecm, gz::sim::EventManager & _eventMgr);
 
-  void LoadCurrentVelocityParams(sdf::ElementPtr _sdf, gz::sim::EntityComponentManager & _ecm);
+  bool LoadCurrentVelocityParams(sdf::ElementPtr _sdf, gz::sim::EntityComponentManager & _ecm);
 
   void UpdateDatabase(
     const std::shared_ptr<const posim_interfaces::msg::StratifiedCurrentDatabase> & _msg);

@@ -1,6 +1,7 @@
 #ifndef POSIM_GZ_WORLD_PLUGINS__TIDAL_OSCILLATION_HH_
 #define POSIM_GZ_WORLD_PLUGINS__TIDAL_OSCILLATION_HH_
 
+#include <array>
 #include <cstdlib>
 #include <ctime>
 #include <gz/sim/System.hh>
@@ -26,7 +27,7 @@ public:
 
   /// \brief Prepare the data for interpolation
 public:
-  void Initiate(bool _harmonicConstituents);
+  bool Initiate(bool _harmonicConstituents);
 
   /// \brief Translate datetime string to datenum
 public:
@@ -46,58 +47,61 @@ public:
 
   /// \brief Bool for method type
 public:
-  bool harmonicConstituent;
+  bool harmonicConstituent{false};
 
   /// \brief Tidal current harmonic constituents
 public:
-  double M2_amp;
+  double M2_amp{0};
 
 public:
-  double M2_phase;
+  double M2_phase{0};
 
 public:
-  double M2_speed;
+  double M2_speed{0};
 
 public:
-  double S2_amp;
+  double S2_amp{0};
 
 public:
-  double S2_phase;
+  double S2_phase{0};
 
 public:
-  double S2_speed;
+  double S2_speed{0};
 
 public:
-  double N2_amp;
+  double N2_amp{0};
 
 public:
-  double N2_phase;
+  double N2_phase{0};
 
 public:
-  double N2_speed;
+  double N2_speed{0};
 
   /// \brief Input Tidal direction
 public:
-  double ebbDirection;
+  double ebbDirection{0};
 
 public:
-  double floodDirection;
+  double floodDirection{0};
 
   /// \brief Input world start time
 public:
-  std::array<int, 5> worldStartTime;
+  std::array<int, 5> worldStartTime{};
 
 public:
-  double worldStartTime_num;
+  double worldStartTime_num{0};
 
   /// \brief Update function for a new time stamp
-  /// \param _time Current time stamp
+  /// \param _time Seconds since the configured world start time
 public:
   std::pair<double, double> Update(double _time, double _currentDepthRatio);
 
   /// \brief save current state (Flood: true, Ebb: false)
 public:
-  bool currentType;
+  bool currentType{false};
+
+private:
+  bool valid{false};
 };
 }  // namespace posim_gz_world_plugins
 
