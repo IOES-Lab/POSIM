@@ -82,8 +82,13 @@ void SubseaPressureSensorPlugin::Configure(
   bool parsed = true;
   const auto parameter = [&](const char * key, auto defaultValue)
   {
-    const auto value = _sdf->Get<decltype(defaultValue)>(key, defaultValue);
-    parsed = parsed && (!_sdf->HasElement(key) || value.second);
+    sdf::Errors errors;
+    const auto value = _sdf->Get<decltype(defaultValue)>(errors, key, defaultValue);
+    parsed = parsed && errors.empty() && (!_sdf->HasElement(key) || value.second);
+    if (!errors.empty())
+    {
+      gzerr << "Invalid pressure parameter <" << key << ">." << std::endl;
+    }
     return value.first;
   };
   this->dataPtr->saturation = parameter("saturation", 3000.0);

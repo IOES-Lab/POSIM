@@ -260,3 +260,23 @@ TEST_F(PressureBehavior, MissingNamespaceAndInvalidPressureParametersStayInactiv
     ExpectSilence();
   }
 }
+
+class InvalidPressureText : public PressureBehavior,
+                            public ::testing::WithParamInterface<std::string>
+{
+};
+
+TEST_P(InvalidPressureText, DoesNotAdvertiseOrPublish)
+{
+  sensor.Configure(model, Config(GetParam()), ecm, events);
+  EXPECT_FALSE(
+    Wait([&]() { return pressureSub->get_publisher_count() > 0; }, std::chrono::milliseconds(300)));
+  Tick(125);
+  ExpectSilence();
+}
+
+INSTANTIATE_TEST_SUITE_P(
+  Parameters, InvalidPressureText,
+  ::testing::Values(
+    "<standard_pressure>invalid</standard_pressure>", "<update_rate>invalid</update_rate>",
+    "<estimate_depth_on>invalid</estimate_depth_on>"));
