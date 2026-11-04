@@ -67,9 +67,10 @@ source /opt/ros/lyrical/setup.bash
 export POSIM_WS="${POSIM_WS:-${POSIM_UNDERLAY:-}}"
 source "$POSIM_WS/install/setup.bash"
 ros2 pkg prefix posim_demos
+ros2 pkg prefix ros_gz_sim
 ```
 
-The AMD64 recipe uses `/opt/posim_ws`; the ARM64 recipe uses `/home/docker/posim_ws`. The environment variables above select the matching workspace.
+The AMD64 recipe uses `/opt/posim_ws`; the ARM64 recipe uses `/home/docker/posim_ws`. The environment variables above select the matching workspace. Both package prefixes should point to that workspace's `install` directory. If `ros_gz_sim` points to `/opt/ros/lyrical`, the pinned launcher is not selected; check that the image was built from the intended checkout and source its workspace again.
 
 ## 4. Inspect from another terminal
 

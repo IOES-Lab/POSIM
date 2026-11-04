@@ -67,9 +67,10 @@ source /opt/ros/lyrical/setup.bash
 export POSIM_WS="${POSIM_WS:-${POSIM_UNDERLAY:-}}"
 source "$POSIM_WS/install/setup.bash"
 ros2 pkg prefix posim_demos
+ros2 pkg prefix ros_gz_sim
 ```
 
-AMD64 작업 공간은 `/opt/posim_ws`, ARM64 작업 공간은 `/home/docker/posim_ws`입니다. 위 환경변수로 해당 이미지의 작업 공간을 선택합니다.
+AMD64 작업 공간은 `/opt/posim_ws`, ARM64 작업 공간은 `/home/docker/posim_ws`입니다. 위 환경변수로 해당 이미지의 작업 공간을 선택합니다. 두 패키지의 경로는 모두 해당 작업 공간의 `install` 디렉터리를 가리켜야 합니다. `ros_gz_sim`이 `/opt/ros/lyrical`을 가리킨다면 지정된 런처가 선택되지 않은 것입니다. 이미지가 의도한 체크아웃에서 빌드되었는지 확인하고 작업 공간을 다시 불러오세요.
 
 ## 4. 두 번째 터미널에서 확인
 
