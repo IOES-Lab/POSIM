@@ -38,7 +38,7 @@ BlueView 센서 Launch는 Gazebo 시뮬레이션 시간을 ROS `/clock`으로 �
 <plugin filename="gz-sim-sensors-system" name="gz::sim::systems::Sensors">
   <render_engine>ogre2</render_engine>
 </plugin>
-<plugin filename="multibeam_sonar_system" name="custom::MultibeamSonarSystem"/>
+<plugin filename="libmultibeam_sonar_system" name="custom::MultibeamSonarSystem"/>
 ```
 
 다음 P900 센서를 모델의 `<link>` 안에 넣습니다. 서버 모드에서도 렌더러를 준비하세요.
@@ -145,7 +145,7 @@ BlueView 센서 Launch는 Gazebo 시뮬레이션 시간을 ROS `/clock`으로 �
 <plugin filename="gz-sim-sensors-system" name="gz::sim::systems::Sensors">
   <render_engine>ogre2</render_engine>
 </plugin>
-<plugin filename="multibeam_sonar_system" name="custom::MultibeamSonarSystem"/>
+<plugin filename="libmultibeam_sonar_system" name="custom::MultibeamSonarSystem"/>
 ```
 
 CUDA와 렌더링 환경을 준비한 뒤 작업 공간을 다시 빌드하고 환경을 불러오세요. [센서 launch 인수](quickstart.md)로 새 센서 모델을 선택합니다. ROS 점군 브리지는 `sensor_msgs/msg/PointCloud2`와 Gazebo `gz.msgs.PointCloudPacked`를 연결합니다. `pointCloudTopicName`과 `sensor_config.py`에 지정한 경로를 일치시키세요.

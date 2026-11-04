@@ -38,7 +38,7 @@ Add the systems directly inside `<world>`:
 <plugin filename="gz-sim-sensors-system" name="gz::sim::systems::Sensors">
   <render_engine>ogre2</render_engine>
 </plugin>
-<plugin filename="multibeam_sonar_system" name="custom::MultibeamSonarSystem"/>
+<plugin filename="libmultibeam_sonar_system" name="custom::MultibeamSonarSystem"/>
 ```
 
 Place this P900 sensor inside a model `<link>`. Keep a renderer available in server-only mode:
@@ -145,7 +145,7 @@ Include the Gazebo rendering-sensor system and sonar system in the world. Consul
 <plugin filename="gz-sim-sensors-system" name="gz::sim::systems::Sensors">
   <render_engine>ogre2</render_engine>
 </plugin>
-<plugin filename="multibeam_sonar_system" name="custom::MultibeamSonarSystem"/>
+<plugin filename="libmultibeam_sonar_system" name="custom::MultibeamSonarSystem"/>
 ```
 
 Prepare CUDA and rendering, rebuild the workspace and load its environment, then select your sensor model using the [sensor launch arguments](quickstart.md). The ROS point-cloud bridge connects `sensor_msgs/msg/PointCloud2` to Gazebo `gz.msgs.PointCloudPacked`. Match `pointCloudTopicName` to the path configured in `sensor_config.py`.
