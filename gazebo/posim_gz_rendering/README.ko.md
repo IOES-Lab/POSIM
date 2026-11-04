@@ -59,7 +59,7 @@ macOS 라이브러리 확장자는 `.dylib`입니다. Gazebo 프로세스마다 
 별도로 실행합니다. SLAM 정확도와는 별도의 렌더링 검사입니다.
 
 ```sh
-python tests/verify_particles.py \
+python3 tests/verify_particles.py \
   --binary build/underwater-particle-render-test \
   --sdk /absolute/matching-sdk \
   --renderer-dir build \
