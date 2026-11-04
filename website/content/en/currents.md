@@ -127,7 +127,11 @@ ros2 service call /hydrodynamics/set_current_velocity posim_interfaces/srv/SetCu
 
 Velocity is in m/s and the two angles are in radians. The example requests a horizontal flow along the zero-angle direction; check the returned success flag and current data that follows.
 
-Model services use `GetCurrentModel` and `SetCurrentModel` for velocity, horizontal angle and vertical angle. Parameters include mean, lower/upper bounds, noise amplitude and `mu`. Depth-specific services use the stratified interface types. Inspect them with `ros2 interface show` before setting a layer.
+Model services use `GetCurrentModel` and `SetCurrentModel` for velocity, horizontal angle and vertical angle. Parameters include mean, lower/upper bounds, noise amplitude and `mu`. Depth-specific services use the stratified interface types. For example, inspect the layer-velocity request and response before setting a layer:
+
+```bash
+ros2 interface show posim_interfaces/srv/SetStratifiedCurrentVelocity
+```
 
 Each request either applies completely or returns `success: false` without changing the current. Values must be finite and within the configured bounds. Velocity bounds are nonnegative; horizontal-angle bounds stay within −π to π, and vertical-angle bounds within −π/2 to π/2. Model settings apply to the global model and every depth layer while preserving each layer's mean, so new bounds must contain those means too.
 

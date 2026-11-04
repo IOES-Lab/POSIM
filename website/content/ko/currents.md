@@ -127,7 +127,11 @@ ros2 service call /hydrodynamics/set_current_velocity posim_interfaces/srv/SetCu
 
 속도는 m/s, 두 각도는 라디안입니다. 예제는 두 각도를 0으로 설정해 수평 흐름을 만듭니다. 반환된 성공 값과 이후 해류 데이터를 확인하세요.
 
-속도·수평각·수직각 모델 서비스는 `GetCurrentModel`, `SetCurrentModel`을 사용합니다. 평균, 상·하한, 잡음 진폭과 `mu`를 설정합니다. 깊이별 서비스는 stratified 자료형을 사용합니다. 특정 층을 변경하기 전에 `ros2 interface show`로 필드를 확인하세요.
+속도·수평각·수직각 모델 서비스는 `GetCurrentModel`, `SetCurrentModel`을 사용합니다. 평균, 상·하한, 잡음 진폭과 `mu`를 설정합니다. 깊이별 서비스는 stratified 자료형을 사용합니다. 예를 들어 특정 층을 변경하기 전에 층 속도 요청과 응답의 필드를 확인합니다.
+
+```bash
+ros2 interface show posim_interfaces/srv/SetStratifiedCurrentVelocity
+```
 
 각 요청은 전체가 적용되거나, 해류를 변경하지 않고 `success: false`를 반환합니다. 값은 유한하고 설정한 범위 안에 있어야 합니다. 속도 범위는 0 이상, 수평각 범위는 −π~π, 수직각 범위는 −π/2~π/2로 지정합니다. 모델 설정은 전역 모델과 모든 깊이 층에 적용되며 각 층의 평균은 유지됩니다. 따라서 새 범위에는 각 층의 평균도 포함되어야 합니다.
 
