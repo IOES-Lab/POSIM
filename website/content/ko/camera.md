@@ -21,15 +21,7 @@ ros2 topic echo /underwater_camera/simulated_image \
 ros2 topic hz /underwater_camera/simulated_image
 ```
 
-RViz의 Image 디스플레이에서 결과를 확인하세요. GUI가 없어도 렌더러는 필요합니다.
-
-## 부유 입자
-
-네이티브 렌더러는 RGB·RGBD 색 영상에 부유 입자를 표시할 수 있습니다. 입자는 기본적으로 꺼져 있습니다. 호스트 앱의 화면 효과 설정이나 렌더러의 [화면 효과 서비스](https://github.com/IOES-Lab/POSIM/tree/main/gazebo/posim_gz_rendering)로 켭니다.
-
-입자는 월드 안의 공통 위치에 배치되며 시뮬레이션 시간에 따라 일정한 속도로 이동합니다. 같은 시각에는 서로 다른 카메라도 같은 위치의 입자를 관측합니다. 불투명한 표면 뒤의 입자는 가려집니다. 표시 거리 0.05–3 m 안에서 장면과 평균 수면 높이로 범위를 제한합니다. 수치 깊이와 음향 음선의 값은 유지됩니다.
-
-입자는 절차적으로 생성하는 광학 효과이며, 이동은 시뮬레이션 해류와 독립적입니다. 영상 기반 항법을 평가할 때는 입자를 움직이는 관측 대상으로 취급하고, 비교 실험의 화면 효과 설정을 일정하게 유지하세요.
+RViz의 Image 디스플레이에서 결과를 확인하세요. GUI가 없어도 렌더러는 필요합니다. 토픽은 검색되지만 영상 수신이 멈추면 [큰 영상 메시지의 전송 설정](troubleshooting.md#영상-토픽은-보이지만-수신이-멈출-때)을 확인하세요.
 
 ## 플러그인 설정
 
@@ -86,28 +78,15 @@ RGBD 센서는 색 영상과 깊이 영상을 제공합니다. 플러그인은 �
 
 감쇠 없는 비교 영상은 `attenuationR`, `attenuationG`, `attenuationB`와 세 배경값을 모두 0으로 지정합니다. 탁한 연안 설정은 위의 예제 값 0.8·0.5·0.2와 85·107·47을 사용합니다. 태그를 생략하면 코드 기본값이 적용됩니다.
 
-```xml
-<sensor name="underwater_camera" type="rgbd_camera">
-  <update_rate>10</update_rate>
-  <topic>underwater_camera</topic>
-  <camera>
-    <horizontal_fov>1.05</horizontal_fov>
-    <image><width>320</width><height>240</height></image>
-    <clip><near>0.1</near><far>10.0</far></clip>
-  </camera>
-  <plugin filename="UnderwaterCamera"
-          name="posim_gz_sensor_plugins::UnderwaterCamera">
-    <attenuationR>0.8</attenuationR>
-    <attenuationG>0.5</attenuationG>
-    <attenuationB>0.2</attenuationB>
-    <backgroundR>85</backgroundR>
-    <backgroundG>107</backgroundG>
-    <backgroundB>47</backgroundB>
-  </plugin>
-</sensor>
-```
-
 이 센서는 거리별 RGB 감쇠와 배경 혼합을 사용합니다. [장면 렌더러](underwater-rendering.md)는 햇빛·해저 햇빛 무늬와 선택형 부유 입자를 시각적으로 표현합니다. 보정된 입자 산란을 연구하려면 이러한 시각 근사를 넘어서는 광학 모델이 필요합니다.
+
+## 부유 입자
+
+네이티브 렌더러는 RGB·RGBD 색 영상에 부유 입자를 표시할 수 있습니다. 입자는 기본적으로 꺼져 있습니다. 호스트 앱의 화면 효과 설정이나 렌더러의 [화면 효과 서비스](https://github.com/IOES-Lab/POSIM/tree/main/gazebo/posim_gz_rendering)로 켭니다.
+
+입자는 월드 안의 공통 위치에 배치되며 시뮬레이션 시간에 따라 일정한 속도로 이동합니다. 같은 시각에는 서로 다른 카메라도 같은 위치의 입자를 관측합니다. 불투명한 표면 뒤의 입자는 가려집니다. 표시 거리 0.05–3 m 안에서 장면과 평균 수면 높이로 범위를 제한합니다. 수치 깊이와 음향 음선의 값은 유지됩니다.
+
+입자는 절차적으로 생성하는 광학 효과이며, 이동은 시뮬레이션 해류와 독립적입니다. 영상 기반 항법을 평가할 때는 입자를 움직이는 관측 대상으로 취급하고, 비교 실험의 화면 효과 설정을 일정하게 유지하세요.
 
 ## 수중 영상 비교
 
