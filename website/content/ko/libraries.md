@@ -1,6 +1,21 @@
-# 지형·경로·차량 제어 라이브러리
+# 구성 요소와 라이브러리
 
-POSIM은 해양 환경·로봇 모델·센서·ROS 2 인터페이스를 제공하는 시뮬레이션 엔진입니다. [WWW-POSIM](https://www-posim.vercel.app/)은 엔진과 세 공개 라이브러리를 연결해 실제 지형을 바탕으로 한 월드와 자동 항해를 제공합니다.
+POSIM은 해양 환경·로봇 모델·센서·ROS 2 인터페이스를 제공하는 오픈소스 해양 로봇 시뮬레이션 라이브러리입니다. 아래 관련 라이브러리로 실험에 지리 기반 지형, 경로 계획과 차량 제어를 더할 수 있습니다.
+
+## POSIM 작업공간의 구성
+
+| 위치 | 제공하는 내용 |
+|---|---|
+| `models/posim_worlds` | 월드 파일과 환경 리소스 |
+| `models/posim_robot_models` | 기체 역학, 센서와 로봇별 ROS 설정 |
+| `models/posim_sensor_models` | 독립 센서 모델과 예제 |
+| `gazebo/` | 해양 환경·센서 플러그인 |
+| `posim_interfaces` | POSIM 메시지·서비스 정의 |
+| `examples/posim_demos` | 월드·모델·ROS를 연결하는 Launch |
+
+[첫 시뮬레이션](quickstart.md)에서 이 구성 요소를 함께 실행합니다. 모델이나 환경을 바꾸려면 [로봇 추가](custom-robots.md)와 [월드 만들기](custom-worlds.md)를 사용하세요.
+
+## 관련 라이브러리
 
 | 저장소 | 역할 | 입력과 출력 |
 | --- | --- | --- |
@@ -33,8 +48,8 @@ POSIM은 해양 환경·로봇 모델·센서·ROS 2 인터페이스를 제공�
 
 ## 함께 사용하기
 
-POSIM-Terrain이 지형 데이터를 제공합니다. POSIM-Routing은 그 지형에서 경로를 계획하고 검사합니다. POSIM-Control은 승인된 경유점을 따라가도록 제어하고, Gazebo가 물리 운동을 계산합니다. WWW-POSIM은 세션·지형 작업·항해 진행·사용자 화면을 관리합니다.
+POSIM-Terrain이 지리 지형을 제공합니다. POSIM-Routing은 그 지형에서 경로를 계획하고 검사합니다. POSIM-Control은 승인된 경유점을 따라가도록 제어하고, Gazebo가 물리 운동을 계산합니다.
 
-각 라이브러리는 README의 방법으로 직접 사용할 수 있습니다. WWW-POSIM은 세 라이브러리와 POSIM 엔진의 커밋을 Git 서브모듈로 지정합니다. 웹 작업공간과 설치형 앱에도 지정된 구현을 포함합니다. 앱의 구조는 [WWW-POSIM 구성 요소](https://www-posim.vercel.app/guide/components.ko.html)를 참고하세요.
+각 라이브러리의 README를 따라 설치하고 입력과 출력을 연결하세요. [WWW-POSIM](https://www-posim.vercel.app/)은 이 라이브러리들과 POSIM을 웹 작업 공간과 설치형 앱에서 함께 사용하는 앱의 한 예입니다.
 
-엔진 사용은 [설치](install.md), [로봇 모델](custom-robots.md), [ROS 2 제어](ros.md)에서 시작하세요.
+POSIM 실험은 [설치](install.md), [로봇 모델](custom-robots.md), [ROS 2 제어](ros.md)에서 시작하세요.

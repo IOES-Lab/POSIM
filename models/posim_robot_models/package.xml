@@ -17,6 +17,8 @@
   <exec_depend>sensor_msgs</exec_depend>
   <exec_depend>std_msgs</exec_depend>
   <test_depend>ament_cmake_pytest</test_depend>
+  <test_depend>gz_tools_vendor</test_depend>
+  <test_depend>sdformat_vendor</test_depend>
   <export>
     <build_type>ament_cmake</build_type>
     <!-- This doesn't work yet https://github.com/gazebosim/ros_gz/pull/492 -->

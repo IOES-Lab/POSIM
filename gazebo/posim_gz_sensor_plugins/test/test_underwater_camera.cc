@@ -164,6 +164,11 @@ TEST(UnderwaterCamera, PreservesAcquisitionHeader)
   auto subscription = node->create_subscription<sensor_msgs::msg::Image>(
     "/camera_unit_test/simulated_image", rclcpp::QoS(10),
     [&received](sensor_msgs::msg::Image::SharedPtr image) { received = image; });
+  for (int i = 0; i < 150 && subscription->get_publisher_count() == 0; ++i)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(20));
+  }
+  ASSERT_EQ(subscription->get_publisher_count(), 1u);
   gz::msgs::Image depth;
   depth.set_width(2);
   depth.set_height(2);
@@ -171,6 +176,8 @@ TEST(UnderwaterCamera, PreservesAcquisitionHeader)
   depth.set_pixel_format_type(gz::msgs::PixelFormatType::R_FLOAT32);
   const float values[] = {3, 3, 3, 3};
   depth.set_data(values, sizeof(values));
+  depth.mutable_header()->mutable_stamp()->set_sec(42);
+  depth.mutable_header()->mutable_stamp()->set_nsec(123456789);
   camera.DepthImageCallback(depth);
   gz::msgs::Image rgb;
   rgb.set_width(2);
@@ -183,9 +190,9 @@ TEST(UnderwaterCamera, PreservesAcquisitionHeader)
   auto frame = rgb.mutable_header()->add_data();
   frame->set_key("frame_id");
   frame->add_value("vehicle::camera::optical");
+  camera.CameraCallback(rgb);
   for (int i = 0; i < 150 && !received; ++i)
   {
-    camera.CameraCallback(rgb);
     rclcpp::spin_some(node);
     std::this_thread::sleep_for(std::chrono::milliseconds(20));
   }
@@ -196,11 +203,18 @@ TEST(UnderwaterCamera, PreservesAcquisitionHeader)
   EXPECT_EQ(received->encoding, "bgr8");
   EXPECT_EQ(received->data.size(), 12u);
   // A time of zero is valid at simulation start; do not substitute wall time.
+  gz::sim::UpdateInfo info;
+  info.simTime = std::chrono::seconds(43);
+  camera.PostUpdate(info, ecm);
+  info.simTime = std::chrono::seconds(0);
+  camera.PostUpdate(info, ecm);
   received.reset();
   rgb.clear_header();
+  depth.clear_header();
+  camera.DepthImageCallback(depth);
+  camera.CameraCallback(rgb);
   for (int i = 0; i < 150; ++i)
   {
-    camera.CameraCallback(rgb);
     rclcpp::spin_some(node);
     if (received && received->header.stamp.sec == 0)
     {

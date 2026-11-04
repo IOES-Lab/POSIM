@@ -16,7 +16,9 @@ docker build -f extras/surface/Dockerfile --build-arg POSIM_BASE_IMAGE=posim:dev
 docker run --rm -it --entrypoint bash posim:surface -lc 'source /opt/ros/lyrical/setup.bash; source /home/docker/posim_ws/install/setup.bash; ros2 launch /opt/posim-surface/wamv.launch.py headless:=true'
 ```
 
-The image contains separate ArduSub and ArduRover binaries. This example runs one vehicle. Assign it one controller and port set.
+The image contains separate ArduSub and ArduRover binaries. Run one instance of this example per environment: it uses fixed generated-file paths, vehicle names and controller ports. Changing `world_name` alone does not isolate another instance. Multiple vehicles need a custom integration with separate files, names, controller identities and ports, or separate isolated environments.
+
+The controller starts after model creation and the first IMU sample. A failed model-creation process, model creation exceeding 180 seconds, or an IMU wait exceeding 180 seconds stops the launch with a nonzero status and reports the failed stage. Inspect the simulator and sensor logs before retrying.
 
 - Rover boat frame: `FRAME_CLASS=2`
 - Left/right propellers: servo outputs **1 / 3**

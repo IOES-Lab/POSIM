@@ -38,7 +38,7 @@ class UsblTransponder : public gz::sim::System,
 {
 public:
   UsblTransponder();
-  ~UsblTransponder() override = default;
+  ~UsblTransponder() override;
 
   void Configure(
     const gz::sim::Entity & entity, const std::shared_ptr<const sdf::Element> & sdf,

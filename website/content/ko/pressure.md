@@ -4,7 +4,15 @@
 
 ## REXROV에서 수압 확인
 
-[REXROV 예제](quickstart.md)를 실행한 뒤 같은 환경의 두 번째 터미널에서 확인합니다.
+환경을 불러온 터미널에서 REXROV를 실행합니다.
+
+```bash
+ros2 launch posim_demos posim_robot.launch.py \
+  namespace:=rexrov world_name:=posim_ocean_waves z:=-5 paused:=false \
+  gui:=false headless:=true use_teleop:=false use_web_joystick:=false
+```
+
+같은 환경의 두 번째 터미널에서 확인합니다.
 
 ```bash
 ros2 topic echo /model/rexrov/sea_pressure sensor_msgs/msg/FluidPressure --once
@@ -14,6 +22,8 @@ ros2 topic echo /model/rexrov/sea_pressure_depth geometry_msgs/msg/PointStamped 
 압력 단위는 **Pa**, 분산은 Pa²입니다. 깊이 메시지는 미터를 사용합니다.
 
 ## 모델에 플러그인 추가
+
+깊이를 측정할 `<model>` 바로 안에 다음 블록을 넣습니다. `namespace`는 출력 토픽을 구분하는 식별자입니다.
 
 ```xml
 <plugin filename="sea_pressure_sensor"
@@ -27,18 +37,25 @@ ros2 topic echo /model/rexrov/sea_pressure_depth geometry_msgs/msg/PointStamped 
 </plugin>
 ```
 
-`namespace`를 로봇 식별자로 맞춥니다. 출력 경로는 `/model/<namespace>/<topic>`, 깊이 출력에는 `_depth`가 붙습니다.
+출력 경로는 `/model/<namespace>/<topic>`, 깊이 출력에는 `_depth`가 붙습니다. 플러그인이 부착된 모델을 측정하므로 `namespace`는 모델 이름과 달라도 됩니다.
 
 ## 설정과 단위
 
 | 설정 | 의미 |
 | --- | --- |
-| `standard_pressure` | 수면 기준 압력, **kPa**. 기본값 101.325 |
-| `kPa_per_meter` | 깊이 1 m당 압력 증가. 기본값 9.80638 |
+| `namespace` | 필수 출력 접두 경로. 유효한 ROS 토픽 경로를 구성해야 함 |
+| `topic` | 출력 이름. 기본값 `sea_pressure` |
+| `standard_pressure` | 유한한 0 이상의 수면 기준 압력, **kPa**. 기본값 101.325 |
+| `kPa_per_meter` | 유한한 양수인 깊이당 압력 증가, **kPa/m**. 기본값 9.80638 |
 | `estimate_depth_on` | 추정 깊이 발행. 기본값 true |
-| `update_rate` | 설정한 발행 빈도(Hz). 0 이하는 매 물리 업데이트 |
+| `update_rate` | 유한한 발행 빈도(Hz). 기본값 0. 0 이하는 시뮬레이션 시간이 진행되는 매 물리 업데이트 |
+| `saturation` | 읽어 들이는 값의 기본값은 3000. 구현에서 압력 제한에 사용하지 않음 |
 
-모델은 로컬 z = 0을 수면으로 보고 `depth = max(0, -z)`를 사용합니다. kPa로 계산한 값을 Pa로 바꾸어 발행합니다. 월드·로봇 위치도 이 해수면 기준에 맞춥니다.
+모델은 월드 좌표에서 `depth = max(0, -z)`를 사용하며, 중첩 모델의 상위 모델 변환도 반영합니다. 압력의 기준 수면은 파도 높이와 무관하게 월드 z = 0 평면입니다. kPa로 계산한 값을 Pa로 바꾸어 발행합니다.
+
+ROS 압력·추정 깊이와 Gazebo 압력 메시지는 같은 시뮬레이션 타임스탬프를 사용합니다. 일시정지 중이거나 같은 시각이 반복되면 새 측정값을 발행하지 않으며, 시간이 진행되거나 되감기면 발행을 재개합니다. 설정이 잘못되면 플러그인은 비활성 상태로 남습니다. 모델 자세가 없거나 유한하지 않은 경우, 또는 계산값이 표현 범위를 넘는 경우에는 압력 샘플을 발행하지 않습니다.
+
+소스는 고정 분산 9,000,000 Pa²를 발행하며 압력에 무작위 잡음을 더하지 않습니다. 추정기에 분산을 적용할 때 이 특성을 고려하세요. 압력·깊이 계산은 [플러그인 구현](https://github.com/IOES-Lab/POSIM/blob/main/gazebo/posim_gz_sensor_plugins/src/sea_pressure_sensor.cc)에서 확인할 수 있습니다.
 
 ## 깊이 실험 확인
 

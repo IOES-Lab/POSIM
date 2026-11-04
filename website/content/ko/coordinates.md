@@ -19,6 +19,33 @@ ros2 service call /gz/get_origin_spherical_coordinates \
 
 예제 SDF의 기준은 위도 35.074823°, 경도 129.084798°입니다. 실제 실행 중인 기준 좌표는 응답으로 확인하세요.
 
+## SDF 구성과 설정값
+
+두 블록을 `<world>` 바로 안에 넣습니다. 플러그인은 월드의 구면 좌표 설정을 읽으며 플러그인 자체의 SDF 매개변수는 없습니다. 네 ROS 서비스 경로는 `/gz/` 아래로 고정됩니다. 월드가 아닌 곳에 플러그인을 넣거나 월드에 구면 좌표 설정이 없으면 오류를 기록하고 서비스를 생성하지 않습니다.
+
+```xml
+<spherical_coordinates>
+  <surface_model>EARTH_WGS84</surface_model>
+  <world_frame_orientation>ENU</world_frame_orientation>
+  <latitude_deg>35.074823</latitude_deg>
+  <longitude_deg>129.084798</longitude_deg>
+  <elevation>0</elevation>
+  <heading_deg>0</heading_deg>
+</spherical_coordinates>
+<plugin filename="SphericalCoords"
+        name="posim_ros_gz_plugins::SphericalCoords"/>
+```
+
+| 월드 SDF 항목 | 의미 | 예제 값 |
+| --- | --- | --- |
+| `surface_model` | 기준 타원체 | `EARTH_WGS84` |
+| `world_frame_orientation` | 월드 축 규칙 | `ENU` |
+| `latitude_deg`, `longitude_deg` | 원점의 위도·경도(도) | 35.074823, 129.084798 |
+| `elevation` | 원점 고도(m) | 0 |
+| `heading_deg` | 방위 오프셋(도) | 0 |
+
+월드에 원점을 명시하세요. 서비스 연결은 [소스](https://github.com/IOES-Lab/POSIM/blob/main/gazebo/posim_ros_gz_plugins/src/SphericalCoords.cc)와 [예제 월드](https://github.com/IOES-Lab/POSIM/blob/main/models/posim_worlds/worlds/posim_bimanual_example.world)를 참고하세요.
+
 ## 서비스 목록
 
 | `/gz/` 아래 서비스 이름 | POSIM 서비스 자료형 | 요청 |
@@ -29,6 +56,8 @@ ros2 service call /gz/get_origin_spherical_coordinates \
 | `transform_from_spherical_coordinates` | `TransformFromSphericalCoord` | `latitude_deg`, `longitude_deg`, `altitude` |
 
 자료형은 `posim_interfaces/srv`에 있습니다. 각도는 도, 로컬 좌표와 고도는 미터입니다.
+
+요청에는 유한한 수를 사용해야 합니다. 위도는 −90°~90°, 경도는 −180°~180° 범위입니다. 잘못된 원점 변경 요청은 `success: false`를 반환하고 기존 원점을 유지합니다. 좌표 변환에 실패하면 `NaN` 좌표를 반환하므로 제어기에 사용하기 전에 결과를 확인하세요.
 
 ## 로컬 위치 변환
 

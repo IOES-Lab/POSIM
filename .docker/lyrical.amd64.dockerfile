@@ -61,6 +61,10 @@ RUN touch /root/.posim_entrypoint && \
     printf '\033[1;33mROS 2 Lyrical · Gazebo Jetty · ArduSub · MAVROS\033[0m\n\n' >> /root/.posim_entrypoint && \
     echo 'cat /root/.posim_entrypoint' >> /root/.bashrc
 
+# Direct docker exec / entrypoint commands also need the installed autopilot.
+ENV PATH=/opt/ardusub_ws/ardupilot/build/sitl/bin:/opt/ardusub_ws/ardupilot/Tools/autotest:${PATH}
+ENV GEOGRAPHICLIB_GEOID_PATH=/usr/share/GeographicLib/geoids
+
 WORKDIR /root
 
 LABEL org.opencontainers.image.title="POSIM" \

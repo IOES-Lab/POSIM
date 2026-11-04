@@ -16,6 +16,20 @@ pnpm preview
 Open `http://127.0.0.1:4174` for English, or
 `http://127.0.0.1:4174/ko/` for Korean. Output is in `dist/`.
 
+Run the browser checks after building:
+
+```sh
+pnpm exec playwright install chromium
+pnpm test:browser
+```
+
+Playwright checks desktop and mobile navigation, language switching, search,
+clipboard fallback and video loading/retry. Screenshots and the JSON report
+are written under `.validation/`. The preview server supports MP4 byte ranges
+for seeking. The two current-demo MP4s are tracked in `public/media/notion/`
+and published with the site; playback uses browser-native controls with local
+loading, buffering and retry feedback.
+
 ## Publish on GitHub Pages
 
 The public documentation is published at
@@ -52,7 +66,10 @@ Search reads a local JSON asset and does not need an external search service.
   registry; deployed guides use the local files.
 
 Use relative Markdown links such as `[Camera](camera.md)`. The builder converts
-them to HTML links. Keep headings unique and descriptive. Code fences get a
+them to HTML links. Keep headings unique and descriptive. Mark code fences as
+`xml` or `sdf` for SDF, `bash` or `sh` for terminal commands, and `python` for
+Python examples. Syntax highlighting is generated with the HTML. Plain text
+and unknown languages retain escaped, unhighlighted code. Code fences get a
 localized copy button in the browser. If clipboard access is denied, the code
 is selected and the UI prompts the user to copy with the keyboard.
 

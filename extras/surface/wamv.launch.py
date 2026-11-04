@@ -20,6 +20,15 @@ from wamv import make_model  # noqa: E402 - sibling module after launch loader p
 from waves import prepare  # noqa: E402 - sibling module after launch loader path
 
 
+def continue_on_success(event, context, actions, stage):
+    """Advance only when the preceding startup process completed successfully."""
+    if context.is_shutdown:
+        return []
+    if event.returncode == 0:
+        return actions
+    raise RuntimeError(f"Surface demo {stage} failed (exit {event.returncode})")
+
+
 def setup(context):
     world_name = LaunchConfiguration("world_name").perform(context)
     folder = Path("/tmp/posim-surface")
@@ -64,6 +73,7 @@ def setup(context):
     create = Node(
         package="ros_gz_sim",
         executable="create",
+        prefix="timeout --kill-after=10s 180s",
         arguments=[
             "-world",
             world_name,
@@ -92,7 +102,9 @@ def setup(context):
         cmd=[
             "bash",
             "-c",
-            f"until timeout 2 gz topic -e -t {shlex.quote(imu)} -n 1 >/dev/null 2>&1; do :; done",
+            f"deadline=$((SECONDS + 180)); until timeout 2 gz topic -e -t {shlex.quote(imu)} "
+            "-n 1 >/dev/null 2>&1; do if (( SECONDS >= deadline )); then "
+            'echo "Timed out waiting for WAM-V IMU data" >&2; exit 1; fi; done',
         ],
         output="screen",
     )
@@ -125,8 +137,22 @@ def setup(context):
         navigation,
         server,
         create,
-        RegisterEventHandler(OnProcessExit(target_action=create, on_exit=[bridge, wait])),
-        RegisterEventHandler(OnProcessExit(target_action=wait, on_exit=[sitl, mavros])),
+        RegisterEventHandler(
+            OnProcessExit(
+                target_action=create,
+                on_exit=lambda event, context: continue_on_success(
+                    event, context, [bridge, wait], "model spawn"
+                ),
+            )
+        ),
+        RegisterEventHandler(
+            OnProcessExit(
+                target_action=wait,
+                on_exit=lambda event, context: continue_on_success(
+                    event, context, [sitl, mavros], "IMU readiness"
+                ),
+            )
+        ),
     ]
 
 

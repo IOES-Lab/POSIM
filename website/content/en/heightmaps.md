@@ -38,4 +38,4 @@ Rebuild and source the workspace after adding resources. Launch the new world fr
 
 ## Check collision placement on Jetty
 
-Validate vertical placement with a falling-body contact test. A nonzero `<heightmap><pos>` can affect the rendered terrain without producing the same collision offset with the selected physics backend. Keep the heightmap offset at zero and apply the common translation in the enclosing model pose when this occurs. Check visual and collision alignment again before using the terrain.
+Validate vertical placement with a falling-body contact test and a camera or depth sensor. On Jetty, a nonzero `<heightmap><pos>` can affect the rendered terrain without producing the same collision offset. Moving the translation to the enclosing model pose can also leave the two surfaces misaligned, so verify both placements with your renderer and physics backend. If they still disagree, use a terrain geometry or backend that passes the contact and visual checks before running navigation experiments.

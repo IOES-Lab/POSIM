@@ -20,6 +20,9 @@ install(
   DESTINATION share/posim_robot_models
 )
 
+install(FILES ../../extras/virtual_joystick.html
+  DESTINATION share/${PROJECT_NAME}/web)
+
 ament_environment_hooks(
   "${CMAKE_CURRENT_SOURCE_DIR}/hooks/${PROJECT_NAME}.dsv.in")
 
@@ -31,6 +34,7 @@ if(BUILD_TESTING)
     test_manual_control_services test/test_manual_control_services.py)
   ament_add_pytest_test(test_ws_lifecycle test/test_ws_lifecycle.py)
   ament_add_pytest_test(test_sim_clock_configs test/test_sim_clock_configs.py)
+  ament_add_pytest_test(test_rexrov_inertias test/test_rexrov_inertias.py)
 endif()
 
 ament_package()

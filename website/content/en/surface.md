@@ -13,7 +13,9 @@ docker run --rm -it --entrypoint bash posim:surface -lc \
   'source /opt/ros/lyrical/setup.bash; source /home/docker/posim_ws/install/setup.bash; ros2 launch /opt/posim-surface/wamv.launch.py headless:=true'
 ```
 
-This image contains ArduSub and ArduRover as separate binaries. The single-vehicle example selects ArduRover's boat configuration (`FRAME_CLASS=2`). Separate vehicles need separate controller identities and network ports.
+This image contains ArduSub and ArduRover as separate binaries. The single-vehicle example selects ArduRover's boat configuration (`FRAME_CLASS=2`). Run one instance per environment: the launcher uses a fixed vehicle name, generated-file paths and controller ports. Changing `world_name` alone does not make a second instance independent. Multiple vehicles require a custom integration with separate files, names, controller identities and network ports, or separate isolated environments.
+
+The controller starts after the vehicle spawns and its IMU publishes data. If spawning fails or takes more than 180 seconds, or no IMU sample arrives within 180 seconds after spawning, launch stops with a nonzero status and reports the failed stage. Check the Gazebo and sensor logs before retrying.
 
 ## Model, controller and navigation
 

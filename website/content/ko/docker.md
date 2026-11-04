@@ -1,10 +1,26 @@
 # Docker 환경
 
-실행하려는 소스 커밋에서 이미지를 빌드합니다. 저장소에는 Linux AMD64와 ARM64용 구성이 각각 있습니다.
+Docker Hub에서 기존 이미지를 받거나 실행하려는 소스 커밋에서 이미지를 빌드할 수 있습니다. 저장소에는 Linux AMD64와 ARM64용 구성이 각각 있습니다.
 
-## 이미지 선택
+## Docker Hub에서 이미지 받기
 
-이 가이드는 소스에서 `posim:dev-*` 이미지를 빌드합니다. `git rev-parse HEAD`로 사용할 커밋을 기록하세요. 게시된 `ioeslab/posim` 이미지는 소스 커밋·아키텍처·패키지 이름을 확인하고 digest를 기록합니다.
+[Docker Hub의 POSIM](https://hub.docker.com/r/ioeslab/posim/tags)에는 현재 아키텍처별 검증 이미지가 있습니다. Linux AMD64 호스트에서는 AMD64 태그를 받습니다.
+
+```bash
+docker pull ioeslab/posim:validation-pr5-abad9d70-amd64
+```
+
+Apple Silicon을 포함한 ARM64 호스트에서는 RDP 이미지를 받습니다.
+
+```bash
+docker pull ioeslab/posim:validation-pr5-abad9d70-arm64-rdp
+```
+
+이 이미지들은 검증용으로 게시된 빌드이며 현재 릴리스나 `latest` 태그가 아닙니다. 두 이미지의 레이블은 소스 커밋 `32eedbac`을 가리킵니다. 해당 버전의 데모 패키지 이름과 작업 공간 경로는 현재 저장소와 다릅니다. 이 이미지에는 [해당 버전의 Docker 안내](https://github.com/IOES-Lab/POSIM/blob/32eedbacf781a0fd1e517481571e76bfaab73c51/docs/docker.md)와 [빠른 시작](https://github.com/IOES-Lab/POSIM/blob/32eedbacf781a0fd1e517481571e76bfaab73c51/README.md)을 사용하고, 실행 명령의 로컬 빌드 태그를 내려받은 이미지 태그로 바꾸세요. 아래 소스 빌드 및 컨테이너 명령은 현재 저장소를 기준으로 하므로 그대로 따라 하려면 로컬에서 빌드하세요. 새 이미지가 있는지는 [태그 목록](https://hub.docker.com/r/ioeslab/posim/tags)에서 확인하고, 환경 재현을 위해 이미지 digest를 기록합니다.
+
+## 소스에서 빌드
+
+`git rev-parse HEAD`로 사용할 커밋을 기록하세요. 다음 단계는 현재 체크아웃에서 `posim:dev-*` 이미지를 빌드합니다.
 
 ## 1. 호스트에서 이미지 빌드
 
@@ -51,9 +67,10 @@ source /opt/ros/lyrical/setup.bash
 export POSIM_WS="${POSIM_WS:-${POSIM_UNDERLAY:-}}"
 source "$POSIM_WS/install/setup.bash"
 ros2 pkg prefix posim_demos
+ros2 pkg prefix ros_gz_sim
 ```
 
-AMD64 작업 공간은 `/opt/posim_ws`, ARM64 작업 공간은 `/home/docker/posim_ws`입니다. 위 환경변수로 해당 이미지의 작업 공간을 선택합니다.
+AMD64 작업 공간은 `/opt/posim_ws`, ARM64 작업 공간은 `/home/docker/posim_ws`입니다. 위 환경변수로 해당 이미지의 작업 공간을 선택합니다. 두 패키지의 경로는 모두 해당 작업 공간의 `install` 디렉터리를 가리켜야 합니다. `ros_gz_sim`이 `/opt/ros/lyrical`을 가리킨다면 지정된 런처가 선택되지 않은 것입니다. 이미지가 의도한 체크아웃에서 빌드되었는지 확인하고 작업 공간을 다시 불러오세요.
 
 ## 4. 두 번째 터미널에서 확인
 
@@ -101,3 +118,5 @@ macOS의 Docker는 Linux 가상 머신입니다. 컨테이너 렌더링과 호�
 3. Xvfb 셸과 컨테이너 셸을 닫습니다.
 
 Gazebo가 종료될 때까지 가상 디스플레이를 유지하세요.
+
+Launch 로그에 Gazebo가 SIGINT 후 종료되지 않아 SIGTERM을 받았다고 표시되면 강제 종료가 있었더라도 Launch 명령 자체는 성공으로 끝날 수 있습니다. 호스트에서 `docker ps --filter name=posim-quickstart`로 컨테이너가 남아 있는지 확인하세요. 더 이상 사용하지 않는데 실행 중이라면 `docker stop posim-quickstart`로 종료합니다. `--rm`을 지정했으므로 종료 후 컨테이너는 삭제됩니다. 반복되는 종료 오류는 무인 실행에 사용하기 전에 원인을 확인하세요.

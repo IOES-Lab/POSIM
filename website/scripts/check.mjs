@@ -33,7 +33,8 @@ for (const file of htmlFiles) {
   if (new Set(ids).size !== ids.length) fail(`${file}: duplicate heading/element IDs`);
   if (/notion-file-block:|<mention-page|\{\{[A-Z_]+\}\}/.test(html)) fail(`${file}: unresolved source markup`);
   for (const image of html.matchAll(/<img\b[^>]*>/g)) {
-    if (!/\balt="[^"]+"/.test(image[0])) fail(`${file}: image needs descriptive alt text`);
+    const decorative = /\balt=""/.test(image[0]) && /\baria-hidden="true"/.test(image[0]);
+    if (!/\balt="[^"]+"/.test(image[0]) && !decorative) fail(`${file}: image needs descriptive alt text or explicit decorative treatment`);
   }
   if (/dave_(?:demos|interfaces|robot|sensor|world|gz|ros)|dave_(?:world|robot|sensor)\.launch/.test(html)) fail(`${file}: stale package/launch name`);
   const markdown = await readFile(path.join(root, 'content', lang, path.basename(file, '.html') + '.md'), 'utf8');
@@ -74,8 +75,11 @@ for (const media of mediaSources) {
   }
 }
 for (const [file, html] of documents) {
-  for (const match of html.matchAll(/\b(?:href|src)="([^"]+)"|<option value="([^"]+\.html)"/g)) {
-    const reference = (match[1] || match[2]).replaceAll('&amp;', '&');
+  const references = [...html.matchAll(/\b(?:href|src)="([^"]+)"|<option value="([^"]+\.html)"/g)]
+    .map(match => (match[1] || match[2]).replaceAll('&amp;', '&'));
+  const redirects = html.match(/<script type="application\/json" id="docs-anchor-redirects">([^<]+)<\/script>/);
+  if (redirects) references.push(...Object.values(JSON.parse(redirects[1])));
+  for (const reference of references) {
     if (/^(https?:|mailto:)/.test(reference)) {
       if (haveSource) {
         const source = reference.match(/^https:\/\/github\.com\/IOES-Lab\/POSIM\/(?:blob|tree|edit)\/main\/(.+)$/i);
@@ -96,8 +100,13 @@ for (const [file, html] of documents) {
 }
 for (const lang of ['en', 'ko']) {
   const index = JSON.parse(await readFile(path.join(output, 'assets', `search.${lang}.json`), 'utf8'));
-  if (index.length !== pages.length || new Set(index.map(p => p.url)).size !== pages.length) fail(`${lang}: incomplete search index`);
-  for (const page of index) if (!page.title || !page.description || !page.text || !documents.has((lang === 'ko' ? 'ko/' : '') + page.url)) fail(`${lang}: invalid search entry`);
+  if (new Set(index.map(p => p.url.split('#')[0])).size !== pages.length) fail(`${lang}: incomplete search index`);
+  for (const page of index) {
+    const [file, anchor] = page.url.split('#');
+    const document = documents.get((lang === 'ko' ? 'ko/' : '') + file);
+    if (!page.title || !page.heading || !page.description || page.language !== lang || !document) fail(`${lang}: invalid search entry`);
+    if (anchor && !document.includes(`id="${anchor}"`)) fail(`${lang}: invalid search section ${page.url}`);
+  }
 }
 if (haveSource) {
   const worlds = (await readdir(path.join(repository, 'models/posim_worlds/worlds'))).filter(f => f.endsWith('.world')).sort();

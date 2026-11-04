@@ -239,12 +239,14 @@ private:
 
     // Logging
     std::ofstream writeLog;
+    std::string logDirectory;
     u_int64_t writeCounter;
     u_int64_t writeNumber;
     u_int64_t writeInterval;
     bool writeLogFlag;
 
     // Time
+    std::chrono::steady_clock::duration measurementTime{0};
     double lastMeasurementTime;
   };
 

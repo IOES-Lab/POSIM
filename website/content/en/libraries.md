@@ -1,6 +1,21 @@
-# Terrain, routing and control libraries
+# Components & libraries
 
-POSIM is the simulation engine for ocean environments, robot models, sensors and ROS 2 interfaces. [WWW-POSIM](https://www-posim.vercel.app/) combines it with three public libraries for geographic worlds and automated voyages.
+POSIM provides ocean environments, robot models, sensors and ROS 2 interfaces as an open-source maritime robotics simulation library. These related libraries add geographic terrain, route planning and vehicle control to your experiments.
+
+## Inside the POSIM workspace
+
+| Location | What it supplies |
+|---|---|
+| `models/posim_worlds` | World files and their environment resources |
+| `models/posim_robot_models` | Robot mechanics, sensors and per-robot ROS configuration |
+| `models/posim_sensor_models` | Standalone sensor descriptions and examples |
+| `gazebo/` | Marine environment and sensor plugins |
+| `posim_interfaces` | POSIM message and service definitions |
+| `examples/posim_demos` | Launch files that connect worlds, models and ROS |
+
+Use [First simulation](quickstart.md) to run these components together. Use [Add a robot](custom-robots.md) and [Create a world](custom-worlds.md) when you want to change the model or environment.
+
+## Related libraries
 
 | Repository | Responsibility | Inputs and outputs |
 | --- | --- | --- |
@@ -33,8 +48,8 @@ Use Python policies for speed, rough water, stability and recovery. Native Gazeb
 
 ## Use them together
 
-POSIM-Terrain supplies the terrain data. POSIM-Routing plans and checks paths across it. POSIM-Control follows approved waypoints while Gazebo computes physical motion. WWW-POSIM manages sessions, terrain jobs, voyage progress and user interfaces.
+POSIM-Terrain supplies the geographic field. POSIM-Routing plans and checks paths across it. POSIM-Control follows approved waypoints while Gazebo computes physical motion.
 
-Each library can be used directly through its README. WWW-POSIM pins all three and the POSIM engine as Git submodules. Its web workspace and installed app include the pinned implementations. See [WWW-POSIM components](https://www-posim.vercel.app/guide/components.html) for the application structure.
+Follow each library's README to install it and connect its inputs and outputs. [WWW-POSIM](https://www-posim.vercel.app/) is one application that combines these libraries with POSIM in a web workspace and desktop app.
 
-For engine use, start with [installation](install.md), [robot models](custom-robots.md) and [ROS 2 control](ros.md).
+For POSIM experiments, start with [installation](install.md), [robot models](custom-robots.md) and [ROS 2 control](ros.md).

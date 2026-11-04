@@ -1,10 +1,26 @@
 # Docker environment
 
-Build an image from the same source revision you intend to run. The repository supplies separate Linux AMD64 and ARM64 recipes.
+You can pull an existing image from Docker Hub or build one from the source revision you intend to run. The repository supplies separate Linux AMD64 and ARM64 recipes.
 
-## Choose an image
+## Pull an image from Docker Hub
 
-This guide builds `posim:dev-*` images from source. Record the revision with `git rev-parse HEAD`. For published `ioeslab/posim` images, check source revision, architecture and package names, and record the digest.
+[POSIM on Docker Hub](https://hub.docker.com/r/ioeslab/posim/tags) currently provides architecture-specific validation images. For a Linux AMD64 host, pull the AMD64 tag:
+
+```bash
+docker pull ioeslab/posim:validation-pr5-abad9d70-amd64
+```
+
+For an ARM64 host, including Apple Silicon, pull the RDP image:
+
+```bash
+docker pull ioeslab/posim:validation-pr5-abad9d70-arm64-rdp
+```
+
+These are older validation builds, not a current release or a `latest` tag. Both image labels identify source revision `32eedbac`; its demo package and workspace paths have different names from the current repository. Use the [matching Docker instructions](https://github.com/IOES-Lab/POSIM/blob/32eedbacf781a0fd1e517481571e76bfaab73c51/docs/docker.md) and [quickstart](https://github.com/IOES-Lab/POSIM/blob/32eedbacf781a0fd1e517481571e76bfaab73c51/README.md) with these images, substituting the pulled image tag for the local build tag in the run commands. The source-build and container commands below target the current repository; build locally to follow them. Check the [tag list](https://hub.docker.com/r/ioeslab/posim/tags) for newer images and record the image digest when reproducing a setup.
+
+## Build from source
+
+Record the revision with `git rev-parse HEAD`. The following steps build `posim:dev-*` images from this checkout.
 
 ## 1. Build the image on the host
 
@@ -51,9 +67,10 @@ source /opt/ros/lyrical/setup.bash
 export POSIM_WS="${POSIM_WS:-${POSIM_UNDERLAY:-}}"
 source "$POSIM_WS/install/setup.bash"
 ros2 pkg prefix posim_demos
+ros2 pkg prefix ros_gz_sim
 ```
 
-The AMD64 recipe uses `/opt/posim_ws`; the ARM64 recipe uses `/home/docker/posim_ws`. The environment variables above select the matching workspace.
+The AMD64 recipe uses `/opt/posim_ws`; the ARM64 recipe uses `/home/docker/posim_ws`. The environment variables above select the matching workspace. Both package prefixes should point to that workspace's `install` directory. If `ros_gz_sim` points to `/opt/ros/lyrical`, the pinned launcher is not selected; check that the image was built from the intended checkout and source its workspace again.
 
 ## 4. Inspect from another terminal
 
@@ -101,3 +118,5 @@ Docker on macOS runs a Linux VM. Use [system requirements](requirements.md) to d
 3. Close the Xvfb and container shells.
 
 Keep the virtual display available until Gazebo exits.
+
+If the launch log says Gazebo did not terminate after SIGINT and was sent SIGTERM, the launch command can still return successfully even though shutdown was forced. Check for a remaining container from the host with `docker ps --filter name=posim-quickstart`. If it is still running and you are finished with it, run `docker stop posim-quickstart`; with `--rm`, Docker removes it after it stops. Investigate repeated shutdown errors before relying on an unattended run.

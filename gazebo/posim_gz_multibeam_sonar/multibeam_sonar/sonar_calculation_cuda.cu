@@ -41,11 +41,6 @@
 #include <chrono>
 #include <ctime>
 
-// FOR DEBUG -- DEV VERSION
-#include <fstream>
-
-std::ofstream debugLog("debug_timings.txt");
-
 #define BLOCK_SIZE 32
 
 // Existing SAFE_CALL (for cudaError_t)
@@ -521,9 +516,6 @@ CArray2D sonar_calculation_wrapper(
     printf("GPU Sonar Computation Time %lld/100 [s]\n", dcount / 10000);
     printf("GPU Sonar Computation Time: %.3f ms\n", ms);
 
-    debugLog << "GPU Sonar Computation Time " << dcount / 10000 << "/100 [s]\n";
-    debugLog << "GPU Sonar Computation Time: " << ms << " ms\n";
-
     start = std::chrono::high_resolution_clock::now();
   }
 
@@ -548,9 +540,6 @@ CArray2D sonar_calculation_wrapper(
 
     printf("Sonar Ray Summation %lld/100 [s]\n", dcount / 10000);
     printf("Sonar Ray Summation Time: %.3f ms\n", static_cast<float>(dcount) / 1000.0f);
-
-    debugLog << "Sonar Ray Summation " << dcount / 10000 << "/100 [s]\n";
-    debugLog << "Sonar Ray Summation Time: " << static_cast<float>(dcount) / 1000.0f << " ms\n";
 
     start = std::chrono::high_resolution_clock::now();
   }
@@ -633,10 +622,6 @@ CArray2D sonar_calculation_wrapper(
 
     printf("GPU Window & Correction %lld/100 [s]\n", dcount / 10000);
     printf("GPU Window & Correction: %.3f ms\n", static_cast<float>(dcount) / 1000.0f);
-
-    // Write to file
-    debugLog << "GPU Window & Correction " << dcount / 10000 << "/100 [s]\n";
-    debugLog << "GPU Window & Correction: " << static_cast<float>(dcount) / 1000.0f << " ms\n";
 
     start = std::chrono::high_resolution_clock::now();
   }
@@ -721,10 +706,6 @@ CArray2D sonar_calculation_wrapper(
     printf("GPU FFT Calc Time: %.3f ms\n", ms);
     printf("GPU FFT Calc Time %lld/100 [s]\n", dcount / 10000);
 
-    // Write to file
-    debugLog << "GPU FFT Calc Time: " << ms << " ms\n";
-    debugLog << "GPU FFT Calc Time " << dcount / 10000 << "/100 [s]\n";
-
     start = std::chrono::high_resolution_clock::now();
   }
 
@@ -737,8 +718,6 @@ CArray2D sonar_calculation_wrapper(
     float ms = static_cast<float>(total_duration.count()) / 1000.0f;
 
     printf("Total Sonar Calculation Wrapper Time: %.3f ms\n", ms);
-
-    debugLog << "Total Sonar Calculation Wrapper Time: " << ms << " ms\n";
   }
 
   return P_Beams_F;

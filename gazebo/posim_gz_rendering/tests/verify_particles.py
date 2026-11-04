@@ -76,7 +76,10 @@ def main():
         OGRE2_RESOURCE_PATH=str(sdk / "lib/OGRE-Next") + os.pathsep + str(sdk / "share/OGRE-Next"),
     )
     for name in ("DYLD_LIBRARY_PATH", "LD_LIBRARY_PATH"):
-        env[name] = str(a.renderer_dir.resolve()) + os.pathsep + str(sdk / "lib")
+        paths = [str(a.renderer_dir.resolve()), str(sdk / "lib")]
+        if os.environ.get(name):
+            paths.append(os.environ[name])
+        env[name] = os.pathsep.join(paths)
 
     def run(folder, plane=None):
         folder.mkdir()

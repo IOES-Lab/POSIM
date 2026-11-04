@@ -31,6 +31,70 @@ Both messages carry `transponder_id`, but their `x`, `y`, `z` fields have differ
 
 The current implementation computes directions from the world-coordinate position difference; account for this convention when combining it with body-frame data.
 
+## SDF integration
+
+Place the transceiver plugin inside the `box` model. Each transponder ID corresponds to the model name at the same position in `transponder_attached_object`.
+
+```xml
+<plugin filename="UsblTransceiver" name="posim_gz_sensor_plugins::UsblTransceiver">
+  <namespace>USBL</namespace>
+  <transceiver_device>transceiver_manufacturer</transceiver_device>
+  <transceiver_ID>168</transceiver_ID>
+  <transponder_device>transponder_manufacturer</transponder_device>
+  <transponder_ID>1,2</transponder_ID>
+  <transponder_attached_object>sphere,sphere2</transponder_attached_object>
+  <sound_speed>1540</sound_speed>
+  <enable_ping_scheduler>true</enable_ping_scheduler>
+  <ping_frequency>0.5</ping_frequency>
+  <interrogation_mode>common</interrogation_mode>
+</plugin>
+```
+
+Place this plugin in `sphere`; add another to `sphere2` with `transponder_ID` set to `2`. Match the transceiver name, ID and namespace on both ends.
+
+```xml
+<plugin filename="UsblTransponder" name="posim_gz_sensor_plugins::UsblTransponder">
+  <namespace>USBL</namespace>
+  <transceiver_device>transceiver_manufacturer</transceiver_device>
+  <transceiver_ID>168</transceiver_ID>
+  <transceiver_model>box</transceiver_model>
+  <transponder_device>transponder_manufacturer</transponder_device>
+  <transponder_ID>1</transponder_ID>
+  <sound_speed>1540</sound_speed>
+  <mu>0</mu>
+  <sigma>0</sigma>
+</plugin>
+```
+
+## Parameters and defaults
+
+| Parameter | Applies to | Meaning / default |
+| --- | --- | --- |
+| `namespace` | Both | Required topic namespace, e.g. `USBL` |
+| `transceiver_device`, `transceiver_ID` | Both | Required device name and ID forming topic paths |
+| `transponder_device`, `transponder_ID` | Both | Required name and ID; transceiver accepts comma-separated IDs |
+| `transponder_attached_object` | Transceiver | Required comma-separated model names, ordered like the IDs |
+| `transceiver_model` | Transponder | Required transceiver model name for position lookup |
+| `sound_speed` | Both | Reference acoustic speed at 10 °C and z = 0, m/s; default 1540; finite and positive |
+| `enable_ping_scheduler` | Transceiver | Required boolean; false uses manually published pings |
+| `ping_frequency` | Transceiver | Scheduled rate in simulation time, Hz; default 1; example 0.5; finite and positive |
+| `interrogation_mode` | Transceiver | `common` or `individual`; default `common` |
+| `mu`, `sigma` | Transponder | Position noise mean and standard deviation, m; defaults 0 and 1; finite values with sigma ≥ 0; example 0 and 0 |
+
+Use existing model names and unique transponder IDs. Keep the ID and attached-model lists the same length. See the [complete tutorial SDF](https://github.com/IOES-Lab/POSIM/blob/main/models/posim_worlds/worlds/usbl_tutorial.world) for model geometry and placement.
+
+IDs are decimal integers from 0 to 2147483647, without a sign or leading zeros. Each plugin requires a model containing a link. Invalid configuration leaves the plugin inactive. Unknown channel and command targets are ignored; an unknown channel keeps the current selection. The first listed transponder is the initial channel. Scheduled pings pause with simulation time and emit at most once per update.
+
+## Acoustic timing
+
+Each position request has two simulated travel legs: the transponder waits for the outgoing signal, then the transceiver waits for the returning position. Each leg uses distance divided by the local device's sound speed. Fractional delays advance with simulation time, pause with the world, and are discarded when simulation time rewinds. A pending leg keeps one sample per transponder; additional requests or replies during that leg are ignored. Choose a ping interval longer than the expected round trip to receive each request.
+
+The effective speed is `sound_speed + 0.017 × depth + 4 × (temperature − 10)`, with speed in m/s, depth in meters below z = 0 and temperature in °C. Above z = 0, the depth term is zero. Temperature defaults to 10 °C. Publish `std_msgs/msg/Float64` on `/USBL/transceiver_manufacturer_168/temperature` or `/USBL/transponder_manufacturer_1/temperature` for the example devices. A change applies to subsequent legs. Nonfinite temperatures and changes that produce a nonpositive or nonfinite speed are ignored.
+
+This simple depth/temperature approximation follows the [DOSITS sound-speed overview](https://dosits.org/decision-makers/tutorials/science/sound-speed/). Travel uses straight-line distances; it does not model refraction, salinity, multipath or acoustic interference. The return leg uses the received position, including configured position noise.
+
+The transceiver retains the current interrogation mode so transponders joining later can receive it. Common mode emits one broadcast per scheduled ping; individual mode sends one ping to the selected channel.
+
 ## Request all transponders
 
 ```bash

@@ -39,6 +39,41 @@ ros2 topic info /underwater_camera/simulated_image --verbose
 
 Select the correct transport, keep the inspector in the same sourced environment, and check QoS and domain settings. Read bridge and plugin errors. For a sensor launch, `namespace` must name an existing descriptor. [USBL](usbl.md) is already embedded in its tutorial world and uses the world launch.
 
+## Image topics appear but frames stall
+
+If Gazebo produces images and ROS discovers the publisher, but few or no frames arrive, check the DDS data path. With Cyclone DDS, large UDP datagrams can encounter IP fragmentation limits. A smaller datagram size can help on a network with a 1500-byte MTU. See [Cyclone DDS fragmentation settings](https://cyclonedds.io/docs/cyclonedds/latest/config/data-path-config.html#fragmentation).
+
+For an environment with `rmw_cyclonedds_cpp` installed, create this profile once. If you already use a Cyclone DDS profile, merge the two size settings into its `General` section so its discovery and interface settings remain in effect.
+
+```bash
+mkdir -p "$HOME/.config/posim"
+cat > "$HOME/.config/posim/cyclonedds-images.xml" <<'XML'
+<CycloneDDS xmlns="https://cdds.io/config">
+  <Domain Id="any">
+    <General>
+      <MaxMessageSize>1400B</MaxMessageSize>
+      <FragmentSize>1280B</FragmentSize>
+    </General>
+  </Domain>
+</CycloneDDS>
+XML
+```
+
+Stop the simulator and viewers. After sourcing POSIM, select the profile in each terminal before restarting them. Use your existing profile's path if you merged the settings there.
+
+```bash
+export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+export CYCLONEDDS_URI="file://$HOME/.config/posim/cyclonedds-images.xml"
+```
+
+If a ROS CLI daemon is already running in this domain, stop it once so subsequent CLI calls use the new configuration:
+
+```bash
+ros2 daemon stop
+```
+
+Repeat the [camera image and rate checks](camera.md#run-the-example). Check acquisition timestamps as well as reception rate. Smaller packets add overhead; networks with a lower MTU need correspondingly smaller sizes.
+
 ## A vehicle does not move
 
 Inspect controller state, arming/navigation validity, command delivery and the selected mode. Confirm joint names and thruster axes. Keep only one active command source. The vehicle may be stationary because input is neutral, the world is paused or the autopilot is disarmed.
@@ -46,6 +81,10 @@ Inspect controller state, arming/navigation validity, command delivery and the s
 ## Shutdown fails
 
 Stop data viewers, then press Ctrl+C once in the launch terminal and allow child processes to finish. Preserve abort, segmentation-fault and forced-termination logs. Capture the exact command, revision, OS/architecture and renderer when [reporting an issue](https://github.com/IOES-Lab/POSIM/issues).
+
+### RViz crashes after Discard
+
+On Ubuntu 26.04, RViz 15.2.6 can intermittently crash when you close its window and choose **Discard**, even while its sensor views work. Stop the remaining launch processes with Ctrl+C before starting again. Include the RViz version and the closing action in your issue report.
 
 ## Depth-camera recreation on macOS
 

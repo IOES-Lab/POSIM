@@ -1,165 +1,153 @@
+// Copyright (c) 2016 The dave Simulator Authors.
+// All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include <posim_gz_world_plugins/tidal_oscillation.hh>
 
-#include <fstream>
-
-namespace std
-{
-
-static int cumdays[] = {0, 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334};
-double calcdatenum(int year, int mon, int day, int hour, int imin, int sec, int mil)
-{
-  int tmp1, tmp2, tmp3;
-  double tmp4, tmp5;
-  double dNum;
-
-  /* Calculate the serial date number:*/
-  tmp1 = 365 * year + cumdays[mon] + day;
-  tmp2 = year / 4 - year / 100 + year / 400;
-  tmp3 = (year % 4 != 0) - (year % 100 != 0) + (year % 400 != 0);
-  tmp4 = static_cast<double>(tmp1 + tmp2 + tmp3);
-  tmp5 = (hour * 3600000 + imin * 60000 + sec * 1000 + mil) / 86400000.0;
-
-  dNum = tmp4 + tmp5;
-
-  if (mon > 2)
-  {
-    if (((year % 4 == 0) && (year % 100 != 0)) || (year % 400 == 0))
-    {
-      dNum += 1.0;
-    }
-  }
-
-  return (dNum);
-}
-}  // namespace std
+#include <algorithm>
+#include <cmath>
+#include <limits>
 
 namespace posim_gz_world_plugins
 {
-/////////////////////////////////////////////////
-TidalOscillation::TidalOscillation() {}
+TidalOscillation::TidalOscillation() = default;
 
-/////////////////////////////////////////////////
-void TidalOscillation::Reset() {}
-
-/////////////////////////////////////////////////
-void TidalOscillation::Initiate(bool _harmonicConstituent)
+void TidalOscillation::Reset()
 {
+  this->valid = false;
+  this->datenum.clear();
+  this->currentType = false;
+}
+
+bool TidalOscillation::Initiate(bool _harmonicConstituent)
+{
+  this->Reset();
+  this->harmonicConstituent = _harmonicConstituent;
+  this->worldStartTime_num = TranslateDate(this->worldStartTime);
+  if (
+    !std::isfinite(this->worldStartTime_num) || !std::isfinite(this->ebbDirection) ||
+    !std::isfinite(this->floodDirection))
+  {
+    return false;
+  }
   if (_harmonicConstituent)
   {
-    this->harmonicConstituent = true;
+    for (const auto value :
+         {M2_amp, M2_phase, M2_speed, S2_amp, S2_phase, S2_speed, N2_amp, N2_phase, N2_speed})
+    {
+      if (!std::isfinite(value))
+      {
+        return false;
+      }
+    }
   }
   else
   {
-    int nData = this->speedcmsec.size();
-    // Calculate datenum
-    if (this->dateGMT.size() != this->datenum.size())
+    if (this->dateGMT.size() < 2 || this->dateGMT.size() != this->speedcmsec.size())
     {
-      for (size_t i = 0; i < nData; i++)
-      {
-        this->datenum.push_back(TranslateDate(this->dateGMT[i]));
-      }
+      return false;
     }
-    this->harmonicConstituent = false;
+    for (size_t i = 0; i < this->dateGMT.size(); ++i)
+    {
+      const auto date = TranslateDate(this->dateGMT[i]);
+      if (
+        !std::isfinite(date) || !std::isfinite(this->speedcmsec[i]) ||
+        (!this->datenum.empty() && date <= this->datenum.back()))
+      {
+        this->datenum.clear();
+        return false;
+      }
+      this->datenum.push_back(date);
+    }
   }
-  this->worldStartTime_num = TranslateDate(this->worldStartTime);
-
-  // Make sure worldStarTime is in the range of database
-  // GZ_ASSERT((this->worldStartTime_num > this->datenum[0]
-  //     || this->worldStartTime_num < this->datenum[this->datenum.size()]),
-  //     "World Start Time (GMT) is not in the range of the database");
+  this->valid = true;
+  return true;
 }
 
-/////////////////////////////////////////////////
 double TidalOscillation::TranslateDate(std::array<int, 5> _datetime)
 {
-  double datenumReturn;
-
-  // Calculate datenum
-  datenumReturn =
-    std::calcdatenum(_datetime[0], _datetime[1], _datetime[2], _datetime[3], _datetime[4], 0, 0);
-
-  return datenumReturn;
+  const auto [year, month, day, hour, minute] = _datetime;
+  constexpr int cumulativeDays[] = {0, 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334};
+  constexpr int monthDays[] = {0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+  const bool leap = year % 4 == 0 && (year % 100 != 0 || year % 400 == 0);
+  if (
+    year < 1 || year > 9999 || month < 1 || month > 12 || day < 1 ||
+    day > monthDays[month] + (month == 2 && leap) || hour < 0 || hour > 23 || minute < 0 ||
+    minute > 59)
+  {
+    return std::numeric_limits<double>::quiet_NaN();
+  }
+  // Preserve the serial-day epoch used by the harmonic constituent inputs.
+  const int previousYear = year - 1;
+  const int days = 365 * previousYear + previousYear / 4 - previousYear / 100 + previousYear / 400 +
+                   cumulativeDays[month] + day + 366 + (month > 2 && leap);
+  return days + (hour * 60 + minute) / 1440.0;
 }
 
-/////////////////////////////////////////////////
 std::pair<double, double> TidalOscillation::Update(double _time, double _currentDepthRatio)
 {
-  std::pair<double, double> currents;
-  currents.first = 0.5;
-  currents.second = 0.5;
-  double currentVelocity;
-
-  // Calculate current time
-  double simTimePassed = (0 * 3600000 + 0 * 60000 + _time * 1000 + 0) / 86400000.0;
-  double currentTime = worldStartTime_num + simTimePassed;
-
+  if (!this->valid || !std::isfinite(_time) || !std::isfinite(_currentDepthRatio))
+  {
+    return {0, 0};
+  }
+  const double currentTime = this->worldStartTime_num + _time / 86400.0;
+  double currentVelocity = 0;
   if (this->harmonicConstituent)
   {
-    // Harmonic Constituents calculated in meters and GMT
-    // speed [deg/hour], phase [degrees], amplitude [meters]
-    double h_0 = 0.0;  // mean height of water level above the datum
-    // Approx tidal current with 90 deg shift to height of the tide
-    double h_M2 =
-      M2_amp * cos(
-                 (M2_speed / 180.0 * M_PI / 3600) * (currentTime * 86400000.0 / 1000.0) +
-                 (M2_phase / 180 * M_PI) - (M_PI / 2.0));
-    double h_S2 =
-      S2_amp * cos(
-                 (S2_speed / 180.0 * M_PI / 3600) * (currentTime * 86400000.0 / 1000.0) +
-                 (S2_phase / 180 * M_PI) - (M_PI / 2.0));
-    double h_N2 =
-      N2_amp * cos(
-                 (N2_speed / 180.0 * M_PI / 3600) * (currentTime * 86400000.0 / 1000.0) +
-                 (N2_phase / 180 * M_PI) - (M_PI / 2.0));
-    currentVelocity = h_0 + (h_M2 + h_S2 + h_N2);
+    const auto constituent = [currentTime](double amplitude, double phase, double speed)
+    {
+      return amplitude *
+             std::cos(
+               speed * M_PI / 180.0 * currentTime * 24.0 + phase * M_PI / 180.0 - M_PI / 2.0);
+    };
+    currentVelocity = constituent(M2_amp, M2_phase, M2_speed) +
+                      constituent(S2_amp, S2_phase, S2_speed) +
+                      constituent(N2_amp, N2_phase, N2_speed);
   }
   else
   {
-    // Search current time index from database
-    int currentI = 0;
-    for (size_t i = 0; i < this->datenum.size(); i++)
+    if (this->datenum.size() < 2 || this->datenum.size() != this->speedcmsec.size())
     {
-      if (this->datenum[i] > currentTime)
-      {
-        currentI = i;
-        break;
-      }
+      return {0, 0};
     }
-
-    // Interpolate from database (linear)
-    // boost::math::barycentric_rational<double>
-    //   interp(datenum.data(), speedcmsec.data(), datenum.size());
-    currentVelocity = (this->speedcmsec[currentI] - this->speedcmsec[currentI - 1]) /
-                        (this->datenum[currentI] - this->datenum[currentI - 1]) *
-                        (currentTime - this->datenum[currentI - 1]) +
-                      this->speedcmsec[currentI - 1];
-
-    // Change units to m/s
-    currentVelocity = currentVelocity / 100.0;
+    if (currentTime <= this->datenum.front())
+    {
+      currentVelocity = this->speedcmsec.front();
+    }
+    else if (currentTime >= this->datenum.back())
+    {
+      currentVelocity = this->speedcmsec.back();
+    }
+    else
+    {
+      const auto upper = std::upper_bound(this->datenum.begin(), this->datenum.end(), currentTime);
+      const auto index = static_cast<size_t>(upper - this->datenum.begin());
+      const auto ratio = (currentTime - this->datenum[index - 1]) /
+                         (this->datenum[index] - this->datenum[index - 1]);
+      currentVelocity = this->speedcmsec[index - 1] * (1 - ratio) + this->speedcmsec[index] * ratio;
+    }
+    currentVelocity /= 100.0;
   }
-
-  // Calculate current
-  if (currentVelocity > 0)  // flood
+  const auto direction = currentVelocity > 0 ? this->floodDirection : this->ebbDirection;
+  const auto magnitude = currentVelocity * _currentDepthRatio;
+  if (!std::isfinite(magnitude))
   {
-    currentType = true;
-    // north current velocity
-    currents.first = -cos(this->floodDirection / 180.0 * M_PI) * currentVelocity;
-    // east current velocity
-    currents.second = -sin(this->floodDirection / 180.0 * M_PI) * currentVelocity;
+    return {0, 0};
   }
-  else  // ebb
-  {
-    currentType = false;
-    // north current velocity
-    currents.first = -cos(this->ebbDirection / 180.0 * M_PI) * currentVelocity;
-    // east current velocity
-    currents.second = -sin(this->ebbDirection / 180.0 * M_PI) * currentVelocity;
-  }
-
-  // Apply stratified current ratio
-  currents.first = currents.first * _currentDepthRatio;
-  currents.second = currents.second * _currentDepthRatio;
-
-  return currents;  // in m/s
+  this->currentType = currentVelocity > 0;
+  return {
+    -std::cos(direction * M_PI / 180.0) * magnitude,
+    -std::sin(direction * M_PI / 180.0) * magnitude};
 }
 }  // namespace posim_gz_world_plugins

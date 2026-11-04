@@ -1,23 +1,14 @@
 # Platform for Ocean Simulation
 
-POSIM is a maritime robotics simulation library for ROS 2 and Gazebo. Combine ocean environments, robot models, simulated sensors and control interfaces to run repeatable experiments. POSIM builds on [Project DAVE](https://field-robotics-lab.github.io/dave.doc/), which in turn builds on [UUV Simulator](https://uuvsimulator.github.io/).
+POSIM is an open-source maritime robotics simulation library for ROS 2 and Gazebo. Run ocean environments, surface and underwater robots, simulated sensors and control experiments directly in your workspace. POSIM derives from [Project DAVE](https://field-robotics-lab.github.io/dave.doc/), which builds on [UUV Simulator](https://uuvsimulator.github.io/).
 
 <figure class="docs-abstract"><div class="docs-abstract-grid"><a href="rovs.html" aria-label="ROV · BlueROV2"><img width="577" height="797" src="{{ASSET_PREFIX}}media/overview/bluerov2.png" alt="ROV · BlueROV2" decoding="async"><span>ROV · BlueROV2</span></a><a href="surface.html" aria-label="Surface robot · WAM-V"><img width="1280" height="720" src="{{ASSET_PREFIX}}media/overview/wamv.jpg" alt="Surface robot · WAM-V" decoding="async"><span>Surface robot · WAM-V</span></a><a href="objects.html" aria-label="Seabed · Task scenes"><img width="2200" height="1650" src="{{ASSET_PREFIX}}media/notion/camera-6eec9419.png" alt="Seabed · Task scenes" decoding="async"><span>Seabed · Task scenes</span></a><a href="sonar.html" aria-label="Sonar · Imagery and point clouds"><img width="1738" height="1066" src="{{ASSET_PREFIX}}media/notion/sonar-f4ac9419.png" alt="Sonar · Imagery and point clouds" decoding="async"><span>Sonar · Imagery and point clouds</span></a><a href="dvl.html" aria-label="DVL · Velocity sensing"><img width="1417" height="846" src="{{ASSET_PREFIX}}media/notion/dvl-e7cc9419.png" alt="DVL · Velocity sensing" decoding="async"><span>DVL · Velocity sensing</span></a><a href="camera.html" aria-label="Camera · Underwater vision"><img width="2202" height="1650" src="{{ASSET_PREFIX}}media/notion/camera-f14c9419.png" alt="Camera · Underwater vision" decoding="async"><span>Camera · Underwater vision</span></a></div><figcaption>Ocean environments → robots and dynamics → sensor observations → ROS 2 control. Sensor figures from the POSIM Notion Wiki and POSIM robot scenes captured in WWW-POSIM. Select a panel to open its guide.</figcaption></figure>
 
-## Try WWW-POSIM
-
-[WWW-POSIM](https://www-posim.vercel.app/) is a marine robotics simulator powered by POSIM. Run simulations in a web workspace or desktop app.
-
-- Generate seabed and coast from latitude/longitude
-- Operate surface/underwater robots and inspect sensors
-- Test ArduPilot waypoint missions or ROS 2 code
-- Watch the public LIVE world voyage
-
 ## Start here
 
-<div class="docs-architecture"><a href="install.html"><strong>Install</strong><span>Build the ROS 2 and Gazebo workspace on Ubuntu.</span></a><a href="quickstart.html"><strong>Run</strong><span>Start an ocean world and receive sensor data.</span></a><a href="custom-robots.html"><strong>Extend</strong><span>Add robots, terrain and control code.</span></a></div>
+<div class="docs-architecture"><a href="requirements.html"><strong>Install</strong><span>Choose an Ubuntu, macOS or Windows environment.</span></a><a href="quickstart.html"><strong>Run</strong><span>Start an ocean world and receive sensor data.</span></a><a href="custom-robots.html"><strong>Extend</strong><span>Add robots, terrain and control code.</span></a></div>
 
-Prepare an [Ubuntu installation](install.md) or [Docker environment](docker.md), then run the [first simulation](quickstart.md).
+Choose an installation guide: [Ubuntu](install.md) (recommended), [macOS with Docker and RDP](install-macos.md), or [Windows with WSL 2](install-windows.md). A general [Docker guide](docker.md) is also available. Then run the [first simulation](quickstart.md).
 
 - Operating system: **Ubuntu 26.04**
 - ROS: **ROS 2 Lyrical**
@@ -25,7 +16,7 @@ Prepare an [Ubuntu installation](install.md) or [Docker environment](docker.md),
 
 ## Library components
 
-The [public feature catalogue](features.md) maps environment effects, sensors, robot integrations and related libraries to their source and usage guides.
+Use [Features & examples](features.md) to find environment effects, sensors, robot integrations and related libraries with their source and usage guides.
 
 | Component | Purpose | Guide |
 | --- | --- | --- |
@@ -43,15 +34,21 @@ The [public feature catalogue](features.md) maps environment effects, sensors, r
 3. Launch Gazebo, the model and ROS bridges.
 4. Subscribe to sensors and send commands from ROS nodes.
 
-Use POSIM directly in a ROS workspace. WWW-POSIM provides geographic world generation, a workbench and online sessions.
-
-WWW-POSIM uses [POSIM-Terrain, POSIM-Routing and POSIM-Control](libraries.md) for terrain generation, route planning and vehicle control. Each is a public library with its own usage guide.
-
 ## Find a guide
 
-- **Examples:** commands and data checks
-- **Advanced guides:** models, terrain and build settings
-- **Plugin reference:** values, units and topics
-- **[Contributing](contributing.md):** source/documentation updates and checks
+| Your next task | Guide |
+|---|---|
+| Start and stop one working simulation | [First simulation](quickstart.md) |
+| Understand the ROS connection | [ROS terminals & topics](ros.md) |
+| Write a controller | [Control with Python](python-control.md), then [Thrusters & autopilot](robot-control.md) |
+| Display or save measurements | [View & record sensor data](visualization.md) |
+| Change the experiment | [Create a world](custom-worlds.md), [Add a robot](custom-robots.md), [Add & configure sensors](custom-sensors.md) |
+| Look up a plugin's exact settings | The **Plugin reference** group: quickstart, SDF, parameters and behavior |
 
 Each page links related source and reference material in its footer.
+
+## Related projects
+
+[Components & libraries](libraries.md) explains the POSIM packages and the related terrain, routing and control projects. Each related library has its own usage guide.
+
+[WWW-POSIM](https://www-posim.vercel.app/) is an optional web and desktop application built with POSIM. Follow this site's installation and simulation guides to use POSIM in your own ROS workspace.

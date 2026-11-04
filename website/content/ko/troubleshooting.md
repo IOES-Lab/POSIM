@@ -39,6 +39,41 @@ ros2 topic info /underwater_camera/simulated_image --verbose
 
 맞는 통신 도구를 사용하고 같은 환경에서 확인하며 QoS·도메인 설정을 점검합니다. 브리지와 플러그인 오류도 읽어보세요. 센서 Launch의 `namespace`에는 실제 모델 이름을 지정해야 합니다. [USBL](usbl.md)은 튜토리얼 월드에 포함되어 있으므로 월드 Launch를 사용합니다.
 
+## 영상 토픽은 보이지만 수신이 멈출 때
+
+Gazebo에서 영상을 만들고 ROS에서 발행자도 찾지만 영상이 거의 오지 않으면 DDS 데이터 경로를 확인하세요. Cyclone DDS의 큰 UDP 데이터그램은 IP 단편화 한계에 걸릴 수 있습니다. MTU가 1500바이트인 네트워크에서는 데이터그램 크기를 줄이는 설정이 도움이 될 수 있습니다. [Cyclone DDS 단편화 설정](https://cyclonedds.io/docs/cyclonedds/latest/config/data-path-config.html#fragmentation)을 참고하세요.
+
+`rmw_cyclonedds_cpp`가 설치된 환경에서 다음 설정 파일을 한 번 만듭니다. 이미 Cyclone DDS 설정 파일을 사용한다면 탐색·인터페이스 설정을 유지하도록 기존 파일의 `General` 항목에 두 크기 설정을 합치세요.
+
+```bash
+mkdir -p "$HOME/.config/posim"
+cat > "$HOME/.config/posim/cyclonedds-images.xml" <<'XML'
+<CycloneDDS xmlns="https://cdds.io/config">
+  <Domain Id="any">
+    <General>
+      <MaxMessageSize>1400B</MaxMessageSize>
+      <FragmentSize>1280B</FragmentSize>
+    </General>
+  </Domain>
+</CycloneDDS>
+XML
+```
+
+시뮬레이터와 영상 확인 도구를 종료합니다. POSIM 환경을 불러온 각 터미널에서 다음 설정을 적용한 뒤 다시 실행하세요. 기존 파일에 설정을 합쳤다면 그 파일의 경로를 사용합니다.
+
+```bash
+export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+export CYCLONEDDS_URI="file://$HOME/.config/posim/cyclonedds-images.xml"
+```
+
+이 도메인에서 ROS CLI 데몬이 실행 중이라면 한 번 종료하여 이후 CLI 명령에 새 설정이 적용되게 합니다.
+
+```bash
+ros2 daemon stop
+```
+
+[카메라 영상·수신 주기 확인](camera.md#예제-실행)을 반복합니다. 수신 주기와 함께 취득 타임스탬프도 확인하세요. 작은 패킷은 처리 부담을 늘리며, MTU가 더 작은 네트워크에는 그에 맞춰 크기를 더 줄여야 합니다.
+
 ## 로봇이 움직이지 않을 때
 
 제어기 상태, Arm·항법 유효성, 명령 수신과 선택 모드를 확인합니다. 관절 이름과 추진기 축을 확인하고 명령 입력은 하나씩 사용하세요. 중립 입력, 일시 정지된 월드와 Arm되지 않은 autopilot에서도 로봇은 멈춰 있습니다.
@@ -46,6 +81,10 @@ ros2 topic info /underwater_camera/simulated_image --verbose
 ## 종료가 실패할 때
 
 데이터 확인 도구를 종료한 뒤 Launch 터미널에서 Ctrl+C를 한 번 누르고 자식 프로세스가 끝날 때까지 기다립니다. Abort, segmentation fault와 강제 종료 로그를 보관하세요. [문제 보고](https://github.com/IOES-Lab/POSIM/issues)에는 명령, 커밋, 운영체제·아키텍처와 렌더러를 함께 기록합니다.
+
+### Discard를 선택한 뒤 RViz가 비정상 종료될 때
+
+Ubuntu 26.04의 RViz 15.2.6은 센서 화면이 정상적으로 표시되어도 창을 닫고 **Discard**를 선택할 때 간헐적으로 비정상 종료될 수 있습니다. 다시 실행하기 전에 Launch 터미널에서 Ctrl+C를 눌러 남은 프로세스를 종료하세요. 문제를 보고할 때 RViz 버전과 창을 닫은 방법도 적어주세요.
 
 ## macOS에서 깊이 카메라 재생성
 

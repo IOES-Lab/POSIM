@@ -8,7 +8,7 @@
 
 ```bash
 source /opt/ros/lyrical/setup.bash
-colcon build --packages-select posim_gz_gnss posim_robot_models
+colcon build --merge-install --packages-select posim_gz_gnss posim_robot_models
 source install/setup.bash
 ```
 
@@ -47,7 +47,9 @@ source install/setup.bash
 | `topic` | Gazebo 측정 토픽 | `/model/<model-name>/gnss` |
 | `wave_topic` | 선택형 수면 높이 표본 토픽 | 비어 있음 |
 
-`wave_topic`이 비어 있으면 평균 수면을 사용합니다. 토픽을 지정하면 안테나 주변의 최신 높이 표본이 필요하며, 누락되거나 잘못된 데이터는 `surface unavailable` 상태가 됩니다. 통신 형식은 `gz.msgs.Double_V`이며 스키마 `1`, 격자 수, 주기 영역 X/Y 크기, 풍속·풍향, 파도 경사도, 시뮬레이션 시각, 행 우선 높이 배열 순서입니다. 수신기는 이 격자를 읽으므로 호환 발행기를 별도로 구성합니다. 바람 메타데이터는 수신 여부를 결정하지 않습니다.
+수신기의 수치 설정은 모두 유한해야 합니다. 지연 시간, 수신 준비 시간, 수면 위 여유 높이와 표준편차는 0 이상이어야 합니다.
+
+`wave_topic`이 비어 있으면 평균 수면을 사용합니다. 토픽을 지정하면 안테나 주변의 최신 높이 표본이 필요하며, 누락되거나 잘못된 데이터는 `surface unavailable` 상태가 됩니다. 통신 형식은 `gz.msgs.Double_V`이며 스키마 `1`, 격자 수, 주기 영역 X/Y 크기, 풍속·풍향, 파도 경사도, 시뮬레이션 시각, 행 우선 높이 배열 순서입니다. 격자 수는 2~256 사이의 정수이며 높이 값은 격자 수의 제곱 개가 필요합니다. 영역 크기는 유한한 양수여야 합니다. 시각은 유한해야 하며 현재 시뮬레이션 시각보다 최대 0.6초 전까지 허용하고 미래 시각은 허용하지 않습니다. 수신기는 이 격자를 읽으므로 호환 발행기를 별도로 구성합니다. 바람 메타데이터는 수신 여부를 결정하지 않습니다.
 
 ## 측정과 차단 상태 확인
 
