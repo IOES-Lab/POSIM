@@ -82,6 +82,10 @@ ros2 daemon stop
 
 데이터 확인 도구를 종료한 뒤 Launch 터미널에서 Ctrl+C를 한 번 누르고 자식 프로세스가 끝날 때까지 기다립니다. Abort, segmentation fault와 강제 종료 로그를 보관하세요. [문제 보고](https://github.com/IOES-Lab/POSIM/issues)에는 명령, 커밋, 운영체제·아키텍처와 렌더러를 함께 기록합니다.
 
+### Discard를 선택한 뒤 RViz가 비정상 종료될 때
+
+Ubuntu 26.04의 RViz 15.2.6은 센서 화면이 정상적으로 표시되어도 창을 닫고 **Discard**를 선택할 때 간헐적으로 비정상 종료될 수 있습니다. 다시 실행하기 전에 Launch 터미널에서 Ctrl+C를 눌러 남은 프로세스를 종료하세요. 문제를 보고할 때 RViz 버전과 창을 닫은 방법도 적어주세요.
+
 ## macOS에서 깊이 카메라 재생성
 
 Ogre-Next 2.3.3을 사용하는 네이티브 arm64 SDK에는 깊이 카메라의 제거·재생성 과정에서 재질 수명을 보장하는 [별도 Ogre 오버레이](https://github.com/IOES-Lab/POSIM/tree/main/extras/ogre)를 사용할 수 있습니다. 안내의 빌드 도구를 실행한 뒤, `run_overlay.py`에 Gazebo 명령을 전달해 실행하세요. 오버레이를 빌드하는 것만으로 실행 중인 프로세스에 적용되지는 않습니다. 호환 SDK를 사용하고 검증 기록을 보관하세요. 이 도구는 시스템 라이브러리를 교체하거나 Linux 컨테이너를 설정하지 않습니다.
