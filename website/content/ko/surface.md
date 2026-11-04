@@ -13,7 +13,7 @@ docker run --rm -it --entrypoint bash posim:surface -lc \
   'source /opt/ros/lyrical/setup.bash; source /home/docker/posim_ws/install/setup.bash; ros2 launch /opt/posim-surface/wamv.launch.py headless:=true'
 ```
 
-이미지에는 ArduSub와 ArduRover가 각각 별도 바이너리로 들어 있습니다. 단일 로봇 예제에서는 ArduRover의 보트 구성(`FRAME_CLASS=2`)을 선택합니다. 여러 로봇을 실행할 때는 컨트롤러 식별자와 통신 포트를 각각 배정해야 합니다.
+이미지에는 ArduSub와 ArduRover가 각각 별도 바이너리로 들어 있습니다. 단일 로봇 예제에서는 ArduRover의 보트 구성(`FRAME_CLASS=2`)을 선택합니다. 한 환경에서 한 인스턴스만 실행하세요. 런처가 차량 이름, 생성 파일 경로와 제어기 포트를 고정해서 사용하므로 `world_name`만 바꿔서는 두 번째 인스턴스가 독립적으로 동작하지 않습니다. 여러 차량에는 파일·이름·제어기 식별자·통신 포트를 분리한 별도 통합 구성이나 격리된 환경이 필요합니다.
 
 차량을 생성하고 IMU 데이터가 발행된 뒤 제어기가 시작됩니다. 차량 생성에 실패하거나 180초가 넘게 걸리는 경우, 또는 생성 후 180초 안에 IMU 샘플이 도착하지 않으면 Launch가 0이 아닌 상태로 종료되고 실패한 단계를 알립니다. 다시 실행하기 전에 Gazebo와 센서 로그를 확인하세요.
 
