@@ -66,7 +66,10 @@ Search reads a local JSON asset and does not need an external search service.
   registry; deployed guides use the local files.
 
 Use relative Markdown links such as `[Camera](camera.md)`. The builder converts
-them to HTML links. Keep headings unique and descriptive. Code fences get a
+them to HTML links. Keep headings unique and descriptive. Mark code fences as
+`xml` or `sdf` for SDF, `bash` or `sh` for terminal commands, and `python` for
+Python examples. Syntax highlighting is generated with the HTML. Plain text
+and unknown languages retain escaped, unhighlighted code. Code fences get a
 localized copy button in the browser. If clipboard access is denied, the code
 is selected and the UI prompts the user to copy with the keyboard.
 

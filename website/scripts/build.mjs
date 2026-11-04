@@ -2,7 +2,23 @@ import { cp, mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Marked } from 'marked';
+import hljs from 'highlight.js/lib/core';
+import bash from 'highlight.js/lib/languages/bash';
+import xml from 'highlight.js/lib/languages/xml';
+import python from 'highlight.js/lib/languages/python';
 import { pages, sections } from './pages.mjs';
+
+hljs.registerLanguage('bash', highlighter => {
+  const grammar = bash(highlighter);
+  // Include the command-line tools used throughout the POSIM guides.
+  grammar.keywords.built_in.push('ros2', 'gz', 'colcon', 'rosdep', 'vcs', 'docker',
+    'rocker', 'pnpm', 'cmake', 'ctest', 'git', 'apt', 'apt-get', 'curl', 'wget', 'python3');
+  return grammar;
+});
+hljs.registerLanguage('xml', xml);
+hljs.registerAliases('sdf', { languageName: 'xml' });
+hljs.registerAliases(['shell', 'console'], { languageName: 'bash' });
+hljs.registerLanguage('python', python);
 
 const languages = [{ code: 'en', label: 'English', directory: '' }, { code: 'ko', label: '한국어', directory: 'ko/' }];
 
@@ -12,7 +28,7 @@ const repository = path.resolve(root, '..');
 const sources = JSON.parse(await readFile(path.join(root, 'sources.json'), 'utf8'));
 const esc = value => String(value).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const entities = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ' };
-const plain = html => html.replace(/<[^>]*>/g, ' ')
+const plain = html => html.replace(/<\/?span\b[^>]*>/g, '').replace(/<[^>]*>/g, ' ')
   .replace(/&(#x[0-9a-f]+|#\d+|amp|lt|gt|quot|apos|nbsp);/gi, (match, value) => {
     if (!value.startsWith('#')) return entities[value.toLowerCase()] || match;
     const number = value[1].toLowerCase() === 'x' ? parseInt(value.slice(2), 16) : Number(value.slice(1));
@@ -48,7 +64,13 @@ for (const { code: lang } of languages) {
       .replaceAll('{{ASSET_PREFIX}}', asset);
     const toc = [], ids = new Map();
     const marked = new Marked();
-    marked.use({ renderer: { heading({ tokens, depth }) {
+    marked.use({ renderer: { code({ text, lang }) {
+      const language = (lang || '').trim().split(/\s+/)[0].toLowerCase();
+      if (!hljs.getLanguage(language)) return false;
+      const code = text ? text.replace(/\n$/, '') + '\n' : '';
+      const highlighted = hljs.highlight(code, { language, ignoreIllegals: true }).value;
+      return `<pre><code class="hljs language-${esc(language)}">${highlighted}</code></pre>\n`;
+    }, heading({ tokens, depth }) {
       const content = this.parser.parseInline(tokens);
       const base = plain(content).normalize('NFKC').toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '-').replace(/^-|-$/g, '') || 'section';
       const count = ids.get(base) || 0; ids.set(base, count + 1);
