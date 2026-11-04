@@ -120,6 +120,7 @@ class WorldNameTests(unittest.TestCase):
                 )
                 node_configs = [call.kwargs for call in nodes.call_args_list]
                 create = next(c for c in node_configs if c["package"] == "ros_gz_sim")
+                self.assertEqual(create["prefix"], "timeout --kill-after=10s 180s")
                 self.assertEqual(create["arguments"][1], world.get("name"))
                 bridge = next(c for c in node_configs if c["package"] == "ros_gz_bridge")
                 self.assertIn(imu + "@sensor_msgs/msg/Imu[gz.msgs.IMU", bridge["arguments"])

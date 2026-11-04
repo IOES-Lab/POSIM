@@ -75,6 +75,7 @@ def setup(context):
     create = Node(
         package="ros_gz_sim",
         executable="create",
+        prefix="timeout --kill-after=10s 180s",
         arguments=[
             "-world",
             world_name,
