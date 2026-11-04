@@ -1,6 +1,6 @@
 # Install on Windows
 
-Use Windows Subsystem for Linux 2 (WSL 2) to run POSIM in Ubuntu 26.04. Commands in the Ubuntu guide run inside the Linux distribution, not in PowerShell.
+Use Windows Subsystem for Linux 2 (WSL2) to run POSIM in Ubuntu 26.04. Commands in the Ubuntu guide run inside the Linux distribution, not in PowerShell.
 
 ## 1. Install WSL and Ubuntu
 

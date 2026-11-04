@@ -36,15 +36,19 @@ The [public feature catalogue](features.md) maps environment effects, sensors, r
 
 ## Find a guide
 
-- **Examples:** commands and data checks
-- **Advanced guides:** customize models and terrain, connect controllers and tune sensor experiments
-- **Plugin reference:** quickstarts, SDF examples, parameters, units and topics
-- **[Contributing](contributing.md):** source/documentation updates and checks
+| Your next task | Guide |
+|---|---|
+| Start and stop one working simulation | [First simulation](quickstart.md) |
+| Understand the ROS connection | [ROS terminals & topics](ros.md) |
+| Write a controller | [Control with Python](python-control.md), then [Thrusters & autopilot](robot-control.md) |
+| Display or save measurements | [View & record sensor data](visualization.md) |
+| Change the experiment | [Create a world](custom-worlds.md), [Add a robot](custom-robots.md), [Add & configure sensors](custom-sensors.md) |
+| Look up a plugin's exact settings | The **Plugin reference** group: quickstart, SDF, parameters and behavior |
 
 Each page links related source and reference material in its footer.
 
 ## Related projects
 
-[POSIM-Terrain, POSIM-Routing and POSIM-Control](libraries.md) provide geographic terrain generation, route planning and vehicle control. Each library has its own usage guide.
+[Components & libraries](libraries.md) explains the POSIM packages and the related terrain, routing and control projects. Each related library has its own usage guide.
 
 [WWW-POSIM](https://www-posim.vercel.app/) is an optional web and desktop application built with POSIM. Follow this site's installation and simulation guides to use POSIM in your own ROS workspace.

@@ -1,6 +1,21 @@
-# Terrain, routing and control libraries
+# Components & libraries
 
 POSIM provides ocean environments, robot models, sensors and ROS 2 interfaces as an open-source maritime robotics simulation library. These related libraries add geographic terrain, route planning and vehicle control to your experiments.
+
+## Inside the POSIM workspace
+
+| Location | What it supplies |
+|---|---|
+| `models/posim_worlds` | World files and their environment resources |
+| `models/posim_robot_models` | Robot mechanics, sensors and per-robot ROS configuration |
+| `models/posim_sensor_models` | Standalone sensor descriptions and examples |
+| `gazebo/` | Marine environment and sensor plugins |
+| `posim_interfaces` | POSIM message and service definitions |
+| `examples/posim_demos` | Launch files that connect worlds, models and ROS |
+
+Use [First simulation](quickstart.md) to run these components together. Use [Add a robot](custom-robots.md) and [Create a world](custom-worlds.md) when you want to change the model or environment.
+
+## Related libraries
 
 | Repository | Responsibility | Inputs and outputs |
 | --- | --- | --- |

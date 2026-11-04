@@ -1,6 +1,21 @@
-# 지형·경로·차량 제어 라이브러리
+# 구성 요소와 라이브러리
 
 POSIM은 해양 환경·로봇 모델·센서·ROS 2 인터페이스를 제공하는 오픈소스 해양 로봇 시뮬레이션 라이브러리입니다. 아래 관련 라이브러리로 실험에 지리 기반 지형, 경로 계획과 차량 제어를 더할 수 있습니다.
+
+## POSIM 작업공간의 구성
+
+| 위치 | 제공하는 내용 |
+|---|---|
+| `models/posim_worlds` | 월드 파일과 환경 리소스 |
+| `models/posim_robot_models` | 기체 역학, 센서와 로봇별 ROS 설정 |
+| `models/posim_sensor_models` | 독립 센서 모델과 예제 |
+| `gazebo/` | 해양 환경·센서 플러그인 |
+| `posim_interfaces` | POSIM 메시지·서비스 정의 |
+| `examples/posim_demos` | 월드·모델·ROS를 연결하는 Launch |
+
+[첫 시뮬레이션](quickstart.md)에서 이 구성 요소를 함께 실행합니다. 모델이나 환경을 바꾸려면 [로봇 추가](custom-robots.md)와 [월드 만들기](custom-worlds.md)를 사용하세요.
+
+## 관련 라이브러리
 
 | 저장소 | 역할 | 입력과 출력 |
 | --- | --- | --- |

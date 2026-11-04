@@ -36,15 +36,19 @@ POSIM은 ROS 2와 Gazebo용 오픈소스 해양 로봇 시뮬레이션 라이브
 
 ## 필요한 문서 찾기
 
-- **예제:** 실행 명령과 데이터 확인
-- **상세 가이드:** 모델·지형 구성, 제어기 연결, 센서 실험 조정
-- **플러그인 참고:** 빠른 시작, SDF 예제, 설정값·단위·토픽
-- **[기여하기](contributing.md):** 소스·문서 수정과 확인 방법
+| 다음에 할 작업 | 문서 |
+|---|---|
+| 시뮬레이션 하나를 실행하고 종료하기 | [첫 시뮬레이션](quickstart.md) |
+| ROS 연결 이해하기 | [ROS 터미널과 토픽](ros.md) |
+| 제어 프로그램 작성하기 | [Python으로 제어하기](python-control.md), 이어서 [추진기와 Autopilot](robot-control.md) |
+| 측정값을 표시하거나 저장하기 | [센서 데이터 보기와 기록](visualization.md) |
+| 실험 조건 바꾸기 | [월드 만들기](custom-worlds.md), [로봇 추가](custom-robots.md), [센서 추가와 설정](custom-sensors.md) |
+| 플러그인의 정확한 설정 찾기 | **플러그인 참고** 그룹: 빠른 시작, SDF, 파라미터와 동작 설명 |
 
 각 페이지 하단에서 관련 소스와 참고 자료를 확인할 수 있습니다.
 
 ## 관련 프로젝트
 
-[POSIM-Terrain·POSIM-Routing·POSIM-Control](libraries.md)은 지리 기반 지형 생성, 경로 계획과 차량 제어를 제공합니다. 각 라이브러리에 별도 사용 안내가 있습니다.
+[구성 요소와 라이브러리](libraries.md)에서 POSIM 패키지와 관련 지형·경로·차량 제어 프로젝트를 설명합니다. 각 관련 라이브러리에는 별도의 사용 안내가 있습니다.
 
 [WWW-POSIM](https://www-posim.vercel.app/)은 POSIM으로 만든 웹·설치형 앱입니다. 자신의 ROS 작업 공간에서 POSIM을 사용하려면 이 문서의 설치와 시뮬레이션 안내를 따라가세요.

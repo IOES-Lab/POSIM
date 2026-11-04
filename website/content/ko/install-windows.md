@@ -1,6 +1,6 @@
 # Windows 설치
 
-Windows Subsystem for Linux 2(WSL 2)의 Ubuntu 26.04에서 POSIM을 실행합니다. Ubuntu 안내의 명령은 PowerShell이 아닌 Linux 배포판 안에서 실행합니다.
+Windows Subsystem for Linux 2(WSL2)의 Ubuntu 26.04에서 POSIM을 실행합니다. Ubuntu 안내의 명령은 PowerShell이 아닌 Linux 배포판 안에서 실행합니다.
 
 ## 1. WSL과 Ubuntu 설치
 

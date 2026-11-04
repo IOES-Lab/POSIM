@@ -1,4 +1,4 @@
-# Public feature catalogue
+# Features & examples
 
 Use this catalogue to find each public simulation capability, its implementation and its usage guide. POSIM provides Gazebo systems, robot models and ROS interfaces. World SDF and launch configuration select the systems used by a simulation.
 
