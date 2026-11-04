@@ -167,8 +167,8 @@ if(BUILD_TESTING)
   target_link_libraries(test_current_model gauss_markov_process)
   ament_add_gtest(test_tidal_oscillation test/test_tidal_oscillation.cc)
   target_link_libraries(test_tidal_oscillation tidal_oscillation)
-  find_package(ament_lint_auto REQUIRED)
-  ament_lint_auto_find_test_dependencies()
+  include(../../cmake/PosimLint.cmake)
+  posim_add_lint_tests()
 endif()
 
 # Configure ament

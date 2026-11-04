@@ -29,12 +29,11 @@ protected:
     const auto entity = ecm.CreateEntity();
     ecm.CreateComponent(entity, gz::sim::components::World());
     sdf::Root root;
-    ASSERT_TRUE(
-      root
-        .LoadSdfString("<sdf version='1.12'><world name='test'><plugin name='test' filename='test'>"
-                       "<namespace>current_service_test</namespace><constant_current/>"
-                       "<transient_current/></plugin></world></sdf>")
-        .empty());
+    const auto errors = root.LoadSdfString(
+      "<sdf version='1.12'><world name='test'><plugin name='test' filename='test'>"
+      "<namespace>current_service_test</namespace><constant_current/>"
+      "<transient_current/></plugin></world></sdf>");
+    ASSERT_TRUE(errors.empty());
     world.Configure(entity, root.Element()->GetElement("world")->GetElement("plugin"), ecm, events);
     ASSERT_EQ(OceanCurrentWorldPlugin::Instance(), &world);
     auto & data = *world.sharedDataPtr;
