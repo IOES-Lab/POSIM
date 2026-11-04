@@ -1,10 +1,26 @@
 # Docker 환경
 
-실행하려는 소스 커밋에서 이미지를 빌드합니다. 저장소에는 Linux AMD64와 ARM64용 구성이 각각 있습니다.
+Docker Hub에서 기존 이미지를 받거나 실행하려는 소스 커밋에서 이미지를 빌드할 수 있습니다. 저장소에는 Linux AMD64와 ARM64용 구성이 각각 있습니다.
 
-## 이미지 선택
+## Docker Hub에서 이미지 받기
 
-이 가이드는 소스에서 `posim:dev-*` 이미지를 빌드합니다. `git rev-parse HEAD`로 사용할 커밋을 기록하세요. 게시된 `ioeslab/posim` 이미지는 소스 커밋·아키텍처·패키지 이름을 확인하고 digest를 기록합니다.
+[Docker Hub의 POSIM](https://hub.docker.com/r/ioeslab/posim/tags)에는 현재 아키텍처별 검증 이미지가 있습니다. Linux AMD64 호스트에서는 AMD64 태그를 받습니다.
+
+```bash
+docker pull ioeslab/posim:validation-pr5-abad9d70-amd64
+```
+
+Apple Silicon을 포함한 ARM64 호스트에서는 RDP 이미지를 받습니다.
+
+```bash
+docker pull ioeslab/posim:validation-pr5-abad9d70-arm64-rdp
+```
+
+이 이미지들은 검증용으로 게시된 빌드이며 현재 릴리스나 `latest` 태그가 아닙니다. 소스 커밋, 작업 공간 구조와 패키지가 현재 저장소와 다를 수 있으므로 이미지 레이블을 확인하고 해당 커밋에 맞는 안내를 사용하세요. 아래 소스 빌드 및 컨테이너 명령은 현재 저장소를 기준으로 하므로 그대로 따라 하려면 로컬에서 빌드하세요. 새 이미지가 있는지는 [태그 목록](https://hub.docker.com/r/ioeslab/posim/tags)에서 확인하고, 환경 재현을 위해 이미지 digest를 기록합니다.
+
+## 소스에서 빌드
+
+`git rev-parse HEAD`로 사용할 커밋을 기록하세요. 다음 단계는 현재 체크아웃에서 `posim:dev-*` 이미지를 빌드합니다.
 
 ## 1. 호스트에서 이미지 빌드
 

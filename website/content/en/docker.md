@@ -1,10 +1,26 @@
 # Docker environment
 
-Build an image from the same source revision you intend to run. The repository supplies separate Linux AMD64 and ARM64 recipes.
+You can pull an existing image from Docker Hub or build one from the source revision you intend to run. The repository supplies separate Linux AMD64 and ARM64 recipes.
 
-## Choose an image
+## Pull an image from Docker Hub
 
-This guide builds `posim:dev-*` images from source. Record the revision with `git rev-parse HEAD`. For published `ioeslab/posim` images, check source revision, architecture and package names, and record the digest.
+[POSIM on Docker Hub](https://hub.docker.com/r/ioeslab/posim/tags) currently provides architecture-specific validation images. For a Linux AMD64 host, pull the AMD64 tag:
+
+```bash
+docker pull ioeslab/posim:validation-pr5-abad9d70-amd64
+```
+
+For an ARM64 host, including Apple Silicon, pull the RDP image:
+
+```bash
+docker pull ioeslab/posim:validation-pr5-abad9d70-arm64-rdp
+```
+
+These are older validation builds, not a current release or a `latest` tag. Their source revision, workspace layout and packages can differ from the current repository, so check the image labels and use instructions matching that revision. The source-build and container commands below target the current repository; build locally to follow them. Check the [tag list](https://hub.docker.com/r/ioeslab/posim/tags) for newer images and record the image digest when reproducing a setup.
+
+## Build from source
+
+Record the revision with `git rev-parse HEAD`. The following steps build `posim:dev-*` images from this checkout.
 
 ## 1. Build the image on the host
 
