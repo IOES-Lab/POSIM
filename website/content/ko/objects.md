@@ -12,7 +12,7 @@ POSIM에는 조작, 검사와 상호작용 실험용 물체 모델이 있습니�
 
 ```bash
 ros2 launch posim_demos posim_world.launch.py \
-  world_name:=posim_plug_and_socket headless:=true
+  world_name:=posim_plug_and_socket headless:=false
 ```
 
 다른 작업 장면에는 `posim_electrical_mating`과 `posim_bimanual_example`이 있습니다. 이 월드는 Fuel에서 분출방지장치(BOP) 패널, 암·수 플러그와 수중 항아리를 불러와 검사·조작 실험에 사용합니다. 각 자산 URI와 위치는 월드 SDF에 있습니다. 로봇 배치, 접촉과 관절 제어 실험을 선택하기 전에 살펴보세요.
@@ -43,7 +43,7 @@ Visual 형상은 외관을, collision 형상은 접촉을 결정합니다. 두 �
 
 ```bash
 ros2 launch posim_demos posim_object.launch.py \
-  namespace:=mossy_cinder_block paused:=false gui:=false headless:=true
+  namespace:=mossy_cinder_block paused:=false gui:=true headless:=false
 ```
 
 물체 launch는 자체 월드를 실행합니다. 다른 예제와 동시에 실행하려면 월드의 `<include>`로 장면을 구성하세요.

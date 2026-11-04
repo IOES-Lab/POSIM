@@ -1,4 +1,4 @@
-# Thrusters & autopilot
+# Thrusters & joystick control
 
 Choose the command interface that matches the robot. Read sensor data first, then enable one controller at a time.
 

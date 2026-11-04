@@ -9,7 +9,7 @@
 ```bash
 ros2 launch posim_demos posim_robot.launch.py \
   namespace:=rexrov world_name:=posim_ocean_waves z:=-5 paused:=false \
-  gui:=false headless:=true use_teleop:=false use_web_joystick:=false
+  gui:=true headless:=false use_teleop:=false use_web_joystick:=false
 ```
 
 같은 환경의 두 번째 터미널에서 확인합니다.

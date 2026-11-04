@@ -8,26 +8,9 @@ Keep the simulator running in one terminal and use another terminal for inspecti
 
 Sensor data travels toward your ROS program; commands travel toward the simulator. A Gazebo topic appears in ROS only when a bridge or ROS-enabled plugin publishes it. The robot launch loads the selected model's bridge configuration.
 
-## Open two matching terminals
+## Prepare Terminal A and Terminal B
 
-| Environment | Where to open Terminal A and Terminal B |
-|---|---|
-| Ubuntu | Two terminals in the same workspace |
-| Windows | Two terminals in the same Ubuntu WSL distribution |
-| macOS with RDP | Two terminals inside the running Linux desktop |
-| Headless Docker | Two shells in the same running container; follow [Docker environment](docker.md) |
-
-For a native Ubuntu or WSL installation, run this in **each** terminal:
-
-```bash
-source /opt/ros/lyrical/setup.bash
-source "$HOME/.ros_ardusub_env/env"
-source ~/posim_ws/install/setup.bash
-```
-
-Docker users load the container environment described in [Docker environment](docker.md). A terminal on the Windows or macOS host does not automatically inherit the container's ROS environment.
-
-In Terminal A, start REXROV with [First simulation](quickstart.md). Leave that launch running. Use Terminal B for the commands below.
+Follow [Prepare your terminals](terminals.md) for your installation route. Keep [First simulation](quickstart.md) running in Terminal A and use Terminal B for the inspection commands below.
 
 ## Inspect the graph
 
@@ -59,5 +42,5 @@ Use compatible ROS/message packages, matching domain settings and a reachable DD
 ## Next steps
 
 - [Control with Python](python-control.md): read odometry and send a bounded thruster command.
-- [Thrusters & autopilot](robot-control.md): choose the interface for your vehicle.
+- [Thrusters & joystick control](robot-control.md): choose the interface for your vehicle.
 - [View & record sensor data](visualization.md): display images and save observations.

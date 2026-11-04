@@ -9,11 +9,11 @@
 ```bash
 ros2 launch posim_demos posim_robot.launch.py \
   namespace:=glider_slocum world_name:=posim_ocean_waves x:=4 z:=-1.5 \
-  paused:=false gui:=false headless:=true \
+  paused:=false gui:=true headless:=false \
   use_teleop:=false use_web_joystick:=false
 ```
 
-빈 월드에서 모델 구성을 확인하려면 `world_name:=empty.sdf z:=0.2`로 바꿉니다. 디스플레이가 준비된 데스크톱에서는 `gui:=true headless:=false`로 모델을 볼 수 있습니다.
+빈 월드에서 모델 구성을 확인하려면 `world_name:=empty.sdf z:=0.2`로 바꿉니다.
 
 ## 관측값 확인
 

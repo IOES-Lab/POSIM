@@ -6,7 +6,7 @@
 
 ```bash
 ros2 launch posim_demos posim_world.launch.py \
-  world_name:=posim_ocean_waves headless:=true
+  world_name:=posim_ocean_waves headless:=false
 ```
 
 파일 이름과 월드 내부 이름은 다를 수 있습니다. `posim_ocean_waves.world`의 내부 이름은 `oceans_waves`이며 Gazebo 토픽·서비스 경로에 사용됩니다. 경로를 만들기 전에 `<world name="…">`를 확인하세요.

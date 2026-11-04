@@ -1,48 +1,67 @@
-# macOS 설치
+# macOS Docker·RDP 설치
 
-POSIM을 Linux 컨테이너에서 실행하고 RDP(원격 데스크톱 프로토콜)로 화면에 접속합니다. 데스크톱 이미지는 ARM64용이며 Apple Silicon Mac을 대상으로 합니다. Intel Mac에서는 ARM64 에뮬레이션이 필요하며 성능과 호환성은 Docker의 에뮬레이션 지원에 따라 달라집니다.
+Apple Silicon Mac에서는 ARM64 POSIM 이미지를 실행한 뒤 원격 데스크톱(RDP)으로 컨테이너의 Linux 데스크톱에 접속합니다. Gazebo와 터미널은 그 안에서 실행합니다. Intel Mac의 에뮬레이션 실행은 이 문서에서 다루지 않습니다.
 
-## 1. Docker와 원격 데스크톱 클라이언트 준비
+## 1. Docker와 RDP 클라이언트 설치
 
-[Docker Desktop for Mac](https://docs.docker.com/desktop/setup/install/mac-install/)을 설치하고 실행합니다. 직접 PC 연결을 지원하는 RDP 클라이언트도 설치합니다. 예를 들어 [macOS용 Windows App](https://learn.microsoft.com/en-us/windows-app/get-started-connect-devices-desktops-apps)을 사용할 수 있습니다. 이미지 빌드와 시뮬레이션에 충분한 Docker 디스크 공간과 메모리를 할당하세요.
+[Mac용 Docker Desktop](https://docs.docker.com/desktop/setup/install/mac-install/)을 설치하고 실행하세요. RDP 클라이언트로 Microsoft의 [macOS용 Windows App](https://learn.microsoft.com/en-us/windows-app/get-started-connect-devices-desktops-apps)을 설치합니다.
 
-## 2. 데스크톱 이미지 빌드
-
-macOS 터미널에서 저장소를 복제하고 ARM64 이미지를 빌드합니다.
+macOS 터미널을 열어 다음을 확인합니다.
 
 ```bash
-git clone https://github.com/IOES-Lab/POSIM.git
-cd POSIM
-docker build --platform linux/arm64 \
-  -f .docker/lyrical.arm64v8.dockerfile -t posim:dev-arm64-rdp .
+uname -m
+docker version --format '{{.Server.Version}}'
 ```
 
-ROS, Gazebo와 여러 의존성을 내려받으므로 빌드에 시간이 오래 걸릴 수 있습니다. 현재 체크아웃한 POSIM 리비전으로 빌드합니다. 화면 없는 실행과 AMD64 대안은 [Docker 환경](docker.md)을 참고하세요.
+Apple Silicon에서는 `arm64`가 출력됩니다. 두 번째 명령에서는 Docker 서버 버전이 나와야 합니다.
 
-## 3. 데스크톱 시작과 접속
+## 2. POSIM 이미지 받고 실행하기
 
-데스크톱 컨테이너를 시작합니다. RDP 포트는 이 Mac의 루프백 인터페이스에만 공개합니다.
+Docker가 ARM64 이미지를 자동으로 선택합니다.
 
 ```bash
-docker run -d --name posim-rdp --shm-size=1g \
-  -p 127.0.0.1:3389:3389 posim:dev-arm64-rdp
+docker pull ioeslab/posim:latest
+docker run -d --name posim --shm-size=1g \
+  -p 127.0.0.1:3389:3389 \
+  --mount type=volume,source=posim-data,target=/work \
+  ioeslab/posim:latest
+docker exec -u root posim chown docker:docker /work
 ```
 
-RDP 클라이언트에서 `127.0.0.1:3389`로 PC를 추가합니다. xrdp 로그인 화면에서 **Xorg**를 선택하고 이미지의 기본 사용자 이름 `docker`, 비밀번호 `docker`로 로그인합니다. macOS 계정이 아닌 컨테이너 계정입니다. 이 계정에는 비밀번호 없는 sudo 권한이 있으므로 포트를 루프백에만 바인딩하고 데스크톱 터미널에서 `passwd`로 비밀번호를 변경하세요. 3389 포트를 이미 사용 중이면 컨테이너 생성 시 `-p 127.0.0.1:3390:3389`를 사용하고 `127.0.0.1:3390`으로 접속합니다.
+RDP 포트는 이 Mac에서만 접속할 수 있습니다. 직접 만든 모델과 기록 파일은 `/work`에 저장하면 `posim-data` 볼륨에 보관됩니다. 이미지 버전, 소스 빌드, 컨테이너 교체 방법은 [Docker 환경](docker.md)을 참고하세요.
 
-## 4. POSIM 실행
+## 3. Linux 데스크톱에 접속
 
-원격 데스크톱에서 터미널을 엽니다. 이미지의 `docker` 사용자 셸에는 ROS와 POSIM 작업 공간이 설정되어 있습니다. Gazebo 창과 함께 월드를 시작합니다.
+Windows App에서 PC 주소를 **127.0.0.1:3389**로 등록하고 연결합니다. xrdp 로그인 화면에서 **Xorg**를 선택한 뒤 사용자 이름 **docker**, 비밀번호 **docker**로 로그인하세요.
+
+이미지에는 이 로컬 개발용 계정이 설정되어 있습니다. Linux 데스크톱에서 터미널을 열고 비밀번호를 변경하세요.
 
 ```bash
+passwd
+```
+
+POSIM 명령은 Linux 데스크톱 안의 터미널에서 실행합니다. macOS 터미널은 Docker 관리에 사용하세요. [터미널 준비](terminals.md)에서 두 환경의 차이와 작업 공간 경로를 설명합니다.
+
+## 4. 종료·재시작과 예제 선택
+
+RDP 창만 닫아도 시뮬레이션은 계속 실행됩니다. 먼저 실행 중인 터미널에서 **Ctrl+C**로 종료하세요. 이후 macOS 터미널에서 다음을 실행할 수 있습니다.
+
+```bash
+docker stop posim
+docker start posim
+```
+
+컨테이너를 다시 켠 뒤 Windows App으로 재접속합니다. 이 이미지의 Linux GUI는 소프트웨어로 렌더링하므로 복잡한 장면은 느릴 수 있습니다. CUDA 멀티빔 소나는 지원되는 NVIDIA CUDA 환경이 필요하며, 이 ARM64 이미지에는 포함되지 않습니다. 먼저 [카메라와 압력 센서 예제](features.md)를 실행해 보세요.
+
+## 5. 데모 월드 실행
+
+**RDP 데스크톱 안의 터미널**에서 설치를 확인하는 마지막 명령을 실행합니다.
+
+```bash
+source /opt/ros/lyrical/setup.bash
+source /home/docker/posim_ws/install/setup.bash
 ros2 launch posim_demos posim_world.launch.py \
   world_name:=posim_ocean_waves headless:=false
 ```
 
-첫 실행에서 Gazebo Fuel 모델을 내려받을 수 있습니다. 데스크톱을 닫기 전에 Ctrl+C로 실행을 중지하세요. 로봇과 센서 예제는 [첫 시뮬레이션](quickstart.md)을 참고하고, 해당 인수를 지원하는 로봇·센서 예제에서 `gui:=true headless:=false`를 사용하세요.
-
-## 중지하고 다시 접속
-
-macOS 터미널에서 `docker stop posim-rdp`로 컨테이너를 중지합니다. 나중에 `docker start posim-rdp`로 시작하고 다시 접속합니다. 컨테이너 내부 파일은 중지·재시작해도 유지됩니다. 컨테이너를 삭제하거나 교체할 때 보존할 작업은 별도로 마운트한 디렉터리나 볼륨에 저장하세요.
-
-컨테이너는 Linux 렌더러를 사용하며 macOS Metal을 Gazebo에 직접 연결하지 않습니다. CUDA 소나에는 호환되는 NVIDIA/CUDA 환경이 필요합니다. [소나 설정](sonar-tuning.md)과 [문제 해결](troubleshooting.md)을 참고하세요.
+원격 데스크톱 안의 Gazebo 창에 해양 월드가 나타나야 합니다. 실행 중에는 터미널을 열어 두세요. **Ctrl+C**로 종료한 뒤 [첫 로봇 시뮬레이션](quickstart.md)으로 진행합니다.

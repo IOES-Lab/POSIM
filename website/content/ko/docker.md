@@ -1,122 +1,82 @@
 # Docker 환경
 
-Docker Hub에서 기존 이미지를 받거나 실행하려는 소스 커밋에서 이미지를 빌드할 수 있습니다. 저장소에는 Linux AMD64와 ARM64용 구성이 각각 있습니다.
+POSIM 이미지는 Ubuntu, ROS 2 Lyrical, Gazebo Jetty, POSIM, ArduSub, MAVROS와 QGroundControl을 포함합니다. 화면 연결과 드라이버 설정은 [실행 환경 선택](requirements.md)에서 운영 체제별 설치 가이드를 고르세요.
 
-## Docker Hub에서 이미지 받기
+## 공개 이미지 내려받기
 
-[Docker Hub의 POSIM](https://hub.docker.com/r/ioeslab/posim/tags)에는 현재 아키텍처별 검증 이미지가 있습니다. Linux AMD64 호스트에서는 AMD64 태그를 받습니다.
-
-```bash
-docker pull ioeslab/posim:validation-pr5-abad9d70-amd64
-```
-
-Apple Silicon을 포함한 ARM64 호스트에서는 RDP 이미지를 받습니다.
+[Docker Hub의 POSIM 이미지](https://hub.docker.com/r/ioeslab/posim/tags)를 사용합니다. Docker가 컴퓨터에 맞는 AMD64 또는 ARM64 이미지를 선택합니다.
 
 ```bash
-docker pull ioeslab/posim:validation-pr5-abad9d70-arm64-rdp
+docker pull ioeslab/posim:latest
+export POSIM_IMAGE=ioeslab/posim:latest
 ```
 
-이 이미지들은 검증용으로 게시된 빌드이며 현재 릴리스나 `latest` 태그가 아닙니다. 두 이미지의 레이블은 소스 커밋 `32eedbac`을 가리킵니다. 해당 버전의 데모 패키지 이름과 작업 공간 경로는 현재 저장소와 다릅니다. 이 이미지에는 [해당 버전의 Docker 안내](https://github.com/IOES-Lab/POSIM/blob/32eedbacf781a0fd1e517481571e76bfaab73c51/docs/docker.md)와 [빠른 시작](https://github.com/IOES-Lab/POSIM/blob/32eedbacf781a0fd1e517481571e76bfaab73c51/README.md)을 사용하고, 실행 명령의 로컬 빌드 태그를 내려받은 이미지 태그로 바꾸세요. 아래 소스 빌드 및 컨테이너 명령은 현재 저장소를 기준으로 하므로 그대로 따라 하려면 로컬에서 빌드하세요. 새 이미지가 있는지는 [태그 목록](https://hub.docker.com/r/ioeslab/posim/tags)에서 확인하고, 환경 재현을 위해 이미지 digest를 기록합니다.
+| 태그 | 용도 |
+|---|---|
+| `latest` | 공개된 main 빌드; AMD64·ARM64 제공 |
+| `sha-<커밋-앞-12자리>` | 특정 소스 리비전 선택; Docker Hub에 실제로 있는 태그를 복사 |
+| `sha-<커밋-앞-12자리>-amd64` / `-arm64` | 아키텍처까지 지정 |
+| 배포된 릴리스 버전 | 해당 버전의 이미지 선택 |
+
+이미지 라벨에는 전체 소스 리비전이 기록됩니다. 같은 이미지로 실험을 재현하려면 다이제스트도 기록하세요.
+
+```bash
+docker image inspect "$POSIM_IMAGE" \
+  --format '{{index .Config.Labels "org.opencontainers.image.revision"}}'
+docker image inspect "$POSIM_IMAGE" --format '{{json .RepoDigests}}'
+```
+
+선택한 리비전에 맞는 문서를 사용하세요. 새 이미지를 내려받아도 기존 컨테이너가 바뀌지는 않습니다. 새 이미지를 사용하려면 작업을 저장하고 컨테이너를 교체합니다.
 
 ## 소스에서 빌드
 
-`git rev-parse HEAD`로 사용할 커밋을 기록하세요. 다음 단계는 현재 체크아웃에서 `posim:dev-*` 이미지를 빌드합니다.
-
-## 1. 호스트에서 이미지 빌드
-
-아직 소스가 없다면 먼저 내려받습니다.
+직접 수정한 소스를 사용할 때는 실행할 체크아웃을 빌드합니다. 호스트에서 실행하세요.
 
 ```bash
 git clone https://github.com/IOES-Lab/POSIM.git
 cd POSIM
+git rev-parse HEAD
 ```
 
-AMD64에서는 다음 명령을 사용합니다.
+CPU에 맞는 빌드 명령 하나를 선택합니다.
 
 ```bash
 docker build --platform linux/amd64 \
   -f .docker/lyrical.amd64.dockerfile -t posim:dev-amd64 .
 ```
 
-Apple Silicon Docker 호스트를 포함한 ARM64에서는 다음 명령을 사용합니다.
-
 ```bash
 docker build --platform linux/arm64 \
   -f .docker/lyrical.arm64v8.dockerfile -t posim:dev-arm64-rdp .
 ```
 
-두 구성 모두 지정된 외부 파도 의존성을 설치합니다. ARM64 구성에는 RDP 데스크톱도 포함되지만 아래 서버 전용 예제를 실행할 때 RDP 연결은 필요하지 않습니다.
+운영 체제별 설치 가이드의 `ioeslab/posim:latest` 대신 빌드한 로컬 태그를 사용하세요. 두 이미지는 전달한 소스와 고정된 Wave Sim 의존성을 빌드합니다. ARM64 이미지에는 XFCE 데스크톱과 RDP 서버도 들어 있습니다.
 
-## 2. Headless 컨테이너 열기
+## 운영 체제별로 시작하기
 
-빌드한 이미지를 지정합니다.
+- [Linux Docker 설치](install-ubuntu-docker.md): Linux 데스크톱의 화면 연결을 사용합니다.
+- [Windows WSL·Docker 설치](install-windows-docker.md): WSLg로 Linux 창을 표시합니다.
+- [macOS Docker·RDP 설치](install-macos.md): 이미지 안의 Linux 데스크톱에 접속합니다.
 
-```bash
-export POSIM_IMAGE=posim:dev-arm64-rdp
-docker run --rm -it --init --name posim-quickstart --shm-size=1g \
-  --entrypoint bash -e LIBGL_ALWAYS_SOFTWARE=1 \
-  -e QT_QPA_PLATFORM=offscreen -e GZ_IP=127.0.0.1 "$POSIM_IMAGE"
-```
+각 가이드에서는 `posim`이라는 컨테이너를 만듭니다. 명령을 실행할 위치와 작업 공간 설정은 [터미널 준비](terminals.md)에서 설명합니다.
 
-AMD64에서는 `POSIM_IMAGE`를 `posim:dev-amd64`로 바꿉니다. 이 구성은 소프트웨어 렌더링을 사용하며 호스트 포트를 열지 않습니다.
+## 작업 공간과 파일 보관
 
-## 3. 컨테이너 안에서 환경 불러오기
+AMD64 이미지는 `/opt/posim_ws`, ARM64 이미지는 `/home/docker/posim_ws`를 사용합니다. 이미지의 `POSIM_WS` 또는 `POSIM_UNDERLAY` 변수에 해당 경로가 들어 있습니다.
 
-```bash
-source /opt/ros/lyrical/setup.bash
-export POSIM_WS="${POSIM_WS:-${POSIM_UNDERLAY:-}}"
-source "$POSIM_WS/install/setup.bash"
-ros2 pkg prefix posim_demos
-ros2 pkg prefix ros_gz_sim
-```
+운영 체제별 가이드는 Docker 볼륨 `posim-data`를 `/work`에 연결합니다. 독립 SDF 파일과 기록 데이터는 여기에 저장하세요. 그 밖의 컨테이너 내부 파일은 정지·재시작할 때 유지되지만 컨테이너를 삭제하면 함께 사라집니다. 수정한 소스는 교체 전에 Git에 커밋하거나 밖으로 복사하세요. 볼륨은 별도로 삭제하기 전까지 컨테이너와 독립적으로 유지됩니다.
 
-AMD64 작업 공간은 `/opt/posim_ws`, ARM64 작업 공간은 `/home/docker/posim_ws`입니다. 위 환경변수로 해당 이미지의 작업 공간을 선택합니다. 두 패키지의 경로는 모두 해당 작업 공간의 `install` 디렉터리를 가리켜야 합니다. `ros_gz_sim`이 `/opt/ros/lyrical`을 가리킨다면 지정된 런처가 선택되지 않은 것입니다. 이미지가 의도한 체크아웃에서 빌드되었는지 확인하고 작업 공간을 다시 불러오세요.
+## 정지·재시작·업데이트
 
-## 4. 두 번째 터미널에서 확인
-
-첫 번째 컨테이너 셸을 열어둔 상태에서 다른 호스트 터미널을 엽니다.
+실행 중인 터미널에서 Ctrl+C로 시뮬레이션을 종료한 뒤 호스트에서 Docker 명령을 실행합니다.
 
 ```bash
-docker exec -it posim-quickstart bash
+docker stop posim
+docker start posim
 ```
 
-두 번째 컨테이너 셸에서도 환경을 불러온 뒤 [첫 시뮬레이션](quickstart.md)의 확인 명령을 실행합니다. 두 셸은 같은 컨테이너와 통신 설정을 사용해야 합니다.
+업데이트할 때는 작업을 저장하고 컨테이너를 정지한 뒤 선택한 이미지를 내려받습니다. 정지된 컨테이너를 제거하고 운영 체제별 가이드의 생성 명령을 다시 실행하세요. `posim-data`를 재사용하면 `/work`의 파일을 유지할 수 있습니다.
 
-## 데스크톱 없이 영상 센서 렌더링
+## 그래픽과 GPU 사용 {#graphics-and-gpu-access}
 
-`headless:=true`는 Gazebo 서버 모드(`-s`)로 실행합니다. 영상 센서는 별도의 렌더링 환경이 필요합니다.
-
-- 가상 디스플레이: 아래 Xvfb 설정 사용
-- EGL: [Gazebo headless 렌더링](https://gazebosim.org/api/sim/10/headless_rendering.html) 설정과 `--headless-rendering` 필요
-- `QT_QPA_PLATFORM=offscreen`: Qt 창 설정
-
-소프트웨어 렌더링으로 첫 수신을 확인할 때는 가상 X 디스플레이를 사용할 수 있습니다. 호스트 터미널에서 일회용 컨테이너에 필요한 도구를 설치합니다.
-
-```bash
-docker exec -u root posim-quickstart bash -lc \
-  'apt-get update && apt-get install -y --no-install-recommends xvfb xauth'
-```
-
-이어서 컨테이너의 터미널 A에서 가상 디스플레이를 사용하는 셸을 엽니다.
-
-```bash
-xvfb-run -a -s "-screen 0 1280x720x24" bash
-```
-
-이 셸에서 3단계 환경을 불러온 뒤 카메라 예제를 실행합니다. 터미널 B에서 데이터를 확인하는 동안 셸을 유지하세요. Xvfb 구성은 소프트웨어 렌더링을 사용합니다. EGL 실행 플래그는 POSIM Launch 인자에 노출되어 있지 않습니다.
-
-## 그래픽, 파일 보관과 종료
-
-NVIDIA GPU를 사용하려면 호스트 드라이버와 [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html)을 구성합니다. 소프트웨어 렌더링을 강제하는 대신 컨테이너 렌더러를 연결하세요. CUDA 소나는 이미지 내부에도 툴킷과 플러그인 바이너리가 필요합니다.
-
-macOS의 Docker는 Linux 가상 머신입니다. 컨테이너 렌더링과 호스트의 직접 GPU 사용은 [시스템 요구 사항](requirements.md)에서 구분하여 확인하세요.
-
-`--rm`은 셸 종료 후 컨테이너를 삭제합니다. 기록과 자산을 보관하려면 호스트 디렉터리를 마운트하세요.
-
-1. 토픽 확인 도구를 종료합니다.
-2. 시뮬레이션에서 Ctrl+C를 누르고 종료를 기다립니다.
-3. Xvfb 셸과 컨테이너 셸을 닫습니다.
-
-Gazebo가 종료될 때까지 가상 디스플레이를 유지하세요.
-
-Launch 로그에 Gazebo가 SIGINT 후 종료되지 않아 SIGTERM을 받았다고 표시되면 강제 종료가 있었더라도 Launch 명령 자체는 성공으로 끝날 수 있습니다. 호스트에서 `docker ps --filter name=posim-quickstart`로 컨테이너가 남아 있는지 확인하세요. 더 이상 사용하지 않는데 실행 중이라면 `docker stop posim-quickstart`로 종료합니다. `--rm`을 지정했으므로 종료 후 컨테이너는 삭제됩니다. 반복되는 종료 오류는 무인 실행에 사용하기 전에 원인을 확인하세요.
+Linux에서 GPU를 사용하려면 호스트 드라이버와 [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html)을 설정합니다. Windows는 [Docker Desktop의 WSL 2 GPU 설정](https://docs.docker.com/desktop/features/gpu/)을 따릅니다. CUDA 소나는 이미지 안에도 필요한 라이브러리가 있어야 합니다. [소나 설정과 실험](sonar-tuning.md)을 참고하세요. 기본 화면 연결 예제는 소프트웨어 렌더링을 사용하므로 GPU를 설정한 환경보다 느릴 수 있습니다.

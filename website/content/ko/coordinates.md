@@ -6,7 +6,7 @@
 
 ```bash
 ros2 launch posim_demos posim_world.launch.py \
-  world_name:=posim_bimanual_example headless:=true
+  world_name:=posim_bimanual_example headless:=false
 ```
 
 같은 환경의 두 번째 터미널에서 확인합니다.

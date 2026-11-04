@@ -6,7 +6,7 @@ Ultra-short baseline (USBL) positioning uses acoustic signals to locate underwat
 
 ```bash
 ros2 launch posim_demos posim_world.launch.py \
-  world_name:=usbl_tutorial headless:=true
+  world_name:=usbl_tutorial headless:=false
 ```
 
 The world already contains the transceiver and transponders. Start them together with the world launch.

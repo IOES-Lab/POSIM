@@ -28,7 +28,7 @@ Add this plugin inside your SDF `<world>`. Replace `/absolute/underwater` with t
 </plugin>
 ```
 
-macOS libraries use `.dylib`. A rendering scene and active camera are needed, including for headless image output. When also using `UnderwaterCamera`, set `POSIM_UNDERWATER_PLUGIN` to the loaded system's path in the server environment. That flag makes the compatibility camera output pass through the native-colored pixels, avoiding a second attenuation stage. Set it only with a successfully installed native system.
+macOS libraries use `.dylib`. A rendering scene and active camera are needed, to produce sensor images. When also using `UnderwaterCamera`, set `POSIM_UNDERWATER_PLUGIN` to the loaded system's path in the server environment. That flag makes the compatibility camera output pass through the native-colored pixels, avoiding a second attenuation stage. Set it only with a successfully installed native system.
 
 ## Effects and defaults
 
@@ -44,7 +44,7 @@ macOS libraries use `.dylib`. A rendering scene and active camera are needed, in
 | Seabed grid | Measurement lines, 10 m spacing; adjustable 1–500 m | Off |
 | Depth contours | Depth lines, 5 m spacing; adjustable 1–50 m | Off |
 
-Turning water optics off retains the texture, grid and contour selections. Seabed overlays recognize visuals named `seabed` or `shallow`, including Gazebo scoped names. [POSIM-Terrain](libraries.md) supplies sand maps and terrain exports; the renderer does not download textures.
+Turning water optics off retains the texture, grid and contour selections. Seabed overlays recognize visuals named `seabed` or `shallow`, including Gazebo scoped names. Supply the texture files in your terrain assets; see [Heightmap terrain](heightmaps.md).
 
 ## Turn on marine snow
 

@@ -7,7 +7,7 @@ POSIM generates ocean currents for the world, calculates the flow at each robot 
 ```bash
 ros2 launch posim_demos posim_robot.launch.py \
   namespace:=rexrov world_name:=ocean_current_plugin z:=-5 paused:=false \
-  gui:=false headless:=true use_teleop:=false use_web_joystick:=false
+  gui:=true headless:=false use_teleop:=false use_web_joystick:=false
 ```
 
 In a second terminal, inspect Gazebo and ROS data in turn:

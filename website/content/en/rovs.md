@@ -18,7 +18,7 @@ Source your [workspace](install.md) before running commands. For REXROV, use the
 ```bash
 ros2 launch posim_demos posim_robot.launch.py \
   namespace:=bluerov2 world_name:=posim_ocean_waves z:=-0.5 paused:=false \
-  gui:=false headless:=true use_teleop:=false use_web_joystick:=false \
+  gui:=true headless:=false use_teleop:=false use_web_joystick:=false \
   open_qgc:=false open_virtual_joystick:=false
 ```
 

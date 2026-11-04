@@ -9,11 +9,11 @@ With the environment loaded:
 ```bash
 ros2 launch posim_demos posim_robot.launch.py \
   namespace:=glider_slocum world_name:=posim_ocean_waves x:=4 z:=-1.5 \
-  paused:=false gui:=false headless:=true \
+  paused:=false gui:=true headless:=false \
   use_teleop:=false use_web_joystick:=false
 ```
 
-To inspect the model in an empty world, use `world_name:=empty.sdf z:=0.2`. To view the model on a configured desktop, use `gui:=true headless:=false`.
+To inspect the model in an empty world, use `world_name:=empty.sdf z:=0.2`.
 
 ## Inspect observations
 

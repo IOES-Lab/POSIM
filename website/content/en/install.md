@@ -1,6 +1,6 @@
-# Install on Ubuntu
+# Ubuntu: native installation
 
-Build POSIM in a ROS workspace on Ubuntu 26.04. Use [Docker](docker.md) if you prefer an isolated Linux environment.
+Build POSIM in a ROS workspace on Ubuntu 26.04. Use [Linux: Docker installation](install-ubuntu-docker.md) if you prefer an isolated Linux environment.
 
 ## 1. Get the source
 
@@ -81,4 +81,16 @@ Record the current revision, pull the desired POSIM revision, then repeat depend
 ```bash
 git -C ~/posim_ws/src/posim rev-parse HEAD
 git -C ~/posim_ws/src/posim pull --ff-only
+```
+
+## 5. Run the demo world
+
+In the Ubuntu terminal, load the installed environment and open the demo. Gazebo should show the ocean scene; the first run can download Fuel models. Stop it with Ctrl+C before continuing to [Prepare your terminals](terminals.md).
+
+```bash
+source /opt/ros/lyrical/setup.bash
+source "$HOME/.ros_ardusub_env/env"
+source ~/posim_ws/install/setup.bash
+ros2 launch posim_demos posim_world.launch.py \
+  world_name:=posim_ocean_waves headless:=false
 ```

@@ -6,7 +6,7 @@ Worlds live in `models/posim_worlds/worlds`. Choose a world by its filename with
 
 ```bash
 ros2 launch posim_demos posim_world.launch.py \
-  world_name:=posim_ocean_waves headless:=true
+  world_name:=posim_ocean_waves headless:=false
 ```
 
 The filename and internal world name can differ. `posim_ocean_waves.world` declares `oceans_waves`, which appears in Gazebo topic and service paths. Read the `<world name="…">` element before constructing a path.

@@ -17,7 +17,7 @@ Read the first missing URI in the log. Check that its package resources were ins
 
 ## No image or rendering initialization failure
 
-Image sensors need a renderer even without a desktop window. Check display/offscreen settings, [Docker Xvfb setup](docker.md) and [CUDA libraries](sonar-tuning.md).
+Check the graphics-driver and display-connection steps in your [installation guide](requirements.md). The Gazebo GUI and image sensors both need a working renderer. For CUDA sonar, also check the [CUDA libraries](sonar-tuning.md).
 
 For [underwater scene effects](underwater-rendering.md), check the `/posim/appearance/<session_nonce>/state` service, renderer/shader paths and active camera count. Suspended specks start off; enable them explicitly. Confirm applied revision and readiness after rendering. The camera attenuation example alone does not load the scene-effects system.
 

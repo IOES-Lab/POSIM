@@ -8,26 +8,9 @@
 
 센서 데이터는 ROS 프로그램으로, 명령은 시뮬레이터로 전달됩니다. Gazebo 토픽은 브리지나 ROS 지원 플러그인이 발행해야 ROS에서도 보입니다. 로봇 Launch는 선택한 모델의 브리지 설정을 불러옵니다.
 
-## 같은 환경의 터미널 두 개 열기
+## 터미널 A와 B 준비
 
-| 실행 환경 | 터미널 A와 B를 열 위치 |
-|---|---|
-| Ubuntu | 같은 작업공간을 사용하는 터미널 두 개 |
-| Windows | 같은 Ubuntu WSL 배포판 안의 터미널 두 개 |
-| macOS와 RDP | 실행 중인 Linux 데스크톱 안의 터미널 두 개 |
-| Headless Docker | 같은 실행 중인 컨테이너의 셸 두 개; [Docker 환경](docker.md) 참고 |
-
-Ubuntu 네이티브 또는 WSL 설치는 **각 터미널에서** 다음을 실행하세요.
-
-```bash
-source /opt/ros/lyrical/setup.bash
-source "$HOME/.ros_ardusub_env/env"
-source ~/posim_ws/install/setup.bash
-```
-
-Docker에서는 [Docker 환경](docker.md)에 나온 컨테이너 환경을 불러오세요. Windows·macOS 호스트의 터미널은 컨테이너의 ROS 환경을 자동으로 물려받지 않습니다.
-
-터미널 A에서 [첫 시뮬레이션](quickstart.md)의 REXROV를 시작하고 Launch를 계속 실행하세요. 아래 명령은 터미널 B에서 실행합니다.
+[터미널 준비](terminals.md)에서 설치 방법에 맞는 위치와 환경 설정을 확인하세요. 터미널 A에서는 [첫 시뮬레이션](quickstart.md)을 실행한 채로 두고, B에서 아래 확인 명령을 실행합니다.
 
 ## 통신 구성 확인
 
@@ -59,5 +42,5 @@ ros2 topic echo --no-daemon /model/rexrov/odometry nav_msgs/msg/Odometry --field
 ## 다음 단계
 
 - [Python으로 제어하기](python-control.md): 위치를 읽고 제한된 시간 동안 추진기 명령을 보냅니다.
-- [추진기와 Autopilot](robot-control.md): 차량에 맞는 제어 인터페이스를 선택합니다.
+- [추진기와 조이스틱 제어](robot-control.md): 차량에 맞는 제어 인터페이스를 선택합니다.
 - [센서 데이터 보기와 기록](visualization.md): 영상을 표시하고 관측 데이터를 저장합니다.

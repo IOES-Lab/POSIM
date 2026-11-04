@@ -1,48 +1,67 @@
-# Install on macOS
+# macOS: Docker + RDP
 
-Run POSIM in its Linux container and open its desktop over Remote Desktop Protocol (RDP). The desktop image targets ARM64 and is intended for Apple silicon Macs. An Intel Mac needs ARM64 emulation for this image; performance and compatibility depend on Docker's emulation support.
+On an Apple Silicon Mac, run the ARM64 POSIM image and connect to its Linux desktop through Remote Desktop (RDP). Gazebo and terminal windows run inside that desktop. This guide does not cover Intel Mac emulation.
 
-## 1. Prepare Docker and a remote desktop client
+## 1. Install Docker and an RDP client
 
-Install and start [Docker Desktop for Mac](https://docs.docker.com/desktop/setup/install/mac-install/). Install an RDP client that supports direct PC connections, such as [Windows App for macOS](https://learn.microsoft.com/en-us/windows-app/get-started-connect-devices-desktops-apps). Allow enough Docker disk and memory for the image build and simulations.
+Install [Docker Desktop for Mac](https://docs.docker.com/desktop/setup/install/mac-install/) and start it. Install Microsoft's [Windows App for macOS](https://learn.microsoft.com/en-us/windows-app/get-started-connect-devices-desktops-apps) as the RDP client.
 
-## 2. Build the desktop image
-
-In macOS Terminal, clone the repository and build the ARM64 image:
+Open the macOS Terminal and check:
 
 ```bash
-git clone https://github.com/IOES-Lab/POSIM.git
-cd POSIM
-docker build --platform linux/arm64 \
-  -f .docker/lyrical.arm64v8.dockerfile -t posim:dev-arm64-rdp .
+uname -m
+docker version --format '{{.Server.Version}}'
 ```
 
-The build can take considerable time and downloads ROS, Gazebo and other dependencies. It builds the checked-out POSIM revision. See [Docker environment](docker.md) for the headless and AMD64 alternatives.
+Apple Silicon reports `arm64`. The second command should print the Docker server version.
 
-## 3. Start and connect to the desktop
+## 2. Download and start POSIM
 
-Start the desktop container and publish RDP only on this Mac's loopback interface:
+Docker automatically selects the ARM64 image:
 
 ```bash
-docker run -d --name posim-rdp --shm-size=1g \
-  -p 127.0.0.1:3389:3389 posim:dev-arm64-rdp
+docker pull ioeslab/posim:latest
+docker run -d --name posim --shm-size=1g \
+  -p 127.0.0.1:3389:3389 \
+  --mount type=volume,source=posim-data,target=/work \
+  ioeslab/posim:latest
+docker exec -u root posim chown docker:docker /work
 ```
 
-In the RDP client, add a PC at `127.0.0.1:3389`. On the xrdp login screen, select **Xorg** and sign in with username `docker` and password `docker`, the image defaults. These are container credentials, not your macOS account. The image grants this account passwordless sudo; keep the port bound to loopback and change its password with `passwd` in the desktop terminal. If port 3389 is occupied, use `-p 127.0.0.1:3390:3389` when creating the container and connect to `127.0.0.1:3390`.
+The RDP port is available only on this Mac. Save your own models and recordings in `/work` to retain them in the `posim-data` volume. The [Docker environment guide](docker.md) covers image versions, source builds and container replacement.
 
-## 4. Run POSIM
+## 3. Connect to the Linux desktop
 
-Open a terminal in the remote desktop. The image configures ROS and the POSIM workspace in the `docker` user's shell. Start a world with its Gazebo window:
+In Windows App, add a PC with address **127.0.0.1:3389** and connect. At the xrdp login screen, choose **Xorg** and sign in with username **docker** and password **docker**.
+
+The image uses this local development account. Inside the Linux desktop, open a terminal and change its password:
 
 ```bash
+passwd
+```
+
+For POSIM commands, use terminals inside this Linux desktop. Keep the macOS Terminal for managing Docker. [Prepare your terminals](terminals.md) explains this distinction and the workspace location.
+
+## 4. Stop, restart and choose examples
+
+Closing the RDP window does not stop the simulation. End the running launch command with **Ctrl+C** first. From the macOS Terminal:
+
+```bash
+docker stop posim
+docker start posim
+```
+
+Reconnect through Windows App after starting the container. Linux GUI rendering in this image uses software rendering; complex scenes can be slow. CUDA multibeam sonar requires a supported NVIDIA CUDA environment and is not included in this ARM64 image. Start with [camera and pressure examples](features.md).
+
+## 5. Launch the demo world
+
+In a terminal **inside the RDP desktop**, run the final installation check:
+
+```bash
+source /opt/ros/lyrical/setup.bash
+source /home/docker/posim_ws/install/setup.bash
 ros2 launch posim_demos posim_world.launch.py \
   world_name:=posim_ocean_waves headless:=false
 ```
 
-The first launch may download Gazebo Fuel models. Stop the launch with Ctrl+C before closing the desktop. Continue with [First simulation](quickstart.md) for robot and sensor examples; use `gui:=true headless:=false` where a robot or sensor example supports those arguments.
-
-## Stop and return
-
-From macOS Terminal, stop the container with `docker stop posim-rdp`. Later, use `docker start posim-rdp` and reconnect. Files inside this container persist across stop/start; keep important work in a separately mounted directory or volume if you remove or replace the container.
-
-The container uses a Linux renderer; macOS Metal is not directly available to Gazebo. CUDA sonar requires a compatible NVIDIA/CUDA environment; see [sonar setup](sonar-tuning.md). For connection or renderer issues, see [Troubleshooting](troubleshooting.md).
+Gazebo should display the ocean world inside the remote desktop. Leave the terminal open while it runs. Press **Ctrl+C** before continuing to [your first robot simulation](quickstart.md).

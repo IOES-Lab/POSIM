@@ -4,13 +4,22 @@ Simulate a WAM-V surface vehicle with Wave Sim waves and ArduRover boat-mode con
 
 ## Build the WAM-V integration
 
-The optional surface image uses the ARM64 base layout. From a POSIM checkout, first build `posim:dev-arm64-rdp` using [Docker](docker.md), then run:
+This optional image uses the ARM64 desktop layout. On an Apple Silicon Mac, prepare [Docker and an RDP client](install-macos.md), then run these commands from a POSIM checkout in the macOS Terminal:
 
 ```bash
+docker pull ioeslab/posim:latest
 docker build -f extras/surface/Dockerfile \
-  --build-arg POSIM_BASE_IMAGE=posim:dev-arm64-rdp -t posim:surface .
-docker run --rm -it --entrypoint bash posim:surface -lc \
-  'source /opt/ros/lyrical/setup.bash; source /home/docker/posim_ws/install/setup.bash; ros2 launch /opt/posim-surface/wamv.launch.py headless:=true'
+  --build-arg POSIM_BASE_IMAGE=ioeslab/posim:latest -t posim:surface .
+docker run -d --name posim-surface --shm-size=1g \
+  -p 127.0.0.1:3390:3389 posim:surface
+```
+
+Connect your RDP client to **127.0.0.1:3390** using the `docker` account. In a terminal inside this Linux desktop, launch the vehicle:
+
+```bash
+source /opt/ros/lyrical/setup.bash
+source /home/docker/posim_ws/install/setup.bash
+ros2 launch /opt/posim-surface/wamv.launch.py headless:=false
 ```
 
 This image contains ArduSub and ArduRover as separate binaries. The single-vehicle example selects ArduRover's boat configuration (`FRAME_CLASS=2`). Run one instance per environment: the launcher uses a fixed vehicle name, generated-file paths and controller ports. Changing `world_name` alone does not make a second instance independent. Multiple vehicles require a custom integration with separate files, names, controller identities and network ports, or separate isolated environments.
@@ -37,12 +46,12 @@ The [WAM-V launcher](https://github.com/IOES-Lab/POSIM/blob/main/extras/surface/
 
 ```bash
 SURFACE_WORLD=harbour
-ros2 launch /opt/posim-surface/wamv.launch.py headless:=true world_name:="$SURFACE_WORLD"
+ros2 launch /opt/posim-surface/wamv.launch.py headless:=false world_name:="$SURFACE_WORLD"
 ```
 
 The generated SDF, vehicle spawner, IMU bridge and startup wait all use this name. The example above exposes `/world/harbour/waves`; the ROS IMU endpoint remains `/model/wamv/imu`. The argument sets the generated world's name; it does not select a terrain file.
 
-This example uses a flat seabed at z = −10 m and loads no GEBCO bathymetry. Geographic terrain, including GEBCO data, is available through the separate public [POSIM-Terrain library](libraries.md#posim-terrain).
+This example uses a flat seabed at z = −10 m. To prepare your own terrain, follow [Heightmap terrain](heightmaps.md).
 
 Each adjustable value uses the `double` data type:
 

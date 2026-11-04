@@ -6,7 +6,7 @@ The `SphericalCoords` ROS plugin provides services for the world's geographic or
 
 ```bash
 ros2 launch posim_demos posim_world.launch.py \
-  world_name:=posim_bimanual_example headless:=true
+  world_name:=posim_bimanual_example headless:=false
 ```
 
 In a second terminal with the same environment loaded:

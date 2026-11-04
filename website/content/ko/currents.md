@@ -7,7 +7,7 @@ POSIM은 월드의 해류를 만들고 각 로봇 위치에서 유속을 계산�
 ```bash
 ros2 launch posim_demos posim_robot.launch.py \
   namespace:=rexrov world_name:=ocean_current_plugin z:=-5 paused:=false \
-  gui:=false headless:=true use_teleop:=false use_web_joystick:=false
+  gui:=true headless:=false use_teleop:=false use_web_joystick:=false
 ```
 
 두 번째 터미널에서 Gazebo와 ROS 데이터를 차례로 확인하세요.

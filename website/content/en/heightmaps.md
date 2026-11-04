@@ -2,6 +2,10 @@
 
 A heightmap represents terrain as a regular grid of elevations. Configure visual and collision geometry together so the seabed seen by a camera agrees with the surface used for contact.
 
+## Where to run this guide
+
+Use the Linux terminals prepared in [Prepare your terminals](terminals.md). This applies to native Ubuntu, Ubuntu in WSL, and POSIM containers. On macOS, use the Linux terminal inside the RDP desktop. Edit and build inside that environment; `POSIM_WS` is its workspace path.
+
 ## Example terrain
 
 Use [Santorini](https://github.com/IOES-Lab/POSIM/blob/main/models/posim_worlds/worlds/posim_Santorini.world) for a geographic scene and [graded seabed](https://github.com/IOES-Lab/POSIM/blob/main/models/posim_worlds/worlds/posim_graded_seabed.world) for a seabed scene. Santorini uses the Fuel model `Santorini Scaled`.

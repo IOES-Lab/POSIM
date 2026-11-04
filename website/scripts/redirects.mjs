@@ -5,8 +5,8 @@ export const anchorRedirects = {
     ko: { '공개-기능-목록': 'features.html' },
   },
   libraries: {
-    en: { 'terrain-routing-and-control-libraries': 'libraries.html' },
-    ko: { '지형-경로-차량-제어-라이브러리': 'libraries.html' },
+    en: { 'terrain-routing-and-control-libraries': 'features.html' },
+    ko: { '지형-경로-차량-제어-라이브러리': 'features.html' },
   },
   ros: {
     en: {
@@ -29,7 +29,7 @@ export const anchorRedirects = {
       '1-start-an-ocean-world': 'worlds.html#start-a-world',
       '2-spawn-rexrov': 'quickstart.html#1-start-the-robot-and-world',
       '3-receive-a-camera-image': 'visualization.html#receive-a-camera-image',
-      'desktop-viewing': 'visualization.html#desktop-viewing',
+      'desktop-viewing': 'visualization.html#receive-a-camera-image',
       'check-the-results': 'quickstart.html#3-check-simulation-time',
       'next-experiments': 'quickstart.html#continue-learning',
       'choose-launch-arguments': 'worlds.html#choose-launch-arguments',
@@ -38,7 +38,7 @@ export const anchorRedirects = {
       '1-해양-월드-실행': 'worlds.html',
       '2-rexrov-배치': 'quickstart.html#1-로봇과-월드-시작하기',
       '3-카메라-영상-받기': 'visualization.html#카메라-영상-받기',
-      '데스크톱에서-보기': 'visualization.html#데스크톱에서-보기',
+      '데스크톱에서-보기': 'visualization.html#카메라-영상-받기',
       '실행-결과-확인': 'quickstart.html#3-시뮬레이션-시간-확인하기',
       '다음-실험': 'quickstart.html#이어서-배우기',
       'launch-인수-선택하기': 'worlds.html#launch-인수-선택하기',

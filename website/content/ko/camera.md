@@ -10,7 +10,7 @@
 ros2 launch posim_demos posim_sensor.launch.py \
   namespace:=underwater_camera world_name:=camera_tutorial \
   x:=10 z:=-93.5 pitch:=0.3 yaw:=3.14 \
-  paused:=false gui:=false headless:=true
+  paused:=false gui:=true headless:=false
 ```
 
 같은 환경의 두 번째 터미널에서 확인합니다.

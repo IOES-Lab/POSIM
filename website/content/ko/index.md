@@ -2,17 +2,17 @@
 
 POSIM은 ROS 2와 Gazebo용 오픈소스 해양 로봇 시뮬레이션 라이브러리입니다. 작업 공간에서 해양 환경, 수상·수중 로봇, 모의 센서와 제어 실험을 직접 실행할 수 있습니다. POSIM은 [Project DAVE](https://field-robotics-lab.github.io/dave.doc/)를 계승하며, DAVE는 [UUV Simulator](https://uuvsimulator.github.io/)를 기반으로 합니다.
 
-<figure class="docs-abstract"><div class="docs-abstract-grid"><a href="rovs.html" aria-label="ROV · BlueROV2"><img width="577" height="797" src="{{ASSET_PREFIX}}media/overview/bluerov2.png" alt="ROV · BlueROV2" decoding="async"><span>ROV · BlueROV2</span></a><a href="surface.html" aria-label="수상 로봇 · WAM-V"><img width="1280" height="720" src="{{ASSET_PREFIX}}media/overview/wamv.jpg" alt="수상 로봇 · WAM-V" decoding="async"><span>수상 로봇 · WAM-V</span></a><a href="objects.html" aria-label="해저 · 작업 장면"><img width="2200" height="1650" src="{{ASSET_PREFIX}}media/notion/camera-6eec9419.png" alt="해저 · 작업 장면" decoding="async"><span>해저 · 작업 장면</span></a><a href="sonar.html" aria-label="소나 · 영상과 점군"><img width="1738" height="1066" src="{{ASSET_PREFIX}}media/notion/sonar-f4ac9419.png" alt="소나 · 영상과 점군" decoding="async"><span>소나 · 영상과 점군</span></a><a href="dvl.html" aria-label="DVL · 속도 관측"><img width="1417" height="846" src="{{ASSET_PREFIX}}media/notion/dvl-e7cc9419.png" alt="DVL · 속도 관측" decoding="async"><span>DVL · 속도 관측</span></a><a href="camera.html" aria-label="카메라 · 수중 시각"><img width="2202" height="1650" src="{{ASSET_PREFIX}}media/notion/camera-f14c9419.png" alt="카메라 · 수중 시각" decoding="async"><span>카메라 · 수중 시각</span></a></div><figcaption>해양 환경 → 로봇과 동역학 → 센서 관측 → ROS 2 제어. POSIM Notion Wiki의 센서 그림과 WWW-POSIM에서 실행한 POSIM 로봇 장면입니다. 각 그림을 누르면 사용 안내로 이동합니다.</figcaption></figure>
+<figure class="docs-abstract"><div class="docs-abstract-grid"><a href="rovs.html" aria-label="ROV · BlueROV2"><img width="577" height="797" src="{{ASSET_PREFIX}}media/overview/bluerov2.png" alt="ROV · BlueROV2" decoding="async"><span>ROV · BlueROV2</span></a><a href="surface.html" aria-label="수상 로봇 · WAM-V"><img width="1280" height="720" src="{{ASSET_PREFIX}}media/overview/wamv.jpg" alt="수상 로봇 · WAM-V" decoding="async"><span>수상 로봇 · WAM-V</span></a><a href="objects.html" aria-label="해저 · 작업 장면"><img width="2200" height="1650" src="{{ASSET_PREFIX}}media/notion/camera-6eec9419.png" alt="해저 · 작업 장면" decoding="async"><span>해저 · 작업 장면</span></a><a href="sonar.html" aria-label="소나 · 영상과 점군"><img width="1738" height="1066" src="{{ASSET_PREFIX}}media/notion/sonar-f4ac9419.png" alt="소나 · 영상과 점군" decoding="async"><span>소나 · 영상과 점군</span></a><a href="dvl.html" aria-label="DVL · 속도 관측"><img width="1417" height="846" src="{{ASSET_PREFIX}}media/notion/dvl-e7cc9419.png" alt="DVL · 속도 관측" decoding="async"><span>DVL · 속도 관측</span></a><a href="camera.html" aria-label="카메라 · 수중 시각"><img width="2202" height="1650" src="{{ASSET_PREFIX}}media/notion/camera-f14c9419.png" alt="카메라 · 수중 시각" decoding="async"><span>카메라 · 수중 시각</span></a></div><figcaption>해양 환경 → 로봇과 동역학 → 센서 관측 → ROS 2 제어. 각 그림을 누르면 사용 안내로 이동합니다.</figcaption></figure>
 
 ## 여기서 시작하세요
 
 <div class="docs-architecture"><a href="requirements.html"><strong>설치</strong><span>Ubuntu, macOS 또는 Windows 환경을 선택합니다.</span></a><a href="quickstart.html"><strong>실행</strong><span>해양 월드를 띄우고 센서 데이터를 받습니다.</span></a><a href="custom-robots.html"><strong>확장</strong><span>로봇, 지형과 제어 코드를 추가합니다.</span></a></div>
 
-설치 안내를 선택하세요: [Ubuntu](install.md)(권장), [Docker와 RDP를 사용하는 macOS](install-macos.md), [WSL 2를 사용하는 Windows](install-windows.md). 일반적인 [Docker 안내](docker.md)도 있습니다. 환경을 준비한 뒤 [첫 시뮬레이션](quickstart.md)을 실행하세요.
+[실행 환경 선택](requirements.md)에서 내 운영 체제에 맞는 설치 방법을 고르세요. 설치를 마치면 [터미널 준비](terminals.md), [첫 시뮬레이션](quickstart.md) 순서로 진행합니다.
 
 - 운영체제: **Ubuntu 26.04**
 - ROS: **ROS 2 Lyrical**
-- 시뮬레이터: **Gazebo Jetty**
+- Gazebo Sim 시뮬레이터: **Gazebo Jetty**
 
 ## 라이브러리 구성
 
@@ -40,15 +40,19 @@ POSIM은 ROS 2와 Gazebo용 오픈소스 해양 로봇 시뮬레이션 라이브
 |---|---|
 | 시뮬레이션 하나를 실행하고 종료하기 | [첫 시뮬레이션](quickstart.md) |
 | ROS 연결 이해하기 | [ROS 터미널과 토픽](ros.md) |
-| 제어 프로그램 작성하기 | [Python으로 제어하기](python-control.md), 이어서 [추진기와 Autopilot](robot-control.md) |
+| 제어 프로그램 작성하기 | [Python으로 제어하기](python-control.md), 이어서 [추진기와 조이스틱 제어](robot-control.md) |
 | 측정값을 표시하거나 저장하기 | [센서 데이터 보기와 기록](visualization.md) |
 | 실험 조건 바꾸기 | [월드 만들기](custom-worlds.md), [로봇 추가](custom-robots.md), [센서 추가와 설정](custom-sensors.md) |
 | 플러그인의 정확한 설정 찾기 | **플러그인 참고** 그룹: 빠른 시작, SDF, 파라미터와 동작 설명 |
 
 각 페이지 하단에서 관련 소스와 참고 자료를 확인할 수 있습니다.
 
-## 관련 프로젝트
+## WWW-POSIM
 
-[구성 요소와 라이브러리](libraries.md)에서 POSIM 패키지와 관련 지형·경로·차량 제어 프로젝트를 설명합니다. 각 관련 라이브러리에는 별도의 사용 안내가 있습니다.
+[WWW-POSIM](https://www-posim.vercel.app/)은 POSIM에 지리 기반 지형을 만드는 POSIM-Terrain, 경로를 계획하는 POSIM-Routing, 로봇의 움직임을 제어하는 POSIM-Control을 결합한 프로그램입니다. 여기에 GUI와 웹·설치형 앱을 더해 장면 준비, 로봇 조작, 시뮬레이션 데이터 확인을 화면에서 할 수 있도록 제공합니다.
 
-[WWW-POSIM](https://www-posim.vercel.app/)은 POSIM으로 만든 웹·설치형 앱입니다. 자신의 ROS 작업 공간에서 POSIM을 사용하려면 이 문서의 설치와 시뮬레이션 안내를 따라가세요.
+아래 소개 영상에서 주요 기능을 살펴볼 수 있습니다. 설치와 사용 방법은 [WWW-POSIM 문서](https://www-posim.vercel.app/guide/ko.html)를 참고하세요.
+
+<iframe class="docs-embed" title="WWW-POSIM 소개 영상" src="https://www.youtube-nocookie.com/embed/_cQtl5JzN2E?rel=0" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+
+[YouTube에서 소개 영상 보기](https://www.youtube.com/watch?v=_cQtl5JzN2E).

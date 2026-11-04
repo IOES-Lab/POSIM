@@ -7,7 +7,7 @@ POSIM's multibeam sonar uses a ray-based point-scattering model to generate inte
 ```bash
 ros2 launch posim_demos posim_sensor.launch.py \
   namespace:=blueview_p900 world_name:=posim_multibeam_sonar \
-  paused:=false x:=4 z:=2.0 yaw:=3.14 gui:=false headless:=true
+  paused:=false x:=4 z:=2.0 yaw:=3.14 gui:=true headless:=false
 ```
 
 A dedicated example is also supplied by `posim_multibeam_sonar_demo`:
@@ -41,7 +41,7 @@ Add the systems directly inside `<world>`:
 <plugin filename="libmultibeam_sonar_system" name="custom::MultibeamSonarSystem"/>
 ```
 
-Place this P900 sensor inside a model `<link>`. Keep a renderer available in server-only mode:
+Place this P900 sensor inside a model `<link>`:
 
 ```xml
 <sensor name="multibeam_sonar" type="custom" gz:type="multibeam_sonar">
@@ -160,7 +160,7 @@ In the printed recording directory, open the first frame with the installed [plo
 ros2 run posim_multibeam_sonar_demo plotdata.py SonarRawData_000001.csv
 ```
 
-To export PNGs on a machine without a desktop:
+To save the plotted observations as PNG files:
 
 ```bash
 ros2 run posim_multibeam_sonar_demo plotdata.py SonarRawData_000001.csv \

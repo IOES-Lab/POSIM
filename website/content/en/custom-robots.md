@@ -2,11 +2,19 @@
 
 Create a model using a POSIM robot with a similar layout as a reference. SDF describes the mechanical model and systems; the ROS configuration connects observations and commands.
 
+## Where to run this guide
+
+Use the Linux terminals prepared in [Prepare your terminals](terminals.md). This applies to native Ubuntu, Ubuntu in WSL, and POSIM containers. On macOS, use the Linux terminal inside the RDP desktop. Edit and build inside that environment; `POSIM_WS` is its workspace path.
+
 ## 1. Choose a starting point
 
 Use [REXROV](https://github.com/IOES-Lab/POSIM/tree/main/models/posim_robot_models/description/rexrov) for a Gazebo-thruster vehicle or [BlueROV2](https://github.com/IOES-Lab/POSIM/tree/main/models/posim_robot_models/description/bluerov2) for ArduSub/MAVROS integration. The [Slocum guide](gliders.md) covers another vehicle layout.
 
-From `~/posim_ws`, make a complete working copy of REXROV. This keeps its meshes, bridge configuration and topic names together. The script stops if `my_robot` already exists.
+From `$POSIM_WS`, make a complete working copy of REXROV. This keeps its meshes, bridge configuration and topic names together. The script stops if `my_robot` already exists.
+
+```bash
+cd "$POSIM_WS"
+```
 
 ```python
 from pathlib import Path
@@ -73,7 +81,7 @@ source install/setup.bash
 ros2 launch posim_demos posim_robot.launch.py --show-args
 ros2 launch posim_demos posim_robot.launch.py \
   namespace:=my_robot world_name:=posim_ocean_waves z:=-2 paused:=false \
-  gui:=false headless:=true use_teleop:=false use_web_joystick:=false
+  gui:=true headless:=false use_teleop:=false use_web_joystick:=false
 ```
 
 Check each axis with small control commands. Launch from outside the source checkout too.

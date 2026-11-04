@@ -7,7 +7,7 @@ POSIM 멀티빔 소나는 음선(ray) 기반 점 산란 모델로 강도·거리
 ```bash
 ros2 launch posim_demos posim_sensor.launch.py \
   namespace:=blueview_p900 world_name:=posim_multibeam_sonar \
-  paused:=false x:=4 z:=2.0 yaw:=3.14 gui:=false headless:=true
+  paused:=false x:=4 z:=2.0 yaw:=3.14 gui:=true headless:=false
 ```
 
 `posim_multibeam_sonar_demo` 패키지의 별도 예제도 있습니다.
@@ -41,7 +41,7 @@ BlueView 센서 Launch는 Gazebo 시뮬레이션 시간을 ROS `/clock`으로 �
 <plugin filename="libmultibeam_sonar_system" name="custom::MultibeamSonarSystem"/>
 ```
 
-다음 P900 센서를 모델의 `<link>` 안에 넣습니다. 서버 모드에서도 렌더러를 준비하세요.
+다음 P900 센서를 모델의 `<link>` 안에 넣습니다. Gazebo 렌더링과 CUDA를 모두 준비하세요.
 
 ```xml
 <sensor name="multibeam_sonar" type="custom" gz:type="multibeam_sonar">
@@ -160,7 +160,7 @@ CUDA와 렌더링 환경을 준비한 뒤 작업 공간을 다시 빌드하고 �
 ros2 run posim_multibeam_sonar_demo plotdata.py SonarRawData_000001.csv
 ```
 
-데스크톱이 없는 환경에서는 PNG로 저장합니다.
+그림을 PNG 파일로 저장하려면 다음 명령을 사용합니다.
 
 ```bash
 ros2 run posim_multibeam_sonar_demo plotdata.py SonarRawData_000001.csv \

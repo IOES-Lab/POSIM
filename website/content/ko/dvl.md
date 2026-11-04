@@ -7,7 +7,7 @@
 ```bash
 ros2 launch posim_demos posim_sensor.launch.py \
   namespace:=nortek_dvl500_300 world_name:=dvl_world z:=-30 \
-  paused:=false gui:=false headless:=true
+  paused:=false gui:=true headless:=false
 ```
 
 같은 환경의 두 번째 터미널에서 Gazebo와 ROS 데이터를 차례로 확인합니다.
@@ -58,7 +58,7 @@ POSIM 브리지는 센서의 `<model>` 안에 넣습니다. 토픽은 `<link>` �
 | 수괴 `boundaries/near`, `boundaries/far`, `bins` | 샘플 구간 경계(m)와 구간 수 | 10, 100, 10 |
 | 추적 `visualize` | 샘플링 형상 표시 | true |
 
-메시지 변환은 [브리지 구현](https://github.com/IOES-Lab/POSIM/blob/main/gazebo/posim_ros_gz_plugins/src/DVLBridge.cc)을 참고하세요. 서버 모드에도 렌더러가 필요합니다. 설정 방법은 [Docker 안내](docker.md)에 있습니다.
+메시지 변환은 [브리지 구현](https://github.com/IOES-Lab/POSIM/blob/main/gazebo/posim_ros_gz_plugins/src/DVLBridge.cc)을 참고하세요. 깊이 센서는 Gazebo 렌더링을 사용하므로 먼저 [실행 환경](requirements.md)을 준비하세요.
 
 ## 포함된 모델
 

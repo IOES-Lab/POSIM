@@ -72,7 +72,7 @@ finally:
     rclpy.shutdown()
 ```
 
-The explicit signal option lets Ctrl+C reach the cleanup block while the ROS publisher is still available. If the process is forcibly terminated, stop the simulator or send neutral commands using [Thrusters & autopilot](robot-control.md).
+The explicit signal option lets Ctrl+C reach the cleanup block while the ROS publisher is still available. If the process is forcibly terminated, stop the simulator or send neutral commands using [Thrusters & joystick control](robot-control.md).
 
 ## Observe the actuator and vehicle
 
@@ -88,4 +88,4 @@ The angular-velocity feedback should respond and return toward zero. Watch odome
 
 Use the measured state and your control law to allocate forces across all eight REXROV thrusters. Keep topic names, mounting axes and units consistent. Use simulation time for experiment logic and send neutral values to every actuator your controller commands when stopping.
 
-BlueROV2 uses the [Thrusters & autopilot](robot-control.md) MAVROS/ArduSub path. For saved observations and comparisons, use [View & record sensor data](visualization.md).
+BlueROV2 uses the [Thrusters & joystick control](robot-control.md) MAVROS/ArduSub path. For saved observations and comparisons, use [View & record sensor data](visualization.md).

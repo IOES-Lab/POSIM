@@ -18,27 +18,24 @@ maps implementations to their guides, including
 [underwater scene effects and marine snow](https://ioes-lab.github.io/POSIM/underwater-rendering.html)
 and [marine GNSS](https://ioes-lab.github.io/POSIM/gnss.html).
 The `main` branch targets Ubuntu 26.04, ROS 2 Lyrical, and Gazebo Jetty.
-Start with [installation](https://ioes-lab.github.io/POSIM/install.html) or
-[Docker](https://ioes-lab.github.io/POSIM/docker.html), then run your
+Start by [choosing an environment](https://ioes-lab.github.io/POSIM/requirements.html), then run your
 [first simulation](https://ioes-lab.github.io/POSIM/quickstart.html).
 
-## Terrain, routing and control libraries
+## WWW-POSIM
 
-These related libraries support geographic terrain, route planning and vehicle
-control experiments with POSIM. Each repository has English/Korean usage
-instructions and tests.
+[WWW-POSIM](https://www-posim.vercel.app/) combines POSIM with geographic
+terrain, routing and vehicle-control libraries, adding a GUI and web/desktop
+applications. See its [application guide](https://www-posim.vercel.app/guide/en.html)
+for those workflows.
 
-| Library | Responsibility |
-| --- | --- |
-| [POSIM-Terrain](https://github.com/IOES-Lab/POSIM-Terrain) | Geographic land/seabed generation and satellite textures |
-| [POSIM-Routing](https://github.com/IOES-Lab/POSIM-Routing) | Global routes, coastal paths, port approaches and local collision checks |
-| [POSIM-Control](https://github.com/IOES-Lab/POSIM-Control) | Vehicle propulsion, leader/follower control and motion policies |
+## Docker images
 
-Read the [library guide](https://ioes-lab.github.io/POSIM/libraries.html) or [한국어 안내](https://ioes-lab.github.io/POSIM/ko/libraries.html) for how they work together and how to use them directly.
-
-[WWW-POSIM](https://www-posim.vercel.app/) is an optional web and desktop
-application built with POSIM. Its application workflows have their own
-documentation; the guides above cover using POSIM directly.
+Download the current image with `docker pull ioeslab/posim:latest`.
+Docker selects the AMD64 or ARM64 variant for the host. For repeatable
+experiments, select a `sha-<12-character-commit>` tag from
+[Docker Hub](https://hub.docker.com/r/ioeslab/posim/tags).
+Follow [Choose an environment](https://ioes-lab.github.io/POSIM/requirements.html)
+for Linux, Windows WSL and macOS display setup before creating a container.
 
 ## Contributing
 

@@ -1,6 +1,6 @@
-# Ubuntu 설치
+# Ubuntu 네이티브 설치
 
-Ubuntu 26.04의 ROS 작업 공간에서 POSIM을 빌드합니다. 독립된 Linux 환경을 사용하려면 [Docker 환경](docker.md)을 선택하세요.
+Ubuntu 26.04의 ROS 작업 공간에서 POSIM을 빌드합니다. 독립된 Linux 환경을 사용하려면 [Linux Docker 설치](install-ubuntu-docker.md)을 선택하세요.
 
 ## 1. 소스 내려받기
 
@@ -81,4 +81,16 @@ MAKEFLAGS="-j1" CMAKE_BUILD_PARALLEL_LEVEL=1 colcon build --merge-install --exec
 ```bash
 git -C ~/posim_ws/src/posim rev-parse HEAD
 git -C ~/posim_ws/src/posim pull --ff-only
+```
+
+## 5. 데모 월드 실행
+
+Ubuntu 터미널에서 설치한 환경을 불러오고 데모를 실행합니다. Gazebo에 해양 장면이 나타나야 합니다. 첫 실행에서는 Fuel 모델을 내려받을 수 있습니다. Ctrl+C로 종료한 뒤 [터미널 준비](terminals.md)로 이어가세요.
+
+```bash
+source /opt/ros/lyrical/setup.bash
+source "$HOME/.ros_ardusub_env/env"
+source ~/posim_ws/install/setup.bash
+ros2 launch posim_demos posim_world.launch.py \
+  world_name:=posim_ocean_waves headless:=false
 ```

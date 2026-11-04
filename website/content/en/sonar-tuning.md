@@ -2,6 +2,10 @@
 
 Choose the coverage, detail and update rate needed by your sonar experiment. The [multibeam sonar reference](sonar.md) contains the quickstart, SDF integration and parameter definitions. This guide explains how to compare configurations and prepare the CUDA backend.
 
+## Where to run this guide
+
+Use the Linux terminals prepared in [Prepare your terminals](terminals.md). This applies to native Ubuntu, Ubuntu in WSL, and POSIM containers. On macOS, use the Linux terminal inside the RDP desktop. Edit and build inside that environment; `POSIM_WS` is its workspace path.
+
 ## Establish a baseline
 
 Start the [BlueView P900 example](sonar.md#run-a-sonar-example) and keep its scene, target distance and sensor pose fixed. Confirm that the image and raw observations arrive before measuring throughput. If the CUDA libraries are not installed, complete the toolchain steps below first.

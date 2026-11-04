@@ -31,13 +31,23 @@ Underwater optics shade PBR surfaces and preserve numeric depth. The ocean's cus
 
 Sensor availability depends on installed plugins and model configuration. GNSS profiles describe mounts; a caller must attach the link and receiver. CUDA sonar requires its supported GPU/toolchain. A configured topic name does not establish that measurements are arriving.
 
-## Related public libraries and tools
+## Source directories
 
-| Component | Capability | Entry point |
-| --- | --- | --- |
-| POSIM-Terrain | Geographic terrain, textures and terrain utilities | [Library guide](libraries.md) and [public repository](https://github.com/IOES-Lab/POSIM-Terrain) |
-| POSIM-Routing | Global/coastal routes, port approaches and local collision checks | [Library guide](libraries.md) and [public repository](https://github.com/IOES-Lab/POSIM-Routing) |
-| POSIM-Control | Propulsion policies and native leader/follower controllers | [Library guide](libraries.md) and [public repository](https://github.com/IOES-Lab/POSIM-Control) |
-| macOS Ogre lifetime overlay | Opt-in build/launch helper for the documented arm64 Ogre 2.3.3 profile | [Exact supported profile and checks](https://github.com/IOES-Lab/POSIM/blob/main/extras/ogre/README.md) |
+The paths below are relative to the POSIM source repository.
 
-WWW-POSIM combines selected public component revisions with application services and its own rendering/control integrations. Use the implementation and guide listed here to determine what a direct POSIM checkout provides. Binary packages and independently installed libraries have their own selected revisions; check them before using a source feature. Third-party license terms remain with their respective [components](citation.md).
+| Location | What it supplies |
+|---|---|
+| `models/posim_worlds` | World files and their environment resources |
+| `models/posim_robot_models` | Robot mechanics, sensors and per-robot ROS configuration |
+| `models/posim_sensor_models` | Standalone sensor descriptions and examples |
+| `gazebo/` | Marine environment and sensor plugins |
+| `posim_interfaces` | POSIM message and service definitions |
+| `examples/posim_demos` | Launch files that connect worlds, models and ROS |
+
+Use [First simulation](quickstart.md) to run these components together. Use [Add a robot](custom-robots.md) and [Create a world](custom-worlds.md) when you want to change the model or environment.
+
+## macOS Ogre lifetime overlay
+
+The [Ogre overlay helper](https://github.com/IOES-Lab/POSIM/blob/main/extras/ogre/README.md) builds an isolated Ogre core for the documented macOS arm64 / Ogre-Next 2.3.3 configuration. Follow its supported SDK profile and loaded-library checks when using that configuration.
+
+Third-party license terms remain with their [components](citation.md).

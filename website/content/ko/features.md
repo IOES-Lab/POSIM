@@ -31,13 +31,23 @@
 
 사용 가능한 센서는 설치된 플러그인과 모델 설정에 따라 달라집니다. GNSS 프로필은 장착 정보를 제공하며, 호출 코드가 링크와 수신기를 연결해야 합니다. CUDA 소나에는 지원 GPU·개발 도구가 필요합니다. 토픽 이름의 설정만으로 측정 수신을 확인할 수는 없습니다.
 
-## 관련 공개 라이브러리와 도구
+## 소스 디렉토리
 
-| 구성 요소 | 기능 | 시작 위치 |
-| --- | --- | --- |
-| POSIM-Terrain | 지리 지형·텍스처와 지형 유틸리티 | [라이브러리 안내](libraries.md), [공개 저장소](https://github.com/IOES-Lab/POSIM-Terrain) |
-| POSIM-Routing | 전 지구·연안 경로, 항구 접근과 지역 충돌 검사 | [라이브러리 안내](libraries.md), [공개 저장소](https://github.com/IOES-Lab/POSIM-Routing) |
-| POSIM-Control | 추진 정책과 네이티브 선행·추종 차량 제어기 | [라이브러리 안내](libraries.md), [공개 저장소](https://github.com/IOES-Lab/POSIM-Control) |
-| macOS Ogre 수명 관리 오버레이 | 명시된 arm64 Ogre 2.3.3 구성에서 선택적으로 사용하는 빌드·실행 도구 | [지원 구성과 확인 방법](https://github.com/IOES-Lab/POSIM/blob/main/extras/ogre/README.md) |
+아래 경로는 POSIM 소스 저장소를 기준으로 합니다.
 
-WWW-POSIM은 선택한 공개 구성 요소 리비전에 앱 서비스와 자체 렌더링·제어 연동을 조합합니다. POSIM 체크아웃에서 직접 사용할 기능은 이 목록의 구현과 안내를 기준으로 확인하세요. 바이너리 패키지와 별도로 설치한 라이브러리는 각각 선택된 리비전이 있으므로 소스 기능을 사용하기 전에 확인합니다. 외부 코드의 라이선스 조건은 각 [구성 요소](citation.md)에 유지됩니다.
+| 위치 | 제공하는 내용 |
+|---|---|
+| `models/posim_worlds` | 월드 파일과 환경 리소스 |
+| `models/posim_robot_models` | 기체 역학, 센서와 로봇별 ROS 설정 |
+| `models/posim_sensor_models` | 독립 센서 모델과 예제 |
+| `gazebo/` | 해양 환경·센서 플러그인 |
+| `posim_interfaces` | POSIM 메시지·서비스 정의 |
+| `examples/posim_demos` | 월드·모델·ROS를 연결하는 Launch |
+
+[첫 시뮬레이션](quickstart.md)에서 이 구성 요소를 함께 실행합니다. 모델이나 환경을 바꾸려면 [로봇 추가](custom-robots.md)와 [월드 만들기](custom-worlds.md)를 사용하세요.
+
+## macOS Ogre 수명 관리 오버레이
+
+[Ogre 오버레이 도구](https://github.com/IOES-Lab/POSIM/blob/main/extras/ogre/README.md)는 명시된 macOS arm64·Ogre-Next 2.3.3 환경에서 사용할 독립 Ogre 코어를 빌드합니다. 이 구성을 사용할 때는 해당 문서의 SDK 조건과 로드된 라이브러리 확인 절차를 따르세요.
+
+외부 코드의 라이선스 조건은 각 [구성 요소](citation.md)에 유지됩니다.

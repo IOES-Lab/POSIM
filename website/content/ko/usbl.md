@@ -6,7 +6,7 @@
 
 ```bash
 ros2 launch posim_demos posim_world.launch.py \
-  world_name:=usbl_tutorial headless:=true
+  world_name:=usbl_tutorial headless:=false
 ```
 
 송수신기와 응답기가 월드에 포함되어 있으므로 월드 Launch로 함께 실행하세요.

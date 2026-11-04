@@ -73,9 +73,11 @@ for (const { code: lang } of languages) {
       const highlighted = hljs.highlight(code, { language, ignoreIllegals: true }).value;
       return `<pre><code class="hljs language-${esc(language)}">${highlighted}</code></pre>\n`;
     }, heading({ tokens, depth }) {
-      const authored = this.parser.parseInline(tokens);
+      const raw = this.parser.parseInline(tokens);
+      const explicitId = raw.match(/\s*\{#([a-z0-9-]+)\}$/)?.[1];
+      const authored = raw.replace(/\s*\{#[a-z0-9-]+\}$/, '');
       const content = depth === 1 ? esc(page[lang]) : authored;
-      const base = plain(authored).normalize('NFKC').toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '-').replace(/^-|-$/g, '') || 'section';
+      const base = explicitId || plain(authored).normalize('NFKC').toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '-').replace(/^-|-$/g, '') || 'section';
       const count = ids.get(base) || 0; ids.set(base, count + 1);
       const id = count ? `${base}-${count}` : base;
       if (depth === 2 || depth === 3) toc.push({ id, title: plain(content), depth });
@@ -137,6 +139,8 @@ for (const { code: lang } of languages) {
       section: ko ? page.sectionKo : page.sectionEn, description, text: plain(searchable.slice(slice.start, slice.end)) });
   }
   await writeFile(path.join(output, 'assets', `search.${lang}.json`), JSON.stringify(index));
+  const moved = `features.html#${ko ? '소스-디렉토리' : 'source-directories'}`;
+  await writeFile(path.join(output, ko ? 'ko' : '', 'libraries.html'), `<!doctype html><html lang="${lang}"><meta charset="utf-8"><meta http-equiv="refresh" content="0;url=${moved}"><title>POSIM</title><a href="${moved}">${ko ? '소스 디렉토리' : 'Source directories'}</a></html>`);
 }
 const urls = pages.flatMap(page => [`/${page.slug === 'index' ? '' : page.slug + '.html'}`, `/ko/${page.slug === 'index' ? '' : page.slug + '.html'}`]);
 const siteUrl = process.env.SITE_URL;

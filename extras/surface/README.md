@@ -9,12 +9,11 @@ Wave Sim is a pinned external build dependency. The standard Docker recipes and 
 
 ## Build and run
 
-This optional Dockerfile targets the ARM64 base layout (`docker` user, `/home/docker/ardupilot`, `/home/docker/posim_ws`). Build the ARM64 image as described in the [Docker guide](../../website/content/en/docker.md); Wave Sim is included by default, with no separate wave installation command. The optional surface overlay adds ArduRover and the WAM-V launch, reusing the wave installation when its recipe matches. From the repository root:
-
-```sh
-docker build -f extras/surface/Dockerfile --build-arg POSIM_BASE_IMAGE=posim:dev-arm64-rdp -t posim:surface .
-docker run --rm -it --entrypoint bash posim:surface -lc 'source /opt/ros/lyrical/setup.bash; source /home/docker/posim_ws/install/setup.bash; ros2 launch /opt/posim-surface/wamv.launch.py headless:=true'
-```
+This optional Dockerfile targets the ARM64 desktop layout. Follow the
+[WAM-V guide](../../website/content/en/surface.md#build-the-wam-v-integration)
+to build from `ioeslab/posim:latest`, connect through RDP and launch the GUI.
+Wave Sim is included in the base image. The overlay adds ArduRover and the
+WAM-V launch, reusing the wave installation when its recipe matches.
 
 The image contains separate ArduSub and ArduRover binaries. Run one instance of this example per environment: it uses fixed generated-file paths, vehicle names and controller ports. Changing `world_name` alone does not isolate another instance. Multiple vehicles need a custom integration with separate files, names, controller identities and ports, or separate isolated environments.
 
@@ -39,7 +38,7 @@ ros2 launch /opt/posim-surface/wamv.launch.py headless:=true world_name:="$SURFA
 
 The generated SDF, vehicle spawner, IMU bridge and startup wait all use this name. The ROS IMU endpoint remains `/model/wamv/imu`. This argument names the generated world; it does not select a terrain file.
 
-The example uses a flat seabed at z = −10 m and loads no GEBCO bathymetry. Geographic terrain is available through the separate public [POSIM-Terrain library](../../website/content/en/libraries.md#posim-terrain). Match visual and physics settings.
+The example uses a flat seabed at z = −10 m and loads no GEBCO bathymetry. Prepare geographic terrain with the [heightmap guide](../../website/content/en/heightmaps.md). Match visual and physics settings.
 
 - `wind_speed`: m/s
 - `wind_angle`: degrees
