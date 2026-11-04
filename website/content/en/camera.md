@@ -52,12 +52,16 @@ Place this sensor inside a model `<link>`. The world also needs `gz-sim-sensors-
 
 | SDF parameter | Meaning | Code default |
 | --- | --- | --- |
-| `attenuationR` | Red-channel attenuation per meter | `1/30` |
-| `attenuationG` | Green-channel attenuation per meter | `1/30` |
-| `attenuationB` | Blue-channel attenuation per meter | `1/30` |
-| `backgroundR` | Red background channel | `0` |
-| `backgroundG` | Green background channel | `0` |
-| `backgroundB` | Blue background channel | `0` |
+| `attenuationR` | Red-channel attenuation per meter, finite and ≥ 0 | `1/30` |
+| `attenuationG` | Green-channel attenuation per meter, finite and ≥ 0 | `1/30` |
+| `attenuationB` | Blue-channel attenuation per meter, finite and ≥ 0 | `1/30` |
+| `backgroundR` | Red background channel, integer 0–255 | `0` |
+| `backgroundG` | Green background channel, integer 0–255 | `0` |
+| `backgroundB` | Blue background channel, integer 0–255 | `0` |
+
+The sensor's `<topic>` must produce a valid ROS topic name. Omitting it uses Gazebo's `/world/<world>/model/<model>/link/<link>/sensor/<sensor>` scope; the ROS image is published below that scope at `/simulated_image`. Nested models add their parent model scopes.
+
+Depth-to-range conversion uses an explicit camera lens projection when supplied, then explicit lens intrinsics, otherwise image dimensions and horizontal field of view. Explicit zero principal-point coordinates are valid. Focal lengths must be positive, lens values finite and clipping distances satisfy `0 < near < far` in meters. Invalid settings produce a log error and disable the plugin's output.
 
 The example model uses these values. SDF settings override code defaults.
 
