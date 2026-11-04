@@ -63,6 +63,8 @@ The sensor's `<topic>` must produce a valid ROS topic name. Omitting it uses Gaz
 
 Depth-to-range conversion uses an explicit camera lens projection when supplied, then explicit lens intrinsics, otherwise image dimensions and horizontal field of view. Explicit zero principal-point coordinates are valid. Focal lengths must be positive, lens values finite and clipping distances satisfy `0 < near < far` in meters. Invalid settings produce a log error and disable the plugin's output.
 
+Color and depth frames are paired by their acquisition timestamp, whichever arrives first. Each ROS image preserves the color frame's timestamp and frame ID. Unmatched frames are discarded when the pending buffer fills; resetting simulation time clears pending frames and allows timestamps to restart.
+
 The example model uses these values. SDF settings override code defaults.
 
 - RGB attenuation: **0.8, 0.5, 0.2**

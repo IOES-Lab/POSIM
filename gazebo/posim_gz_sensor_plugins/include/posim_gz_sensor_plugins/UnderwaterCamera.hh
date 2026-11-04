@@ -58,6 +58,8 @@ public:
     const cv::Mat & _inputImage, const cv::Mat & _inputDepth, cv::Mat & _outputImage);
 
 private:
+  void ProcessImage(const gz::msgs::Image & image, bool isDepth);
+
   std::shared_ptr<rclcpp::Node> ros_node_;
 
   struct PrivateData;

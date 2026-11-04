@@ -26,7 +26,9 @@
 #include <gz/sim/components/Sensor.hh>
 #include <gz/transport/Node.hh>
 #include <limits>
+#include <map>
 #include <new>
+#include <optional>
 #include <rclcpp/expand_topic_or_service_name.hpp>
 #include <sdf/Camera.hh>
 #include "gz/plugin/Register.hh"
@@ -72,11 +74,19 @@ struct UnderwaterCamera::PrivateData
   double cy;
   double skew;
 
-  /// \brief Temporarily store pointer to previous depth image.
-  gz::msgs::Image lastDepth;
-
-  /// \brief Latest simulated image.
-  gz::msgs::Image lastImage;
+  using Stamp = std::pair<int64_t, int32_t>;
+  struct Frame
+  {
+    cv::Mat image;
+    gz::msgs::Header header;
+  };
+  // Transport callbacks can arrive in either order. Own pending pixels and
+  // retain only a small window when one stream is delayed or stops entirely.
+  std::map<Stamp, Frame> colors;
+  std::map<Stamp, Frame> depths;
+  std::optional<Stamp> lastPublished;
+  std::optional<std::chrono::steady_clock::duration> lastSimTime;
+  static constexpr size_t maxPendingFrames = 8;
 
   /// \brief Depth to range lookup table (LUT)
   std::unique_ptr<float[]> depth2rangeLUT;
@@ -86,8 +96,6 @@ struct UnderwaterCamera::PrivateData
 
   /// \brief Background constants per channel (RGB)
   unsigned char background[3];
-
-  bool firstImage = true;
 
   float min_range;
   float max_range;
@@ -416,99 +424,89 @@ cv::Mat UnderwaterCamera::ConvertGazeboToOpenCV(const gz::msgs::Image & gz_image
 
 void UnderwaterCamera::CameraCallback(const gz::msgs::Image & msg)
 {
-  std::lock_guard<std::mutex> lock(this->dataPtr->mutex_);
-
-  if (!this->ros_node_ || !rclcpp::ok(this->ros_node_->get_node_base_interface()->get_context()))
-  {
-    return;
-  }
-  if (!this->dataPtr->depth2rangeLUT)
-  {
-    gzerr << "Depth2range LUT not initialized" << std::endl;
-    return;
-  }
-  else
-  {
-    gzmsg << "posim_gz_sensor_plugins::UnderwaterCamera::CameraCallback" << std::endl;
-
-    if (this->dataPtr->firstImage)
-    {
-      this->dataPtr->lastImage = msg;
-      this->dataPtr->firstImage = false;
-    }
-    else
-    {
-      // RGB and depth arrive independently. Do not index a missing, truncated,
-      // or differently-sized depth frame (including during startup/teardown).
-      const auto & depth = this->dataPtr->lastDepth;
-      if (
-        depth.pixel_format_type() != gz::msgs::PixelFormatType::R_FLOAT32 ||
-        depth.width() != this->dataPtr->width || depth.height() != this->dataPtr->height ||
-        msg.width() != this->dataPtr->width || msg.height() != this->dataPtr->height)
-      {
-        return;
-      }
-      // Convert Gazebo image to OpenCV image
-      cv::Mat image = this->ConvertGazeboToOpenCV(msg);
-
-      // Convert depth image to OpenCV image using the ConvertGazeboToOpenCV function
-      cv::Mat depth_image = this->ConvertGazeboToOpenCV(this->dataPtr->lastDepth);
-
-      if (image.empty() || image.type() != CV_8UC3 || depth_image.empty())
-      {
-        return;
-      }
-
-      // Own the output buffer instead of writing through a protobuf const view.
-      cv::Mat output_image(image.rows, image.cols, CV_8UC3);
-
-      // Simulate underwater
-      cv::Mat simulated_image = this->SimulateUnderwater(image, depth_image, output_image);
-
-      // Publish simulated image
-      sensor_msgs::msg::Image ros_image;
-      // Preserve the sensor acquisition time and frame for ROS synchronization.
-      ros_image.header.stamp.sec = msg.header().stamp().sec();
-      ros_image.header.stamp.nanosec = msg.header().stamp().nsec();
-      for (const auto & entry : msg.header().data())
-      {
-        if (entry.key() == "frame_id" && entry.value_size() > 0)
-        {
-          ros_image.header.frame_id = entry.value(0);
-          // Match ros_gz_bridge's ROS frame convention for scoped Gazebo names.
-          std::size_t separator = 0;
-          while ((separator = ros_image.header.frame_id.find("::", separator)) != std::string::npos)
-          {
-            ros_image.header.frame_id.replace(separator, 2, "/");
-            ++separator;
-          }
-          break;
-        }
-      }
-      ros_image.height = msg.height();
-      ros_image.width = msg.width();
-      ros_image.encoding = "bgr8";
-      ros_image.is_bigendian = false;
-      ros_image.step = msg.width() * 3;
-      ros_image.data = std::vector<unsigned char>(
-        simulated_image.data,
-        simulated_image.data + simulated_image.total() * simulated_image.elemSize());
-
-      this->dataPtr->image_pub->publish(ros_image);
-
-      // Store the current image for the next iteration
-      this->dataPtr->lastImage = msg;
-    }
-  }
+  this->ProcessImage(msg, false);
 }
 
 void UnderwaterCamera::DepthImageCallback(const gz::msgs::Image & msg)
 {
+  this->ProcessImage(msg, true);
+}
+
+void UnderwaterCamera::ProcessImage(const gz::msgs::Image & msg, bool isDepth)
+{
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex_);
+  if (
+    !this->ros_node_ || !rclcpp::ok(this->ros_node_->get_node_base_interface()->get_context()) ||
+    !this->dataPtr->depth2rangeLUT || msg.width() != this->dataPtr->width ||
+    msg.height() != this->dataPtr->height)
+  {
+    return;
+  }
+  const auto & time = msg.header().stamp();
+  if (
+    time.sec() < std::numeric_limits<int32_t>::min() ||
+    time.sec() > std::numeric_limits<int32_t>::max() || time.nsec() < 0 ||
+    time.nsec() >= 1000000000)
+  {
+    return;
+  }
+  const PrivateData::Stamp stamp{time.sec(), time.nsec()};
+  if (this->dataPtr->lastPublished && stamp <= *this->dataPtr->lastPublished)
+  {
+    return;
+  }
+  cv::Mat image = this->ConvertGazeboToOpenCV(msg);
+  if (image.empty() || image.type() != (isDepth ? CV_32FC1 : CV_8UC3))
+  {
+    return;
+  }
 
-  gzmsg << "posim_gz_sensor_plugins::UnderwaterCamera::DepthImageCallback" << std::endl;
+  auto & pending = isDepth ? this->dataPtr->depths : this->dataPtr->colors;
+  pending.try_emplace(stamp, PrivateData::Frame{image.clone(), msg.header()});
+  while (pending.size() > PrivateData::maxPendingFrames)
+  {
+    pending.erase(pending.begin());
+  }
+  const auto color = this->dataPtr->colors.find(stamp);
+  const auto depth = this->dataPtr->depths.find(stamp);
+  if (color == this->dataPtr->colors.end() || depth == this->dataPtr->depths.end())
+  {
+    return;
+  }
 
-  this->dataPtr->lastDepth = msg;
+  cv::Mat output(image.rows, image.cols, CV_8UC3);
+  this->SimulateUnderwater(color->second.image, depth->second.image, output);
+  sensor_msgs::msg::Image ros_image;
+  ros_image.header.stamp.sec = stamp.first;
+  ros_image.header.stamp.nanosec = stamp.second;
+  for (const auto & entry : color->second.header.data())
+  {
+    if (entry.key() == "frame_id" && entry.value_size() > 0)
+    {
+      ros_image.header.frame_id = entry.value(0);
+      // Match ros_gz_bridge's ROS frame convention for scoped Gazebo names.
+      std::size_t separator = 0;
+      while ((separator = ros_image.header.frame_id.find("::", separator)) != std::string::npos)
+      {
+        ros_image.header.frame_id.replace(separator, 2, "/");
+        ++separator;
+      }
+      break;
+    }
+  }
+  ros_image.height = msg.height();
+  ros_image.width = msg.width();
+  ros_image.encoding = "bgr8";
+  ros_image.is_bigendian = false;
+  ros_image.step = msg.width() * 3;
+  ros_image.data.assign(output.data, output.data + output.total() * output.elemSize());
+  this->dataPtr->image_pub->publish(ros_image);
+  this->dataPtr->lastPublished = stamp;
+  // Completed or older samples cannot contribute to a subsequent output.
+  this->dataPtr->colors.erase(
+    this->dataPtr->colors.begin(), this->dataPtr->colors.upper_bound(stamp));
+  this->dataPtr->depths.erase(
+    this->dataPtr->depths.begin(), this->dataPtr->depths.upper_bound(stamp));
 }
 
 cv::Mat UnderwaterCamera::SimulateUnderwater(
@@ -573,6 +571,16 @@ void UnderwaterCamera::PostUpdate(
   if (!rclcpp::ok(context))
   {
     return;
+  }
+  {
+    std::lock_guard<std::mutex> lock(this->dataPtr->mutex_);
+    if (this->dataPtr->lastSimTime && _info.simTime < *this->dataPtr->lastSimTime)
+    {
+      this->dataPtr->colors.clear();
+      this->dataPtr->depths.clear();
+      this->dataPtr->lastPublished.reset();
+    }
+    this->dataPtr->lastSimTime = _info.simTime;
   }
   if (!_info.paused)
   {
