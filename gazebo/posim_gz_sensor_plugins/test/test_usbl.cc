@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include <gtest/gtest.h>
+#include <atomic>
 #include <chrono>
 #include <cmath>
 #include <gz/sim/components/Link.hh>
@@ -20,6 +21,8 @@
 #include <gz/sim/components/Name.hh>
 #include <gz/sim/components/ParentEntity.hh>
 #include <gz/sim/components/Pose.hh>
+#include <gz/transport/Node.hh>
+#include <limits>
 #include <sdf/Root.hh>
 #include <thread>
 #include "posim_gz_sensor_plugins/UsblTransceiver.hh"
@@ -197,6 +200,8 @@ TEST_F(Usbl, InvalidChannelDoesNotChangeSelectionAndPositionsWaitForUpdate)
   EXPECT_TRUE(positions.empty());
   info.paused = false;
   transceiver.PostUpdate(info, ecm);
+  info.simTime = std::chrono::milliseconds(10);
+  transceiver.PostUpdate(info, ecm);
   ASSERT_TRUE(Wait([&]() { return !positions.empty(); }));
   EXPECT_EQ(positions.size(), 1u);
   EXPECT_EQ(positions.front().transponder_id, 1);
@@ -278,4 +283,240 @@ TEST_F(Usbl, InvalidTransponderConfigurationAndLinklessModelsStayInactive)
   info.paused = false;
   transponder.PostUpdate(info, ecm);
   transceiver.PostUpdate(info, ecm);
+}
+
+TEST_F(Usbl, ACommonPingIsSentOnceForMultipleTransponders)
+{
+  UsblTransceiver transceiver;
+  auto config = Config();
+  config->GetElement("transponder_ID")->Set("1,2");
+  config->GetElement("transponder_attached_object")->Set("box,box");
+  transceiver.Configure(model, config, ecm, events);
+  size_t count = 0;
+  auto subscription = observer->create_subscription<std_msgs::msg::String>(
+    "/USBL_test/common_interrogation_ping", 10, [&](std_msgs::msg::String::SharedPtr) { ++count; });
+  ASSERT_TRUE(Wait([&] { return subscription->get_publisher_count() > 0; }));
+  transceiver.sendPing();
+  ASSERT_TRUE(Wait([&] { return count > 0; }));
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  rclcpp::spin_some(observer);
+  EXPECT_EQ(count, 1u);
+}
+
+TEST_F(Usbl, CurrentModeIsAvailableToLateSubscribers)
+{
+  UsblTransceiver transceiver;
+  transceiver.Configure(
+    model, Config("<interrogation_mode>individual</interrogation_mode>"), ecm, events);
+  gz::sim::UpdateInfo info;
+  info.paused = false;
+  transceiver.PostUpdate(info, ecm);
+  std::string mode;
+  auto subscription = observer->create_subscription<std_msgs::msg::String>(
+    "/USBL_test/tx_168/interrogation_mode", rclcpp::QoS(1).transient_local(),
+    [&](std_msgs::msg::String::SharedPtr message) { mode = message->data; });
+  EXPECT_TRUE(Wait([&] { return mode == "individual"; }));
+
+  // A normal volatile CLI publisher can update the retained state.
+  auto command =
+    observer->create_publisher<std_msgs::msg::String>("/USBL_test/tx_168/interrogation_mode", 1);
+  ASSERT_TRUE(Wait([&] { return command->get_subscription_count() > 0; }));
+  std_msgs::msg::String message;
+  message.data = "common";
+  command->publish(message);
+  ASSERT_TRUE(Wait(
+    [&]
+    {
+      transceiver.PostUpdate(info, ecm);
+      return mode == "common";
+    }));
+  subscription.reset();
+  mode.clear();
+  subscription = observer->create_subscription<std_msgs::msg::String>(
+    "/USBL_test/tx_168/interrogation_mode", rclcpp::QoS(1).transient_local(),
+    [&](std_msgs::msg::String::SharedPtr message) { mode = message->data; });
+  EXPECT_TRUE(Wait([&] { return mode == "common"; }));
+}
+
+TEST_F(Usbl, IndividualPingIsSentOnceToTheSelectedChannel)
+{
+  UsblTransceiver transceiver;
+  auto config = Config();
+  config->GetElement("transponder_ID")->Set("1,2");
+  config->GetElement("transponder_attached_object")->Set("box,box");
+  transceiver.Configure(model, config, ecm, events);
+  size_t first = 0, second = 0;
+  auto one = observer->create_subscription<std_msgs::msg::String>(
+    "/USBL_test/rx_1/individual_interrogation_ping", 10,
+    [&](std_msgs::msg::String::SharedPtr) { ++first; });
+  auto two = observer->create_subscription<std_msgs::msg::String>(
+    "/USBL_test/rx_2/individual_interrogation_ping", 10,
+    [&](std_msgs::msg::String::SharedPtr) { ++second; });
+  ASSERT_TRUE(
+    Wait([&] { return one->get_publisher_count() > 0 && two->get_publisher_count() > 0; }));
+  auto channel = std::make_shared<std_msgs::msg::String>();
+  channel->data = "2";
+  transceiver.channelSwitchCallback(channel);
+  transceiver.sendPing();
+  ASSERT_TRUE(Wait([&] { return second > 0; }));
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  rclcpp::spin_some(observer);
+  EXPECT_EQ(first, 0u);
+  EXPECT_EQ(second, 1u);
+}
+
+TEST_F(Usbl, ReturnDelayHonorsPauseRewindAndOneInFlightSample)
+{
+  UsblTransceiver transceiver;
+  transceiver.Configure(model, Config("<sound_speed>1000</sound_speed>"), ecm, events);
+  std::vector<posim_interfaces::msg::Location> positions;
+  auto subscription = observer->create_subscription<posim_interfaces::msg::Location>(
+    "/USBL_test/tx_168/transponder_location", 10,
+    [&](posim_interfaces::msg::Location::SharedPtr msg) { positions.push_back(*msg); });
+  ASSERT_TRUE(Wait([&] { return subscription->get_publisher_count() > 0; }));
+  gz::msgs::Vector3d position;
+  position.set_x(250);
+  transceiver.receiveGazeboCallback("1", position);
+  gz::sim::UpdateInfo info;
+  info.paused = false;
+  transceiver.PostUpdate(info, ecm);
+  info.simTime = std::chrono::milliseconds(249);
+  // Further samples cannot postpone the first arrival or grow the queue.
+  position.set_x(500);
+  transceiver.receiveGazeboCallback("1", position);
+  transceiver.PostUpdate(info, ecm);
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  rclcpp::spin_some(observer);
+  EXPECT_TRUE(positions.empty());
+  info.paused = true;
+  info.simTime = std::chrono::milliseconds(250);
+  transceiver.PostUpdate(info, ecm);
+  rclcpp::spin_some(observer);
+  EXPECT_TRUE(positions.empty());
+  info.paused = false;
+  transceiver.PostUpdate(info, ecm);
+  ASSERT_TRUE(Wait([&] { return positions.size() == 1; }));
+  EXPECT_DOUBLE_EQ(positions.front().y, 250);
+  info.simTime = std::chrono::seconds(1);
+  transceiver.receiveGazeboCallback("1", position);
+  transceiver.PostUpdate(info, ecm);
+  info.simTime = std::chrono::seconds(0);
+  transceiver.PostUpdate(info, ecm);
+  info.simTime = std::chrono::seconds(2);
+  transceiver.PostUpdate(info, ecm);
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  rclcpp::spin_some(observer);
+  EXPECT_EQ(positions.size(), 1u);
+}
+
+TEST_F(Usbl, DepthAndTemperatureAdjustConfiguredSpeedAndRejectInvalidChanges)
+{
+  ecm.SetComponentData<gz::sim::components::Pose>(model, gz::math::Pose3d(0, 0, -1000, 0, 0, 0));
+  UsblTransceiver transceiver;
+  transceiver.Configure(model, Config("<sound_speed>1000</sound_speed>"), ecm, events);
+  size_t count = 0;
+  auto subscription = observer->create_subscription<posim_interfaces::msg::Location>(
+    "/USBL_test/tx_168/transponder_location", 10,
+    [&](posim_interfaces::msg::Location::SharedPtr) { ++count; });
+  ASSERT_TRUE(Wait([&] { return subscription->get_publisher_count() > 0; }));
+  auto temperature = std::make_shared<std_msgs::msg::Float64>();
+  temperature->data = 15;
+  transceiver.temperatureRosCallback(temperature);
+  for (double invalid :
+       {std::numeric_limits<double>::quiet_NaN(), std::numeric_limits<double>::infinity(),
+        std::numeric_limits<double>::max(), -1000.0})
+  {
+    temperature->data = invalid;
+    transceiver.temperatureRosCallback(temperature);
+  }
+  gz::msgs::Vector3d position;
+  position.set_x(250);
+  position.set_z(-1000);
+  gz::sim::UpdateInfo info;
+  info.paused = false;
+  // At 1000 m depth and 15 C: 1000 + 17 + 20 = 1037 m/s.
+  // Repeated pings retain the configured base and last valid temperature.
+  for (int cycle = 0; cycle < 2; ++cycle)
+  {
+    info.simTime = std::chrono::seconds(cycle);
+    transceiver.receiveGazeboCallback("1", position);
+    transceiver.PostUpdate(info, ecm);
+    info.simTime += std::chrono::milliseconds(240);
+    transceiver.PostUpdate(info, ecm);
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    rclcpp::spin_some(observer);
+    EXPECT_EQ(count, static_cast<size_t>(cycle));
+    info.simTime += std::chrono::milliseconds(2);
+    transceiver.PostUpdate(info, ecm);
+    ASSERT_TRUE(Wait([&] { return count == static_cast<size_t>(cycle + 1); }));
+  }
+}
+
+TEST_F(Usbl, TransponderDelayUsesSimulationTimeAndConfiguredSoundSpeed)
+{
+  auto remote = ecm.CreateEntity();
+  ecm.CreateComponent(remote, gz::sim::components::Model());
+  ecm.CreateComponent(remote, gz::sim::components::Name("remote"));
+  ecm.CreateComponent(remote, gz::sim::components::Pose(gz::math::Pose3d(250, 0, 0, 0, 0, 0)));
+  auto remoteLink = ecm.CreateEntity();
+  ecm.CreateComponent(remoteLink, gz::sim::components::Link());
+  ecm.CreateComponent(remoteLink, gz::sim::components::Name("link"));
+  ecm.CreateComponent(remoteLink, gz::sim::components::Pose());
+  ecm.CreateComponent(remoteLink, gz::sim::components::ParentEntity(remote));
+  ecm.SetParentEntity(remoteLink, remote);
+  UsblTransponder transponder;
+  transponder.Configure(remote, Config("<sound_speed>1000</sound_speed>"), ecm, events);
+  auto mode = std::make_shared<std_msgs::msg::String>();
+  mode->data = "common";
+  transponder.interrogationModeCallback(mode);
+  std::atomic<size_t> count{0};
+  gz::transport::Node receiver;
+  std::function<void(const gz::msgs::Vector3d &)> capture = [&](const auto &) { ++count; };
+  ASSERT_TRUE(receiver.Subscribe("/USBL_test/tx_1/global_position", capture));
+  gz::sim::UpdateInfo info;
+  info.paused = false;
+  transponder.PostUpdate(info, ecm);
+  auto ping = std::make_shared<std_msgs::msg::String>();
+  ping->data = "ping";
+  transponder.cisRosCallback(ping);
+  transponder.PostUpdate(info, ecm);
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  EXPECT_EQ(count, 0u);
+  info.simTime = std::chrono::milliseconds(249);
+  transponder.PostUpdate(info, ecm);
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  EXPECT_EQ(count, 0u);
+  info.paused = true;
+  info.simTime = std::chrono::milliseconds(250);
+  transponder.PostUpdate(info, ecm);
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  EXPECT_EQ(count, 0u);
+  info.paused = false;
+  transponder.PostUpdate(info, ecm);
+  ASSERT_TRUE(Wait([&] { return count == 1; }));
+  // A second pending response belongs to the previous simulation epoch.
+  transponder.cisRosCallback(ping);
+  info.simTime = std::chrono::seconds(1);
+  transponder.PostUpdate(info, ecm);
+  info.simTime = std::chrono::seconds(0);
+  transponder.PostUpdate(info, ecm);
+  info.simTime = std::chrono::seconds(2);
+  transponder.PostUpdate(info, ecm);
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  EXPECT_EQ(count, 1u);
+}
+
+TEST_F(Usbl, LongRangePingDoesNotBlockTheSimulationThread)
+{
+  auto remote = ecm.CreateEntity();
+  ecm.CreateComponent(remote, gz::sim::components::Model());
+  ecm.CreateComponent(remote, gz::sim::components::Name("remote"));
+  ecm.CreateComponent(remote, gz::sim::components::Pose(gz::math::Pose3d(3000, 0, 0, 0, 0, 0)));
+  UsblTransceiver transceiver;
+  auto config = Config("<sound_speed>1000</sound_speed>");
+  config->GetElement("transponder_attached_object")->Set("remote");
+  transceiver.Configure(model, config, ecm, events);
+  auto start = std::chrono::steady_clock::now();
+  transceiver.sendPing();
+  EXPECT_LT(std::chrono::steady_clock::now() - start, std::chrono::milliseconds(200));
 }

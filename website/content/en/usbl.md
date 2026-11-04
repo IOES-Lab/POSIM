@@ -75,7 +75,7 @@ Place this plugin in `sphere`; add another to `sphere2` with `transponder_ID` se
 | `transponder_device`, `transponder_ID` | Both | Required name and ID; transceiver accepts comma-separated IDs |
 | `transponder_attached_object` | Transceiver | Required comma-separated model names, ordered like the IDs |
 | `transceiver_model` | Transponder | Required transceiver model name for position lookup |
-| `sound_speed` | Both | Initial acoustic speed, m/s; default 1540; finite and positive |
+| `sound_speed` | Both | Reference acoustic speed at 10 °C and z = 0, m/s; default 1540; finite and positive |
 | `enable_ping_scheduler` | Transceiver | Required boolean; false uses manually published pings |
 | `ping_frequency` | Transceiver | Scheduled rate in simulation time, Hz; default 1; example 0.5; finite and positive |
 | `interrogation_mode` | Transceiver | `common` or `individual`; default `common` |
@@ -85,7 +85,15 @@ Use existing model names and unique transponder IDs. Keep the ID and attached-mo
 
 IDs are decimal integers from 0 to 2147483647, without a sign or leading zeros. Each plugin requires a model containing a link. Invalid configuration leaves the plugin inactive. Unknown channel and command targets are ignored; an unknown channel keeps the current selection. The first listed transponder is the initial channel. Scheduled pings pause with simulation time and emit at most once per update.
 
-The acoustic-delay calculation replaces the initial sound speed with a depth-based estimate and uses whole-second wall-time sleeps. Use the position outputs for localization experiments; they do not provide precise subsecond acoustic travel-time measurements.
+## Acoustic timing
+
+Each position request has two simulated travel legs: the transponder waits for the outgoing signal, then the transceiver waits for the returning position. Each leg uses distance divided by the local device's sound speed. Fractional delays advance with simulation time, pause with the world, and are discarded when simulation time rewinds. A pending leg keeps one sample per transponder; additional requests or replies during that leg are ignored. Choose a ping interval longer than the expected round trip to receive each request.
+
+The effective speed is `sound_speed + 0.017 × depth + 4 × (temperature − 10)`, with speed in m/s, depth in meters below z = 0 and temperature in °C. Above z = 0, the depth term is zero. Temperature defaults to 10 °C. Publish `std_msgs/msg/Float64` on `/USBL/transceiver_manufacturer_168/temperature` or `/USBL/transponder_manufacturer_1/temperature` for the example devices. A change applies to subsequent legs. Nonfinite temperatures and changes that produce a nonpositive or nonfinite speed are ignored.
+
+This simple depth/temperature approximation follows the [DOSITS sound-speed overview](https://dosits.org/decision-makers/tutorials/science/sound-speed/). Travel uses straight-line distances; it does not model refraction, salinity, multipath or acoustic interference. The return leg uses the received position, including configured position noise.
+
+The transceiver retains the current interrogation mode so transponders joining later can receive it. Common mode emits one broadcast per scheduled ping; individual mode sends one ping to the selected channel.
 
 ## Request all transponders
 

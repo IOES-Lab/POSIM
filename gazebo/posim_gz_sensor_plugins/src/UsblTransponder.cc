@@ -15,6 +15,7 @@
  */
 
 #include <algorithm>
+#include <optional>
 #include <random>
 #include <string>
 #include <vector>
@@ -35,6 +36,7 @@
 #include <rclcpp/rclcpp.hpp>
 #include <std_msgs/msg/string.hpp>
 
+#include "UsblAcoustics.hh"
 #include "UsblConfig.hh"
 #include "posim_gz_sensor_plugins/UsblTransponder.hh"
 
@@ -53,10 +55,13 @@ struct UsblTransponder::PrivateData
   bool configured{false};
   // Add any private data members here.
   gz::sim::Model model;
-  gz::sim::Entity transceiverEntity;
   gz::sim::EntityComponentManager * ecm;
   std::string modelName;
-  std::string m_interrogationMode;
+  std::string m_interrogationMode{"common"};
+  bool commonPingRequested{false};
+  bool individualPingRequested{false};
+  double lastUpdateTime{0.0};
+  std::optional<double> replyDue;
   std::string m_transceiverModelName;
   std::string ns;  // 'namespace' is a reserved word in C++, using 'ns' instead.
   std::string m_transceiverDevice;
@@ -230,12 +235,6 @@ void UsblTransponder::Configure(
   this->dataPtr->m_transceiverModelName = _sdf->Get<std::string>("transceiver_model");
   gzmsg << "Transceiver model: " << this->dataPtr->m_transceiverModelName << std::endl;
 
-  auto worldEntity = _ecm.EntityByComponents(gz::sim::components::World());
-  this->dataPtr->transceiverEntity = _ecm.EntityByComponents(
-    gz::sim::components::Name(this->dataPtr->m_transceiverModelName), gz::sim::components::Model());
-  // this->dataPtr->transceiverModel = worldEntity.ModelByName(_ecm,
-  // this->dataPtr->transceiverModelName);
-
   // Define Gazebo publisher for entity's global position
   this->dataPtr->m_globalPosPub = this->dataPtr->m_gzNode.Advertise<gz::msgs::Vector3d>(
     "/" + this->dataPtr->ns + "/" + this->dataPtr->m_transceiverDevice + "_" +
@@ -274,7 +273,7 @@ void UsblTransponder::Configure(
 
   this->dataPtr->m_interrogationModeSub =
     this->ros_node_->create_subscription<std_msgs::msg::String>(
-      interrogation_mode_topic, 1,
+      interrogation_mode_topic, rclcpp::QoS(1).transient_local(),
       std::bind(&UsblTransponder::interrogationModeCallback, this, _1));
   this->dataPtr->configured = true;
 }
@@ -311,80 +310,17 @@ void UsblTransponder::sendLocation()
 
 void UsblTransponder::iisRosCallback(const std_msgs::msg::String::SharedPtr msg)
 {
-  if (!this->dataPtr->configured)
+  if (this->dataPtr->configured && msg->data == "ping")
   {
-    return;
-  }
-  if (this->dataPtr->m_interrogationMode.compare("individual") == 0)
-  {
-    gz::math::Pose3d pose_transponder = worldPose(this->dataPtr->linkEntity, *this->dataPtr->ecm);
-    gz::math::Pose3d pose_transceiver =
-      worldPose(this->dataPtr->transceiverEntity, *this->dataPtr->ecm);
-    gz::math::Vector3<double> position_transponder = pose_transponder.Pos();
-    gz::math::Vector3<double> position_transceiver = pose_transceiver.Pos();
-
-    // For each kilometer increase in depth (pressure), the sound speed increases by 17 m/s
-    // Base on https://dosits.org/tutorials/science/tutorial-speed/
-    this->dataPtr->m_soundSpeed = 1540.4 + position_transponder.Z() / 1000 * 17;
-    double dist = (position_transponder - position_transceiver).Length();
-    std::string command = msg->data;
-
-    if (!command.compare("ping"))
-    {
-      // gzmsg << this->dataPtr->m_transponderDevice + "_" + this->dataPtr->m_transponderID +
-      //            ": Received iis_ping, responding\n";
-      // gzmsg << "Distance " << dist << std::endl;
-      // gzmsg << "Pose transponder " << position_transponder << std::endl;
-      // gzmsg << "Pose transceiver " << position_transceiver << std::endl;
-      sleep(dist / this->dataPtr->m_soundSpeed);
-      sendLocation();
-    }
-    else
-    {
-      gzmsg << "Unknown command, ignore\n";
-    }
-  }
-  else
-  {
-    gzmsg << "Not in individual mode: cannot send location" << std::endl;
+    this->dataPtr->individualPingRequested = true;
   }
 }
 
 void UsblTransponder::cisRosCallback(const std_msgs::msg::String::SharedPtr msg)
 {
-  if (!this->dataPtr->configured)
+  if (this->dataPtr->configured && msg->data == "ping")
   {
-    return;
-  }
-  if (this->dataPtr->m_interrogationMode.compare("common") == 0)
-  {
-    gz::math::Pose3d pose_transponder = worldPose(this->dataPtr->linkEntity, *this->dataPtr->ecm);
-    gz::math::Pose3d pose_transceiver =
-      worldPose(this->dataPtr->transceiverEntity, *this->dataPtr->ecm);
-    gz::math::Vector3<double> position_transponder = pose_transponder.Pos();
-    gz::math::Vector3<double> position_transceiver = pose_transceiver.Pos();
-
-    // For each kilometer increase in depth (pressure), the sound speed increases by 17 m/s
-    // Base on https://dosits.org/tutorials/science/tutorial-speed/
-    this->dataPtr->m_soundSpeed = 1540.4 + position_transponder.Z() / 1000 * 17;
-    double dist = (position_transponder - position_transceiver).Length();
-    std::string command = msg->data;
-
-    if (!command.compare("ping"))
-    {
-      gzmsg << this->dataPtr->m_transponderDevice + "_" + this->dataPtr->m_transponderID +
-                 ": Received cis_ping, responding\n";
-      sleep(dist / this->dataPtr->m_soundSpeed);
-      sendLocation();
-    }
-    else
-    {
-      gzmsg << "Unknown command, ignore\n";
-    }
-  }
-  else
-  {
-    gzmsg << "Not in common mode: cannot send location";
+    this->dataPtr->commonPingRequested = true;
   }
 }
 
@@ -393,6 +329,12 @@ void UsblTransponder::interrogationModeCallback(const std_msgs::msg::String::Sha
   if (msg->data != "common" && msg->data != "individual")
   {
     return;
+  }
+  if (this->dataPtr->m_interrogationMode != msg->data)
+  {
+    this->dataPtr->replyDue.reset();
+    this->dataPtr->commonPingRequested = false;
+    this->dataPtr->individualPingRequested = false;
   }
   this->dataPtr->m_interrogationMode = msg->data;
 
@@ -409,13 +351,11 @@ void UsblTransponder::temperatureRosCallback(const std_msgs::msg::Float64::Share
   gz::math::Pose3d pose_transponder = worldPose(this->dataPtr->linkEntity, *this->dataPtr->ecm);
   gz::math::Vector3<double> position_transponder = pose_transponder.Pos();
 
-  this->dataPtr->m_temperature = msg->data;
-
-  // Base on https://dosits.org/tutorials/science/tutorial-speed/
-  this->dataPtr->m_soundSpeed =
-    1540.4 + position_transponder.Z() / 1000 * 17 + (this->dataPtr->m_temperature - 10) * 4;
-  gzmsg << "Detected change of temperature, transponder sound speed is now: "
-        << this->dataPtr->m_soundSpeed << " m/s\n";
+  if (std::isfinite(
+        detail::UsblSoundSpeed(this->dataPtr->m_soundSpeed, msg->data, position_transponder.Z())))
+  {
+    this->dataPtr->m_temperature = msg->data;
+  }
 }
 
 void UsblTransponder::commandRosCallback(const posim_interfaces::msg::UsblCommand msg)
@@ -451,11 +391,59 @@ void UsblTransponder::PostUpdate(
   }
   try
   {
+    const double now = std::chrono::duration<double>(_info.simTime).count();
+    if (now < this->dataPtr->lastUpdateTime)
+    {
+      this->dataPtr->replyDue.reset();
+      this->dataPtr->commonPingRequested = false;
+      this->dataPtr->individualPingRequested = false;
+    }
+    this->dataPtr->lastUpdateTime = now;
     // ROS callbacks are wall-time events and must remain responsive while paused.
     rclcpp::spin_some(this->ros_node_);
     if (!rclcpp::ok(context))
     {
       return;
+    }
+    if (_info.paused)
+    {
+      return;
+    }
+    if (this->dataPtr->replyDue && *this->dataPtr->replyDue <= now)
+    {
+      sendLocation();
+      this->dataPtr->replyDue.reset();
+    }
+    const bool requested = this->dataPtr->m_interrogationMode == "common"
+                             ? this->dataPtr->commonPingRequested
+                             : this->dataPtr->individualPingRequested;
+    this->dataPtr->commonPingRequested = false;
+    this->dataPtr->individualPingRequested = false;
+    if (requested && !this->dataPtr->replyDue)
+    {
+      const auto transceiver = _ecm.EntityByComponents(
+        gz::sim::components::Name(this->dataPtr->m_transceiverModelName),
+        gz::sim::components::Model());
+      if (transceiver == gz::sim::kNullEntity)
+      {
+        return;
+      }
+      const auto pose = worldPose(this->dataPtr->linkEntity, _ecm);
+      const double distance = (pose.Pos() - worldPose(transceiver, _ecm).Pos()).Length();
+      const double speed =
+        detail::UsblSoundSpeed(this->dataPtr->m_soundSpeed, this->dataPtr->m_temperature, pose.Z());
+      const double due = now + distance / speed;
+      if (std::isfinite(due))
+      {
+        if (due <= now)
+        {
+          sendLocation();
+        }
+        else
+        {
+          this->dataPtr->replyDue = due;
+        }
+      }
     }
   }
   catch (const rclcpp::exceptions::RCLError &)
