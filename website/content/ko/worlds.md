@@ -37,3 +37,22 @@ ros2 launch posim_demos posim_world.launch.py \
 ## 다른 환경 구성
 
 적합한 SDF를 `models/posim_worlds/worlds`에 복사하고 새 파일 이름과 내부 월드 이름을 지정합니다. 로컬 모델에는 설치 후에도 찾을 수 있는 URI를 사용합니다. 다시 빌드하고 환경을 불러온 뒤 새 파일 이름으로 실행하세요. 지형은 [높이맵 지형](heightmaps.md), 작업 물체는 [물체와 작업 장면](objects.md)을 참고합니다.
+
+## 최초 Fuel 다운로드 확인
+
+`posim_integrated`와 `posim_ocean_models`는 외부 Fuel 모델을 포함합니다. 시계 토픽이
+발견되는 것만으로 장면 로딩 완료를 판단하지 마세요. 첫 실행의 다운로드가 끝나기
+전에 반복 실행하지 말고, `verbose:=true`로 리소스 로딩 로그를 확인하세요.
+
+같은 환경을 설정한 다른 터미널에서 장면을 조회합니다.
+
+```bash
+# posim_integrated.world의 내부 월드 이름은 posim_integrated입니다.
+gz service -s /world/posim_integrated/scene/info \
+  --reqtype gz.msgs.Empty --reptype gz.msgs.Scene --timeout 5000 --req ''
+# posim_ocean_models.world는 /world/posim_ocean_model/scene/info를 사용합니다.
+```
+
+모델이 포함된 장면 응답, 시뮬레이션 시간 증가, 기대한 센서 출력은 각각 확인해야 합니다.
+다운로드가 멈추면 상세 로그를 보존하고 Gazebo를 실행하는 PC/컨테이너의 네트워크를
+확인하세요. 다운로드 중 중단된 실행을 정상 실행·종료 시험의 통과로 세면 안 됩니다.

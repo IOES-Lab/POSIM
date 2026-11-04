@@ -31,10 +31,13 @@ A controller must allocate forces across the thrusters using their positions and
 BlueROV2 connects to ArduSub through MAVROS. After starting the [BlueROV2 example](rovs.md#start-bluerov2), wait for a connected state and inspect the command interfaces:
 
 ```bash
-ros2 topic echo /mavros/state mavros_msgs/msg/State --once --filter 'm.connected'
+ros2 topic echo /mavros/state mavros_msgs/msg/State \
+  --qos-reliability best_effort --qos-durability volatile --once --filter 'm.connected'
 ros2 service list -t
 ros2 topic info /mavros/manual_control/send --verbose
 ```
+
+Volatile durability selects newly published state samples. The filter waits for `connected: true` after the autopilot handshake. If it keeps waiting, inspect the MAVROS and ArduSub launch logs and connection settings.
 
 The manual-control adapter maps `/joy` and `/keyboard/joy` to MAVROS commands.
 

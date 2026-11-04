@@ -31,10 +31,13 @@ ros2 topic pub --once /model/rexrov/joint/thruster1_joint/cmd_thrust \
 BlueROV2는 MAVROS를 통해 ArduSub와 연결합니다. [BlueROV2 예제](rovs.md#bluerov2-실행)를 시작한 뒤 연결 상태가 될 때까지 기다리고 명령 인터페이스를 확인합니다.
 
 ```bash
-ros2 topic echo /mavros/state mavros_msgs/msg/State --once --filter 'm.connected'
+ros2 topic echo /mavros/state mavros_msgs/msg/State \
+  --qos-reliability best_effort --qos-durability volatile --once --filter 'm.connected'
 ros2 service list -t
 ros2 topic info /mavros/manual_control/send --verbose
 ```
+
+volatile 내구성 설정은 새로 발행되는 상태를 받습니다. 필터는 자동조종기 연결 협상 뒤 `connected: true`가 될 때까지 기다립니다. 계속 기다리면 MAVROS와 ArduSub 실행 로그, 연결 설정을 확인하세요.
 
 수동 제어 어댑터는 `/joy`, `/keyboard/joy`를 MAVROS 명령으로 변환합니다.
 

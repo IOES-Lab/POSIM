@@ -8,7 +8,7 @@ From a configured POSIM ROS workspace:
 
 ```bash
 source /opt/ros/lyrical/setup.bash
-colcon build --packages-select posim_gz_gnss posim_robot_models
+colcon build --merge-install --packages-select posim_gz_gnss posim_robot_models
 source install/setup.bash
 ```
 
