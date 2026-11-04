@@ -16,7 +16,7 @@ Apple Silicon을 포함한 ARM64 호스트에서는 RDP 이미지를 받습니�
 docker pull ioeslab/posim:validation-pr5-abad9d70-arm64-rdp
 ```
 
-이 이미지들은 검증용으로 게시된 빌드이며 현재 릴리스나 `latest` 태그가 아닙니다. 소스 커밋, 작업 공간 구조와 패키지가 현재 저장소와 다를 수 있으므로 이미지 레이블을 확인하고 해당 커밋에 맞는 안내를 사용하세요. 아래 소스 빌드 및 컨테이너 명령은 현재 저장소를 기준으로 하므로 그대로 따라 하려면 로컬에서 빌드하세요. 새 이미지가 있는지는 [태그 목록](https://hub.docker.com/r/ioeslab/posim/tags)에서 확인하고, 환경 재현을 위해 이미지 digest를 기록합니다.
+이 이미지들은 검증용으로 게시된 빌드이며 현재 릴리스나 `latest` 태그가 아닙니다. 두 이미지의 레이블은 소스 커밋 `32eedbac`을 가리킵니다. 해당 버전의 데모 패키지 이름과 작업 공간 경로는 현재 저장소와 다릅니다. 이 이미지에는 [해당 버전의 Docker 안내](https://github.com/IOES-Lab/POSIM/blob/32eedbacf781a0fd1e517481571e76bfaab73c51/docs/docker.md)와 [빠른 시작](https://github.com/IOES-Lab/POSIM/blob/32eedbacf781a0fd1e517481571e76bfaab73c51/README.md)을 사용하고, 실행 명령의 로컬 빌드 태그를 내려받은 이미지 태그로 바꾸세요. 아래 소스 빌드 및 컨테이너 명령은 현재 저장소를 기준으로 하므로 그대로 따라 하려면 로컬에서 빌드하세요. 새 이미지가 있는지는 [태그 목록](https://hub.docker.com/r/ioeslab/posim/tags)에서 확인하고, 환경 재현을 위해 이미지 digest를 기록합니다.
 
 ## 소스에서 빌드
 

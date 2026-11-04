@@ -16,7 +16,7 @@ For an ARM64 host, including Apple Silicon, pull the RDP image:
 docker pull ioeslab/posim:validation-pr5-abad9d70-arm64-rdp
 ```
 
-These are older validation builds, not a current release or a `latest` tag. Their source revision, workspace layout and packages can differ from the current repository, so check the image labels and use instructions matching that revision. The source-build and container commands below target the current repository; build locally to follow them. Check the [tag list](https://hub.docker.com/r/ioeslab/posim/tags) for newer images and record the image digest when reproducing a setup.
+These are older validation builds, not a current release or a `latest` tag. Both image labels identify source revision `32eedbac`; its demo package and workspace paths have different names from the current repository. Use the [matching Docker instructions](https://github.com/IOES-Lab/POSIM/blob/32eedbacf781a0fd1e517481571e76bfaab73c51/docs/docker.md) and [quickstart](https://github.com/IOES-Lab/POSIM/blob/32eedbacf781a0fd1e517481571e76bfaab73c51/README.md) with these images, substituting the pulled image tag for the local build tag in the run commands. The source-build and container commands below target the current repository; build locally to follow them. Check the [tag list](https://hub.docker.com/r/ioeslab/posim/tags) for newer images and record the image digest when reproducing a setup.
 
 ## Build from source
 
