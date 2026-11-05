@@ -10,8 +10,8 @@ POSIM is an open-source maritime robotics simulation library for ROS 2 and Gazeb
 
 Choose your installation route in [Choose an environment](requirements.md), then follow [Prepare your terminals](terminals.md) and [First simulation](quickstart.md).
 
-- ROS: **ROS 2 Lyrical**
-- Gazebo Sim simulator: **Gazebo Jetty**
+- ROS: **ROS 2 Lyrical** — LTS; support ends [May 2031](https://docs.ros.org/en/lyrical/Releases/Release-Lyrical-Luth.html)
+- Gazebo Sim simulator: **Gazebo Jetty** — LTS; support ends [May 2031](https://gazebosim.org/docs/latest/releases/#release-list)
 
 ## Library components
 

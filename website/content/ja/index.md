@@ -10,8 +10,8 @@ POSIMは、ROS 2とGazeboを使うオープンソースの海洋ロボティク�
 
 インストール後は[ターミナルを準備](terminals.md)し、[初めてのシミュレーション](quickstart.md)を実行します。
 
-- ROS：**ROS 2 Lyrical**
-- Gazebo Simシミュレーター：**Gazebo Jetty**
+- ROS：**ROS 2 Lyrical** — LTS、サポート終了：[2031年5月](https://docs.ros.org/en/lyrical/Releases/Release-Lyrical-Luth.html)
+- Gazebo Simシミュレーター：**Gazebo Jetty** — LTS、サポート終了：[2031年5月](https://gazebosim.org/docs/latest/releases/#release-list)
 
 ## シミュレーションできること
 

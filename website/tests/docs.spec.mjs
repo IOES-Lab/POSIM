@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, devices } from '@playwright/test';
 import { pages } from '../scripts/pages.mjs';
 import { languages, messages } from '../scripts/locales.mjs';
 
@@ -52,6 +52,15 @@ for (const { code, directory } of languages) {
   test(`${code} translated controls, section search and all mobile page widths`, async ({ page }, info) => {
     const errors = [];
     page.on('pageerror', error => errors.push(error.message));
+    await page.goto(`/${directory}index.html`);
+    const versions = page.locator('main > ul').first().locator(':scope > li');
+    await expect(versions).toHaveCount(2);
+    await expect(versions.nth(0)).toContainText('ROS 2 Lyrical');
+    await expect(versions.nth(1)).toContainText('Gazebo Jetty');
+    for (const item of await versions.all()) {
+      await expect(item).toContainText('LTS');
+      await expect(item).toContainText('2031');
+    }
     await page.goto('/pressure.html');
     await page.locator('[data-language-select]').selectOption(`${directory}pressure.html`);
     await expect(page).toHaveURL(new RegExp(`/${directory}pressure.html$`));
@@ -83,10 +92,32 @@ for (const { code, directory } of languages) {
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `${directory}${entry.slug} overflows`).toBe(true);
       await expect(page.locator('main h1')).toBeVisible();
       await expect(page.locator('.docs-brand img')).toBeVisible();
+      const mismatchedCode = await page.locator('main pre code').evaluateAll(nodes => nodes.filter(node =>
+        getComputedStyle(node).fontSize !== getComputedStyle(node.closest('main')).fontSize).length);
+      expect(mismatchedCode, `${directory}${entry.slug} code size differs from body text`).toBe(0);
     }
     expect(errors).toEqual([]);
   });
 }
+
+test('mobile device code and highlighted tokens use the body text size', async ({ browser }, info) => {
+  for (const name of ['iPhone 13', 'Pixel 7']) {
+    const context = await browser.newContext({ ...devices[name] });
+    try {
+      const page = await context.newPage();
+      await page.goto('http://127.0.0.1:4184/ko/terminals.html');
+      const code = page.locator('pre code').filter({ hasText: 'export POSIM_WS=' }).first();
+      await code.scrollIntoViewIfNeeded();
+      const size = await page.locator('main p').first().evaluate(node => getComputedStyle(node).fontSize);
+      const sizes = await code.evaluate(node => [node, ...node.querySelectorAll('span')].map(element => getComputedStyle(element).fontSize));
+      expect([...new Set(sizes)]).toEqual([size]);
+      expect(await page.evaluate(() => getComputedStyle(document.documentElement).webkitTextSizeAdjust)).toBe('100%');
+      await page.screenshot({ path: info.outputPath(`${name.replaceAll(' ', '-')}-code.png`) });
+    } finally {
+      await context.close();
+    }
+  }
+});
 
 test('search from a translated page links to English and a third language', async ({ page }) => {
   for (const [query, language, destination] of [
