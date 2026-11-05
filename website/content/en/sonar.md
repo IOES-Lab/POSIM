@@ -4,6 +4,8 @@ POSIM's multibeam sonar uses a ray-based point-scattering model to generate inte
 
 ## Run a sonar example
 
+Use [prepared POSIM terminals A and B](terminals.md) in an installation with the supported NVIDIA/CUDA backend. Start the simulation in terminal A and inspect its outputs in terminal B.
+
 ```bash
 ros2 launch posim_demos posim_sensor.launch.py \
   namespace:=blueview_p900 world_name:=posim_multibeam_sonar \
@@ -127,11 +129,17 @@ Actual received rate depends on computation and rendering. Read [the sensor mode
 | `debugFlag` | Diagnostic console output | false | false |
 | `plotScaler` | Parsed and printed, but not used in image generation | 10 | Omitted |
 
-Topic suffixes are appended to the sensor's `<topic>`, here `/sensor/multibeam_sonar`. Raw observations use `marine_acoustic_msgs/msg/ProjectedSonarImage`. Point clouds use Gazebo `gz.msgs.PointCloudPacked` and need the included ROS bridge.
+### Topics and frames
+
+Topic suffixes are appended to the sensor's `<topic>`, here `/sensor/multibeam_sonar`. Raw observations use `marine_acoustic_msgs/msg/ProjectedSonarImage`. Point clouds use Gazebo `gz.msgs.PointCloudPacked` and need the included ROS bridge. Match `pointCloudTopicName` to `sensor_config.py` and set `frameName` to the sonar's optical frame.
+
+### Ray geometry
 
 The `<ray>` block defaults to 256 horizontal beams, 3 vertical rays, horizontal angles ±π/4, vertical angles ±π/8 and range 0.1–5 m. Set `degrees="true"` to specify scan angles in degrees; otherwise use radians. The optional `<reference_frame>` inside `<gz:multibeam_sonar>` defaults to the zero pose. Keep the complete `<ray>` and `<spec>` blocks; values above are defaults for fields within them. The [implementation](https://github.com/IOES-Lab/POSIM/blob/main/gazebo/posim_gz_multibeam_sonar/multibeam_sonar/MultibeamSonarSensor.cc) is the authority for parsing and publication.
 
-The `<spec>` block controls `sonarFreq`, `bandwidth`, `soundSpeed`, `sourceLevel`, `maxDistance`, `raySkips` and publication names. Keep ray range and processing distance consistent. Match `pointCloudTopicName` to the ROS–Gazebo bridge configuration and set `frameName` for the sonar optical frame.
+Keep the ray range and `maxDistance` consistent.
+
+### Repeatable measurements
 
 `writeLog`, `writeFrameInterval` and `debugFlag` support diagnostic recording and timing. Keep logging disabled for throughput measurements unless logging is part of the experiment. See [Configure and tune sonar](sonar-tuning.md) for a repeatable tuning workflow and [Citation](citation.md) for the sonar model's research source.
 
