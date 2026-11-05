@@ -58,3 +58,4 @@
 .docs-search-other{display:flex;align-items:center;gap:6px;font-size:12px;color:#cbd8ea;margin-top:8px}.docs-search-other input{accent-color:#9bc4ff}.docs-search-results .docs-search-heading{font-weight:600;margin:4px 0}.docs-search-results mark{background:#ffd96a;color:#14243a;border-radius:2px}.docs-search-results small{display:inline-block;font-size:10px;border:1px solid currentColor;border-radius:3px;padding:0 4px;margin-top:5px}.docs-search-results a:focus-visible{outline:2px solid #9bc4ff;outline-offset:2px}@media(max-width:960px){.docs-mobile-menu>.docs-search-other{margin:8px 20px}}
 
 .docs-embed{display:block;width:100%;aspect-ratio:16/9;border:0;background:#101c2b;margin:1.5rem 0;}
+:lang(ko) .docs-content{word-break:keep-all;overflow-wrap:break-word}
