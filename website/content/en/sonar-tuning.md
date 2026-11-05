@@ -38,7 +38,7 @@ Change one setting in a copy of the [sonar descriptor](sonar.md#sensor-configura
 | Update rate | Request 30 Hz versus 10 Hz | Received rate and simulator real-time factor |
 | Ray skipping | Compare `raySkips` 10 and 5 | Vertical sampling detail and computation time |
 
-These are comparisons to run, not promised speedups. Keep `writeLog` and `debugFlag` disabled when measuring throughput; enable them separately when investigating raw returns or timing. Save the SDF, POSIM revision, GPU/toolkit versions and observations with each run. The [ROS 2 guide](ros.md#visualization-and-recording) covers recording topics.
+These are comparisons to run, not promised speedups. Keep `writeLog` and `debugFlag` disabled when measuring throughput; enable them separately when investigating raw returns or timing. Save the SDF, POSIM revision, GPU/toolkit versions and observations with each run. The [sensor data guide](visualization.md) covers recording topics.
 
 ## Check the toolchain
 

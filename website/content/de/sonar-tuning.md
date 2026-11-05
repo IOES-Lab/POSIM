@@ -32,7 +32,7 @@ Der interne Weltname ist `default`. Notieren Sie `real_time_factor`: Angefordert
 | Aktualisierung | 30 gegen 10 Hz | Empfangsrate und Echtzeitfaktor |
 | Strahlen überspringen | `raySkips` 10 gegen 5 | Vertikale Details und Rechenaufwand |
 
-Messen Sie das Ergebnis jedes Vergleichs. Lassen Sie `writeLog` und `debugFlag` bei Durchsatzmessungen aus; schalten Sie sie für Rohdaten oder Zeitdiagnosen gesondert ein. Bewahren Sie SDF, POSIM-Revision, GPU-/CUDA-Versionen und Beobachtungen auf. [ROS 2](ros.md#visualization-and-recording) beschreibt Topic-Aufzeichnungen.
+Messen Sie das Ergebnis jedes Vergleichs. Lassen Sie `writeLog` und `debugFlag` bei Durchsatzmessungen aus; schalten Sie sie für Rohdaten oder Zeitdiagnosen gesondert ein. Bewahren Sie SDF, POSIM-Revision, GPU-/CUDA-Versionen und Beobachtungen auf. [Anleitung zu Sensordaten](visualization.md) beschreibt Topic-Aufzeichnungen.
 
 ## Werkzeugkette prüfen
 

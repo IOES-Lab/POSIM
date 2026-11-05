@@ -32,7 +32,7 @@ NVIDIA GPU を搭載した Ubuntu または対応する WSL 2、あるいは GPU
 | 更新周波数 | 30 Hz と 10 Hz | 受信周波数と `real_time_factor` |
 | レイの間引き | `raySkips` の 10 と 5 | 垂直方向の細かさと計算量 |
 
-比較結果は実測してください。性能測定中は `writeLog` と `debugFlag` を無効にし、生データや処理時間を調べるときに別途有効にします。SDF、POSIM のリビジョン、GPU/CUDA のバージョン、観測結果を保存します。トピックの記録は [ROS 2](ros.md#visualization-and-recording)を参照してください。
+比較結果は実測してください。性能測定中は `writeLog` と `debugFlag` を無効にし、生データや処理時間を調べるときに別途有効にします。SDF、POSIM のリビジョン、GPU/CUDA のバージョン、観測結果を保存します。トピックの記録は [センサーデータの表示と記録](visualization.md)を参照してください。
 
 ## ツールチェーンを確認する
 

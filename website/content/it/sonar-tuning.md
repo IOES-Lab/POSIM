@@ -32,7 +32,7 @@ Modifica un'impostazione in una copia del [descrittore](sonar.md#sensor-configur
 | Aggiornamento | 30 contro 10 Hz | Frequenza ricevuta e fattore di tempo reale |
 | Salto dei raggi | `raySkips` 10 contro 5 | Dettaglio verticale e costo di calcolo |
 
-Misura il risultato di ogni confronto. Disattiva `writeLog` e `debugFlag` per misurare il rendimento; attivali separatamente per esaminare ritorni o tempi. Conserva SDF, revisione POSIM, versioni GPU/CUDA e osservazioni. [ROS 2](ros.md#visualization-and-recording) spiega la registrazione dei topic.
+Misura il risultato di ogni confronto. Disattiva `writeLog` e `debugFlag` per misurare il rendimento; attivali separatamente per esaminare ritorni o tempi. Conserva SDF, revisione POSIM, versioni GPU/CUDA e osservazioni. [guida ai dati dei sensori](visualization.md) spiega la registrazione dei topic.
 
 ## Preparare gli strumenti
 

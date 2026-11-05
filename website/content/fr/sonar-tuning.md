@@ -32,7 +32,7 @@ Modifiez un réglage dans une copie du [descripteur](sonar.md#sensor-configurati
 | Actualisation | 30 contre 10 Hz | Fréquence reçue et facteur de temps réel |
 | Saut de rayons | `raySkips` à 10 puis 5 | Détail vertical et coût de calcul |
 
-Mesurez le résultat de chaque comparaison. Désactivez `writeLog` et `debugFlag` pour le débit ; activez-les séparément pour étudier retours ou chronométrage. Conservez SDF, révision POSIM, versions GPU/CUDA et observations. [ROS 2](ros.md#visualization-and-recording) explique l'enregistrement des topics.
+Mesurez le résultat de chaque comparaison. Désactivez `writeLog` et `debugFlag` pour le débit ; activez-les séparément pour étudier retours ou chronométrage. Conservez SDF, révision POSIM, versions GPU/CUDA et observations. [guide des données de capteurs](visualization.md) explique l'enregistrement des topics.
 
 ## Préparer les outils
 

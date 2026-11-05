@@ -32,7 +32,7 @@
 | 更新频率 | 30 与 10 Hz | 接收频率和实时因子 |
 | 射线跳采样 | `raySkips` 为 10 与 5 | 垂直细节和计算开销 |
 
-实际测量每组对比结果。测吞吐量时关闭 `writeLog` 和 `debugFlag`，需要分析原始回波或计时时再单独开启。保存 SDF、POSIM 版本、GPU/CUDA 版本和观测结果。[ROS 2](ros.md#visualization-and-recording)介绍话题记录方法。
+实际测量每组对比结果。测吞吐量时关闭 `writeLog` 和 `debugFlag`，需要分析原始回波或计时时再单独开启。保存 SDF、POSIM 版本、GPU/CUDA 版本和观测结果。[传感器数据指南](visualization.md)介绍话题记录方法。
 
 ## 检查工具链
 
