@@ -105,9 +105,8 @@ for (const { code: lang, directory } of languages) {
         const record = destinations.get(target);
         const title = fragment ? record?.headings.get(decodeURIComponent(fragment)) : record?.title;
         if (!title) return match;
-        // Keep linked figures/cards intact; their separate captions explain the image.
-        const visible = /<(?:img|svg|strong|span)\b/.test(label) ? label : esc(title);
-        return before + destination + after + visible + close;
+        // Link text may be inflected or part of a sentence in the authored language.
+        return before + destination + after + label + close;
       });
     const redirects = anchorRedirects[page.slug]?.[lang];
     if (redirects) {
