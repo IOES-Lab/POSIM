@@ -14,7 +14,10 @@
  * limitations under the License.
  */
 
+#include <cmath>
 #include <iostream>
+#include <limits>
+#include <optional>
 
 #include <gz/common/Console.hh>
 #include <gz/math/SphericalCoordinates.hh>
@@ -33,25 +36,59 @@ GZ_ADD_PLUGIN(
 namespace posim_ros_gz_plugins
 {
 
+namespace
+{
+constexpr double invalidCoordinate = std::numeric_limits<double>::quiet_NaN();
+
+bool ValidGeographicPosition(double latitude, double longitude, double altitude)
+{
+  return std::isfinite(latitude) && std::isfinite(longitude) && std::isfinite(altitude) &&
+         latitude >= -90.0 && latitude <= 90.0 && longitude >= -180.0 && longitude <= 180.0;
+}
+}  // namespace
+
 struct SphericalCoords::PrivateData
 {
-  // Add any private data members here.
-  std::string ns;
-  gz::sim::EntityComponentManager * ecm;
+  gz::sim::EntityComponentManager * ecm = nullptr;
   gz::sim::World world;
   rclcpp::Service<posim_interfaces::srv::GetOriginSphericalCoord>::SharedPtr getOriginSrv;
   rclcpp::Service<posim_interfaces::srv::SetOriginSphericalCoord>::SharedPtr setOriginSrv;
   rclcpp::Service<posim_interfaces::srv::TransformToSphericalCoord>::SharedPtr transformToSrv;
   rclcpp::Service<posim_interfaces::srv::TransformFromSphericalCoord>::SharedPtr transformFromSrv;
+
+  std::optional<gz::math::SphericalCoordinates> Coordinates() const
+  {
+    if (!ecm || !world.Valid(*ecm))
+    {
+      return std::nullopt;
+    }
+    return world.SphericalCoordinates(*ecm);
+  }
 };
 
 SphericalCoords::SphericalCoords() : dataPtr(std::make_unique<PrivateData>()) {}
+SphericalCoords::~SphericalCoords() = default;
 
 void SphericalCoords::Configure(
   const gz::sim::Entity & _entity, const std::shared_ptr<const sdf::Element> & _sdf,
   gz::sim::EntityComponentManager & _ecm, gz::sim::EventManager & _eventManager)
 {
   gzdbg << "posim_ros_gz_plugins::SphericalCoords::Configure on entity: " << _entity << std::endl;
+
+  this->dataPtr->world = gz::sim::World(_entity);
+  if (!this->dataPtr->world.Valid(_ecm))
+  {
+    gzerr << "SphericalCoords must be attached to a world. ROS services are disabled." << std::endl;
+    return;
+  }
+  const auto coords = this->dataPtr->world.SphericalCoordinates(_ecm);
+  if (!coords)
+  {
+    gzerr << "SphericalCoords requires <spherical_coordinates> in the world. "
+          << "ROS services are disabled." << std::endl;
+    return;
+  }
+  this->dataPtr->ecm = &_ecm;
 
   if (!rclcpp::ok())
   {
@@ -61,29 +98,11 @@ void SphericalCoords::Configure(
 
   this->ros_node_ = std::make_shared<rclcpp::Node>("sc_node");
 
-  // auto model = gz::sim::Model(_entity);
-  // this->dataPtr->model = model;
-  // this->dataPtr->modelName = model.Name(_ecm);
-  this->dataPtr->ecm = &_ecm;
-
-  auto worldEntity = _ecm.EntityByComponents(gz::sim::components::World());
-  this->dataPtr->world = gz::sim::World(worldEntity);
-
-  auto coordsOpt = this->dataPtr->world.SphericalCoordinates(_ecm);
-
-  if (coordsOpt.has_value())
-  {
-    auto coords = coordsOpt.value();
-    gzmsg << "Spherical coordinates reference=" << std::endl
-          << "\t- Latitude [degrees]=" << coords.LatitudeReference().Degree() << std::endl
-          << "\t- Longitude [degrees]=" << coords.LongitudeReference().Degree() << std::endl
-          << "\t- Altitude [m]=" << coords.ElevationReference() << std::endl
-          << "\t- Heading [degrees] =" << coords.HeadingOffset().Degree() << std::endl;
-  }
-  else
-  {
-    gzmsg << "Spherical coordinates not available." << std::endl;
-  }
+  gzmsg << "Spherical coordinates reference=" << std::endl
+        << "\t- Latitude [degrees]=" << coords->LatitudeReference().Degree() << std::endl
+        << "\t- Longitude [degrees]=" << coords->LongitudeReference().Degree() << std::endl
+        << "\t- Altitude [m]=" << coords->ElevationReference() << std::endl
+        << "\t- Heading [degrees] =" << coords->HeadingOffset().Degree() << std::endl;
 
   this->dataPtr->getOriginSrv =
     this->ros_node_->create_service<posim_interfaces::srv::GetOriginSphericalCoord>(
@@ -115,19 +134,30 @@ bool SphericalCoords::TransformFromSphericalCoord(
   const std::shared_ptr<posim_interfaces::srv::TransformFromSphericalCoord::Request> request,
   std::shared_ptr<posim_interfaces::srv::TransformFromSphericalCoord::Response> response)
 {
+  response->output.x = response->output.y = response->output.z = invalidCoordinate;
+  const auto coords = this->dataPtr->Coordinates();
+  if (
+    !coords ||
+    !ValidGeographicPosition(request->latitude_deg, request->longitude_deg, request->altitude))
+  {
+    gzerr << "Cannot transform spherical coordinates: missing origin or invalid position."
+          << std::endl;
+    return false;
+  }
   gz::math::Angle lat, lon;
   lat.SetDegree(request->latitude_deg);
   lon.SetDegree(request->longitude_deg);
   auto scVec = gz::math::CoordinateVector3::Spherical(lat, lon, request->altitude);
 
-  gzmsg << "Called FROM and latitude: " << request->latitude_deg << std::endl;
-
-  auto coords = this->dataPtr->world.SphericalCoordinates(*this->dataPtr->ecm);
-  gz::math::Vector3d cartVec = gz::math::Vector3d::Zero;
   auto cartOpt = coords->LocalFromSphericalPosition(scVec);
-  if (cartOpt && cartOpt->AsMetricVector())
+  if (!cartOpt || !cartOpt->AsMetricVector())
   {
-    cartVec = *cartOpt->AsMetricVector();
+    return false;
+  }
+  const auto cartVec = *cartOpt->AsMetricVector();
+  if (!cartVec.IsFinite())
+  {
+    return false;
   }
 
   response->output.x = cartVec.X();
@@ -141,17 +171,28 @@ bool SphericalCoords::TransformToSphericalCoord(
   const std::shared_ptr<posim_interfaces::srv::TransformToSphericalCoord::Request> request,
   std::shared_ptr<posim_interfaces::srv::TransformToSphericalCoord::Response> response)
 {
+  response->latitude_deg = response->longitude_deg = response->altitude = invalidCoordinate;
+  const auto coords = this->dataPtr->Coordinates();
+  if (
+    !coords || !std::isfinite(request->input.x) || !std::isfinite(request->input.y) ||
+    !std::isfinite(request->input.z))
+  {
+    gzerr << "Cannot transform local coordinates: missing origin or invalid position." << std::endl;
+    return false;
+  }
   auto cartVec =
     gz::math::CoordinateVector3::Metric(request->input.x, request->input.y, request->input.z);
 
-  gzmsg << "Called TO and X: " << request->input.x << std::endl;
-
-  auto coords = this->dataPtr->world.SphericalCoordinates(*this->dataPtr->ecm);
   auto scOpt = coords->SphericalFromLocalPosition(cartVec);
-
-  response->latitude_deg = (scOpt && scOpt->Lat()) ? scOpt->Lat()->Degree() : 0.0;
-  response->longitude_deg = (scOpt && scOpt->Lon()) ? scOpt->Lon()->Degree() : 0.0;
-  response->altitude = (scOpt && scOpt->Z()) ? *scOpt->Z() : 0.0;
+  if (
+    !scOpt || !scOpt->Lat() || !scOpt->Lon() || !scOpt->Z() ||
+    !ValidGeographicPosition(scOpt->Lat()->Degree(), scOpt->Lon()->Degree(), *scOpt->Z()))
+  {
+    return false;
+  }
+  response->latitude_deg = scOpt->Lat()->Degree();
+  response->longitude_deg = scOpt->Lon()->Degree();
+  response->altitude = *scOpt->Z();
 
   return true;
 }
@@ -160,14 +201,16 @@ bool SphericalCoords::GetOriginSphericalCoord(
   const std::shared_ptr<posim_interfaces::srv::GetOriginSphericalCoord::Request> request,
   std::shared_ptr<posim_interfaces::srv::GetOriginSphericalCoord::Response> response)
 {
-  response->latitude_deg =
-    this->dataPtr->world.SphericalCoordinates(*this->dataPtr->ecm)->LatitudeReference().Degree();
-  response->longitude_deg =
-    this->dataPtr->world.SphericalCoordinates(*this->dataPtr->ecm)->LongitudeReference().Degree();
-  response->altitude =
-    this->dataPtr->world.SphericalCoordinates(*this->dataPtr->ecm)->ElevationReference();
-
-  gzmsg << "Called Get" << std::endl;
+  response->latitude_deg = response->longitude_deg = response->altitude = invalidCoordinate;
+  const auto coords = this->dataPtr->Coordinates();
+  if (!coords)
+  {
+    gzerr << "Cannot read spherical coordinates: world origin is unavailable." << std::endl;
+    return false;
+  }
+  response->latitude_deg = coords->LatitudeReference().Degree();
+  response->longitude_deg = coords->LongitudeReference().Degree();
+  response->altitude = coords->ElevationReference();
   return true;
 }
 
@@ -175,21 +218,18 @@ bool SphericalCoords::SetOriginSphericalCoord(
   const std::shared_ptr<posim_interfaces::srv::SetOriginSphericalCoord::Request> request,
   std::shared_ptr<posim_interfaces::srv::SetOriginSphericalCoord::Response> response)
 {
-  auto optionalSphericalCoords = this->dataPtr->world.SphericalCoordinates(*this->dataPtr->ecm);
+  response->success = false;
+  auto optionalSphericalCoords = this->dataPtr->Coordinates();
 
-  if (!optionalSphericalCoords.has_value())
+  if (
+    !optionalSphericalCoords ||
+    !ValidGeographicPosition(request->latitude_deg, request->longitude_deg, request->altitude))
   {
-    gzmsg << "Failed to get spherical coordinates" << std::endl;
-    response->success = false;
+    gzerr << "Cannot set spherical coordinates: missing origin or invalid position." << std::endl;
     return false;
   }
 
   auto sphericalCoords = optionalSphericalCoords.value();
-
-  // gzmsg << "Current Spherical Coordinates Before Setting: "
-  //       << "Latitude: " << sphericalCoords.LatitudeReference().Degree()
-  //       << ", Longitude: " << sphericalCoords.LongitudeReference().Degree()
-  //       << ", Altitude: " << sphericalCoords.ElevationReference() << std::endl;
 
   gz::math::Angle angle;
 
@@ -205,20 +245,6 @@ bool SphericalCoords::SetOriginSphericalCoord(
   this->dataPtr->world.SetSphericalCoordinates(*this->dataPtr->ecm, sphericalCoords);
 
   response->success = true;
-
-  auto newSphericalCoords = this->dataPtr->world.SphericalCoordinates(*this->dataPtr->ecm);
-
-  if (newSphericalCoords.has_value())
-  {
-    gzmsg << "Current Spherical Coordinates after Setting: "
-          << "Latitude: " << newSphericalCoords->LatitudeReference().Degree()
-          << ", Longitude: " << newSphericalCoords->LongitudeReference().Degree()
-          << ", Altitude: " << newSphericalCoords->ElevationReference() << std::endl;
-  }
-  else
-  {
-    gzmsg << "Failed to get new spherical coordinates" << std::endl;
-  }
 
   return true;
 }

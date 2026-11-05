@@ -1,19 +1,30 @@
 # Surface robots and waves
 
-The surface integration combines the upstream Wave Sim dependency, a WAM-V model and ArduRover boat-mode control. The standard POSIM installer and Docker recipes already build the external wave libraries.
+Simulate a WAM-V surface vehicle with Wave Sim waves and ArduRover boat-mode control. The standard POSIM installer and Docker recipes build the external wave libraries.
 
 ## Build the WAM-V integration
 
-The optional surface image uses the ARM64 base layout. From a POSIM checkout, first build `posim:dev-arm64-rdp` using [Docker](docker.md), then run:
+This optional image uses the ARM64 desktop layout. On an Apple Silicon Mac, prepare [Docker and an RDP client](install-macos.md), then run these commands from a POSIM checkout in the macOS Terminal:
 
 ```bash
+docker pull ioeslab/posim:latest
 docker build -f extras/surface/Dockerfile \
-  --build-arg POSIM_BASE_IMAGE=posim:dev-arm64-rdp -t posim:surface .
-docker run --rm -it --entrypoint bash posim:surface -lc \
-  'source /opt/ros/lyrical/setup.bash; source /home/docker/posim_ws/install/setup.bash; ros2 launch /opt/posim-surface/wamv.launch.py headless:=true'
+  --build-arg POSIM_BASE_IMAGE=ioeslab/posim:latest -t posim:surface .
+docker run -d --name posim-surface --shm-size=1g \
+  -p 127.0.0.1:3390:3389 posim:surface
 ```
 
-This image contains ArduSub and ArduRover as separate binaries. The single-vehicle example selects ArduRover's boat configuration (`FRAME_CLASS=2`). Separate vehicles need separate controller identities and network ports.
+Connect your RDP client to **127.0.0.1:3390** using the `docker` account. In a terminal inside this Linux desktop, launch the vehicle:
+
+```bash
+source /opt/ros/lyrical/setup.bash
+source /home/docker/posim_ws/install/setup.bash
+ros2 launch /opt/posim-surface/wamv.launch.py headless:=false
+```
+
+This image contains ArduSub and ArduRover as separate binaries. The single-vehicle example selects ArduRover's boat configuration (`FRAME_CLASS=2`). Run one instance per environment: the launcher uses a fixed vehicle name, generated-file paths and controller ports. Changing `world_name` alone does not make a second instance independent. Multiple vehicles require a custom integration with separate files, names, controller identities and network ports, or separate isolated environments.
+
+The controller starts after the vehicle spawns and its IMU publishes data. If spawning fails or takes more than 180 seconds, or no IMU sample arrives within 180 seconds after spawning, launch stops with a nonzero status and reports the failed stage. Check the Gazebo and sensor logs before retrying.
 
 ## Model, controller and navigation
 
@@ -21,9 +32,28 @@ This image contains ArduSub and ArduRover as separate binaries. The single-vehic
 
 The external-navigation adapter publishes **simulated Gazebo pose and velocity** to MAVROS. Check controller state, navigation validity and thruster direction before sending a mission.
 
+For receiver-noise, water-contact and reacquisition experiments, POSIM also provides a [marine GNSS system](gnss.md). Attach its antenna and plugin explicitly and connect a suitable navigation adapter. The surface example's external-pose adapter is a separate navigation input.
+
 ## Adjust waves
 
-The surface world's wave-control topic is `/world/wwos_gebco/waves`, using `gz.msgs.Param`. The adjustable double-valued parameters are:
+Wave controls use `gz.msgs.Param` on `/world/<world_name>/waves`. Replace `<world_name>` with the SDF `<world name="...">` value; the topic identifies the running world, not its terrain provider. List the running simulation's topics with:
+
+```bash
+gz topic -l
+```
+
+The [WAM-V launcher](https://github.com/IOES-Lab/POSIM/blob/main/extras/surface/wamv.launch.py) defaults to `posim_surface`, so its wave topic is `/world/posim_surface/waves`. Set the `world_name` launch argument to match your application's existing Gazebo namespace. Inside the configured surface container, for example:
+
+```bash
+SURFACE_WORLD=harbour
+ros2 launch /opt/posim-surface/wamv.launch.py headless:=false world_name:="$SURFACE_WORLD"
+```
+
+The generated SDF, vehicle spawner, IMU bridge and startup wait all use this name. The example above exposes `/world/harbour/waves`; the ROS IMU endpoint remains `/model/wamv/imu`. The argument sets the generated world's name; it does not select a terrain file.
+
+This example uses a flat seabed at z = −10 m. To prepare your own terrain, follow [Heightmap terrain](heightmaps.md).
+
+Each adjustable value uses the `double` data type:
 
 | Parameter | Unit | Meaning |
 | --- | --- | --- |
@@ -32,6 +62,10 @@ The surface world's wave-control topic is `/world/wwos_gebco/waves`, using `gz.m
 | `steepness` | dimensionless | Wave steepness |
 
 Keep visual and hydrodynamic settings consistent. A spectral wave model provides the surface motion; [ocean currents](currents.md) are configured separately. Installing wave libraries makes their systems available; a world must still include and configure those systems.
+
+## Operating limits
+
+The optional Dockerfile supports the ARM64 base layout. Hull, propulsion and drag parameters need calibration for the vessel and operating conditions. MAVROS and Gazebo can require supervisor termination during shutdown; ensure both processes exit before starting another session.
 
 ## Dependency maintenance
 

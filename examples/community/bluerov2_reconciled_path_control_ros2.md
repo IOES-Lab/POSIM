@@ -1,15 +1,14 @@
 # External BlueROV2 Direct-Thruster Path Controller
 
-This note points to a community-maintained ROS 2 BlueROV2 path-following controller package
+This guide describes a community-maintained ROS 2 BlueROV2 path-following controller package
 for POSIM / Gazebo:
 
 [BlueROV2 reconciled path control](https://github.com/drwa92/bluerov2_reconciled_path_control_ros2)
 
-> [!NOTE]
-> This package is developed and released outside POSIM. Startup and package-discovery
-> fixes found during DAVE validation are tracked in the
-> [external compatibility PR](https://github.com/drwa92/bluerov2_reconciled_path_control_ros2/pull/1).
-> Check that PR before following the external project's quick-start instructions.
+Build and source the external package using its
+[installation instructions](https://github.com/drwa92/bluerov2_reconciled_path_control_ros2#5-installation).
+Use the same ROS distribution as your POSIM workspace. Source POSIM and the
+controller workspace in both terminals below.
 
 The package provides:
 
@@ -21,7 +20,7 @@ The package provides:
 - direct six-thruster BlueROV2 allocation;
 - optional model-aided virtual-wrench reconciliation diagnostics.
 
-Run the controller with POSIM's BlueROV2 simulator in direct-control mode:
+In Terminal A, start POSIM's BlueROV2 simulator in direct-control mode:
 
 ```bash
 ros2 launch posim_demos posim_robot.launch.py \
@@ -31,18 +30,22 @@ ros2 launch posim_demos posim_robot.launch.py \
   paused:=false \
   use_ardusub:=false \
   use_teleop:=false
+```
 
+Leave the simulator running. In Terminal B, start the controller:
+
+```bash
 ros2 launch bluerov2_path_control path_controller.launch.py \
+  namespace:=path_controller \
   model_name:=bluerov2 \
   use_bridge:=true
 ```
 
-With the compatibility fixes applied, a DAVE smoke test confirmed Odometry input, an accepted
-`GoTo` request, and non-zero commands on all six thruster topics.
+The controller namespace puts its mission services under `/path_controller`,
+matching the external project's command examples. Use those examples to choose a target or trajectory.
+Check odometry reception and issue its stop command before ending a run.
 
-The package is maintained externally by Waseem Akram at MARVIS LAB:
-
-[MARVIS LAB](https://drwa92.github.io/marvis-lab/)
+The package is maintained externally by Waseem Akram.
 
 Project webpage:
 

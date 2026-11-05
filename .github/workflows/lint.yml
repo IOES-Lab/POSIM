@@ -24,7 +24,7 @@ jobs:
         uses: actions/checkout@v7
 
       - name: Set up Python 3.12
-        uses: actions/setup-python@v7.0.0
+        uses: actions/setup-python@v7.1.0
         with:
           python-version: 3.12
 
@@ -37,42 +37,7 @@ jobs:
       - name: Install system lint dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y libxml2-utils
+          sudo apt-get install -y libxml2-utils shellcheck
 
-      - name: Check Python formatting
-        run: black --check --diff --line-length 99 --exclude tools/code_check .
-
-      - name: Lint Python
-        if: ${{ !cancelled() }}
-        run: flake8 --ignore=E203,W503,E501 --exclude=tools/code_check .
-
-      - name: Check C and C++ formatting
-        if: ${{ !cancelled() }}
-        run: |
-          git ls-files -z '*.c' '*.cc' '*.cpp' '*.h' '*.hpp' '*.m' '*.mm' | \
-            xargs -0 -r clang-format --dry-run --Werror --fallback-style=none
-
-      - name: Run XML Linter for URDF, SDF, Xacro, XML files
-        if: ${{ !cancelled() }}
-        run: |
-          find . \( -iname '*.urdf' -o -iname '*.sdf' -o -iname '*.xacro' \
-          -o -iname '*.xml' -o -iname '*.launch' -o -iname '*.world' \) -print0 | xargs -0 xmllint --noout
-
-      - name: Run ShellCheck
-        if: ${{ !cancelled() }}
-        uses: ludeeus/action-shellcheck@2.0.0
-
-      - name: Run Yamllint on YAML and .launch files
-        if: ${{ !cancelled() }}
-        run: |
-            find . \( -iname '*.yml' -o -iname '*.yaml' \) -print0 | xargs -0 yamllint -d "{
-                extends: default,
-                rules: {
-                    line-length: {max: 120},
-                    new-line-at-end-of-file: disable
-                }
-            }"
-
-      - name: Lint CMake files
-        if: ${{ !cancelled() }}
-        run: find . \( -iname 'CMakeLists.txt' -o -iname '*.cmake' \) -print0 | xargs -0 cmake-lint
+      - name: Run repository linters
+        run: bash extras/lint_local/lint_local.sh

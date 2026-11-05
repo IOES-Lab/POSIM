@@ -1,3 +1,19 @@
+// Copyright (c) 2016 The dave Simulator Authors.
+// All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+#include <cmath>
 #include <posim_gz_world_plugins/gauss_markov_process.hh>
 
 namespace posim_gz_world_plugins
@@ -21,7 +37,7 @@ void GaussMarkovProcess::Reset() { this->var = this->mean; }
 /////////////////////////////////////////////////
 bool GaussMarkovProcess::SetMean(double _mean)
 {
-  if (this->min > _mean || this->max < _mean)
+  if (!std::isfinite(_mean) || this->min > _mean || this->max < _mean)
   {
     return false;
   }
@@ -34,6 +50,12 @@ bool GaussMarkovProcess::SetMean(double _mean)
 /////////////////////////////////////////////////
 bool GaussMarkovProcess::SetModel(double _mean, double _min, double _max, double _mu, double _noise)
 {
+  if (
+    !std::isfinite(_mean) || !std::isfinite(_min) || !std::isfinite(_max) || !std::isfinite(_mu) ||
+    !std::isfinite(_noise))
+  {
+    return false;
+  }
   if (_min >= _max)
   {
     return false;
@@ -63,6 +85,16 @@ bool GaussMarkovProcess::SetModel(double _mean, double _min, double _max, double
 /////////////////////////////////////////////////
 double GaussMarkovProcess::Update(double _time)
 {
+  if (!std::isfinite(_time) || _time == this->lastUpdate)
+  {
+    return this->var;
+  }
+  if (_time < this->lastUpdate)
+  {
+    this->Reset();
+    this->lastUpdate = _time;
+    return this->var;
+  }
   double step = _time - this->lastUpdate;
   double random =
     static_cast<double>(static_cast<double>(rand_r(&this->randSeed)) / RAND_MAX) - 0.5;

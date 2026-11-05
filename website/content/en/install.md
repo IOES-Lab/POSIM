@@ -1,6 +1,6 @@
-# Install on Ubuntu
+# Ubuntu: native installation
 
-Build POSIM in a ROS workspace on Ubuntu 26.04. Use [Docker](docker.md) if you prefer an isolated Linux environment.
+Build POSIM in a ROS workspace on Ubuntu 26.04. Use [Linux: Docker installation](install-ubuntu-docker.md) if you prefer an isolated Linux environment.
 
 ## 1. Get the source
 
@@ -44,16 +44,19 @@ rosdep install --rosdistro lyrical --from-paths src --ignore-src -r -y
 
 `--skip-existing` keeps the POSIM checkout already in `src/posim`. Check every reported dependency failure before building.
 
+The manifest also imports pinned `ros_gz` sources, including the bridge lifetime and POSIX launch corrections. An existing `src/ros_gz` is preserved by `--skip-existing`; compare its origin and commit with the manifest before building. Use a fresh workspace when retaining an older checkout. Source this workspace after building so ROS uses its bridge and launch files.
+
 ## 4. Build and source
 
 ```bash
-colcon build --merge-install --executor sequential --symlink-install \
-  --packages-select wgpu_vendor
-source install/setup.bash
 colcon build --merge-install --executor sequential --symlink-install
 source install/setup.bash
 ros2 pkg prefix posim_demos
+ros2 pkg prefix ros_gz_bridge
+ros2 pkg prefix ros_gz_sim
 ```
+
+Both `ros_gz` prefixes must point into this workspace installation. A prefix under `/opt/ros/lyrical` means the system package is still selected.
 
 The last command prints an installed package prefix. In every new terminal, load the same environment:
 
@@ -63,7 +66,7 @@ source "$HOME/.ros_ardusub_env/env"
 source ~/posim_ws/install/setup.bash
 ```
 
-Continue with [First simulation](quickstart.md). Choose the sonar compute backend using [Sonar build and performance](sonar-tuning.md).
+Continue with [First simulation](quickstart.md). NVIDIA/CUDA sonar has additional [build requirements](sonar-tuning.md).
 
 If the compiler is killed because memory is exhausted, limit compiler jobs as well as package concurrency. `--executor sequential` serializes packages, not compiler processes:
 
@@ -78,4 +81,16 @@ Record the current revision, pull the desired POSIM revision, then repeat depend
 ```bash
 git -C ~/posim_ws/src/posim rev-parse HEAD
 git -C ~/posim_ws/src/posim pull --ff-only
+```
+
+## 5. Run the demo world
+
+In the Ubuntu terminal, load the installed environment and open the demo. Gazebo should show the ocean scene; the first run can download Fuel models. Stop it with Ctrl+C before continuing to [Prepare your terminals](terminals.md).
+
+```bash
+source /opt/ros/lyrical/setup.bash
+source "$HOME/.ros_ardusub_env/env"
+source ~/posim_ws/install/setup.bash
+ros2 launch posim_demos posim_world.launch.py \
+  world_name:=posim_ocean_waves headless:=false
 ```

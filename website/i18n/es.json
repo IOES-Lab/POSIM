@@ -1,0 +1,155 @@
+{
+  "name": "Español",
+  "sections": [
+    "Conoce POSIM",
+    "Primeros pasos",
+    "Guías básicas",
+    "Control de robots",
+    "Guías avanzadas",
+    "Referencia de plugins",
+    "Referencias y proyecto"
+  ],
+  "pages": {
+    "index": "Presentación",
+    "features": "Funciones y ejemplos",
+    "requirements": "Elegir un entorno",
+    "install": "Ubuntu: instalación nativa",
+    "install-ubuntu-docker": "Linux: instalación con Docker",
+    "install-windows": "Windows: instalación en WSL",
+    "install-windows-docker": "Windows: WSL y Docker",
+    "install-macos": "macOS: Docker y RDP",
+    "docker": "Entorno Docker",
+    "terminals": "Preparar las terminales",
+    "quickstart": "Primera simulación",
+    "visualization": "Visualizar y grabar datos de sensores",
+    "worlds": "Biblioteca de mundos",
+    "rovs": "ROV y BlueROV2",
+    "gliders": "Planeador Slocum",
+    "objects": "Objetos y escenarios de tareas",
+    "ros": "Terminales y tópicos de ROS",
+    "python-control": "Control con Python",
+    "robot-control": "Control de propulsores y joystick",
+    "surface": "Robots de superficie y olas",
+    "custom-worlds": "Crear un mundo",
+    "custom-robots": "Añadir un robot",
+    "custom-sensors": "Añadir y configurar sensores",
+    "heightmaps": "Terreno con mapas de altura",
+    "sonar-tuning": "Configurar y ajustar el sonar",
+    "currents": "Corrientes marinas",
+    "underwater-rendering": "Efectos de la escena submarina",
+    "camera": "Cámara submarina",
+    "gnss": "GNSS marino",
+    "pressure": "Presión del agua",
+    "dvl": "DVL: medición de velocidad",
+    "usbl": "Posicionamiento USBL",
+    "coordinates": "Coordenadas geográficas",
+    "sonar": "Sonar multihaz",
+    "troubleshooting": "Solución de problemas",
+    "contributing": "Cómo contribuir",
+    "citation": "Citas y licencias",
+    "qgroundcontrol": "Control con QGroundControl"
+  },
+  "ui": {
+    "documentationLanguage": "Idioma de la documentación",
+    "colorTheme": "Tema de color",
+    "system": "Sistema",
+    "light": "Claro",
+    "dark": "Oscuro",
+    "skip": "Ir al contenido",
+    "utility": "Enlaces útiles",
+    "menu": "Menú de documentación",
+    "search": "Buscar en la documentación",
+    "placeholder": "Títulos, comandos, temas",
+    "otherLanguages": "Buscar en todos los idiomas",
+    "mobileNavigation": "Documentación móvil",
+    "documentation": "Documentación",
+    "product": "Platform for Ocean Simulation · Documentación",
+    "previousNext": "Guías anterior y siguiente",
+    "previous": "Anterior",
+    "next": "Siguiente",
+    "edit": "Editar esta página",
+    "references": "Referencias",
+    "onThisPage": "En esta página",
+    "noMatches": "No se han encontrado guías.",
+    "searchUnavailable": "Elige una guía en el menú de documentación.",
+    "copy": "Copiar",
+    "copyCode": "Copiar código",
+    "copied": "Copiado",
+    "textSelected": "Texto seleccionado",
+    "copyShortcut": "Usa el atajo de teclado para copiar.",
+    "videoBuffered": "Vídeo almacenado en búfer",
+    "retry": "Reintentar",
+    "openVideo": "Abrir el archivo de vídeo",
+    "buffering": "Cargando el búfer del vídeo…",
+    "loading": "Cargando vídeo…",
+    "videoFailed": "No se ha podido cargar el vídeo.",
+    "sourceDirectories": "Directorios del código fuente"
+  },
+  "media": {
+    "camera": [
+      "Escena de la cámara submarina en Gazebo",
+      "Visualización de la imagen de la cámara submarina",
+      "Imagen sin atenuación RGB y con fondo negro",
+      "Agua costera turbia: atenuación RGB 0.8/0.5/0.2 y fondo 85/107/47"
+    ],
+    "currents": [
+      "Corrientes por capas de profundidad y respuesta del vehículo",
+      "Flujo de datos entre el mundo, ROS y los plugins de corriente del modelo",
+      "Respuesta del vehículo a una corriente uniforme",
+      "Respuesta del vehículo a una corriente estratificada",
+      "Datos ROS de la corriente uniforme",
+      "Datos ROS de la corriente estratificada",
+      "Datos de la base de corrientes estratificadas",
+      "Corriente aplicada a la profundidad del modelo",
+      "Velocidad de la corriente de cada modelo",
+      "Tópico ROS de la corriente del modelo",
+      "Tópico Gazebo de la corriente del modelo"
+    ],
+    "dvl": [
+      "Haces acústicos del DVL dirigidos al fondo marino",
+      "Mediciones de velocidad del DVL",
+      "Inspección del tópico DVL en Gazebo",
+      "Inspección del tópico DVL en ROS"
+    ],
+    "gliders": [
+      "Movimiento del planeador Slocum bajo el agua"
+    ],
+    "objects": [
+      "Selección de un modelo en Resource Spawner de Gazebo",
+      "Subida de un modelo a Fuel",
+      "Archivos y metadatos del modelo en Fuel",
+      "Confirmación de publicación en Fuel"
+    ],
+    "pressure": [
+      "Mediciones de presión en ROS",
+      "Inspección de la presión en Gazebo",
+      "Profundidad calculada a partir de la presión"
+    ],
+    "rovs": [
+      "Movimiento y orientación del REXROV bajo el agua"
+    ],
+    "sonar-tuning": [
+      "Etapas del procesamiento del sonar en la GPU"
+    ],
+    "sonar": [
+      "Procesamiento del sonar multihaz mediante dispersión puntual",
+      "RGB, profundidad, imagen de sonar y nube de puntos de una misma escena",
+      "Cambios en la imagen del ejemplo de sonar",
+      "Mediciones del sonar ante cambios de la escena",
+      "Mediciones del sonar desde el BlueROV2",
+      "Exploración de una escena local con sonar"
+    ],
+    "usbl": [
+      "Disposición del transceptor y los transpondedores USBL",
+      "Flujo de mensajes de interrogación común e individual",
+      "Mediciones de posición del transpondedor"
+    ],
+    "qgroundcontrol": [
+      "La cámara frontal muestra los objetos del escenario de ejemplo. Los joysticks virtuales siguen disponibles sobre la imagen."
+    ],
+    "install-macos": [
+      "La imagen ARM64 preparada permite abrir Gazebo dentro del escritorio remoto."
+    ]
+  },
+  "overview": "Entorno oceánico → robots y dinámica → mediciones de sensores → control con ROS 2. Selecciona una imagen para abrir la guía."
+}

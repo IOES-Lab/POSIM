@@ -41,16 +41,6 @@
   },
   {
     "page": "objects",
-    "block": "6e7c9419-9898-8344-b2b9-8198dcbd6d58",
-    "type": "image",
-    "title": "Screenshot from 2024-06-05 12-38-27.png",
-    "file": "docs/engineering/notion-media/objects-6e7c9419.png",
-    "source_page": "https://caring-dibble-be5.notion.site/p/POSIM-Object-Models-2c9c941998988216b7a1816fce54894d?pvs=24",
-    "audience": "engineering",
-    "sha256": "4ea76e80ccb0a861ab22e02c5da518d4a5d4602519aa99947e566d45f62acdbe"
-  },
-  {
-    "page": "objects",
     "block": "699c9419-9898-83f8-a493-81fbe5ae526a",
     "type": "image",
     "title": "Screenshot from 2024-06-04 15-45-07.png",
@@ -388,75 +378,5 @@
     "source_page": "https://caring-dibble-be5.notion.site/p/POSIM-CUDA-Sonar-Optimization-Reference-ab3c941998988356a7b481b10d998268?pvs=24",
     "audience": "public",
     "sha256": "ae2558aaa39274de7a711e2d79e1e0b69fc8fb6e0ff7fee47329cdfe0c428fb5"
-  },
-  {
-    "page": "sonar-optimization",
-    "block": "214c9419-9898-82f3-a7f4-0197ceaf1c2a",
-    "type": "image",
-    "title": "CUDA_INITIAL_TIMES.png",
-    "file": "docs/engineering/notion-media/sonar-optimization-214c9419.png",
-    "source_page": "https://caring-dibble-be5.notion.site/p/POSIM-CUDA-Sonar-Optimization-Reference-ab3c941998988356a7b481b10d998268?pvs=24",
-    "audience": "engineering",
-    "sha256": "db1f4381c900fd0e3ef4c26d0ba9502d390f58f784efb2898e1bce15cfd148d3"
-  },
-  {
-    "page": "sonar-optimization",
-    "block": "7dac9419-9898-83d4-80fc-015d772c5dd7",
-    "type": "image",
-    "title": "CUDA_OLD_KERNEL.png",
-    "file": "docs/engineering/notion-media/sonar-optimization-7dac9419.png",
-    "source_page": "https://caring-dibble-be5.notion.site/p/POSIM-CUDA-Sonar-Optimization-Reference-ab3c941998988356a7b481b10d998268?pvs=24",
-    "audience": "engineering",
-    "sha256": "38286b46ff88bf0f10a4b91a88eb76d73a0c60b26678cc5a551192b9f989169c"
-  },
-  {
-    "page": "sonar-optimization",
-    "block": "fa4c9419-9898-82c8-9ae4-81f9181d1870",
-    "type": "image",
-    "title": "CUDA_FINAL_INTRINSICS.png",
-    "file": "docs/engineering/notion-media/sonar-optimization-fa4c9419.png",
-    "source_page": "https://caring-dibble-be5.notion.site/p/POSIM-CUDA-Sonar-Optimization-Reference-ab3c941998988356a7b481b10d998268?pvs=24",
-    "audience": "engineering",
-    "sha256": "eb6f678bf36da067fd30c072ea442671b411d8c3fb81a813be58f62e6920b32c"
-  },
-  {
-    "page": "sonar-optimization",
-    "block": "f3cc9419-9898-8326-98bd-818b63bc67e9",
-    "type": "image",
-    "title": "FCUDA_FINAL_INTRINSIC_COMPARE.png",
-    "file": "docs/engineering/notion-media/sonar-optimization-f3cc9419.png",
-    "source_page": "https://caring-dibble-be5.notion.site/p/POSIM-CUDA-Sonar-Optimization-Reference-ab3c941998988356a7b481b10d998268?pvs=24",
-    "audience": "engineering",
-    "sha256": "0d8d130840ff8ca6d7a40a741e54d6627729ec166f17854388470657bef05f5c"
-  },
-  {
-    "page": "sonar-optimization",
-    "block": "782c9419-9898-8264-a92f-8120adf6eea4",
-    "type": "image",
-    "title": "CUDA_FINAL_KERN_INTRINSICS.png",
-    "file": "docs/engineering/notion-media/sonar-optimization-782c9419.png",
-    "source_page": "https://caring-dibble-be5.notion.site/p/POSIM-CUDA-Sonar-Optimization-Reference-ab3c941998988356a7b481b10d998268?pvs=24",
-    "audience": "engineering",
-    "sha256": "ad06cb705ba0218bd80f7632a46cbbb28c43676952dcbfc596cd8e3d03e81845"
-  },
-  {
-    "page": "sonar-optimization",
-    "block": "a57c9419-9898-82bf-bd7e-0126a4cea57b",
-    "type": "image",
-    "title": "resultados_geforce.png",
-    "file": "docs/engineering/notion-media/sonar-optimization-a57c9419.png",
-    "source_page": "https://caring-dibble-be5.notion.site/p/POSIM-CUDA-Sonar-Optimization-Reference-ab3c941998988356a7b481b10d998268?pvs=24",
-    "audience": "engineering",
-    "sha256": "b7f29065d94913b1c12cfd5fe14a88c4671f526c3e41fe6eb1cea73c7d2c4ad1"
-  },
-  {
-    "page": "sonar-optimization",
-    "block": "7d0c9419-9898-839c-b862-816b0c3005eb",
-    "type": "image",
-    "title": "results_t4.png",
-    "file": "docs/engineering/notion-media/sonar-optimization-7d0c9419.png",
-    "source_page": "https://caring-dibble-be5.notion.site/p/POSIM-CUDA-Sonar-Optimization-Reference-ab3c941998988356a7b481b10d998268?pvs=24",
-    "audience": "engineering",
-    "sha256": "db7243d51a5263d0fddc116dfa38e2b2f4b675a68a21f659d5b5f5bed3e3580f"
   }
 ]
