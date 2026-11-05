@@ -5,8 +5,6 @@ pub(crate) mod exact_fft;
 mod pipeline; // GPU context + buffer management
 
 use bytemuck::{Pod, Zeroable};
-use std::fs::OpenOptions;
-use std::io::Write;
 use std::sync::atomic::{AtomicU64, Ordering};
 use wgpu::util::DeviceExt;
 
@@ -54,15 +52,6 @@ struct FftParams {
 
 fn emit_debug_timing(line: &str) {
     eprintln!("{line}");
-
-    if let Ok(mut file) = OpenOptions::new()
-        .create(true)
-        .append(true)
-        .open("wgpu_debug_timings.txt")
-    {
-        let _ = writeln!(file, "{line}");
-        let _ = file.flush();
-    }
 }
 
 /// Check resource requirements before the caller allocates input arrays.

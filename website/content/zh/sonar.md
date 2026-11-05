@@ -48,7 +48,7 @@ POSIM 多波束声呐采用点散射模型，生成随距离变化的回波强�
 | `sourceLevel` | 声源级，dB | 220 | 220 |
 | `maxDistance` | 处理距离，m；应与声线距离范围一致 | 60 | 10 |
 | `raySkips` | 垂直采样步长，正整数 | 10 | 10 |
-| `sensorGain` | 读取并输出，但不参与图像生成 | 0.02 | 0.02 |
+| `sensorGain` | CPU 回波幅值增益；WGPU/CUDA 不使用此参数 | 0.02 | 0.02 |
 | `blazingSonarImage` | 根据实际时钟生成随机种子；`false` 时固定为 1234 | false | true |
 | `pointCloudTopicName` | Gazebo 点云话题后缀 | `point_cloud` | 相同 |
 | `sonarImageRawTopicName` | ROS 原始声学数据话题后缀 | `sonar_image_raw` | 相同 |

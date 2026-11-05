@@ -48,7 +48,7 @@ L'exemple demande 512 faisceaux horizontaux sur environ 130°, 300 rayons vertic
 | `sourceLevel` | Niveau de la source, dB | 220 | 220 |
 | `maxDistance` | Portée du traitement, m ; à accorder à celle des rayons | 60 | 10 |
 | `raySkips` | Pas d'échantillonnage vertical ; entier positif | 10 | 10 |
-| `sensorGain` | Lu et affiché, mais sans effet sur la génération de l'image | 0.02 | 0.02 |
+| `sensorGain` | Gain d’amplitude des échos sur CPU ; inutilisé par WGPU/CUDA | 0.02 | 0.02 |
 | `blazingSonarImage` | Graine aléatoire issue de l'horloge réelle ; `false` fixe la graine à 1234 | false | true |
 | `pointCloudTopicName` | Suffixe du topic Gazebo du nuage de points | `point_cloud` | Identique |
 | `sonarImageRawTopicName` | Suffixe du topic ROS des échos bruts | `sonar_image_raw` | Identique |

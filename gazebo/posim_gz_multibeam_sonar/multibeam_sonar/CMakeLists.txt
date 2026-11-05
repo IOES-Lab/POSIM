@@ -5,7 +5,8 @@ endif()
 
 project(multibeam_sonar)
 
-# Keep explicit legacy architecture settings without overriding the native property.
+# Keep explicit legacy architecture settings without overriding
+# the native property.
 if(DEFINED CUDA_ARCHITECTURE AND NOT DEFINED CMAKE_CUDA_ARCHITECTURES)
   set(CMAKE_CUDA_ARCHITECTURES "${CUDA_ARCHITECTURE}"
     CACHE STRING "CUDA architectures")

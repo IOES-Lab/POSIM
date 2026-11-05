@@ -119,7 +119,7 @@ Actual received rate depends on computation and rendering. Read [the sensor mode
 | `sourceLevel` | Source level, dB | 220 | 220 |
 | `maxDistance` | Processing range, m; match ray range | 60 | 10 |
 | `raySkips` | Elevation sampling stride; use a positive integer | 10 | 10 |
-| `sensorGain` | Parsed and printed, but not used in image generation | 0.02 | 0.02 |
+| `sensorGain` | Echo amplitude gain for CPU; unused by WGPU/CUDA | 0.02 | 0.02 |
 | `blazingSonarImage` | Use a wall-clock-dependent random seed; false uses seed 1234 | false | true |
 | `pointCloudTopicName` | Gazebo point-cloud suffix | `point_cloud` | Same |
 | `sonarImageRawTopicName` | ROS raw-return suffix | `sonar_image_raw` | Same |

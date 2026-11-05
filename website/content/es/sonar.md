@@ -48,7 +48,7 @@ El ejemplo solicita 512 haces horizontales en unos 130°, 300 rayos verticales e
 | `sourceLevel` | Nivel de la fuente, dB | 220 | 220 |
 | `maxDistance` | Distancia de procesamiento, m; debe coincidir con el alcance de los rayos | 60 | 10 |
 | `raySkips` | Paso de muestreo vertical; entero positivo | 10 | 10 |
-| `sensorGain` | Se lee y se muestra, pero no interviene en la generación de imágenes | 0.02 | 0.02 |
+| `sensorGain` | Ganancia de amplitud de ecos en CPU; sin uso en WGPU/CUDA | 0.02 | 0.02 |
 | `blazingSonarImage` | Semilla aleatoria basada en el reloj real; con `false`, semilla fija 1234 | false | true |
 | `pointCloudTopicName` | Sufijo del tópico de nube de puntos de Gazebo | `point_cloud` | Igual |
 | `sonarImageRawTopicName` | Sufijo del tópico ROS de datos acústicos | `sonar_image_raw` | Igual |

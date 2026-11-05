@@ -45,9 +45,9 @@
 #include <gz/sensors/RenderingEvents.hh>
 #include <gz/sensors/SensorTypes.hh>
 #include "MultibeamSonarSensor.hh"
-#include "SonarLog.hh"
 #include "RangeSampling.hh"
 #include "RaySurfaceNormals.hh"
+#include "SonarLog.hh"
 
 #include <algorithm>
 #include <cstdlib>

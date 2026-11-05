@@ -119,7 +119,7 @@ BlueView 센서 Launch는 Gazebo 시뮬레이션 시간을 ROS `/clock`으로 �
 | `sourceLevel` | 음원 준위(dB) | 220 | 220 |
 | `maxDistance` | 처리 거리(m). ray 범위와 맞춤 | 60 | 10 |
 | `raySkips` | 수직 샘플링 간격. 양의 정수 사용 | 10 | 10 |
-| `sensorGain` | 읽고 출력하지만 영상 생성에는 사용하지 않음 | 0.02 | 0.02 |
+| `sensorGain` | CPU 반사 진폭 이득; WGPU·CUDA에서는 사용하지 않음 | 0.02 | 0.02 |
 | `blazingSonarImage` | 실제 시각에 따라 난수 시드 변경. false이면 1234 사용 | false | true |
 | `pointCloudTopicName` | Gazebo 점군 토픽 접미사 | `point_cloud` | 동일 |
 | `sonarImageRawTopicName` | ROS 원시 관측 토픽 접미사 | `sonar_image_raw` | 동일 |

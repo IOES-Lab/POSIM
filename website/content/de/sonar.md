@@ -48,7 +48,7 @@ Das Beispiel fordert 512 horizontale Strahlen über etwa 130°, 300 vertikale Ab
 | `sourceLevel` | Quellpegel, dB | 220 | 220 |
 | `maxDistance` | Verarbeitungsreichweite, m; an die Strahlreichweite anpassen | 60 | 10 |
 | `raySkips` | Vertikale Abtastschrittweite; positive ganze Zahl | 10 | 10 |
-| `sensorGain` | Wird eingelesen und ausgegeben, wirkt aber nicht auf die Bilderzeugung | 0.02 | 0.02 |
+| `sensorGain` | Verstärkung der Echoamplitude auf CPU; von WGPU/CUDA nicht verwendet | 0.02 | 0.02 |
 | `blazingSonarImage` | Zufallsstartwert aus der tatsächlichen Uhrzeit; bei `false` fest 1234 | false | true |
 | `pointCloudTopicName` | Suffix des Gazebo-Punktwolken-Topics | `point_cloud` | Gleich |
 | `sonarImageRawTopicName` | Suffix des ROS-Topics für Rohdaten | `sonar_image_raw` | Gleich |

@@ -48,7 +48,7 @@ P900センサーはモデルの`<link>`内に配置します。
 | `sourceLevel` | 音源レベル、dB | 220 | 220 |
 | `maxDistance` | 処理対象の距離、m。音線の範囲とそろえる | 60 | 10 |
 | `raySkips` | 垂直方向のサンプリング間隔。正の整数 | 10 | 10 |
-| `sensorGain` | 読み込み・表示のみで、画像生成には使われない | 0.02 | 0.02 |
+| `sensorGain` | CPU の反射振幅ゲイン。WGPU/CUDA では未使用 | 0.02 | 0.02 |
 | `blazingSonarImage` | 実際の時計から乱数シードを生成。`false`では1234に固定 | false | true |
 | `pointCloudTopicName` | Gazeboの点群トピックの接尾辞 | `point_cloud` | 同じ |
 | `sonarImageRawTopicName` | ROSの生データトピックの接尾辞 | `sonar_image_raw` | 同じ |

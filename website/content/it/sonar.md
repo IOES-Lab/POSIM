@@ -48,7 +48,7 @@ L'esempio richiede 512 fasci orizzontali su circa 130°, 300 raggi verticali su 
 | `sourceLevel` | Livello della sorgente, dB | 220 | 220 |
 | `maxDistance` | Distanza di elaborazione, m; da allineare alla portata dei raggi | 60 | 10 |
 | `raySkips` | Passo di campionamento verticale; intero positivo | 10 | 10 |
-| `sensorGain` | Letto e stampato, ma non usato nella generazione dell'immagine | 0.02 | 0.02 |
+| `sensorGain` | Guadagno di ampiezza degli echi su CPU; non usato da WGPU/CUDA | 0.02 | 0.02 |
 | `blazingSonarImage` | Seme casuale basato sull'orologio reale; con `false` è fisso a 1234 | false | true |
 | `pointCloudTopicName` | Suffisso del topic Gazebo della nuvola di punti | `point_cloud` | Uguale |
 | `sonarImageRawTopicName` | Suffisso del topic ROS degli echi grezzi | `sonar_image_raw` | Uguale |
