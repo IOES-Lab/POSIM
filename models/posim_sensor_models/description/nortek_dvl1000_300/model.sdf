@@ -91,7 +91,7 @@
         <geometry>
           <mesh>
             <scale>1 1 1</scale>
-            <!-- Mesh is actually for a Nortek DVL1000-4000m for now -->
+            <!-- Mesh represents a Nortek DVL1000-4000m -->
             <uri>model://meshes/nortek_dvl1000_300/DVL1000-300m.dae</uri>
           </mesh>
         </geometry>

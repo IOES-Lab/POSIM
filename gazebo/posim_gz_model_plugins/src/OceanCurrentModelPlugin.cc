@@ -1,3 +1,18 @@
+// Copyright (c) 2016 The UUV Simulator Authors.
+// All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include "posim_gz_model_plugins/OceanCurrentModelPlugin.hh"
 #include "posim_gz_world_plugins/gauss_markov_process.hh"
 #include "posim_gz_world_plugins/tidal_oscillation.hh"
@@ -23,8 +38,10 @@
 #include "posim_interfaces/msg/stratified_current_database.hpp"
 
 // Standard library includes
+#include <algorithm>
 #include <array>
 #include <chrono>
+#include <cmath>
 #include <memory>
 #include <mutex>
 #include <string>
@@ -40,6 +57,8 @@ namespace posim_gz_model_plugins
 {
 struct OceanCurrentModelPlugin::PrivateData
 {
+  bool configured{false};
+  bool sampled{false};
   // Gazebo Simulation Related Variables
   gz::sim::World world{gz::sim::kNullEntity};
   gz::sim::Entity entity{gz::sim::kNullEntity};
@@ -69,7 +88,6 @@ struct OceanCurrentModelPlugin::PrivateData
 
   // Current Velocity
   gz::math::Vector3d currentVelocity;
-  int lastDepthIndex = 0;
   std::vector<gz::math::Vector3d> database;
 
   // Gauss-Markov Process Models
@@ -78,9 +96,9 @@ struct OceanCurrentModelPlugin::PrivateData
   posim_gz_world_plugins::GaussMarkovProcess currentVelDownModel;
 
   // Noise Amplitudes and Frequencies
-  double noiseAmp_North;
-  double noiseAmp_East;
-  double noiseAmp_Down;
+  double noiseAmp_North{0};
+  double noiseAmp_East{0};
+  double noiseAmp_Down{0};
   double noiseFreq_North;
   double noiseFreq_East;
   double noiseFreq_Down;
@@ -88,23 +106,7 @@ struct OceanCurrentModelPlugin::PrivateData
   // Tidal Oscillation Model
   posim_gz_world_plugins::TidalOscillation tide;
 
-  // Tidal Oscillation Settings and Flags
-  bool tideFlag;
-  bool tide_Constituents;
-  double M2_amp, M2_phase, M2_speed;
-  double S2_amp, S2_phase, S2_speed;
-  double N2_amp, N2_phase, N2_speed;
-
-  // Tidal Oscillation Directions
-  double ebbDirection;
-  double floodDirection;
-
-  // Tidal Oscillation World Start Time (GMT)
-  std::array<int, 5> world_start_time;
-  std::vector<std::array<int, 5>> timeGMT;
-
-  // Tidal Velocities
-  std::vector<double> tideVelocities;
+  bool tideFlag{false};
 };
 
 OceanCurrentModelPlugin::OceanCurrentModelPlugin() : dataPtr(std::make_unique<PrivateData>()) {}
@@ -118,10 +120,19 @@ void OceanCurrentModelPlugin::Configure(
   const gz::sim::Entity & _entity, const std::shared_ptr<const sdf::Element> & _sdf,
   gz::sim::EntityComponentManager & _ecm, gz::sim::EventManager & _eventMgr)
 {
+  this->dataPtr->configured = false;
+  if (
+    !_sdf || !_sdf->HasElement("namespace") || !_sdf->HasElement("transient_current") ||
+    _sdf->Get<std::string>("namespace").empty() || !gz::sim::Model(_entity).Valid(_ecm))
+  {
+    gzerr << "OceanCurrentModelPlugin requires a model, namespace and transient_current block."
+          << std::endl;
+    return;
+  }
   // Check if ROS is initialized; if not, initialize it
   if (!rclcpp::ok())
   {
-    rclcpp::init(0, nullptr);
+    rclcpp::init(0, nullptr, rclcpp::InitOptions(), rclcpp::SignalHandlerOptions::None);
   }
 
   // Initialize the ROS 2 node
@@ -171,38 +182,59 @@ void OceanCurrentModelPlugin::Configure(
   }
   else
   {
-    this->dataPtr->currentVelocityTopic = this->dataPtr->currentVelocityTopic =
-      "model/" + this->dataPtr->modelName + "/ocean_current";
+    this->dataPtr->currentVelocityTopic = "model/" + this->dataPtr->modelName + "/ocean_current";
   }
   gzmsg << "Transient velocity topic name for " << this->dataPtr->modelName << " : "
         << this->dataPtr->currentVelocityTopic << std::endl;
 
   // Get the model entity based on the model name
-  this->dataPtr->modelEntity = GetModelEntity(this->dataPtr->modelName, _ecm);
+  this->dataPtr->modelEntity = _entity;
 
   // Read the stratified ocean current topic name from the SDF
-  LoadCurrentVelocityParams(sdfClone, _ecm);
+  if (!LoadCurrentVelocityParams(sdfClone, _ecm))
+  {
+    gzerr << "Invalid model-current parameters; current publication is disabled." << std::endl;
+    return;
+  }
 
-  // Advertise the ROS flow velocity as a stamped twist message
-  this->dataPtr->flowVelocityPub =
-    this->ros_node_->create_publisher<geometry_msgs::msg::TwistStamped>(
-      this->dataPtr->currentVelocityTopic, rclcpp::QoS(10));
+  try
+  {
+    // Advertise the ROS flow velocity as a stamped twist message
+    this->dataPtr->flowVelocityPub =
+      this->ros_node_->create_publisher<geometry_msgs::msg::TwistStamped>(
+        this->dataPtr->currentVelocityTopic, rclcpp::QoS(10));
 
-  // Advertise the current velocity topic in Gazebo
-  this->dataPtr->gz_current_vel_pub =
-    this->dataPtr->gz_node->Advertise<gz::msgs::Vector3d>(this->dataPtr->currentVelocityTopic);
+    // Advertise the current velocity topic in Gazebo
+    this->dataPtr->gz_current_vel_pub =
+      this->dataPtr->gz_node->Advertise<gz::msgs::Vector3d>(this->dataPtr->currentVelocityTopic);
 
-  // Subscribe to the stratified ocean current database
-  this->dataPtr->databaseSub =
-    this->ros_node_->create_subscription<posim_interfaces::msg::StratifiedCurrentDatabase>(
-      this->dataPtr->transientCurrentVelocityTopic, 10,
-      std::bind(&OceanCurrentModelPlugin::UpdateDatabase, this, std::placeholders::_1));
+    // Subscribe to the stratified ocean current database
+    this->dataPtr->databaseSub =
+      this->ros_node_->create_subscription<posim_interfaces::msg::StratifiedCurrentDatabase>(
+        this->dataPtr->transientCurrentVelocityTopic, 10,
+        std::bind(&OceanCurrentModelPlugin::UpdateDatabase, this, std::placeholders::_1));
+  }
+  catch (const rclcpp::exceptions::RCLError & error)
+  {
+    gzerr << "Unable to initialize model-current topics: " << error.what() << std::endl;
+    return;
+  }
+  catch (const rclcpp::exceptions::InvalidTopicNameError & error)
+  {
+    gzerr << "Invalid model-current topic: " << error.what() << std::endl;
+    return;
+  }
+  if (!this->dataPtr->gz_current_vel_pub)
+  {
+    return;
+  }
+  this->dataPtr->configured = true;
 
   gzmsg << "Transient current model plugin loaded!" << std::endl;
 }
 
 /////////////////////////////////////////////////
-void OceanCurrentModelPlugin::LoadCurrentVelocityParams(
+bool OceanCurrentModelPlugin::LoadCurrentVelocityParams(
   sdf::ElementPtr _sdf, gz::sim::EntityComponentManager & _ecm)
 {
   // Read topic name of stratified ocean current from SDF
@@ -210,6 +242,24 @@ void OceanCurrentModelPlugin::LoadCurrentVelocityParams(
   if (_sdf->HasElement("transient_current"))
   {
     currentVelocityParams = _sdf->GetElement("transient_current");
+    for (const auto component : {"velocity_north", "velocity_east", "velocity_down"})
+    {
+      if (!currentVelocityParams->HasElement(component))
+      {
+        continue;
+      }
+      const auto element = currentVelocityParams->GetElement(component);
+      for (const auto parameter : {"mean", "mu", "noiseAmp", "noiseFreq"})
+      {
+        double value;
+        if (
+          element->HasElement(parameter) &&
+          (!element->GetElement(parameter)->GetValue()->Get(value) || !std::isfinite(value)))
+        {
+          return false;
+        }
+      }
+    }
     if (currentVelocityParams->HasElement("topic_stratified"))
     {
       this->dataPtr->transientCurrentVelocityTopic =
@@ -382,62 +432,93 @@ void OceanCurrentModelPlugin::LoadCurrentVelocityParams(
       this->dataPtr->tideFlag = false;
     }
   }
+  for (const auto model :
+       {&this->dataPtr->currentVelNorthModel, &this->dataPtr->currentVelEastModel,
+        &this->dataPtr->currentVelDownModel})
+  {
+    if (
+      !std::isfinite(model->mean) || !std::isfinite(model->min) || !std::isfinite(model->max) ||
+      model->min > model->max || !std::isfinite(model->mu) || model->mu < 0 || model->mu > 1 ||
+      !std::isfinite(model->noiseAmp) || model->noiseAmp < 0)
+    {
+      return false;
+    }
+  }
+  return !this->dataPtr->transientCurrentVelocityTopic.empty();
 }
 
 void OceanCurrentModelPlugin::UpdateDatabase(
   const std::shared_ptr<const posim_interfaces::msg::StratifiedCurrentDatabase> & _msg)
 {
-  this->dataPtr->lock_.lock();
-
-  this->dataPtr->database.clear();
-  for (int i = 0; i < _msg->depths.size(); i++)
+  if (
+    !this->dataPtr->configured || !_msg || _msg->depths.size() < 2 ||
+    _msg->depths.size() != _msg->velocities.size())
   {
-    gz::math::Vector3d data(_msg->velocities[i].x, _msg->velocities[i].y, _msg->depths[i]);
-    this->dataPtr->database.push_back(data);
+    gzerr << "Ignoring incomplete model-current database." << std::endl;
+    return;
   }
+  std::vector<gz::math::Vector3d> database;
+  for (size_t i = 0; i < _msg->depths.size(); ++i)
+  {
+    const auto & velocity = _msg->velocities[i];
+    if (
+      !std::isfinite(_msg->depths[i]) || _msg->depths[i] < 0 ||
+      (i && _msg->depths[i] <= _msg->depths[i - 1]) || !std::isfinite(velocity.x) ||
+      !std::isfinite(velocity.y) || !std::isfinite(velocity.z))
+    {
+      gzerr << "Ignoring invalid model-current database." << std::endl;
+      return;
+    }
+    database.emplace_back(velocity.x, velocity.y, _msg->depths[i]);
+  }
+  posim_gz_world_plugins::TidalOscillation tide;
   if (this->dataPtr->tideFlag)
   {
-    this->dataPtr->timeGMT.clear();
-    this->dataPtr->tideVelocities.clear();
-    if (_msg->tideconstituents == true)
+    tide.worldStartTime = {
+      _msg->world_start_time_year, _msg->world_start_time_month, _msg->world_start_time_day,
+      _msg->world_start_time_hour, _msg->world_start_time_minute};
+    tide.ebbDirection = _msg->ebb_direction;
+    tide.floodDirection = _msg->flood_direction;
+    if (_msg->tideconstituents)
     {
-      this->dataPtr->M2_amp = _msg->m2_amp;
-      this->dataPtr->M2_phase = _msg->m2_phase;
-      this->dataPtr->M2_speed = _msg->m2_speed;
-      this->dataPtr->S2_amp = _msg->s2_amp;
-      this->dataPtr->S2_phase = _msg->s2_phase;
-      this->dataPtr->S2_speed = _msg->s2_speed;
-      this->dataPtr->N2_amp = _msg->n2_amp;
-      this->dataPtr->N2_phase = _msg->n2_phase;
-      this->dataPtr->N2_speed = _msg->n2_speed;
-      this->dataPtr->tide_Constituents = true;
+      tide.M2_amp = _msg->m2_amp;
+      tide.M2_phase = _msg->m2_phase;
+      tide.M2_speed = _msg->m2_speed;
+      tide.S2_amp = _msg->s2_amp;
+      tide.S2_phase = _msg->s2_phase;
+      tide.S2_speed = _msg->s2_speed;
+      tide.N2_amp = _msg->n2_amp;
+      tide.N2_phase = _msg->n2_phase;
+      tide.N2_speed = _msg->n2_speed;
     }
     else
     {
-      std::array<int, 5> tmpDateVals;
-      for (int i = 0; i < _msg->time_gmt_year.size(); i++)
+      const auto count = _msg->time_gmt_year.size();
+      if (
+        count != _msg->time_gmt_month.size() || count != _msg->time_gmt_day.size() ||
+        count != _msg->time_gmt_hour.size() || count != _msg->time_gmt_minute.size() ||
+        count != _msg->tidevelocities.size())
       {
-        tmpDateVals[0] = _msg->time_gmt_year[i];
-        tmpDateVals[1] = _msg->time_gmt_month[i];
-        tmpDateVals[2] = _msg->time_gmt_day[i];
-        tmpDateVals[3] = _msg->time_gmt_hour[i];
-        tmpDateVals[4] = _msg->time_gmt_minute[i];
-
-        this->dataPtr->timeGMT.push_back(tmpDateVals);
-        this->dataPtr->tideVelocities.push_back(_msg->tidevelocities[i]);
+        gzerr << "Ignoring incomplete tidal database." << std::endl;
+        return;
       }
-      this->dataPtr->tide_Constituents = false;
+      for (size_t i = 0; i < count; ++i)
+      {
+        tide.dateGMT.push_back(
+          {_msg->time_gmt_year[i], _msg->time_gmt_month[i], _msg->time_gmt_day[i],
+           _msg->time_gmt_hour[i], _msg->time_gmt_minute[i]});
+        tide.speedcmsec.push_back(_msg->tidevelocities[i]);
+      }
     }
-    this->dataPtr->ebbDirection = _msg->ebb_direction;
-    this->dataPtr->floodDirection = _msg->flood_direction;
-    this->dataPtr->world_start_time[0] = _msg->world_start_time_year;
-    this->dataPtr->world_start_time[1] = _msg->world_start_time_month;
-    this->dataPtr->world_start_time[2] = _msg->world_start_time_day;
-    this->dataPtr->world_start_time[3] = _msg->world_start_time_hour;
-    this->dataPtr->world_start_time[4] = _msg->world_start_time_minute;
+    if (!tide.Initiate(_msg->tideconstituents))
+    {
+      gzerr << "Ignoring invalid tidal database." << std::endl;
+      return;
+    }
   }
-
-  this->dataPtr->lock_.unlock();
+  std::lock_guard<std::mutex> lock(this->dataPtr->lock_);
+  this->dataPtr->database = std::move(database);
+  this->dataPtr->tide = std::move(tide);
 }
 
 //////////////////////////////////////////
@@ -467,7 +548,7 @@ gz::math::Pose3d OceanCurrentModelPlugin::GetModelPose(
   const auto * poseComp = ecm.Component<gz::sim::components::Pose>(modelEntity);
   if (poseComp)
   {
-    return poseComp->Data();
+    return gz::sim::worldPose(modelEntity, ecm);
   }
   else
   {
@@ -482,151 +563,69 @@ gz::math::Pose3d OceanCurrentModelPlugin::GetModelPose(
 void OceanCurrentModelPlugin::Update(
   const gz::sim::UpdateInfo & _info, gz::sim::EntityComponentManager & _ecm)
 {
+  if (
+    !this->dataPtr->configured || _info.paused || !rclcpp::ok() ||
+    (this->dataPtr->sampled && _info.simTime == this->dataPtr->time))
+  {
+    return;
+  }
   // Update vehicle position
   gz::math::Pose3d vehicle_pos = GetModelPose(this->dataPtr->modelEntity, _ecm);
-  double vehicleDepth = std::abs(vehicle_pos.Z());
-  this->dataPtr->time = this->dataPtr->lastUpdate;
+  double vehicleDepth = std::max(0.0, -vehicle_pos.Z());
+  this->dataPtr->time = _info.simTime;
+  this->dataPtr->sampled = true;
   CalculateOceanCurrent(vehicleDepth);
 }
 
 /////////////////////////////////////////////////
 void OceanCurrentModelPlugin::CalculateOceanCurrent(double vehicleDepth)
 {
-  this->dataPtr->lock_.lock();
-
-  if (this->dataPtr->database.size() == 0)
+  std::lock_guard<std::mutex> lock(this->dataPtr->lock_);
+  const auto & database = this->dataPtr->database;
+  if (database.empty() || !std::isfinite(vehicleDepth))
   {
-    // skip for next time (waiting for valid database subscrition)
+    return;
+  }
+  gz::math::Vector3d current;
+  if (vehicleDepth <= database.front().Z())
+  {
+    current = database.front();
+  }
+  else if (vehicleDepth >= database.back().Z())
+  {
+    current = database.back();
   }
   else
   {
-    double northCurrent = 0.0;
-    double eastCurrent = 0.0;
-
-    //--- Interpolate velocity from database ---//
-    // find current depth index from database
-    // (X: north-direction, Y: east-direction, Z: depth)
-    int depthIndex = 0;
-    for (int i = 1; i < this->dataPtr->database.size(); i++)
-    {
-      if (this->dataPtr->database[i].Z() > vehicleDepth)
-      {
-        depthIndex = i;
-        break;
-      }
-    }
-
-    // If sudden change found, use the one before
-    if (this->dataPtr->lastDepthIndex == 0)
-    {
-      this->dataPtr->lastDepthIndex = depthIndex;
-    }
-    else
-    {
-      if (abs(depthIndex - this->dataPtr->lastDepthIndex) > 2)
-      {
-        depthIndex = this->dataPtr->lastDepthIndex;
-      }
-      this->dataPtr->lastDepthIndex = depthIndex;
-    }
-
-    // interpolate
-    if (depthIndex == 0)
-    {  // Deeper than database use deepest value
-      northCurrent = this->dataPtr->database[this->dataPtr->database.size() - 1].X();
-      eastCurrent = this->dataPtr->database[this->dataPtr->database.size() - 1].Y();
-    }
-    else
-    {
-      double rate =
-        (vehicleDepth - this->dataPtr->database[depthIndex - 1].Z()) /
-        (this->dataPtr->database[depthIndex].Z() - this->dataPtr->database[depthIndex - 1].Z());
-      northCurrent =
-        (this->dataPtr->database[depthIndex].X() - this->dataPtr->database[depthIndex - 1].X()) *
-          rate +
-        this->dataPtr->database[depthIndex - 1].X();
-      eastCurrent =
-        (this->dataPtr->database[depthIndex].Y() - this->dataPtr->database[depthIndex - 1].Y()) *
-          rate +
-        this->dataPtr->database[depthIndex - 1].Y();
-    }
-    this->dataPtr->currentVelNorthModel.mean = northCurrent;
-    this->dataPtr->currentVelEastModel.mean = eastCurrent;
-    this->dataPtr->currentVelDownModel.mean = 0.0;
-
-    // Tidal oscillation
-    if (this->dataPtr->tideFlag)
-    {
-      // Update tide oscillation
-
-      if (this->dataPtr->tide_Constituents)
-      {
-        this->dataPtr->tide.M2_amp = this->dataPtr->M2_amp;
-        this->dataPtr->tide.M2_phase = this->dataPtr->M2_phase;
-        this->dataPtr->tide.M2_speed = this->dataPtr->M2_speed;
-        this->dataPtr->tide.S2_amp = this->dataPtr->S2_amp;
-        this->dataPtr->tide.S2_phase = this->dataPtr->S2_phase;
-        this->dataPtr->tide.S2_speed = this->dataPtr->S2_speed;
-        this->dataPtr->tide.N2_amp = this->dataPtr->N2_amp;
-        this->dataPtr->tide.N2_phase = this->dataPtr->N2_phase;
-        this->dataPtr->tide.N2_speed = this->dataPtr->N2_speed;
-      }
-      else
-      {
-        this->dataPtr->tide.dateGMT = this->dataPtr->timeGMT;
-        this->dataPtr->tide.speedcmsec = this->dataPtr->tideVelocities;
-      }
-      this->dataPtr->tide.ebbDirection = this->dataPtr->ebbDirection;
-      this->dataPtr->tide.floodDirection = this->dataPtr->floodDirection;
-      this->dataPtr->tide.worldStartTime = this->dataPtr->world_start_time;
-      this->dataPtr->tide.Initiate(this->dataPtr->tide_Constituents);
-      std::pair<double, double> currents =
-        this->dataPtr->tide.Update((this->dataPtr->time).count(), northCurrent);
-      this->dataPtr->currentVelNorthModel.mean = currents.first;
-      this->dataPtr->currentVelEastModel.mean = currents.second;
-      this->dataPtr->currentVelDownModel.mean = 0.0;
-    }
-    else
-    {
-      this->dataPtr->currentVelNorthModel.mean = northCurrent;
-      this->dataPtr->currentVelEastModel.mean = eastCurrent;
-      this->dataPtr->currentVelDownModel.mean = 0.0;
-    }
-
-    // Change min max accordingly
-    this->dataPtr->currentVelNorthModel.max =
-      this->dataPtr->currentVelNorthModel.mean + this->dataPtr->noiseAmp_North;
-    this->dataPtr->currentVelNorthModel.min =
-      this->dataPtr->currentVelNorthModel.mean - this->dataPtr->noiseAmp_North;
-    this->dataPtr->currentVelEastModel.max =
-      this->dataPtr->currentVelEastModel.mean + this->dataPtr->noiseAmp_East;
-    this->dataPtr->currentVelEastModel.min =
-      this->dataPtr->currentVelEastModel.mean - this->dataPtr->noiseAmp_East;
-    this->dataPtr->currentVelDownModel.max =
-      this->dataPtr->currentVelDownModel.mean + this->dataPtr->noiseAmp_Down;
-    this->dataPtr->currentVelDownModel.min =
-      this->dataPtr->currentVelDownModel.mean - this->dataPtr->noiseAmp_Down;
-
-    // Assign values to the model
-    this->dataPtr->currentVelNorthModel.var = this->dataPtr->currentVelNorthModel.mean;
-    this->dataPtr->currentVelEastModel.var = this->dataPtr->currentVelEastModel.mean;
-    this->dataPtr->currentVelDownModel.var = this->dataPtr->currentVelDownModel.mean;
-
-    // Update current velocity
-    double velocityNorth =
-      this->dataPtr->currentVelNorthModel.Update((this->dataPtr->time).count());
-
-    // Update current horizontal direction around z axis of flow frame
-    double velocityEast = this->dataPtr->currentVelEastModel.Update((this->dataPtr->time).count());
-
-    // Update current horizontal direction around z axis of flow frame
-    double velocityDown = this->dataPtr->currentVelDownModel.Update((this->dataPtr->time).count());
-
-    // Update current Velocity
-    this->dataPtr->currentVelocity = gz::math::Vector3d(velocityNorth, velocityEast, velocityDown);
+    const auto upper = std::upper_bound(
+      database.begin(), database.end(), vehicleDepth,
+      [](double depth, const gz::math::Vector3d & row) { return depth < row.Z(); });
+    const auto lower = upper - 1;
+    const auto ratio = (vehicleDepth - lower->Z()) / (upper->Z() - lower->Z());
+    current = *lower * (1 - ratio) + *upper * ratio;
   }
-
-  this->dataPtr->lock_.unlock();
+  const double seconds = std::chrono::duration<double>(this->dataPtr->time).count();
+  double north = current.X();
+  double east = current.Y();
+  if (this->dataPtr->tideFlag)
+  {
+    const auto tidal = this->dataPtr->tide.Update(seconds, north);
+    north = tidal.first;
+    east = tidal.second;
+  }
+  const auto sample =
+    [seconds](posim_gz_world_plugins::GaussMarkovProcess & model, double mean, double amplitude)
+  {
+    model.mean = mean;
+    model.min = mean - amplitude;
+    model.max = mean + amplitude;
+    model.var = mean;
+    return model.Update(seconds);
+  };
+  this->dataPtr->currentVelocity.Set(
+    sample(this->dataPtr->currentVelNorthModel, north, this->dataPtr->noiseAmp_North),
+    sample(this->dataPtr->currentVelEastModel, east, this->dataPtr->noiseAmp_East),
+    sample(this->dataPtr->currentVelDownModel, 0, this->dataPtr->noiseAmp_Down));
 }
 
 // ----------------------------------------------
@@ -635,15 +634,21 @@ void OceanCurrentModelPlugin::CalculateOceanCurrent(double vehicleDepth)
 void OceanCurrentModelPlugin::PostUpdate(
   const gz::sim::UpdateInfo & _info, const gz::sim::EntityComponentManager & _ecm)
 {
-  this->dataPtr->lastUpdate = _info.simTime;
-  PublishCurrentVelocity(_info);
-  if (!_info.paused)
+  if (!this->dataPtr->configured || _info.paused || !rclcpp::ok())
   {
+    return;
+  }
+  try
+  {
+    this->dataPtr->lastUpdate = _info.simTime;
+    PublishCurrentVelocity(_info);
     rclcpp::spin_some(this->ros_node_);
-
-    if (_info.iterations % 1000 == 0)
+  }
+  catch (const rclcpp::exceptions::RCLError &)
+  {
+    if (rclcpp::ok())
     {
-      gzmsg << "posim_gz_model_plugins::OceanCurrentModelPlugin::PostUpdate" << std::endl;
+      throw;
     }
   }
 }
@@ -651,9 +656,15 @@ void OceanCurrentModelPlugin::PostUpdate(
 /////////////////////////////////////////////////
 void OceanCurrentModelPlugin::PublishCurrentVelocity(const gz::sim::UpdateInfo & _info)
 {
+  if (!this->dataPtr->configured || !rclcpp::ok())
+  {
+    return;
+  }
   geometry_msgs::msg::TwistStamped flowVelMsg;
-  flowVelMsg.header.stamp.sec =
-    std::chrono::duration_cast<std::chrono::seconds>(_info.simTime).count();
+  const auto seconds = std::chrono::floor<std::chrono::seconds>(_info.simTime);
+  flowVelMsg.header.stamp.sec = seconds.count();
+  flowVelMsg.header.stamp.nanosec =
+    std::chrono::duration_cast<std::chrono::nanoseconds>(_info.simTime - seconds).count();
   flowVelMsg.header.frame_id = "/world";
   flowVelMsg.twist.linear.x = this->dataPtr->currentVelocity.X();
   flowVelMsg.twist.linear.y = this->dataPtr->currentVelocity.Y();

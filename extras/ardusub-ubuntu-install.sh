@@ -1,6 +1,33 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Repeat H.264 parameter sets at keyframes so receivers can join a running stream.
+# The same compatibility fix is used by the native and ARM64 image installers.
+patch_gst_camera() {
+    python3 - "$1" <<'PY'
+from pathlib import Path
+import sys
+
+source = Path(sys.argv[1]) / "src/GstCameraPlugin.cc"
+text = source.read_text()
+setting = 'g_object_set(G_OBJECT(payloader), "config-interval", -1, nullptr);'
+if setting not in text:
+    anchor = '    GstElement *payloader = gst_element_factory_make("rtph264pay", nullptr);'
+    if text.count(anchor) != 1:
+        raise SystemExit("Unsupported GstCameraPlugin source: review the H.264 keyframe setting")
+    source.write_text(text.replace(anchor, anchor + "\n    " + setting))
+PY
+}
+
+if [[ "${1:-}" == "--patch-gst-camera" ]]; then
+    if [[ "$#" != 2 ]]; then
+        echo "Usage: $0 --patch-gst-camera ARDUPILOT_GAZEBO_SOURCE" >&2
+        exit 2
+    fi
+    patch_gst_camera "$2"
+    exit 0
+fi
+
 # Source Ros and Gazebo
 ROS_DISTRO="${ROS_DISTRO:-lyrical}"
 set +u
@@ -12,11 +39,27 @@ export GZ_VERSION="${GZ_VERSION:-jetty}"
 # Commit used by the verified Lyrical / Python 3.14 build.
 ARDUPILOT_COMMIT="${ARDUPILOT_COMMIT:-30257f01185471ab4c1ac544e47d1b4437e44c98}"
 ARDUPILOT_GAZEBO_COMMIT="${ARDUPILOT_GAZEBO_COMMIT:-082a0fe231f6e63bc8d1598f1cba461d9e2ea7f5}"
+# Fetch pinned revisions over HTTP/1.1 and retry interrupted GitHub transfers.
+retry() {
+    local attempt=1
+    until "$@"; do
+        if [ "$attempt" -ge 3 ]; then return 1; fi
+        echo "Git transfer failed; retrying in $((attempt * 5)) seconds" >&2
+        sleep "$((attempt * 5))"
+        attempt=$((attempt + 1))
+    done
+}
+
 mkdir -p "/opt/ardusub_ws" && cd "/opt/ardusub_ws" || exit
-git clone https://github.com/ArduPilot/ardupilot.git --recurse-submodules
+git init ardupilot
 cd "/opt/ardusub_ws/ardupilot" || exit
+git remote get-url origin >/dev/null 2>&1 || \
+    git remote add origin https://github.com/ArduPilot/ardupilot.git
+retry git -c http.version=HTTP/1.1 -c http.lowSpeedLimit=1 -c http.lowSpeedTime=60 \
+    fetch --depth 1 --no-tags origin "$ARDUPILOT_COMMIT"
 git checkout --detach "$ARDUPILOT_COMMIT"
-git submodule update --init --recursive
+retry git -c http.version=HTTP/1.1 -c http.lowSpeedLimit=1 -c http.lowSpeedTime=60 \
+    submodule update --init --recursive --depth 1 --jobs 2
 
 # ArduPilot's waf extras still import Python modules removed in 3.12/3.13.
 # These minimal compatibility shims were used in the verified Ubuntu 26.04 build.
@@ -50,11 +93,16 @@ Tools/environment_install/install-prereqs-ubuntu.sh -y
 python3 modules/waf/waf-light configure --board sitl
 python3 modules/waf/waf-light build --target bin/ardusub
 
-# Clone ardupilot_gazebo code
+# Fetch the pinned ardupilot_gazebo revision without cloning the default branch.
 cd "/opt/ardusub_ws" || exit
-git clone https://github.com/ArduPilot/ardupilot_gazebo.git
+git init ardupilot_gazebo
 cd "/opt/ardusub_ws/ardupilot_gazebo" || exit
+git remote get-url origin >/dev/null 2>&1 || \
+    git remote add origin https://github.com/ArduPilot/ardupilot_gazebo.git
+retry git -c http.version=HTTP/1.1 -c http.lowSpeedLimit=1 -c http.lowSpeedTime=60 \
+    fetch --depth 1 --no-tags origin "$ARDUPILOT_GAZEBO_COMMIT"
 git checkout --detach "$ARDUPILOT_GAZEBO_COMMIT"
+patch_gst_camera "$PWD"
 
 # Install ardupilot_gazebo plugin
 # Check if the directory creation was successful

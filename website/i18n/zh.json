@@ -1,0 +1,155 @@
+{
+  "name": "简体中文",
+  "sections": [
+    "认识POSIM",
+    "开始使用",
+    "入门指南",
+    "机器人控制",
+    "进阶指南",
+    "插件参考",
+    "参考资料与项目"
+  ],
+  "pages": {
+    "index": "概述",
+    "features": "功能与示例",
+    "requirements": "选择运行环境",
+    "install": "Ubuntu：原生安装",
+    "install-ubuntu-docker": "Linux：使用Docker安装",
+    "install-windows": "Windows：在WSL中安装",
+    "install-windows-docker": "Windows：WSL与Docker",
+    "install-macos": "macOS：Docker与RDP",
+    "docker": "Docker环境",
+    "terminals": "准备终端",
+    "quickstart": "第一次仿真",
+    "visualization": "查看与记录传感器数据",
+    "worlds": "世界场景库",
+    "rovs": "ROV与BlueROV2",
+    "gliders": "Slocum水下滑翔机",
+    "objects": "物体与任务场景",
+    "ros": "ROS终端与话题",
+    "python-control": "使用Python控制",
+    "robot-control": "推进器与操纵杆控制",
+    "surface": "水面机器人与波浪",
+    "custom-worlds": "创建世界场景",
+    "custom-robots": "添加机器人",
+    "custom-sensors": "添加与配置传感器",
+    "heightmaps": "使用高度图构建地形",
+    "sonar-tuning": "配置与调试声呐",
+    "currents": "海流",
+    "underwater-rendering": "水下场景效果",
+    "camera": "水下相机",
+    "gnss": "海洋GNSS",
+    "pressure": "水压",
+    "dvl": "多普勒计程仪",
+    "usbl": "USBL定位",
+    "coordinates": "地理坐标",
+    "sonar": "多波束声呐",
+    "troubleshooting": "故障排查",
+    "contributing": "参与贡献",
+    "citation": "引用与许可证",
+    "qgroundcontrol": "使用 QGroundControl 控制"
+  },
+  "ui": {
+    "documentationLanguage": "文档语言",
+    "colorTheme": "界面主题",
+    "system": "跟随系统",
+    "light": "浅色",
+    "dark": "深色",
+    "skip": "跳转到正文",
+    "utility": "常用链接",
+    "menu": "文档菜单",
+    "search": "搜索文档",
+    "placeholder": "标题、命令、主题",
+    "otherLanguages": "搜索所有语言",
+    "mobileNavigation": "移动端文档",
+    "documentation": "文档",
+    "product": "Platform for Ocean Simulation · 文档",
+    "previousNext": "上一篇与下一篇",
+    "previous": "上一篇",
+    "next": "下一篇",
+    "edit": "编辑此页",
+    "references": "参考资料",
+    "onThisPage": "本页内容",
+    "noMatches": "未找到相关指南。",
+    "searchUnavailable": "请从文档菜单中选择指南。",
+    "copy": "复制",
+    "copyCode": "复制代码",
+    "copied": "已复制",
+    "textSelected": "已选中文本",
+    "copyShortcut": "请使用复制快捷键。",
+    "videoBuffered": "视频缓冲进度",
+    "retry": "重试",
+    "openVideo": "打开视频文件",
+    "buffering": "正在缓冲视频…",
+    "loading": "正在加载视频…",
+    "videoFailed": "无法加载视频。",
+    "sourceDirectories": "源代码目录"
+  },
+  "media": {
+    "camera": [
+      "Gazebo中的水下相机场景",
+      "显示水下相机图像",
+      "RGB衰减为零、背景为黑色时的图像",
+      "浑浊近岸水体：RGB衰减为0.8/0.5/0.2，背景色为85/107/47"
+    ],
+    "currents": [
+      "不同深度的分层海流及机器人响应",
+      "世界场景、ROS与模型海流插件之间的数据流",
+      "机器人对均匀海流的响应",
+      "机器人对分层海流的响应",
+      "均匀海流的ROS输出",
+      "分层海流的ROS输出",
+      "分层海流数据库的输出",
+      "根据模型深度施加海流",
+      "各模型的海流速度",
+      "模型海流的ROS话题",
+      "模型海流的Gazebo话题"
+    ],
+    "dvl": [
+      "DVL朝向海底的声学波束",
+      "DVL速度观测",
+      "检查Gazebo中的DVL话题",
+      "检查ROS中的DVL话题"
+    ],
+    "gliders": [
+      "Slocum水下滑翔机的运动"
+    ],
+    "objects": [
+      "在Gazebo的Resource Spawner中选择模型",
+      "上传模型到Fuel",
+      "Fuel中的模型文件与元数据",
+      "确认发布到Fuel"
+    ],
+    "pressure": [
+      "ROS压力观测",
+      "在Gazebo中检查压力",
+      "根据压力计算的深度输出"
+    ],
+    "rovs": [
+      "REXROV的水下运动与姿态"
+    ],
+    "sonar-tuning": [
+      "声呐处理的GPU计算阶段"
+    ],
+    "sonar": [
+      "基于点散射的多波束声呐处理",
+      "同一场景的RGB图像、深度、声呐图像与点云",
+      "声呐示例中的图像变化",
+      "场景变化时的声呐观测",
+      "BlueROV2的声呐观测",
+      "使用声呐搜索近处场景"
+    ],
+    "usbl": [
+      "USBL收发器与应答器的布置",
+      "公共询问与单独询问的消息流程",
+      "应答器位置观测"
+    ],
+    "qgroundcontrol": [
+      "前视相机显示示例世界中的物体。显示视频时，仍可操作画面上的虚拟摇杆。"
+    ],
+    "install-macos": [
+      "使用预构建的 ARM64 镜像，在 RDP 远程桌面内运行 Gazebo。"
+    ]
+  },
+  "overview": "海洋环境 → 机器人与动力学 → 传感器观测 → ROS 2控制。点击图片即可打开指南。"
+}

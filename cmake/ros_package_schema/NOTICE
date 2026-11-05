@@ -1,0 +1,11 @@
+ROS package schemas, copied without changes from ros-infrastructure/rep:
+https://github.com/ros-infrastructure/rep/tree/master/xsd
+
+package_format3.xsd: Git blob c09cd8eb9617b44377d30874279140d46432edcf
+package_common.xsd: Git blob afda493fd28e92f45708c5e7de6272382660c431
+
+These schemas accompany the ROS package format specification in REP 149,
+which is placed in the public domain:
+https://www.ros.org/reps/rep-0149.html
+
+Local copies keep package-format validation independent of network access.

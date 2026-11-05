@@ -1,17 +1,18 @@
-cmake_minimum_required(VERSION 3.11.0 FATAL_ERROR)
-
-# Suppress developer warnings for the entire workspace.
-set(CMAKE_SUPPRESS_DEVELOPER_WARNINGS TRUE CACHE BOOL
-    "Suppress developer warnings" FORCE)
-
-# Ensure find_package uses upper-case <PACKAGENAME>_ROOT variables.
-cmake_policy(SET CMP0144 NEW)
-
-set(CUDA_ARCHITECTURE "native" CACHE STRING
-    "Target CUDA SM version(s), e.g. native or 70;80;89")
-set(CMAKE_CUDA_ARCHITECTURES "${CUDA_ARCHITECTURE}")
+cmake_minimum_required(VERSION 3.18 FATAL_ERROR)
+if(POLICY CMP0144)
+  cmake_policy(SET CMP0144 NEW)
+endif()
 
 project(multibeam_sonar)
+
+# Keep explicit legacy architecture settings without overriding
+# the native property.
+if(DEFINED CUDA_ARCHITECTURE AND NOT DEFINED CMAKE_CUDA_ARCHITECTURES)
+  set(CMAKE_CUDA_ARCHITECTURES "${CUDA_ARCHITECTURE}"
+    CACHE STRING "CUDA architectures")
+  message(DEPRECATION
+    "Use CMAKE_CUDA_ARCHITECTURES instead of CUDA_ARCHITECTURE")
+endif()
 
 find_package(ament_cmake REQUIRED)
 find_package(gz-cmake 5 REQUIRED)
@@ -24,20 +25,19 @@ find_package(rclcpp REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(OpenCV REQUIRED)
+find_package(cv_bridge REQUIRED)
 find_package(marine_acoustic_msgs REQUIRED)
 find_package(Eigen3 REQUIRED)
 find_package(wgpu_vendor REQUIRED)
 find_package(CUDAToolkit QUIET)
 
 if(CUDAToolkit_FOUND)
-  set(CMAKE_CUDA_COMPILER "${CUDAToolkit_NVCC_EXECUTABLE}"
-      CACHE FILEPATH "CUDA compiler" FORCE)
+  if(NOT CMAKE_CUDA_COMPILER)
+    set(CMAKE_CUDA_COMPILER "${CUDAToolkit_NVCC_EXECUTABLE}"
+      CACHE FILEPATH "CUDA compiler")
+  endif()
   enable_language(CUDA)
-  find_package(CUDA REQUIRED)
-  message(STATUS
-    "CUDA ${CUDAToolkit_VERSION} found (SM ${CUDA_ARCHITECTURE}), "
-    "enabling CUDA support.")
-  include_directories(${CUDA_INCLUDE_DIRS})
+  message(STATUS "CUDA found, enabling CUDA support.")
 endif()
 
 if(TARGET gz-rendering::ogre)
@@ -60,16 +60,21 @@ if(CUDAToolkit_FOUND)
 endif()
 
 add_library(${PROJECT_NAME} SHARED ${SONAR_SOURCES})
+target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17)
 
 if(CUDAToolkit_FOUND)
   set_target_properties(${PROJECT_NAME}
     PROPERTIES
       CUDA_SEPARABLE_COMPILATION ON
+      CUDA_STANDARD 17
+      CUDA_STANDARD_REQUIRED ON
   )
   target_compile_definitions(${PROJECT_NAME} PRIVATE POSIM_HAS_CUDA_BACKEND=1)
 endif()
 
 target_include_directories(${PROJECT_NAME} PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+  $<INSTALL_INTERFACE:include/${PROJECT_NAME}>
   ${rclcpp_INCLUDE_DIRS}
   ${sensor_msgs_INCLUDE_DIRS}
   ${geometry_msgs_INCLUDE_DIRS}
@@ -84,12 +89,13 @@ target_link_libraries(${PROJECT_NAME}
   gz-msgs::gz-msgs
   gz-transport::gz-transport
   gz-rendering::gz-rendering
-  ${rclcpp_LIBRARIES}
-  ${sensor_msgs_LIBRARIES}
-  ${geometry_msgs_LIBRARIES}
+  rclcpp::rclcpp
+  ${sensor_msgs_TARGETS}
+  ${geometry_msgs_TARGETS}
   ${OpenCV_LIBS}
   Eigen3::Eigen
-  ${marine_acoustic_msgs_LIBRARIES}
+  ${marine_acoustic_msgs_TARGETS}
+  cv_bridge::cv_bridge
 )
 
 if(APPLE)
@@ -100,21 +106,8 @@ if(APPLE)
 endif()
 
 if(CUDAToolkit_FOUND)
-  find_library(CUBLAS_LIB cublas
-    HINTS
-      ${CUDAToolkit_LIBRARY_DIR}
-      /usr/local/cuda/lib64
-      /usr/lib/x86_64-linux-gnu
-      /usr/lib
-  )
-  if(NOT CUBLAS_LIB)
-    message(FATAL_ERROR "cuBLAS not found")
-  endif()
   target_link_libraries(${PROJECT_NAME}
-    ${CUDA_LIBRARIES}
-    ${CUDA_CUFFT_LIBRARIES}
-    ${CUBLAS_LIB}
-  )
+    CUDA::cudart CUDA::cufft CUDA::cublas)
 endif()
 
 set(_wgpu_target_linked FALSE)
@@ -143,6 +136,13 @@ if(TARGET gz-sensors::gz-sensors-rendering)
 endif()
 
 if(BUILD_TESTING)
+  find_package(ament_cmake_gtest REQUIRED)
+  ament_add_gtest(test_sonar_log test/test_sonar_log.cc)
+  target_include_directories(test_sonar_log PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+  target_compile_features(test_sonar_log PRIVATE cxx_std_17)
+  find_package(ament_cmake_pytest REQUIRED)
+  ament_add_pytest_test(test_library_load test/test_library_load.py
+    ENV "POSIM_SONAR_LIBRARY=$<TARGET_FILE:${PROJECT_NAME}>")
   enable_testing()
   add_executable(test_ray_surface_normals test/test_ray_surface_normals.cc)
   target_compile_features(test_ray_surface_normals PRIVATE cxx_std_17)
@@ -187,8 +187,22 @@ if(BUILD_TESTING)
 endif()
 
 install(TARGETS ${PROJECT_NAME}
+  EXPORT export_${PROJECT_NAME}
   DESTINATION lib/${PROJECT_NAME}
 )
+install(FILES MultibeamSonarSensor.hh AcousticBeam.hh AxisAlignedPatch2.hh
+  sonar_compute_backend.hh RangeSampling.hh RaySurfaceNormals.hh
+  DESTINATION include/${PROJECT_NAME}
+)
+ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
+ament_export_dependencies(
+  gz-sim gz-sensors gz-msgs gz-transport gz-rendering
+  rclcpp sensor_msgs geometry_msgs OpenCV marine_acoustic_msgs cv_bridge
+  Eigen3 wgpu_vendor
+)
+if(CUDAToolkit_FOUND)
+  ament_export_dependencies(CUDAToolkit)
+endif()
 
 ament_environment_hooks(
   "${CMAKE_CURRENT_SOURCE_DIR}/hooks/${PROJECT_NAME}.dsv.in"

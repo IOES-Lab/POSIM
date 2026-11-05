@@ -1,5 +1,5 @@
 # Optional ARM64 overlay; AMD64 has a different user/workspace layout.
-ARG POSIM_BASE_IMAGE=posim:dev-arm64-rdp
+ARG POSIM_BASE_IMAGE=ioeslab/posim:latest
 FROM ${POSIM_BASE_IMAGE}
 USER root
 SHELL ["/bin/bash", "-c"]
@@ -14,6 +14,6 @@ ENV GZ_SIM_SYSTEM_PLUGIN_PATH=/opt/waves/lib:/home/docker/ardupilot_gazebo/build
 ENV GZ_SIM_RESOURCE_PATH=/opt/asv_wave_sim/gz-waves-models/models:/opt/asv_wave_sim/gz-waves-models/world_models:/home/docker/ardupilot_gazebo/models:/home/docker/ardupilot_gazebo/worlds
 COPY extras/surface /opt/posim-surface
 RUN mkdir /tmp/posim-surface && chown docker:docker /tmp/posim-surface
-USER docker
+USER root
 
 LABEL org.opencontainers.image.licenses="Apache-2.0 AND GPL-3.0-or-later"

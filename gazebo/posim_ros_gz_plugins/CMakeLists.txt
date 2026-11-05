@@ -115,8 +115,21 @@ ament_environment_hooks(
 
 # Optional: Testing setup
 if(BUILD_TESTING)
-  find_package(ament_lint_auto REQUIRED)
-  ament_lint_auto_find_test_dependencies()
+  find_package(ament_cmake_gtest REQUIRED)
+  ament_add_gtest(test_dvl_conversion test/test_dvl_conversion.cc)
+  target_include_directories(test_dvl_conversion PRIVATE src)
+  target_link_libraries(test_dvl_conversion DVLBridge)
+  ament_add_gtest(test_spherical_coords test/test_spherical_coords.cc)
+  target_include_directories(test_spherical_coords PRIVATE include)
+  target_link_libraries(test_spherical_coords SphericalCoords)
+  ament_add_gtest(test_current_services test/test_current_services.cc)
+  target_include_directories(test_current_services PRIVATE include)
+  target_link_libraries(test_current_services OceanCurrentPlugin)
+  ament_add_gtest(test_dvl_bridge test/test_dvl_bridge.cc)
+  target_include_directories(test_dvl_bridge PRIVATE include)
+  target_link_libraries(test_dvl_bridge DVLBridge)
+  include(../../cmake/PosimLint.cmake)
+  posim_add_lint_tests()
 endif()
 
 # Configure ament

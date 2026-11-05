@@ -1,6 +1,7 @@
 """Optional external-wave WAM-V + ArduRover demo; does not change BlueROV defaults."""
 
 from pathlib import Path
+import shlex
 import sys
 import xml.etree.ElementTree as ET
 from launch import LaunchDescription
@@ -19,11 +20,21 @@ from wamv import make_model  # noqa: E402 - sibling module after launch loader p
 from waves import prepare  # noqa: E402 - sibling module after launch loader path
 
 
+def continue_on_success(event, context, actions, stage):
+    """Advance only when the preceding startup process completed successfully."""
+    if context.is_shutdown:
+        return []
+    if event.returncode == 0:
+        return actions
+    raise RuntimeError(f"Surface demo {stage} failed (exit {event.returncode})")
+
+
 def setup(context):
+    world_name = LaunchConfiguration("world_name").perform(context)
     folder = Path("/tmp/posim-surface")
     folder.mkdir(exist_ok=True)
     sdf = ET.Element("sdf", version="1.10")
-    world = ET.SubElement(sdf, "world", name="wwos_gebco")
+    world = ET.SubElement(sdf, "world", name=world_name)
     physics = ET.SubElement(world, "physics", name="default", type="ignored")
     ET.SubElement(physics, "max_step_size").text = ".005"
     ET.SubElement(physics, "real_time_factor").text = "1"
@@ -62,9 +73,10 @@ def setup(context):
     create = Node(
         package="ros_gz_sim",
         executable="create",
+        prefix="timeout --kill-after=10s 180s",
         arguments=[
             "-world",
-            "wwos_gebco",
+            world_name,
             "-file",
             make_model(folder / "wamv.sdf"),
             "-name",
@@ -74,7 +86,7 @@ def setup(context):
         ],
         output="screen",
     )
-    imu = "/world/wwos_gebco/model/wamv/link/imu_link/sensor/imu_sensor/imu"
+    imu = f"/world/{world_name}/model/wamv/link/imu_link/sensor/imu_sensor/imu"
     bridge = Node(
         package="ros_gz_bridge",
         executable="parameter_bridge",
@@ -90,7 +102,9 @@ def setup(context):
         cmd=[
             "bash",
             "-c",
-            f"until timeout 2 gz topic -e -t {imu} -n 1 >/dev/null 2>&1; do :; done",
+            f"deadline=$((SECONDS + 180)); until timeout 2 gz topic -e -t {shlex.quote(imu)} "
+            "-n 1 >/dev/null 2>&1; do if (( SECONDS >= deadline )); then "
+            'echo "Timed out waiting for WAM-V IMU data" >&2; exit 1; fi; done',
         ],
         output="screen",
     )
@@ -123,12 +137,34 @@ def setup(context):
         navigation,
         server,
         create,
-        RegisterEventHandler(OnProcessExit(target_action=create, on_exit=[bridge, wait])),
-        RegisterEventHandler(OnProcessExit(target_action=wait, on_exit=[sitl, mavros])),
+        RegisterEventHandler(
+            OnProcessExit(
+                target_action=create,
+                on_exit=lambda event, context: continue_on_success(
+                    event, context, [bridge, wait], "model spawn"
+                ),
+            )
+        ),
+        RegisterEventHandler(
+            OnProcessExit(
+                target_action=wait,
+                on_exit=lambda event, context: continue_on_success(
+                    event, context, [sitl, mavros], "IMU readiness"
+                ),
+            )
+        ),
     ]
 
 
 def generate_launch_description():
     return LaunchDescription(
-        [DeclareLaunchArgument("headless", default_value="true"), OpaqueFunction(function=setup)]
+        [
+            DeclareLaunchArgument("headless", default_value="true"),
+            DeclareLaunchArgument(
+                "world_name",
+                default_value="posim_surface",
+                description="Name of the generated SDF world and its Gazebo topic namespace",
+            ),
+            OpaqueFunction(function=setup),
+        ]
     )
