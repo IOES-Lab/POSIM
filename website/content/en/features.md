@@ -29,7 +29,7 @@ Underwater optics shade PBR surfaces and preserve numeric depth. The ocean's cus
 | REXROV, BlueROV2 variants and Slocum glider | `models/posim_robot_models` | [ROVs](rovs.md), [glider](gliders.md), [custom robots](custom-robots.md) |
 | ArduRover WAM-V integration and ROS control | `extras/surface`, model launch configurations, `posim_interfaces` | [Surface vehicle](surface.md), [ROS 2](ros.md) |
 
-Sensor availability depends on installed plugins and model configuration. GNSS profiles describe mounts; a caller must attach the link and receiver. CUDA sonar requires its supported GPU/toolchain. A configured topic name does not establish that measurements are arriving.
+Sensor availability depends on installed plugins and model configuration. GNSS profiles describe mounts; attach the link and receiver when integrating one. CUDA sonar requires its supported GPU and toolchain. Use each sensor reference's quickstart to confirm live measurements.
 
 ## Source directories
 

@@ -11,7 +11,7 @@
 | `bluerov2_heavy` | Heavy 구성 |
 | `bluerov2_heavy_multibeam_sonar` | CUDA 소나를 포함한 Heavy 구성 |
 
-명령 실행 전에 [작업 공간 환경](install.md)을 불러옵니다. REXROV는 [첫 시뮬레이션](quickstart.md)의 예제로 시작할 수 있습니다.
+설치 방식에 맞게 [준비한 POSIM 터미널](terminals.md)을 사용합니다. REXROV는 [첫 시뮬레이션](quickstart.md)의 예제로 시작할 수 있습니다.
 
 ## BlueROV2 실행
 
@@ -57,7 +57,7 @@ ros2 launch posim_demos posim_robot.launch.py \
   virtual_joystick_url:='http://127.0.0.1:8080/virtual_joystick.html?host=127.0.0.1&port=8765'
 ```
 
-WebSocket 브리지가 teleoperation Launch 안에 있으므로 `use_teleop:=true`를 유지합니다. 브라우저가 자동으로 열리지 않으면 같은 컴퓨터에서 위 URL을 여세요. QGroundControl은 별도 프로그램이며 `open_qgc`를 켜기 전에 실행 파일을 설치해야 합니다.
+WebSocket 브리지가 teleoperation Launch 안에 있으므로 `use_teleop:=true`를 유지합니다. 브라우저가 자동으로 열리지 않으면 같은 Linux 데스크톱에서 위 URL을 여세요. QGC 설치, 가상 조이스틱과 영상 수신은 [QGroundControl로 제어하기](qgroundcontrol.md)를 따릅니다. POSIM Docker 이미지에는 QGC가 포함되어 있습니다.
 
 프로그램에서 센서를 구독하거나 명령을 보내려면 [ROS 2와 제어](ros.md)로 이어가세요.
 

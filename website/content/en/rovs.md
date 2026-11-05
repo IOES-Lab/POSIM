@@ -11,7 +11,7 @@ Select a packaged robot description with the `namespace` argument. This argument
 | `bluerov2_heavy` | Heavy configuration |
 | `bluerov2_heavy_multibeam_sonar` | Heavy configuration with CUDA sonar |
 
-Source your [workspace](install.md) before running commands. For REXROV, use the [first simulation](quickstart.md) example.
+Use the [prepared POSIM terminal](terminals.md) for your installation route. For REXROV, use the [first simulation](quickstart.md) example.
 
 ## Start BlueROV2
 
@@ -57,7 +57,7 @@ ros2 launch posim_demos posim_robot.launch.py \
   virtual_joystick_url:='http://127.0.0.1:8080/virtual_joystick.html?host=127.0.0.1&port=8765'
 ```
 
-Keep `use_teleop:=true`: it enables the teleoperation launch containing the WebSocket bridge. If the browser does not open automatically, open the URL on the same machine. QGroundControl is an optional separate application; install its executable before enabling `open_qgc`.
+Keep `use_teleop:=true`: it enables the teleoperation launch containing the WebSocket bridge. If the browser does not open automatically, open the URL on the same Linux desktop. For QGC installation, virtual joysticks and camera video, follow [Control with QGroundControl](qgroundcontrol.md). The POSIM Docker images include QGC.
 
 For programmatic sensor subscriptions and commands, continue to [ROS 2 and control](ros.md).
 

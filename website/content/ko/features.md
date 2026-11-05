@@ -29,7 +29,7 @@
 | REXROV·BlueROV2 계열·Slocum 글라이더 | `models/posim_robot_models` | [ROV](rovs.md), [글라이더](gliders.md), [사용자 로봇](custom-robots.md) |
 | ArduRover WAM-V 연동과 ROS 제어 | `extras/surface`, 모델 Launch 설정, `posim_interfaces` | [수상 차량](surface.md), [ROS 2](ros.md) |
 
-사용 가능한 센서는 설치된 플러그인과 모델 설정에 따라 달라집니다. GNSS 프로필은 장착 정보를 제공하며, 호출 코드가 링크와 수신기를 연결해야 합니다. CUDA 소나에는 지원 GPU·개발 도구가 필요합니다. 토픽 이름의 설정만으로 측정 수신을 확인할 수는 없습니다.
+사용 가능한 센서는 설치된 플러그인과 모델 설정에 따라 달라집니다. GNSS 프로필을 적용할 때는 장착 링크와 수신기를 연결합니다. CUDA 소나에는 지원 GPU와 개발 도구가 필요합니다. 각 센서 참고 문서의 빠른 시작 예제로 실시간 측정값을 확인하세요.
 
 ## 소스 디렉토리
 

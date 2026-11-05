@@ -4,6 +4,8 @@
 
 ## 월드 시작
 
+Ubuntu 네이티브, WSL, Docker, RDP 중 설치 방식에 맞게 [준비한 POSIM 터미널](terminals.md)에서 실행합니다.
+
 ```bash
 ros2 launch posim_demos posim_world.launch.py \
   world_name:=posim_ocean_waves headless:=false
@@ -28,7 +30,7 @@ ros2 launch posim_demos posim_world.launch.py \
 
 ## 소스 목록
 
-아래 목록은 사이트를 빌드할 때 소스의 월드 파일에서 생성합니다. 파일을 열어 시스템, 포함 모델, 기준 좌표, 조명과 카메라 구성을 확인하세요.
+월드 파일을 열어 시스템, 포함 모델, 기준 좌표, 조명과 카메라 구성을 확인하세요.
 
 | 월드 SDF |
 | --- |
@@ -53,9 +55,7 @@ gz service -s /world/posim_integrated/scene/info \
 # posim_ocean_models.world는 /world/posim_ocean_model/scene/info를 사용합니다.
 ```
 
-모델이 포함된 장면 응답, 시뮬레이션 시간 증가, 기대한 센서 출력은 각각 확인해야 합니다.
-다운로드가 멈추면 상세 로그를 보존하고 Gazebo를 실행하는 PC/컨테이너의 네트워크를
-확인하세요. 다운로드 중 중단된 실행을 정상 실행·종료 시험의 통과로 세면 안 됩니다.
+응답에 필요한 모델이 포함되는지 확인한 뒤 시뮬레이션 시계와 센서 출력을 확인하세요. 다운로드가 멈추면 리소스 로딩 메시지와 Gazebo를 실행하는 PC 또는 컨테이너의 네트워크 연결을 살펴봅니다.
 
 ## Launch 인수 선택하기
 

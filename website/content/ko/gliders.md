@@ -4,7 +4,7 @@
 
 ## 해양 월드에서 실행
 
-환경을 불러온 뒤 실행합니다.
+설치 방식에 맞게 [준비한 POSIM 터미널](terminals.md)에서 실행합니다.
 
 ```bash
 ros2 launch posim_demos posim_robot.launch.py \

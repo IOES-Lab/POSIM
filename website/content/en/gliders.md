@@ -4,7 +4,7 @@ The `glider_slocum` description includes a body, thruster, hydrodynamics, IMU, n
 
 ## Run in an ocean world
 
-With the environment loaded:
+In the [POSIM terminal prepared for your installation](terminals.md):
 
 ```bash
 ros2 launch posim_demos posim_robot.launch.py \

@@ -2,6 +2,8 @@
 
 POSIM includes object descriptions for manipulation, inspection and interaction. Models are installed by the `posim_object_models` package alongside their mesh and configuration resources.
 
+Run the commands in the [POSIM terminal for your installation](terminals.md), including WSL, Docker and RDP environments.
+
 ## Explore the catalog
 
 Local descriptions are installed with POSIM. Other task objects are referenced from Gazebo Fuel by the example worlds. The local catalog is generated from `models/posim_object_models/description` in the current checkout. Open a directory to inspect its SDF, links, joints and resources.

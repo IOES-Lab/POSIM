@@ -2,6 +2,8 @@
 
 POSIM에는 조작, 검사와 상호작용 실험용 물체 모델이 있습니다. `posim_object_models` 패키지에서 모델과 메시·설정 리소스를 함께 설치합니다.
 
+WSL, Docker, RDP를 포함해 [설치 방식에 맞게 준비한 POSIM 터미널](terminals.md)에서 명령을 실행합니다.
+
 ## 물체 목록
 
 로컬 모델은 POSIM 패키지에 설치됩니다. 예제 월드의 다른 작업 물체는 Gazebo Fuel에서 참조합니다. 아래 로컬 목록은 현재 소스의 `models/posim_object_models/description`에서 생성합니다. 디렉터리를 열어 SDF, 링크, 관절과 리소스를 확인하세요.

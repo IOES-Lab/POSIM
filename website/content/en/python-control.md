@@ -1,6 +1,6 @@
 # Control with Python
 
-Start REXROV with [First simulation](quickstart.md) and keep it running. Use a second sourced terminal for these programs. Read the position first, then send one short thruster pulse.
+Start REXROV with [First simulation](quickstart.md) and keep it running in Terminal A. Run these programs in [prepared Terminal B](terminals.md). Read the position first, then send one short thruster pulse.
 
 ## Subscribe from Python
 
