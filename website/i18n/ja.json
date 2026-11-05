@@ -33,7 +33,7 @@
     "custom-worlds": "ワールドを作る",
     "custom-robots": "ロボットを追加する",
     "custom-sensors": "センサーの追加と設定",
-    "heightmaps": "高さマップによる地形",
+    "heightmaps": "ハイトマップによる地形",
     "sonar-tuning": "ソナーの設定と調整",
     "currents": "海流",
     "underwater-rendering": "水中シーンの表現",

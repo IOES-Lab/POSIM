@@ -4,7 +4,9 @@
 
 ## 이 문서를 실행할 위치
 
-[터미널 준비](terminals.md)에서 설정한 Linux 터미널을 사용합니다. Ubuntu 네이티브, WSL의 Ubuntu, POSIM 컨테이너에서 같은 순서로 진행할 수 있습니다. macOS는 RDP로 접속한 Linux 데스크톱 안의 터미널을 사용하세요. 파일 수정과 빌드도 그 환경 안에서 수행하며, `POSIM_WS`는 해당 작업 공간의 경로입니다.
+[터미널 준비](terminals.md)에서 설정한 Linux 터미널을 사용합니다. NVIDIA GPU가 있는 Ubuntu 또는 지원되는 WSL 2 호스트, GPU에 접근할 수 있는 컨테이너에서 진행하세요. 파일 수정과 빌드도 그 환경 안에서 수행하며, `POSIM_WS`는 해당 작업 공간의 경로입니다.
+
+macOS의 Docker·RDP 구성에서는 CUDA GPU를 사용할 수 없습니다. 이 소나는 NVIDIA GPU가 있는 Linux 또는 WSL 2 호스트에서 실행하세요.
 
 ## 기준 결과 측정
 
@@ -49,7 +51,7 @@ nvidia-smi
 nvcc --version
 ```
 
-GPU 접근과 컴파일러 설치는 각각 확인합니다. 컨테이너에서는 호스트의 [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html)과 이미지 안의 라이브러리를 모두 준비해야 합니다.
+GPU 접근과 컴파일러 설치는 각각 확인합니다. Linux의 Docker Engine은 호스트에 [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html)을 설정합니다. Windows에서는 [Docker Desktop의 WSL 2 GPU 설정](https://docs.docker.com/desktop/features/gpu/)을 따르세요. 컨테이너 이미지 안에도 CUDA 라이브러리가 필요합니다.
 
 ## CUDA 아키텍처 선택
 

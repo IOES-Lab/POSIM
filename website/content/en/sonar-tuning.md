@@ -4,7 +4,9 @@ Choose the coverage, detail and update rate needed by your sonar experiment. The
 
 ## Where to run this guide
 
-Use the Linux terminals prepared in [Prepare your terminals](terminals.md). This applies to native Ubuntu, Ubuntu in WSL, and POSIM containers. On macOS, use the Linux terminal inside the RDP desktop. Edit and build inside that environment; `POSIM_WS` is its workspace path.
+Use the Linux terminals prepared in [Prepare your terminals](terminals.md) on an NVIDIA-equipped Ubuntu or supported WSL 2 host, or in a container with GPU access. Edit and build in that environment; `POSIM_WS` is its workspace path.
+
+The macOS Docker/RDP setup does not expose a CUDA GPU. Run this sonar backend on an NVIDIA-equipped Linux or WSL 2 host.
 
 ## Establish a baseline
 
@@ -49,7 +51,7 @@ nvidia-smi
 nvcc --version
 ```
 
-GPU visibility and compiler availability are separate checks. For containers, configure [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html) on the host as well as the required libraries inside the image.
+GPU visibility and compiler availability are separate checks. For Docker Engine on Linux, configure the host's [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html). On Windows, follow the [Docker Desktop WSL 2 GPU setup](https://docs.docker.com/desktop/features/gpu/). The container image also needs the CUDA libraries.
 
 ## Select a CUDA architecture
 
