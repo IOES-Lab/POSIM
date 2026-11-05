@@ -4,13 +4,15 @@
 
 ## 센서 실행
 
+[설치 방식에 맞게 준비한 터미널 A](terminals.md)에서 실행합니다.
+
 ```bash
 ros2 launch posim_demos posim_sensor.launch.py \
   namespace:=nortek_dvl500_300 world_name:=dvl_world z:=-30 \
   paused:=false gui:=true headless:=false
 ```
 
-같은 환경의 두 번째 터미널에서 Gazebo와 ROS 데이터를 차례로 확인합니다.
+준비한 터미널 B에서 Gazebo 데이터를 확인하고 **Ctrl+C**로 확인 도구를 종료한 뒤 ROS 데이터를 확인합니다.
 
 ```bash
 gz topic -e -t /dvl/velocity

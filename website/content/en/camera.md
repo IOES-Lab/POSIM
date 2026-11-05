@@ -6,6 +6,8 @@ The `UnderwaterCamera` plugin uses depth data to reduce RGB color intensity with
 
 This sensor example uses the depth-based camera filter. The scene renderer has its own [build, world plugin and appearance settings](underwater-rendering.md).
 
+Run in [terminal A prepared for your installation](terminals.md):
+
 ```bash
 ros2 launch posim_demos posim_sensor.launch.py \
   namespace:=underwater_camera world_name:=camera_tutorial \
@@ -13,7 +15,7 @@ ros2 launch posim_demos posim_sensor.launch.py \
   paused:=false gui:=true headless:=false
 ```
 
-In a second terminal with the same environment loaded:
+In the prepared terminal B:
 
 ```bash
 ros2 topic echo /underwater_camera/simulated_image \
@@ -21,7 +23,7 @@ ros2 topic echo /underwater_camera/simulated_image \
 ros2 topic hz /underwater_camera/simulated_image
 ```
 
-Use an RViz Image display to inspect the resulting image. A working renderer is needed even when no GUI is shown. If the topic is discovered but images stop arriving, check [large-image transport](troubleshooting.md#image-topics-appear-but-frames-stall).
+Use an RViz Image display to inspect the resulting image. If the topic is discovered but images stop arriving, check [large-image transport](troubleshooting.md#image-topics-appear-but-frames-stall).
 
 ## Configure the plugin
 
@@ -59,9 +61,13 @@ Place this sensor inside a model `<link>`. The world also needs `gz-sim-sensors-
 | `backgroundG` | Green background channel, integer 0–255 | `0` |
 | `backgroundB` | Blue background channel, integer 0–255 | `0` |
 
+## Image topics and camera geometry
+
 The sensor's `<topic>` must produce a valid ROS topic name. Omitting it uses Gazebo's `/world/<world>/model/<model>/link/<link>/sensor/<sensor>` scope; the ROS image is published below that scope at `/simulated_image`. Nested models add their parent model scopes.
 
 Depth-to-range conversion uses an explicit camera lens projection when supplied, then explicit lens intrinsics, otherwise image dimensions and horizontal field of view. Explicit zero principal-point coordinates are valid. Focal lengths must be positive, lens values finite and clipping distances satisfy `0 < near < far` in meters. Invalid settings produce a log error and disable the plugin's output.
+
+## Frame timing and example values
 
 Color and depth frames are paired by their acquisition timestamp, whichever arrives first. Each ROS image preserves the color frame's timestamp and frame ID. Unmatched frames are discarded when the pending buffer fills; resetting simulation time clears pending frames and allows timestamps to restart.
 
@@ -88,7 +94,7 @@ This sensor implements distance-dependent RGB attenuation and background blendin
 
 ## Suspended particles
 
-The native renderer can show suspended specks in RGB and RGBD color images. Specks are off by default. Enable them through the host application's appearance controls or the renderer's [appearance service](https://github.com/IOES-Lab/POSIM/tree/main/gazebo/posim_gz_rendering).
+The native renderer can show suspended specks in RGB and RGBD color images. Specks are off by default. Enable them through the renderer's [appearance service](underwater-rendering.md#turn-on-marine-snow).
 
 Particles occupy shared positions in the world and drift uniformly with simulation time. Different camera views observe the same positions at the same time. Opaque surfaces hide particles behind them. The visible interval is 0.05–3 m, clipped by the scene and the mean water level. Numeric depth and acoustic rays retain their values.
 

@@ -6,6 +6,8 @@
 
 이 센서 예제는 깊이 기반 카메라 필터를 사용합니다. 장면 렌더러는 별도의 [빌드·월드 플러그인·외관 설정](underwater-rendering.md)을 사용합니다.
 
+[설치 방식에 맞게 준비한 터미널 A](terminals.md)에서 실행합니다.
+
 ```bash
 ros2 launch posim_demos posim_sensor.launch.py \
   namespace:=underwater_camera world_name:=camera_tutorial \
@@ -13,7 +15,7 @@ ros2 launch posim_demos posim_sensor.launch.py \
   paused:=false gui:=true headless:=false
 ```
 
-같은 환경의 두 번째 터미널에서 확인합니다.
+준비한 터미널 B에서 확인합니다.
 
 ```bash
 ros2 topic echo /underwater_camera/simulated_image \
@@ -21,7 +23,7 @@ ros2 topic echo /underwater_camera/simulated_image \
 ros2 topic hz /underwater_camera/simulated_image
 ```
 
-RViz의 Image 디스플레이에서 결과를 확인하세요. GUI가 없어도 렌더러는 필요합니다. 토픽은 검색되지만 영상 수신이 멈추면 [큰 영상 메시지의 전송 설정](troubleshooting.md#영상-토픽은-보이지만-수신이-멈출-때)을 확인하세요.
+RViz의 Image 디스플레이에서 결과를 확인하세요. 토픽은 검색되지만 영상 수신이 멈추면 [큰 영상 메시지의 전송 설정](troubleshooting.md#영상-토픽은-보이지만-수신이-멈출-때)을 확인하세요.
 
 ## 플러그인 설정
 
@@ -59,9 +61,13 @@ RViz의 Image 디스플레이에서 결과를 확인하세요. GUI가 없어도 
 | `backgroundG` | 초록 배경 채널, 0–255 정수 | `0` |
 | `backgroundB` | 파랑 배경 채널, 0–255 정수 | `0` |
 
+## 영상 토픽과 카메라 투영
+
 센서의 `<topic>`은 유효한 ROS 토픽 이름을 만들어야 합니다. 생략하면 Gazebo의 `/world/<world>/model/<model>/link/<link>/sensor/<sensor>` 범위를 사용하며, 그 아래 `/simulated_image`에서 ROS 영상을 발행합니다. 중첩 모델에는 부모 모델 범위가 추가됩니다.
 
 깊이를 거리로 바꿀 때는 직접 지정한 카메라 렌즈 투영값, 직접 지정한 렌즈 내부 파라미터, 영상 크기와 수평 시야각 순으로 적용합니다. 주점 좌표는 0으로 지정할 수 있습니다. 초점 거리는 양수이고 렌즈 값은 유한해야 하며, 미터 단위 절단 거리는 `0 < near < far`를 만족해야 합니다. 유효하지 않은 설정은 로그에 오류를 남기고 플러그인 출력을 비활성화합니다.
+
+## 프레임 시각과 예제 설정값
 
 색 영상과 깊이 영상은 도착 순서와 관계없이 취득 타임스탬프가 같은 프레임끼리 짝을 이룹니다. ROS 영상은 색 영상의 타임스탬프와 프레임 ID를 유지합니다. 대기 버퍼가 가득 차면 짝이 없는 프레임을 버립니다. 시뮬레이션 시간을 초기화하면 대기 프레임을 비우고 타임스탬프를 다시 시작합니다.
 
@@ -88,7 +94,7 @@ RGBD 센서는 색 영상과 깊이 영상을 제공합니다. 플러그인은 �
 
 ## 부유 입자
 
-네이티브 렌더러는 RGB·RGBD 색 영상에 부유 입자를 표시할 수 있습니다. 입자는 기본적으로 꺼져 있습니다. 호스트 앱의 화면 효과 설정이나 렌더러의 [화면 효과 서비스](https://github.com/IOES-Lab/POSIM/tree/main/gazebo/posim_gz_rendering)로 켭니다.
+네이티브 렌더러는 RGB·RGBD 색 영상에 부유 입자를 표시할 수 있습니다. 입자는 기본적으로 꺼져 있습니다. 렌더러의 [화면 효과 서비스](underwater-rendering.md)로 켭니다.
 
 입자는 월드 안의 공통 위치에 배치되며 시뮬레이션 시간에 따라 일정한 속도로 이동합니다. 같은 시각에는 서로 다른 카메라도 같은 위치의 입자를 관측합니다. 불투명한 표면 뒤의 입자는 가려집니다. 표시 거리 0.05–3 m 안에서 장면과 평균 수면 높이로 범위를 제한합니다. 수치 깊이와 음향 음선의 값은 유지됩니다.
 
