@@ -1,4 +1,5 @@
 .git
+.validation
 build
 install
 log
