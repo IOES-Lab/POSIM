@@ -19,7 +19,7 @@ In a Docker container, open QGC from terminal B:
 qgroundcontrol &
 ```
 
-The `&` returns the command prompt while QGC stays open. If you started the native application in another terminal, leave that terminal open.
+The `&` returns the command prompt while QGC stays open. If you started the native application in another terminal, leave that terminal open. If the first-launch preferences appear, choose **Metric System** for the units used in this guide.
 
 This guide keeps QGC, MAVROS and Gazebo together. Telemetry uses **UDP 14550** and camera video uses **UDP 5600** on the same Linux environment. No extra Docker port publishing is needed for this arrangement. On macOS, only the RDP connection crosses the container boundary.
 

@@ -19,7 +19,7 @@ export async function readContent(language, slug) {
     if (!code) throw new Error(`${language}/${slug}: unknown example ${match[0]}`);
     text = text.replaceAll(match[0], code);
   }
-  for (const match of [...text.matchAll(/\{\{MEDIA:([a-z-]+)\}\}/g)]) {
+  for (const match of [...text.matchAll(/\{\{MEDIA:([a-z-]+)(?::(\d+))?\}\}/g)]) {
     const figures = (await english(match[1])).match(/<figure\b[\s\S]*?<\/figure>/g) || [];
     const captions = messages[language].media[match[1]];
     if (!captions || captions.length !== figures.length) {
@@ -30,7 +30,9 @@ export async function readContent(language, slug) {
       .replace(/<figcaption>[\s\S]*?<\/figcaption>/g, `<figcaption>${esc(captions[index])}</figcaption>`)
       .replace(/(<source\b[^>]*src="([^"]+)"[^>]*>)[\s\S]*?<\/video>/g,
         (_, source, url) => `${source}<a href="${url}">${esc(messages[language].ui.openVideo)}</a></video>`));
-    text = text.replaceAll(match[0], localized.join('\n'));
+    const selected = match[2] === undefined ? localized.join('\n') : localized[Number(match[2])];
+    if (!selected) throw new Error(`${language}/${slug}: unknown figure ${match[0]}`);
+    text = text.replaceAll(match[0], selected);
   }
   if (text.includes('{{OVERVIEW}}')) {
     let figure = (await english('index')).match(/<figure\b[\s\S]*?<\/figure>/)?.[0];

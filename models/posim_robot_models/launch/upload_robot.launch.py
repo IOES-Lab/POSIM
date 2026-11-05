@@ -50,7 +50,6 @@ def launch_setup(context, *args, **kwargs):
     )
 
     cleanup_handlers = []
-    cleanup_actions = []
     if LaunchConfiguration("qgc_video").perform(context) == "true":
         port = int(LaunchConfiguration("qgc_video_port").perform(context))
         if not 1 <= port <= 65535:
@@ -83,7 +82,8 @@ def launch_setup(context, *args, **kwargs):
         def remove_temporary_model(_context):
             temporary_model.unlink(missing_ok=True)
 
-        cleanup_actions = [OpaqueFunction(function=remove_temporary_model)]
+        # The create service acknowledges a queued request before Gazebo has
+        # necessarily read the file. Keep it until this launch shuts down.
         cleanup_handlers = [
             RegisterEventHandler(
                 OnShutdown(on_shutdown=[OpaqueFunction(function=remove_temporary_model)])
@@ -170,7 +170,7 @@ def launch_setup(context, *args, **kwargs):
         RegisterEventHandler(
             OnProcessExit(
                 target_action=gz_spawner,
-                on_exit=cleanup_actions + [LogInfo(msg="Robot Model Uploaded"), robot_config],
+                on_exit=[LogInfo(msg="Robot Model Uploaded"), robot_config],
             )
         )
     ]
