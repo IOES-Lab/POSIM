@@ -1,6 +1,6 @@
 # Troubleshooting
 
-Start with the first error in the launch log. Check environment paths, model resources, simulation time, plugins and data delivery in that order. Keep the full log to help trace the cause.
+Start with the first error in the launch log. Check environment paths, model resources, simulation time, plugins and data delivery in that order. Keep the first error and the nearby log lines needed to reproduce it.
 
 ## Package not found
 
@@ -9,7 +9,7 @@ printf 'ROS_DISTRO=%s\n' "$ROS_DISTRO"
 ros2 pkg prefix posim_demos
 ```
 
-Expect `lyrical` and the selected workspace path. Source [installation](install.md) or [Docker](docker.md) settings and check host/container paths.
+Expect `lyrical` and the selected workspace path. Follow [terminal setup](terminals.md) for your [installation route](requirements.md), and check host/container paths.
 
 ## Missing models or meshes
 

@@ -121,7 +121,7 @@ Leggi il modello, modifica i suoi limiti e regola il primo strato:
 
 ## Usare dati di marea
 
-Configura `<tidal_oscillation>` con un CSV o costituenti armoniche, come M2/S2/N2, le direzioni di flusso e riflusso e un istante iniziale GMT. Negli esempi armonici, l'ampiezza è in metri, la fase in gradi e la velocità angolare in gradi/ora. Queste unità sono diverse dai radianti dei servizi della corrente.
+Configura `<tidal_oscillation>` con un CSV o componenti armoniche, come M2/S2/N2, le direzioni di flusso e riflusso e un istante iniziale GMT. Negli esempi armonici, l'ampiezza è in metri, la fase in gradi e la velocità angolare in gradi/ora. Queste unità sono diverse dai radianti dei servizi della corrente.
 
 Il CSV contiene una riga di intestazione, poi righe `YYYY-MM-DD HH:MM,event,speed`:
 
