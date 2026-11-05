@@ -145,8 +145,6 @@
       "Positionsmessungen des Transponders"
     ],
     "qgroundcontrol": [
-      "Aktivieren Sie die virtuellen Joysticks und die automatische Zentrierung des Schubreglers, bevor Sie den BlueROV2 steuern.",
-      "Der Videoempfänger läuft in derselben Linux-Umgebung wie der Simulator.",
       "Die Frontkamera zeigt die Objekte der Beispielwelt. Beide virtuellen Joysticks bleiben über dem Videobild bedienbar."
     ],
     "install-macos": [

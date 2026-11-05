@@ -21,13 +21,15 @@ QGC、MAVROS 和 Gazebo 位于同一个 Linux 环境中。遥测使用 **UDP 145
 
 ## 2. 设置虚拟摇杆
 
-进入 **Application Settings → Fly View → Virtual Joystick**，开启 **Virtual Joystick** 和 **Auto-Center Throttle**，关闭 **Left-Handed Mode**。这样松开摇杆后，控制指令会回到中位。
+打开 **Application Settings → Fly View → Virtual Joystick**：
 
-{{MEDIA:qgroundcontrol:0}}
+- 开启 **Virtual Joystick**。
+- 开启 **Auto-Center Throttle**，使摇杆松开后控制指令回到中位。
+- 关闭 **Left-Handed Mode**，保持与本例相同的摇杆布局。
 
 ## 3. 设置视频接收
 
-在 **Application Settings → Video** 中设置：
+打开 **Application Settings → Video**。先选择视频源，再按下表填写 UDP 地址和其余设置。
 
 | 设置项 | 值 |
 |---|---|
@@ -35,9 +37,7 @@ QGC、MAVROS 和 Gazebo 位于同一个 Linux 环境中。遥测使用 **UDP 145
 | UDP URL | `127.0.0.1:5600` |
 | Aspect Ratio | `0`，自动使用相机画面比例 |
 | Disable Video Stream When Disarmed | 关闭 |
-| Auto-reconnect | 开启 |
-
-{{MEDIA:qgroundcontrol:1}}
+| Auto-reconnect on stream loss | 开启 |
 
 ## 4. 启动机器人和视频流
 
@@ -51,7 +51,7 @@ Gazebo 打开海底场景，QGC 自动连接 ArduSub。等待初始化完成后�
 
 返回 **Fly View**，点击小视频预览，将相机画面切换到主视图。
 
-{{MEDIA:qgroundcontrol:2}}
+{{MEDIA:qgroundcontrol}}
 
 相机以**仿真时间 5 Hz** 生成 **640 × 480** 图像。软件渲染可能降低实际显示帧率。BlueROV2 具有正浮力，即使未解锁，也可能上浮，使目标移出画面。
 

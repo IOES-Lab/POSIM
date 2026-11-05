@@ -21,13 +21,15 @@ QGC、MAVROS、Gazebo は同じ Linux 環境内で通信します。テレメト
 
 ## 2. 仮想ジョイスティックを設定する
 
-**Application Settings → Fly View → Virtual Joystick** で **Virtual Joystick** と **Auto-Center Throttle** をオンにし、**Left-Handed Mode** はオフにします。スティックを離すと指令が中央に戻る設定です。
+**Application Settings → Fly View → Virtual Joystick** を開きます。
 
-{{MEDIA:qgroundcontrol:0}}
+- **Virtual Joystick** をオンにします。
+- **Auto-Center Throttle** をオンにして、スティックを離すと指令が中央に戻るようにします。
+- この例と同じ配置にするため、**Left-Handed Mode** はオフにします。
 
 ## 3. 映像の受信を設定する
 
-**Application Settings → Video** を開きます。
+**Application Settings → Video** を開きます。先に映像ソースを選択し、続いて UDP アドレスと残りの項目を下表のとおり設定します。
 
 | 設定項目 | 値 |
 |---|---|
@@ -35,9 +37,7 @@ QGC、MAVROS、Gazebo は同じ Linux 環境内で通信します。テレメト
 | UDP URL | `127.0.0.1:5600` |
 | Aspect Ratio | `0`（縦横比を自動設定） |
 | Disable Video Stream When Disarmed | オフ |
-| Auto-reconnect | オン |
-
-{{MEDIA:qgroundcontrol:1}}
+| Auto-reconnect on stream loss | オン |
 
 ## 4. ロボットと映像配信を開始する
 
@@ -51,7 +51,7 @@ Gazebo に海底のシーンが開き、QGC が ArduSub に接続します。初
 
 **Fly View** に戻り、小さな映像プレビューをクリックして拡大します。
 
-{{MEDIA:qgroundcontrol:2}}
+{{MEDIA:qgroundcontrol}}
 
 カメラは**シミュレーション時間で 5 Hz、640 × 480 ピクセル**の画像を生成します。ソフトウェアレンダリングでは実際の表示速度が下がることがあります。BlueROV2 は正の浮力を持つため、アームしていなくても上昇し、対象物が画面外に移る場合があります。
 

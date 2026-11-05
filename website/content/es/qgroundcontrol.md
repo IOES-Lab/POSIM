@@ -21,13 +21,15 @@ QGC, MAVROS y Gazebo comparten el mismo entorno Linux: la telemetría usa **UDP 
 
 ## 2. Configurar los joysticks
 
-En **Application Settings → Fly View → Virtual Joystick**, activa **Virtual Joystick** y **Auto-Center Throttle**. Deja **Left-Handed Mode** desactivado. Así, al soltar una palanca, su orden vuelve al centro.
+Abre **Application Settings → Fly View → Virtual Joystick**:
 
-{{MEDIA:qgroundcontrol:0}}
+- Activa **Virtual Joystick**.
+- Activa **Auto-Center Throttle** para que la orden vuelva al centro al soltar la palanca.
+- Deja **Left-Handed Mode** desactivado para utilizar la disposición de este ejemplo.
 
 ## 3. Configurar el vídeo
 
-En **Application Settings → Video**:
+Abre **Application Settings → Video**. Selecciona primero la fuente de vídeo; después introduce la dirección UDP y los demás valores de la tabla.
 
 | Ajuste | Valor |
 |---|---|
@@ -35,9 +37,7 @@ En **Application Settings → Video**:
 | UDP URL | `127.0.0.1:5600` |
 | Aspect Ratio | `0`, proporción automática |
 | Disable Video Stream When Disarmed | Desactivado |
-| Auto-reconnect | Activado |
-
-{{MEDIA:qgroundcontrol:1}}
+| Auto-reconnect on stream loss | Activado |
 
 ## 4. Iniciar el robot y la cámara
 
@@ -51,7 +51,7 @@ Gazebo abre la escena del fondo marino y QGC se conecta a ArduSub. Espera a que 
 
 Vuelve a **Fly View** y pulsa la vista previa del vídeo para ampliarla.
 
-{{MEDIA:qgroundcontrol:2}}
+{{MEDIA:qgroundcontrol}}
 
 La cámara genera imágenes de **640 × 480 a 5 Hz de tiempo simulado**. El renderizado por software puede reducir la velocidad real. BlueROV2 tiene flotabilidad positiva y puede ascender sin armar los motores, dejando los objetos fuera de la imagen.
 

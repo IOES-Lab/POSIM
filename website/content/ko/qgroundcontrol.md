@@ -31,14 +31,9 @@ qgroundcontrol &
 - **Auto-Center Throttle**을 켜서 스틱을 놓으면 명령이 중앙으로 돌아오도록 합니다.
 - 아래 설명과 같은 배치를 사용하려면 **Left-Handed Mode**는 끕니다.
 
-<figure>
-  <img src="{{ASSET_PREFIX}}media/guides/qgc-virtual-joystick.png" alt="가상 조이스틱과 스로틀 자동 중앙 복귀를 켠 QGC 설정 화면" loading="lazy" width="1280" height="900">
-  <figcaption>BlueROV2를 조종하기 전에 가상 조이스틱과 스로틀 자동 중앙 복귀를 켭니다.</figcaption>
-</figure>
-
 ## 3. 영상 수신 설정하기
 
-**Application Settings → Video**에서 다음 값을 설정합니다.
+**Application Settings → Video**를 엽니다. 영상 입력 방식부터 선택한 뒤 UDP 주소와 나머지 항목을 아래 표대로 설정합니다.
 
 | 설정 | 값 |
 |---|---|
@@ -46,12 +41,7 @@ qgroundcontrol &
 | UDP URL | `127.0.0.1:5600` |
 | Aspect Ratio | `0`: 카메라 영상 비율 자동 적용 |
 | Disable Video Stream When Disarmed | 끔 |
-| Auto-reconnect | 켬 |
-
-<figure>
-  <img src="{{ASSET_PREFIX}}media/guides/qgc-video-settings.png" alt="UDP 5600 포트로 H.264 영상을 받도록 설정한 QGC" loading="lazy" width="1280" height="900">
-  <figcaption>시뮬레이터와 같은 Linux 환경에서 카메라 영상을 수신합니다.</figcaption>
-</figure>
+| Auto-reconnect on stream loss | 켬 |
 
 ## 4. BlueROV2와 카메라 송신 시작하기
 

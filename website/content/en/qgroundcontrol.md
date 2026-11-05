@@ -31,14 +31,9 @@ Open **Application Settings → Fly View → Virtual Joystick**:
 - Enable **Auto-Center Throttle**, so releasing a stick returns its command to the center.
 - Leave **Left-Handed Mode** off for the controls shown here.
 
-<figure>
-  <img src="{{ASSET_PREFIX}}media/guides/qgc-virtual-joystick.png" alt="QGC virtual joystick and throttle centering enabled" loading="lazy" width="1280" height="900">
-  <figcaption>Enable the virtual joysticks and automatic throttle centering before controlling BlueROV2.</figcaption>
-</figure>
-
 ## 3. Configure the camera display
 
-In **Application Settings → Video**, set:
+Open **Application Settings → Video**. Select the video source first, then enter the UDP address and remaining settings below.
 
 | Setting | Value |
 |---|---|
@@ -46,12 +41,7 @@ In **Application Settings → Video**, set:
 | UDP URL | `127.0.0.1:5600` |
 | Aspect Ratio | `0`, to use the camera's ratio automatically |
 | Disable Video Stream When Disarmed | Off |
-| Auto-reconnect | On |
-
-<figure>
-  <img src="{{ASSET_PREFIX}}media/guides/qgc-video-settings.png" alt="QGC video settings for an H.264 stream on UDP port 5600" loading="lazy" width="1280" height="900">
-  <figcaption>The video receiver listens on the same Linux environment as the simulator.</figcaption>
-</figure>
+| Auto-reconnect on stream loss | On |
 
 ## 4. Start BlueROV2 and its camera stream
 

@@ -145,8 +145,6 @@
       "Mediciones de posición del transpondedor"
     ],
     "qgroundcontrol": [
-      "Activa los joysticks virtuales y el centrado automático del acelerador antes de controlar el BlueROV2.",
-      "El receptor de vídeo se ejecuta en el mismo entorno Linux que el simulador.",
       "La cámara frontal muestra los objetos del escenario de ejemplo. Los joysticks virtuales siguen disponibles sobre la imagen."
     ],
     "install-macos": [

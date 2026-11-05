@@ -145,8 +145,6 @@
       "Mesures de position du transpondeur"
     ],
     "qgroundcontrol": [
-      "Activez les joysticks virtuels et le recentrage automatique de la commande des gaz avant de piloter le BlueROV2.",
-      "Le récepteur vidéo fonctionne dans le même environnement Linux que le simulateur.",
       "La caméra avant montre les objets du monde de démonstration. Les joysticks virtuels restent accessibles au-dessus de la vidéo."
     ],
     "install-macos": [
