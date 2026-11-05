@@ -1,10 +1,10 @@
 # マルチビームソナー
 
-POSIMのソナーは点散乱モデルを使い、距離ごとの反射強度とソナー画像を生成します。実行前に[NVIDIA/CUDA環境](sonar-tuning.md)を準備してください。
+POSIM のマルチビームソナーは、点散乱モデルで距離ごとの反射強度とソナー画像を生成します。同じプラグインで CPU、WGPU、CUDA による計算を選べます。WGPU は Linux の Vulkan、または macOS ネイティブ環境の Metal を通じて、複数メーカーの GPU を利用します。[計算環境の準備と選択](sonar-tuning.md)を参照してください。
 
 ## サンプルを動かす {#run-a-sonar-example}
 
-対応するNVIDIA/CUDA環境で[ターミナルAとB](terminals.md)を準備します。Aでシミュレーションを起動し、Bで出力を確認します。
+[ターミナル A と B](terminals.md)を準備し、未導入なら[ソナーパッケージをビルド](sonar-tuning.md#build-the-sonar-packages)します。A でシミュレーションを起動し、B で出力を確認します。最初のコマンドはバックエンドを自動選択します。専用の例は WGPU を指定し、RViz も起動します。
 
 {{CODE:sonar:0}}
 
@@ -12,7 +12,7 @@ POSIMのソナーは点散乱モデルを使い、距離ごとの反射強度と
 
 {{CODE:sonar:1}}
 
-同時に起動するのはどちらか一方にしてください。ロボットに搭載する場合は、ソナー用のワールドと`bluerov2_heavy_multibeam_sonar`を選びます。
+例は 1 つずつ実行してください。`wgpu` を `cpu`、`cuda`、`auto` に替えると計算方法を選べます。ロボット搭載の例では、適切なソナーワールドで `bluerov2_heavy_multibeam_sonar` を選びます。
 
 ## 出力を確認する
 
@@ -73,12 +73,23 @@ P900センサーはモデルの`<link>`内に配置します。
 
 処理性能を測るときは、記録処理も実験対象である場合を除いてCSV保存を無効にします。[ソナーの設定と調整](sonar-tuning.md)を参照し、比較する実験では音響設定と`blazingSonarImage`の値を記録してください。
 
+### 計算バックエンド {#compute-backend}
+
+| 選択値 | 動作 |
+| --- | --- |
+| `auto` | CUDA、WGPU、CPU の順で利用可能なものを選択。既定値 |
+| `wgpu` | 対応する Vulkan/Metal アダプターを使用。利用できなければセンサーの初期化に失敗 |
+| `cuda` | NVIDIA GPU とビルド・インストール済みの CUDA バックエンドが必要。利用できなければ初期化に失敗 |
+| `cpu` | 音響反射を CPU で計算。Gazebo の描画環境は引き続き必要 |
+
+専用の起動コマンドでは `compute_backend` を指定します。ほかの起動コマンドは環境変数 `POSIM_SONAR_COMPUTE_BACKEND` を読みます。起動時の `Using sonar compute backend:` で実際の選択を確認してください。[ソナーの設定と性能調整](sonar-tuning.md)では、アダプターの選択、動作条件、数値計算の違いを説明します。
+
 ## センサーを追加する
 
 1. `models/posim_sensor_models/description/blueview_p900/`を新しいセンサー名でコピーします。
 2. 対応する`config/<センサー名>/sensor_config.py`を用意し、モデル・リンク・座標系の名前とブリッジのトピックをそろえます。
 3. サンプル数、角度、距離範囲を設定します。ワールドに上記の2つのシステムを組み込みます。その他の設定は[ソナー用ワールドのSDF](https://github.com/IOES-Lab/POSIM/blob/main/models/posim_worlds/worlds/posim_multibeam_sonar.world)を参照してください。
-4. CUDAと描画環境を準備し、ワークスペースを再ビルドして環境を読み込みます。[起動引数](quickstart.md)で新しいセンサーを選びます。
+4. 計算バックエンドと描画環境を準備し、ワークスペースを再ビルドして環境を読み込みます。[起動引数](quickstart.md)で新しいセンサーを選びます。
 
 ## 生データを保存・表示する
 

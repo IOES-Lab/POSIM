@@ -14,7 +14,7 @@ Suchen Sie die erste nicht auflösbare URI. Prüfen Sie, ob die Paketressourcen 
 
 ## Es gibt kein Bild oder das Rendering startet nicht
 
-Prüfen Sie Grafiktreiber und Bildschirmanbindung anhand Ihrer [Installationsanleitung](requirements.md). Gazebo-Oberfläche und Kameras benötigen einen funktionierenden Renderer. Für Sonar müssen außerdem die [CUDA-Bibliotheken](sonar-tuning.md) verfügbar sein.
+Prüfen Sie Grafiktreiber und Bildschirmanbindung anhand der [Installationsanleitung](requirements.md). Gazebo und Kameras benötigen einen funktionierenden Renderer. Prüfen Sie beim Sonar das [gewählte Backend und die installierten Pakete](sonar-tuning.md).
 
 Prüfen Sie bei [Unterwassereffekten](underwater-rendering.md):
 

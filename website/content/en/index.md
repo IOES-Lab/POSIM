@@ -22,7 +22,7 @@ Use [Features & examples](features.md) to find environment effects, sensors, rob
 | Ocean worlds | Surface, seabed and task scenes | [World library](worlds.md) |
 | Robots | REXROV, BlueROV2, Slocum and surface vehicles | [ROVs](rovs.md), [Gliders](gliders.md), [Surface robots](surface.md) |
 | Underwater rendering | Haze, absorption, sunlight, caustics, marine snow and seabed overlays | [Scene effects and controls](underwater-rendering.md) |
-| Sensors | Camera, marine GNSS, DVL, pressure, USBL and CUDA sonar | [Camera](camera.md), [GNSS](gnss.md), [DVL](dvl.md), [Sonar](sonar.md) |
+| Sensors | Camera, marine GNSS, DVL, pressure, USBL and sonar | [Camera](camera.md), [GNSS](gnss.md), [DVL](dvl.md), [Sonar](sonar.md) |
 | Environment plugins | Currents and geographic coordinates | [Currents](currents.md), [Coordinates](coordinates.md) |
 | ROS interfaces | Sensor subscriptions, commands and recording | [ROS 2 and control](ros.md) |
 

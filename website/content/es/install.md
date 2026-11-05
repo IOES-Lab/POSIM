@@ -42,7 +42,7 @@ Guarda tus cambios en Git antes de actualizar. Anota la revisión, descarga los 
 
 {{CODE:install:6}}
 
-El sonar NVIDIA/CUDA requiere además la [configuración específica](sonar-tuning.md).
+Continúa con la [primera simulación](quickstart.md). Para el sonar, consulta la [compilación y configuración de CPU/WGPU/CUDA](sonar-tuning.md).
 
 ## 5. Ejecutar el mundo de demostración
 

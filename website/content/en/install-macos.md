@@ -51,7 +51,7 @@ docker stop posim
 docker start posim
 ```
 
-Reconnect through Windows App after starting the container. Linux GUI rendering in this image uses software rendering; complex scenes can be slow. CUDA multibeam sonar requires a supported NVIDIA CUDA environment and is not included in this ARM64 image. Start with [camera and pressure examples](features.md).
+Reconnect through Windows App after starting the container. Linux GUI rendering uses software rendering; complex scenes can be slow. For sonar, start with CPU after [building and checking the sonar packages](sonar-tuning.md#build-the-sonar-packages). Metal is available to native macOS processes, not this Linux container. The [camera and pressure examples](features.md) are useful first checks.
 
 ## 5. Launch the demo world
 

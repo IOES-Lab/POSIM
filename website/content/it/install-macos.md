@@ -36,7 +36,7 @@ Chiudere RDP non ferma la simulazione. Premi prima **Ctrl+C** nel terminale che 
 
 {{CODE:install-macos:3}}
 
-Ricollegati con Windows App. Il rendering è software e le scene complesse possono essere lente. Il sonar multibeam CUDA richiede una GPU NVIDIA supportata e non è incluso nell’immagine ARM64. Inizia dagli [esempi di telecamera e pressione](features.md).
+Ricollegati con Windows App dopo aver avviato il container. Il rendering Linux è software; le scene complesse possono essere lente. Per il sonar, inizia con CPU dopo aver [compilato e verificato i pacchetti](sonar-tuning.md#build-the-sonar-packages). Metal è disponibile per i processi macOS nativi, non per questo container Linux. Le [telecamere e il sensore di pressione](features.md) sono utili per le prime verifiche.
 
 ## 5. Verificare l’installazione
 

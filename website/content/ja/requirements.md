@@ -18,7 +18,7 @@ DockerイメージにはUbuntuのユーザー環境が含まれます。ホス�
 
 どの方法でも**ROS 2 Lyrical**と**Gazebo Sim — Gazebo Jetty**を使用します。ネイティブ環境ではUbuntuにインストールし、Dockerではイメージに含まれるものを使用します。グラフィックスドライバーは各ガイドに従ってホスト側にインストールしてください。
 
-Gazeboとカラー・深度カメラには描画環境が必要です。まずはロボット1台と標準のセンサーで始めましょう。[CUDAマルチビームソナー](sonar-tuning.md)には、対応するNVIDIA GPU、CUDAツール、ソナーのライブラリも必要です。macOSのDockerでは、Apple MetalをLinuxのNVIDIA/CUDAデバイスとして使用できません。
+Gazebo とカラー・深度カメラには正常な描画環境が必要です。まずロボット 1 台と標準センサーから始めましょう。マルチビームソナーは CPU、WGPU、CUDA を選べます。[計算環境の選択と準備](sonar-tuning.md)を参照してください。WGPU は Linux の利用可能な Vulkan アダプター、または macOS ネイティブの Metal を使います。macOS の Docker/RDP は Metal にアクセスできない Linux 環境なので、CPU から始めてください。
 
 ## リソースとダウンロード
 

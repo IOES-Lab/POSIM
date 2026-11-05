@@ -18,7 +18,7 @@ Docker镜像包含自己的Ubuntu用户空间。Linux宿主机可以使用其他
 
 所有安装方式均使用**ROS 2 Lyrical**和**Gazebo Sim — Gazebo Jetty**。原生安装将它们配置在Ubuntu中；Docker镜像已经包含这些软件。图形驱动应按照相应指南安装在宿主机上。
 
-Gazebo以及彩色、深度相机都需要正常工作的渲染环境。先从一台机器人及其默认传感器开始。[CUDA多波束声呐](sonar-tuning.md)还需要兼容的NVIDIA GPU、CUDA工具和声呐库。macOS上的Docker不会将Apple Metal作为Linux NVIDIA/CUDA设备提供给容器。
+Gazebo 和彩色、深度相机需要正常工作的渲染器。先从一台机器人及其默认传感器开始。多波束声呐支持 CPU、WGPU、CUDA，请按环境[选择并配置计算后端](sonar-tuning.md)。WGPU 使用 Linux 中可用的 Vulkan 适配器，或原生 macOS 的 Metal。macOS Docker/RDP 运行 Linux，不能访问 Metal，因此请从 CPU 开始。
 
 ## 资源与下载
 

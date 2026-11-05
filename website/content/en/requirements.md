@@ -20,7 +20,7 @@ Every route uses **ROS 2 Lyrical** and **Gazebo Sim — Gazebo Jetty**. Native i
 
 ## Graphics and sensors
 
-Gazebo windows and camera/depth sensors need a working renderer. Start with one robot and its default sensors. CUDA multibeam sonar additionally needs a compatible NVIDIA GPU, CUDA tools and the sonar libraries; see [Configure & tune sonar](sonar-tuning.md). Docker on macOS does not expose Apple Metal as a Linux NVIDIA/CUDA device.
+Gazebo windows and camera/depth sensors need a working renderer. Start with one robot and its default sensors. Multibeam sonar offers CPU, WGPU and CUDA computation; [choose and prepare a backend](sonar-tuning.md). WGPU needs a usable Vulkan adapter in Linux or Metal in native macOS. The macOS Docker/RDP setup uses Linux and does not expose Metal; start with CPU.
 
 ## Resources and downloads
 

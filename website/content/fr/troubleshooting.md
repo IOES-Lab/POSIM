@@ -14,7 +14,7 @@ Repérez la première URI introuvable. Vérifiez que les ressources du paquet so
 
 ## L'image est absente ou le rendu ne démarre pas
 
-Vérifiez le pilote graphique et la connexion à l'affichage dans votre [guide d'installation](requirements.md). L'interface de Gazebo et les caméras ont besoin d'un moteur de rendu opérationnel. Le sonar nécessite aussi les [bibliothèques CUDA](sonar-tuning.md).
+Vérifiez pilotes et connexion d’affichage dans le [guide d’installation](requirements.md). Gazebo et les caméras ont besoin d’un rendu fonctionnel. Pour le sonar, vérifiez le [moteur choisi et les paquets installés](sonar-tuning.md).
 
 Pour les [effets de scène sous-marine](underwater-rendering.md), vérifiez :
 

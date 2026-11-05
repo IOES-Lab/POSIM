@@ -16,7 +16,7 @@ Use the Linux terminals prepared in [Prepare your terminals](terminals.md). This
 | [Sea pressure](pressure.md) | Plugin directly under `model` | Publishes ROS pressure/depth directly |
 | [Marine GNSS](gnss.md) | Receiver plugin on the robot model | The receiver's configured ROS outputs |
 | [USBL positioning](usbl.md) | Transceiver and transponder plugins | Matching acoustic IDs and configured ROS interfaces |
-| [Multibeam sonar](sonar.md) | Custom sonar sensor under a link | Sensors renderer plus multibeam world system; CUDA backend |
+| [Multibeam sonar](sonar.md) | Custom sonar sensor under a link | Sensors renderer plus multibeam world system; CPU/WGPU/CUDA backend |
 
 Use each reference's SDF block and parameter table. A plugin's placement matters: world systems do not belong inside a sensor, and model plugins need the model entity they operate on.
 

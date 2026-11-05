@@ -1,10 +1,10 @@
 # Sonar multifaisceaux
 
-Le sonar de POSIM utilise un modèle de diffuseurs ponctuels pour produire des données d'intensité en fonction de la distance et des images acoustiques. Préparez d'abord l'[environnement NVIDIA/CUDA](sonar-tuning.md).
+Le sonar multifaisceaux de POSIM utilise un modèle de diffuseurs ponctuels pour produire des données d'intensité en fonction de la distance et des images acoustiques. Le même plugin propose le calcul sur CPU, WGPU ou CUDA. WGPU s'appuie sur Vulkan sous Linux ou Metal dans un environnement macOS natif pour utiliser des GPU de différents fabricants. Consultez la [configuration du calcul](sonar-tuning.md).
 
 ## Lancer un exemple {#run-a-sonar-example}
 
-Préparez les [terminaux A et B](terminals.md) dans une installation compatible avec NVIDIA/CUDA. Lancez la simulation dans A et consultez les données dans B.
+Préparez les [terminaux A et B](terminals.md) et [compilez les paquets sonar](sonar-tuning.md#build-the-sonar-packages) s'ils ne sont pas installés. Lancez la simulation dans A et consultez les données dans B. La première commande choisit automatiquement le moteur de calcul ; l'exemple dédié choisit WGPU et ouvre aussi RViz.
 
 {{CODE:sonar:0}}
 
@@ -12,7 +12,7 @@ Le paquet `posim_multibeam_sonar_demo` propose aussi un exemple autonome :
 
 {{CODE:sonar:1}}
 
-Ne lancez qu'un exemple à la fois. Pour un sonar embarqué, sélectionnez `bluerov2_heavy_multibeam_sonar` avec un monde adapté.
+Lancez un seul exemple à la fois. Remplacez `wgpu` par `cpu`, `cuda` ou `auto` pour changer de moteur de calcul. Pour un sonar embarqué, sélectionnez `bluerov2_heavy_multibeam_sonar` avec un monde adapté.
 
 ## Examiner les sorties
 
@@ -73,12 +73,23 @@ Conservez les blocs `<ray>` et `<spec>` complets : les valeurs par défaut conce
 
 Désactivez l'enregistrement pour mesurer le débit, sauf s'il fait partie de l'expérience. Consultez le guide [Configurer et régler le sonar](sonar-tuning.md). Conservez les paramètres acoustiques et la valeur de `blazingSonarImage` pour comparer les essais.
 
+### Moteur de calcul {#compute-backend}
+
+| Choix | Comportement |
+| --- | --- |
+| `auto` | Essaie CUDA, puis WGPU, puis CPU ; choix par défaut |
+| `wgpu` | Utilise un adaptateur Vulkan/Metal compatible ; son absence empêche l'initialisation du capteur |
+| `cuda` | Requiert un GPU NVIDIA et le backend CUDA compilé et installé ; échoue s'ils sont indisponibles |
+| `cpu` | Calcule les échos sur le CPU ; le rendu Gazebo reste nécessaire |
+
+Le lancement dédié accepte `compute_backend`. Les autres lancements lisent `POSIM_SONAR_COMPUTE_BACKEND`. Vérifiez la ligne `Using sonar compute backend:` au démarrage. Le guide [Configurer et régler le sonar](sonar-tuning.md) détaille le choix de l'adaptateur, les prérequis et les différences numériques.
+
 ## Ajouter un capteur
 
 1. Copiez `models/posim_sensor_models/description/blueview_p900/` sous un nouvel identifiant.
 2. Préparez le `config/<identifiant>/sensor_config.py` correspondant. Accordez les noms de modèle, de liens, de repères et les topics du pont.
 3. Réglez les échantillons, les angles et la portée. Chargez dans le monde les deux systèmes présentés plus haut ; consultez le [SDF du monde sonar](https://github.com/IOES-Lab/POSIM/blob/main/models/posim_worlds/worlds/posim_multibeam_sonar.world).
-4. Préparez CUDA et le rendu, recompilez l'espace de travail et chargez son environnement. Sélectionnez le capteur avec les [arguments de lancement](quickstart.md).
+4. Préparez le moteur de calcul et le rendu, recompilez l'espace de travail et chargez son environnement. Sélectionnez le capteur avec les [arguments de lancement](quickstart.md).
 
 ## Enregistrer et tracer les données brutes
 

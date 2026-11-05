@@ -25,11 +25,11 @@ POSIM は Gazebo のシステム、ロボットモデル、ROS インターフ�
 | DVL 計測と ROS 変換 | Gazebo DVL、`posim_ros_gz_plugins` | [DVL](dvl.md) |
 | 静水圧と計算した深度 | `posim_gz_sensor_plugins` | [圧力](pressure.md) |
 | USBL の音響問い合せと測位 | `posim_gz_sensor_plugins` | [USBL](usbl.md) |
-| CUDA マルチビームソナー | `gazebo/posim_gz_multibeam_sonar` | [ソナー](sonar.md)、[設定と性能](sonar-tuning.md) |
+| マルチビームソナー | `gazebo/posim_gz_multibeam_sonar` | [ソナー](sonar.md)、[設定と性能](sonar-tuning.md) |
 | REXROV、BlueROV2 の各構成、Slocum グライダー | `models/posim_robot_models` | [ROV](rovs.md)、[グライダー](gliders.md)、[ロボット追加](custom-robots.md) |
 | ArduRover による WAM-V 統合と ROS 制御 | `extras/surface`、起動設定、`posim_interfaces` | [水上艇](surface.md)、[ROS 2](ros.md) |
 
-利用できるセンサーは、インストール済みのプラグインとモデル設定で決まります。GNSS のプロファイルは取り付け位置を記述するため、組み込む際にはリンクと受信機を追加してください。CUDA ソナーには対応 GPU とツールチェーンが必要です。各センサーのクイックスタートで実際の計測出力を確認できます。
+利用できるセンサーは、インストール済みのプラグインとモデル設定で決まります。GNSS のプロファイルは取り付け位置を記述するため、組み込む際にはリンクと受信機を追加してください。ソナーは環境に合わせて CPU、WGPU、CUDA を選べます。 各センサーのクイックスタートで実際の計測出力を確認できます。
 
 ## ソースディレクトリ
 

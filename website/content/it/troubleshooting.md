@@ -14,7 +14,7 @@ Individua il primo URI non risolto. Verifica che le risorse del pacchetto siano 
 
 ## Non compare un'immagine o il rendering non parte
 
-Controlla driver grafici e collegamento al display nella tua [guida di installazione](requirements.md). Sia l'interfaccia di Gazebo sia le telecamere richiedono un renderer funzionante. Per il sonar servono anche le [librerie CUDA](sonar-tuning.md).
+Verifica driver grafici e collegamento dello schermo nella [guida di installazione](requirements.md). Gazebo e le telecamere richiedono un renderer funzionante. Per il sonar, controlla il [backend scelto e i pacchetti installati](sonar-tuning.md).
 
 Per gli [effetti della scena subacquea](underwater-rendering.md), verifica:
 

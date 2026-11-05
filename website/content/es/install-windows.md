@@ -18,7 +18,7 @@ Si ya tienes WSL o falla la instalación, consulta la [guía de Microsoft](https
 
 Instala o actualiza el **controlador de Windows** de tu GPU Intel, AMD o NVIDIA. También es necesario con NVIDIA. WSLg utiliza ese controlador para la aceleración gráfica; consulta la [guía de aplicaciones gráficas](https://learn.microsoft.com/es-es/windows/wsl/tutorials/gui-apps).
 
-Con NVIDIA, sigue [CUDA en WSL](https://docs.nvidia.com/cuda/wsl-user-guide/index.html): instala el controlador de Windows, **no un controlador de pantalla de Linux dentro de WSL**. Para compilar el plugin de sonar también necesitas el toolkit de CUDA.
+Con NVIDIA, sigue [CUDA en WSL](https://docs.nvidia.com/cuda/wsl-user-guide/index.html): instala el controlador de Windows, no un controlador de pantalla Linux dentro de WSL. El toolkit CUDA solo es necesario para compilar el backend CUDA del sonar.
 
 Actualiza WSL desde PowerShell:
 
