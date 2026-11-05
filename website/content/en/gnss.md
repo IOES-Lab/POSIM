@@ -4,9 +4,10 @@ The public `posim_gz_gnss` system simulates a satellite receiver at a model's an
 
 ## Build and mount a receiver
 
-From a configured POSIM ROS workspace:
+In [terminal A prepared for your installation](terminals.md), including the Linux desktop reached through RDP on macOS:
 
 ```bash
+cd "$POSIM_WS"
 source /opt/ros/lyrical/setup.bash
 colcon build --merge-install --packages-select posim_gz_gnss posim_robot_models
 source install/setup.bash
@@ -53,7 +54,7 @@ An empty `wave_topic` uses the mean-water plane. A nonempty topic requires fresh
 
 ## Read measurements and obstruction state
 
-For the example topic:
+After starting your configured model, use the prepared terminal B to read its topic:
 
 ```bash
 gz topic -e -t /model/my_robot/gnss

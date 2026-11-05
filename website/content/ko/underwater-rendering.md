@@ -6,9 +6,11 @@ Gazebo 장면, RGB 카메라와 RGBD 색 영상에 같은 렌더링 경로를 �
 
 ## 시스템 빌드와 연결
 
-서버와 일치하는 Gazebo Jetty/Ogre2 개발 환경을 준비합니다. POSIM 체크아웃에서 시스템과 렌더링 보조 라이브러리를 함께 빌드합니다.
+서버와 일치하는 Gazebo Jetty/Ogre2 개발 환경을 준비합니다. [설치 방식에 맞게 준비한 터미널 A](terminals.md)에서 POSIM 소스 폴더로 이동해 시스템과 렌더링 보조 라이브러리를 함께 빌드합니다. macOS에서는 RDP로 접속한 Linux 데스크톱의 터미널을 사용합니다.
 
 ```bash
+cd "$POSIM_WS/src/posim"
+export PKG_CONFIG_PATH="/opt/ros/lyrical/opt/gz_ogre_next_vendor/lib/pkgconfig${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
 cmake -S gazebo/posim_gz_rendering -B build/underwater \
   -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="$PWD/install/underwater"
 cmake --build build/underwater --parallel 2
@@ -28,7 +30,9 @@ SDF의 `<world>` 안에 다음 플러그인을 넣습니다. `/absolute/underwat
 </plugin>
 ```
 
-macOS 라이브러리는 `.dylib` 확장자를 사용합니다. 화면 없는 영상 출력에도 렌더링 장면과 활성 카메라가 필요합니다. `UnderwaterCamera`도 사용한다면 서버 환경의 `POSIM_UNDERWATER_PLUGIN`을 불러온 시스템 경로로 지정하세요. 이 설정은 네이티브 효과가 적용된 픽셀을 호환 카메라 출력으로 그대로 전달해 감쇠의 중복 적용을 막습니다. 네이티브 시스템을 정상 설치한 경우에만 설정합니다.
+Linux 라이브러리는 `.so`를 사용하며, macOS의 Docker/RDP 안에서도 같습니다. macOS용으로 직접 빌드한 라이브러리는 `.dylib`를 사용합니다. 센서 영상을 생성하려면 장면에 활성 카메라가 있어야 합니다.
+
+`UnderwaterCamera`도 사용한다면 서버 환경의 `POSIM_UNDERWATER_PLUGIN`을 불러온 시스템 경로로 지정하세요. 장면 효과가 적용된 픽셀을 그대로 전달해 감쇠의 중복 적용을 막습니다. 장면 렌더링 시스템을 설치하고 불러온 경우에만 설정합니다.
 
 ## 효과와 기본값
 

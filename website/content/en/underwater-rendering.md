@@ -6,9 +6,11 @@ The Gazebo scene, RGB cameras and RGBD color share this rendering path. Numeric 
 
 ## Build and attach the system
 
-Use a configured Gazebo Jetty/Ogre2 development environment matching the server. From the POSIM checkout, build the system and its rendering helper together:
+Use a Gazebo Jetty/Ogre2 development environment matching the server. In [terminal A prepared for your installation](terminals.md), build the system and its rendering helper from the POSIM checkout. On macOS, use the Linux terminal inside the RDP desktop:
 
 ```bash
+cd "$POSIM_WS/src/posim"
+export PKG_CONFIG_PATH="/opt/ros/lyrical/opt/gz_ogre_next_vendor/lib/pkgconfig${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
 cmake -S gazebo/posim_gz_rendering -B build/underwater \
   -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="$PWD/install/underwater"
 cmake --build build/underwater --parallel 2
@@ -28,7 +30,9 @@ Add this plugin inside your SDF `<world>`. Replace `/absolute/underwater` with t
 </plugin>
 ```
 
-macOS libraries use `.dylib`. A rendering scene and active camera are needed, to produce sensor images. When also using `UnderwaterCamera`, set `POSIM_UNDERWATER_PLUGIN` to the loaded system's path in the server environment. That flag makes the compatibility camera output pass through the native-colored pixels, avoiding a second attenuation stage. Set it only with a successfully installed native system.
+Linux libraries use `.so`, including Docker/RDP on macOS. A library built directly for macOS uses `.dylib`. To produce sensor images, the scene needs an active camera.
+
+When also using `UnderwaterCamera`, set `POSIM_UNDERWATER_PLUGIN` to the loaded system's path in the server environment. That flag passes through the scene's colored pixels to avoid a second attenuation stage. Set it only when the scene-rendering system is installed and loaded.
 
 ## Effects and defaults
 
