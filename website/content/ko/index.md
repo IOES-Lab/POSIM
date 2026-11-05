@@ -10,9 +10,8 @@ POSIM은 ROS 2와 Gazebo용 오픈소스 해양 로봇 시뮬레이션 라이브
 
 [실행 환경 선택](requirements.md)에서 내 운영 체제에 맞는 설치 방법을 고르세요. 설치를 마치면 [터미널 준비](terminals.md), [첫 시뮬레이션](quickstart.md) 순서로 진행합니다.
 
-- 운영체제: **Ubuntu 26.04**
-- ROS: **ROS 2 Lyrical**
-- Gazebo Sim 시뮬레이터: **Gazebo Jetty**
+- ROS: **ROS 2 Lyrical** — LTS, 지원 종료: [2031년 5월](https://docs.ros.org/en/lyrical/Releases/Release-Lyrical-Luth.html)
+- Gazebo Sim 시뮬레이터: **Gazebo Jetty** — LTS, 지원 종료: [2031년 5월](https://gazebosim.org/docs/latest/releases/#release-list)
 
 ## 라이브러리 구성
 

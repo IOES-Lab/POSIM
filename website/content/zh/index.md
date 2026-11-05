@@ -10,8 +10,8 @@ POSIM是一套面向ROS 2和Gazebo的开源海洋机器人仿真库。你可以�
 
 安装完成后，[准备终端](terminals.md)，然后运行[第一次仿真](quickstart.md)。
 
-- ROS：**ROS 2 Lyrical**
-- Gazebo Sim仿真器：**Gazebo Jetty**
+- ROS：**ROS 2 Lyrical** — LTS，支持结束：[2031年5月](https://docs.ros.org/en/lyrical/Releases/Release-Lyrical-Luth.html)
+- Gazebo Sim仿真器：**Gazebo Jetty** — LTS，支持结束：[2031年5月](https://gazebosim.org/docs/latest/releases/#release-list)
 
 ## 可以仿真什么
 
