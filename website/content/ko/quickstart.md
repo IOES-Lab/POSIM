@@ -4,9 +4,7 @@
 
 ## 시작 전 준비
 
-[Ubuntu 설치](install.md), [macOS 설치](install-macos.md) 또는 [Windows 설치](install-windows.md)를 완료하세요. [ROS 터미널과 토픽](ros.md)에 따라 같은 환경에서 터미널 두 개를 엽니다.
-
-Docker에서는 [센서 렌더링 환경](docker.md#데스크톱-없이-영상-센서-렌더링)도 준비하세요. `headless:=true`는 Gazebo GUI를 숨기는 옵션이며 로봇의 영상 센서에는 렌더러가 필요합니다.
+[실행 환경 선택](requirements.md)에서 고른 설치를 마친 뒤 [터미널 준비](terminals.md)를 따라 창 두 개를 열고 각각 ROS·POSIM 환경을 불러오세요. 터미널 A는 시뮬레이터를 실행하고, B는 결과를 읽습니다. Docker에서도 설치할 때 준비한 Linux 데스크톱, WSLg 또는 RDP를 통해 Gazebo 창을 봅니다.
 
 ## 1. 로봇과 월드 시작하기
 
@@ -15,7 +13,7 @@ Docker에서는 [센서 렌더링 환경](docker.md#데스크톱-없이-영상-�
 ```bash
 ros2 launch posim_demos posim_robot.launch.py \
   namespace:=rexrov world_name:=posim_ocean_waves z:=-5 paused:=false \
-  gui:=false headless:=true use_teleop:=false use_web_joystick:=false
+  gui:=true headless:=false use_teleop:=false use_web_joystick:=false
 ```
 
 이 명령은 월드를 시작하고 z = 0보다 5 m 아래에 REXROV를 배치하며 ROS 브리지를 실행합니다. 터미널 A를 계속 실행하세요. 로봇 Launch가 월드도 시작하므로 하나의 시뮬레이션으로 실행합니다.

@@ -4,12 +4,14 @@
 
 ## 기준 좌표가 있는 월드 실행
 
+[설치 방식에 맞게 준비한 터미널 A](terminals.md)에서 실행합니다.
+
 ```bash
 ros2 launch posim_demos posim_world.launch.py \
-  world_name:=posim_bimanual_example headless:=true
+  world_name:=posim_bimanual_example headless:=false
 ```
 
-같은 환경의 두 번째 터미널에서 확인합니다.
+준비한 터미널 B에서 확인합니다.
 
 ```bash
 ros2 service list -t

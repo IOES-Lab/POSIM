@@ -1,45 +1,51 @@
 # POSIM — Platform for Ocean Simulation
 
-[![Build Lyrical / Jetty Docker image (ARM64)](https://github.com/IOES-Lab/POSIM/actions/workflows/docker-arm64v8.yml/badge.svg)](https://github.com/IOES-Lab/POSIM/actions/workflows/docker-arm64v8.yml)
-[![Build Lyrical / Jetty Docker image (AMD64)](https://github.com/IOES-Lab/POSIM/actions/workflows/docker-amd64.yml/badge.svg)](https://github.com/IOES-Lab/POSIM/actions/workflows/docker-amd64.yml)
+[English](README.md) · [Español](README.es.md) · [Français](README.fr.md) · [Deutsch](README.de.md) · [Italiano](README.it.md) · [한국어](README.ko.md) · [日本語](README.ja.md) · [中文](README.zh.md)
+
+[![Build and publish POSIM Docker images](https://github.com/IOES-Lab/POSIM/actions/workflows/docker-amd64.yml/badge.svg)](https://github.com/IOES-Lab/POSIM/actions/workflows/docker-amd64.yml)
 
 POSIM is an open-source maritime robotics simulation library maintained by
 IOES-Lab. It combines ocean environments, underwater and surface robots,
-simulated sensors, and ROS 2 control interfaces for Gazebo.
+simulated sensors, and ROS 2 control interfaces for Gazebo Sim.
 
 ## Documentation
 
-**[English documentation](https://ioes-lab.github.io/POSIM/)** ·
-**[한국어 문서](https://ioes-lab.github.io/POSIM/ko/)**
+**[Read the documentation](https://ioes-lab.github.io/POSIM/)**
 
-Find installation instructions, first simulations, vehicle and sensor examples,
-custom robot guides, and plugin references on the documentation website.
-The [public feature catalogue](https://ioes-lab.github.io/POSIM/features.html)
-maps implementations to their guides, including
+POSIM uses ROS 2 Lyrical and Gazebo Sim Jetty. Choose an installation route:
+
+- **Ubuntu 26.04:** [native installation](https://ioes-lab.github.io/POSIM/install.html), the recommended setup. [Linux Docker](https://ioes-lab.github.io/POSIM/install-ubuntu-docker.html) provides another route for Linux systems.
+- **Windows:** [WSL](https://ioes-lab.github.io/POSIM/install-windows.html) or [WSL + Docker](https://ioes-lab.github.io/POSIM/install-windows-docker.html).
+- **macOS:** [Docker + RDP](https://ioes-lab.github.io/POSIM/install-macos.html).
+
+Compare the routes in [Choose an environment](https://ioes-lab.github.io/POSIM/requirements.html),
+then [prepare your terminals](https://ioes-lab.github.io/POSIM/terminals.html)
+and run your [first simulation](https://ioes-lab.github.io/POSIM/quickstart.html).
+
+The [feature catalogue](https://ioes-lab.github.io/POSIM/features.html)
+links robot, world, sensor and control examples to their guides, including
 [underwater scene effects and marine snow](https://ioes-lab.github.io/POSIM/underwater-rendering.html)
 and [marine GNSS](https://ioes-lab.github.io/POSIM/gnss.html).
-The `main` branch targets Ubuntu 26.04, ROS 2 Lyrical, and Gazebo Jetty.
-Start with [installation](https://ioes-lab.github.io/POSIM/install.html) or
-[Docker](https://ioes-lab.github.io/POSIM/docker.html), then run your
-[first simulation](https://ioes-lab.github.io/POSIM/quickstart.html).
 
-## Terrain, routing and control libraries
+## Docker images
 
-These related libraries support geographic terrain, route planning and vehicle
-control experiments with POSIM. Each repository has English/Korean usage
-instructions and tests.
+Download the current image:
 
-| Library | Responsibility |
-| --- | --- |
-| [POSIM-Terrain](https://github.com/IOES-Lab/POSIM-Terrain) | Geographic land/seabed generation and satellite textures |
-| [POSIM-Routing](https://github.com/IOES-Lab/POSIM-Routing) | Global routes, coastal paths, port approaches and local collision checks |
-| [POSIM-Control](https://github.com/IOES-Lab/POSIM-Control) | Vehicle propulsion, leader/follower control and motion policies |
+```bash
+docker pull ioeslab/posim:latest
+```
 
-Read the [library guide](https://ioes-lab.github.io/POSIM/libraries.html) or [한국어 안내](https://ioes-lab.github.io/POSIM/ko/libraries.html) for how they work together and how to use them directly.
+Docker selects the AMD64 or ARM64 variant for the host. For repeatable
+experiments, select a `sha-<12-character-commit>` tag from
+[Docker Hub](https://hub.docker.com/r/ioeslab/posim/tags).
+Follow [Choose an environment](https://ioes-lab.github.io/POSIM/requirements.html)
+for Linux, Windows WSL and macOS display setup before creating a container.
 
-[WWW-POSIM](https://www-posim.vercel.app/) is an optional web and desktop
-application built with POSIM. Its application workflows have their own
-documentation; the guides above cover using POSIM directly.
+## Related application
+
+[WWW-POSIM](https://www-posim.vercel.app/) combines POSIM with geographic
+terrain, routing and vehicle-control libraries, adding a GUI and web/desktop
+applications. Its own documentation covers those application workflows.
 
 ## Contributing
 

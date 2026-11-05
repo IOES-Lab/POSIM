@@ -4,13 +4,15 @@ A Doppler velocity log (DVL) estimates velocity relative to the seabed or surrou
 
 ## Run the sensor
 
+Run in [terminal A prepared for your installation](terminals.md):
+
 ```bash
 ros2 launch posim_demos posim_sensor.launch.py \
   namespace:=nortek_dvl500_300 world_name:=dvl_world z:=-30 \
-  paused:=false gui:=false headless:=true
+  paused:=false gui:=true headless:=false
 ```
 
-In a second sourced terminal, inspect Gazebo and then ROS data:
+In the prepared terminal B, inspect Gazebo, stop the viewer with **Ctrl+C**, then inspect ROS data:
 
 ```bash
 gz topic -e -t /dvl/velocity
@@ -58,7 +60,7 @@ The [complete DVL500-300 SDF](https://github.com/IOES-Lab/POSIM/blob/main/models
 | Water-mass `boundaries/near`, `boundaries/far`, `bins` | Sample bounds in m and bin count | 10, 100, 10 |
 | Tracking `visualize` | Show sampling geometry | true |
 
-See the [bridge implementation](https://github.com/IOES-Lab/POSIM/blob/main/gazebo/posim_ros_gz_plugins/src/DVLBridge.cc) for message conversion. A renderer is needed even in server-only mode; see [Docker rendering setup](docker.md#rendering-image-sensors-without-a-desktop).
+See the [bridge implementation](https://github.com/IOES-Lab/POSIM/blob/main/gazebo/posim_ros_gz_plugins/src/DVLBridge.cc) for message conversion. The depth sensor uses Gazebo rendering; complete your [environment setup](requirements.md) before launching it.
 
 ## Available descriptions
 

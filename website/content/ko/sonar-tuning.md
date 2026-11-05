@@ -2,6 +2,12 @@
 
 소나 실험에 필요한 관측 범위, 세부 표현과 갱신율을 선택합니다. 빠른 시작, SDF 구성과 설정값의 정의는 [멀티빔 소나 참고 문서](sonar.md)에 있습니다. 이 가이드는 설정별 결과를 비교하고 CUDA 실행 환경을 준비하는 방법을 설명합니다.
 
+## 이 문서를 실행할 위치
+
+[터미널 준비](terminals.md)에서 설정한 Linux 터미널을 사용합니다. NVIDIA GPU가 있는 Ubuntu 또는 지원되는 WSL 2 호스트, GPU에 접근할 수 있는 컨테이너에서 진행하세요. 파일 수정과 빌드도 그 환경 안에서 수행하며, `POSIM_WS`는 해당 작업 공간의 경로입니다.
+
+macOS의 Docker·RDP 구성에서는 CUDA GPU를 사용할 수 없습니다. 이 소나는 NVIDIA GPU가 있는 Linux 또는 WSL 2 호스트에서 실행하세요.
+
 ## 기준 결과 측정
 
 [BlueView P900 예제](sonar.md)를 실행하고 장면, 표적 거리와 센서 자세를 고정합니다. 처리율을 측정하기 전에 영상과 원시 관측값이 도착하는지 확인하세요. CUDA 라이브러리가 없다면 먼저 아래 도구 준비 과정을 진행합니다.
@@ -32,7 +38,7 @@ gz topic -e -t /world/default/stats
 | 갱신율 | 30 Hz와 10 Hz 요청 비교 | 수신 주기와 시뮬레이터 실시간 비율 |
 | Ray 건너뛰기 | `raySkips` 10과 5 비교 | 수직 샘플링의 세부 표현과 계산 시간 |
 
-표의 설정으로 비교 실험을 수행해 효과를 측정합니다. 처리율을 측정할 때는 `writeLog`와 `debugFlag`를 끄고, 원시 관측값이나 처리 시간을 조사할 때 따로 켜세요. 실행마다 SDF, POSIM 커밋, GPU·툴킷 버전과 관측값을 보관합니다. 토픽 기록은 [ROS 2 안내](ros.md)를 참고하세요.
+표의 설정으로 비교 실험을 수행해 효과를 측정합니다. 처리율을 측정할 때는 `writeLog`와 `debugFlag`를 끄고, 원시 관측값이나 처리 시간을 조사할 때 따로 켜세요. 실행마다 SDF, POSIM 커밋, GPU·툴킷 버전과 관측값을 보관합니다. 토픽 기록은 [센서 데이터 보기와 기록](visualization.md)를 참고하세요.
 
 ## 도구 확인
 
@@ -45,7 +51,7 @@ nvidia-smi
 nvcc --version
 ```
 
-GPU 접근과 컴파일러 설치는 각각 확인합니다. 컨테이너에서는 호스트의 [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html)과 이미지 안의 라이브러리를 모두 준비해야 합니다.
+GPU 접근과 컴파일러 설치는 각각 확인합니다. Linux의 Docker Engine은 호스트에 [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html)을 설정합니다. Windows에서는 [Docker Desktop의 WSL 2 GPU 설정](https://docs.docker.com/desktop/features/gpu/)을 따르세요. 컨테이너 이미지 안에도 CUDA 라이브러리가 필요합니다.
 
 ## CUDA 아키텍처 선택
 

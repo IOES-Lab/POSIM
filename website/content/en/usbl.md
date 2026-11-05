@@ -4,16 +4,18 @@ Ultra-short baseline (USBL) positioning uses acoustic signals to locate underwat
 
 ## Start the tutorial world
 
+Run in [terminal A prepared for your installation](terminals.md):
+
 ```bash
 ros2 launch posim_demos posim_world.launch.py \
-  world_name:=usbl_tutorial headless:=true
+  world_name:=usbl_tutorial headless:=false
 ```
 
 The world already contains the transceiver and transponders. Start them together with the world launch.
 
 ## Receive positions
 
-In a second terminal with the same environment loaded:
+In the prepared terminal B:
 
 ```bash
 ros2 topic echo /USBL/transceiver_manufacturer_168/transponder_location \
@@ -29,7 +31,7 @@ Both messages carry `transponder_id`, but their `x`, `y`, `z` fields have differ
 | `transponder_location` | Bearing, degrees | Range, meters | Elevation, degrees |
 | `transponder_location_cartesian` | Relative x, meters | Relative y, meters | Relative z, meters |
 
-The current implementation computes directions from the world-coordinate position difference; account for this convention when combining it with body-frame data.
+Directions use the world-coordinate position difference. Bearing is 0° along world +x and 90° along +y; positive elevation points toward +z. Account for these axes when combining observations with body-frame data.
 
 ## SDF integration
 

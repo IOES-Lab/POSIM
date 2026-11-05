@@ -2,6 +2,10 @@
 
 높이맵은 격자마다 고도를 저장하여 지형을 표현합니다. 카메라에 보이는 해저와 접촉 계산에 사용되는 해저가 일치하도록 화면·충돌 형상을 함께 설정합니다.
 
+## 이 문서를 실행할 위치
+
+[터미널 준비](terminals.md)에서 설정한 Linux 터미널을 사용합니다. Ubuntu 네이티브, WSL의 Ubuntu, POSIM 컨테이너에서 같은 순서로 진행할 수 있습니다. macOS는 RDP로 접속한 Linux 데스크톱 안의 터미널을 사용하세요. 파일 수정과 빌드도 그 환경 안에서 수행하며, `POSIM_WS`는 해당 작업 공간의 경로입니다.
+
 ## 예제 지형
 
 지리 장면은 [Santorini](https://github.com/IOES-Lab/POSIM/blob/main/models/posim_worlds/worlds/posim_Santorini.world), 해저 장면은 [graded seabed](https://github.com/IOES-Lab/POSIM/blob/main/models/posim_worlds/worlds/posim_graded_seabed.world)를 참고하세요. Santorini는 Fuel의 `Santorini Scaled` 모델을 사용합니다.

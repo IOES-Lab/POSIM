@@ -1,5 +1,6 @@
 /* Local search and documentation controls; no simulator connection required. */
-const ko = document.documentElement.lang === 'ko';
+const localization = JSON.parse(document.querySelector('#docs-localization').textContent);
+const ui = localization.ui;
 const searchIndexes = new Map();
 const language = document.documentElement.lang;
 const normalize = value => value.normalize('NFKC').toLocaleLowerCase();
@@ -33,7 +34,7 @@ document.querySelectorAll('.docs-search input').forEach(input => {
     results.replaceChildren(); results.hidden = !query;
     if (!query) return;
     try {
-      const index = (await Promise.all((other.checked ? [language, ko ? 'en' : 'ko'] : [language]).map(indexPromise))).flat();
+      const index = (await Promise.all((other.checked ? localization.languages : [language]).map(indexPromise))).flat();
       if (current !== revision) return;
       const words = [...new Set(query.split(/\s+/))];
       const matches = index.map(page => ({ page, score: words.reduce((score, word) =>
@@ -43,10 +44,10 @@ document.querySelectorAll('.docs-search input').forEach(input => {
         + (normalize(page.title) === query && !page.url.includes('#') ? 30 : 0) }))
         .filter(item => words.every(word => normalize(`${item.page.title} ${item.page.heading} ${item.page.text}`).includes(word)))
         .sort((a, b) => b.score - a.score || (b.page.language === language) - (a.page.language === language)).slice(0, 10);
-      if (!matches.length) results.textContent = ko ? '검색 결과가 없습니다.' : 'No matching guides.';
+      if (!matches.length) results.textContent = ui.noMatches;
       for (const { page } of matches) {
         const link = document.createElement('a'); link.lang = page.language;
-        link.href = (page.language === language ? '' : ko ? '../' : 'ko/') + page.url;
+        link.href = (page.language === language ? '' : (language === 'en' ? '' : '../') + (page.language === 'en' ? '' : page.language + '/')) + page.url;
         const title = document.createElement('strong'); highlight(title, page.title, words); link.append(title);
         if (page.heading !== page.title) {
           const heading = document.createElement('span'); heading.className = 'docs-search-heading';
@@ -63,7 +64,7 @@ document.querySelectorAll('.docs-search input').forEach(input => {
         }
         results.append(link);
       }
-    } catch { if (current === revision) results.textContent = ko ? '문서 메뉴에서 가이드를 선택해 주세요.' : 'Select a guide from the documentation menu.'; }
+    } catch { if (current === revision) results.textContent = ui.searchUnavailable; }
   };
   input.addEventListener('input', search);
   other.addEventListener('change', search);
@@ -106,19 +107,19 @@ document.querySelectorAll('.docs-content pre > code').forEach(code => {
   const pre = code.parentElement;
   const block = document.createElement('div'); block.className = 'docs-code-block'; pre.before(block); block.append(pre);
   const button = document.createElement('button'); button.type = 'button'; button.className = 'docs-code-copy';
-  const label = ko ? '복사' : 'Copy'; button.textContent = label;
-  button.setAttribute('aria-label', ko ? '코드 복사' : 'Copy code');
+  const label = ui.copy; button.textContent = label;
+  button.setAttribute('aria-label', ui.copyCode);
   const status = document.createElement('span'); status.className = 'docs-copy-status'; status.setAttribute('role', 'status');
   block.append(button, status); let reset;
   button.addEventListener('click', async () => {
     clearTimeout(reset);
     try {
       await navigator.clipboard.writeText(code.textContent);
-      button.textContent = ko ? '복사됨' : 'Copied'; status.textContent = button.textContent;
+      button.textContent = ui.copied; status.textContent = button.textContent;
     } catch {
       const selection = window.getSelection(), range = document.createRange(); range.selectNodeContents(code);
       selection.removeAllRanges(); selection.addRange(range);
-      button.textContent = ko ? '텍스트 선택됨' : 'Text selected'; status.textContent = ko ? '복사 단축키를 눌러 주세요.' : 'Press your copy shortcut.';
+      button.textContent = ui.textSelected; status.textContent = ui.copyShortcut;
     }
     reset = setTimeout(() => { button.textContent = label; status.textContent = ''; }, 2500);
   });
@@ -132,10 +133,10 @@ document.querySelectorAll('.docs-content video').forEach(video => {
   const spinner = document.createElement('span'); spinner.className = 'docs-video-spinner'; spinner.setAttribute('aria-hidden', 'true');
   const status = document.createElement('span'); status.setAttribute('role', 'status');
   const progress = document.createElement('progress'); progress.max = 1;
-  progress.setAttribute('aria-label', ko ? '영상 버퍼링 진행률' : 'Video buffered');
+  progress.setAttribute('aria-label', ui.videoBuffered);
   const retry = document.createElement('button'); retry.type = 'button'; retry.hidden = true;
-  retry.textContent = ko ? '다시 시도' : 'Retry';
-  const open = document.createElement('a'); open.textContent = ko ? '영상 파일 열기' : 'Open video file';
+  retry.textContent = ui.retry;
+  const open = document.createElement('a'); open.textContent = ui.openVideo;
   open.href = video.currentSrc || video.querySelector('source')?.src || video.src;
   open.hidden = true;
   overlay.append(spinner, status, progress, retry, open); frame.append(overlay);
@@ -153,14 +154,14 @@ document.querySelectorAll('.docs-content video').forEach(video => {
     if (failed || video.paused || video.ended) return;
     overlay.hidden = false; spinner.hidden = false; progress.hidden = false;
     status.textContent = video.currentTime > 0
-      ? (ko ? '영상을 버퍼링하는 중…' : 'Buffering video…')
-      : (ko ? '영상을 불러오는 중…' : 'Loading video…');
+      ? (ui.buffering)
+      : (ui.loading);
     video.setAttribute('aria-busy', 'true'); updateProgress();
   };
   const failure = () => {
     failed = true; overlay.hidden = false; spinner.hidden = true; progress.hidden = true;
     retry.hidden = false; open.hidden = false; video.removeAttribute('aria-busy');
-    status.textContent = ko ? '영상을 불러올 수 없습니다.' : 'Unable to load the video.';
+    status.textContent = ui.videoFailed;
   };
   for (const name of ['play', 'loadstart', 'seeking', 'stalled']) {
     video.addEventListener(name, () => { if (video.readyState < 3) buffering(); });

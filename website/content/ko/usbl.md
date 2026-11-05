@@ -4,16 +4,18 @@
 
 ## 튜토리얼 월드 실행
 
+[설치 방식에 맞게 준비한 터미널 A](terminals.md)에서 실행합니다.
+
 ```bash
 ros2 launch posim_demos posim_world.launch.py \
-  world_name:=usbl_tutorial headless:=true
+  world_name:=usbl_tutorial headless:=false
 ```
 
 송수신기와 응답기가 월드에 포함되어 있으므로 월드 Launch로 함께 실행하세요.
 
 ## 위치 받기
 
-같은 환경의 두 번째 터미널에서 확인합니다.
+준비한 터미널 B에서 확인합니다.
 
 ```bash
 ros2 topic echo /USBL/transceiver_manufacturer_168/transponder_location \
@@ -29,7 +31,7 @@ ros2 topic echo /USBL/transceiver_manufacturer_168/transponder_location_cartesia
 | `transponder_location` | 방위각(도) | 거리(m) | 고도각(도) |
 | `transponder_location_cartesian` | 상대 x(m) | 상대 y(m) | 상대 z(m) |
 
-현재 구현은 월드 좌표의 위치 차이로 방향을 계산합니다. 로봇 본체 좌표의 데이터와 결합할 때 이 기준을 반영하세요.
+월드 좌표의 위치 차이로 방향을 계산합니다. 방위각은 월드 +x 방향에서 0°, +y 방향에서 90°이며, 양의 고도각은 +z 방향입니다. 로봇 본체 좌표의 데이터와 결합할 때 이 축 기준을 반영하세요.
 
 ## SDF 구성
 

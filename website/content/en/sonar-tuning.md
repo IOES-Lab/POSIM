@@ -2,6 +2,12 @@
 
 Choose the coverage, detail and update rate needed by your sonar experiment. The [multibeam sonar reference](sonar.md) contains the quickstart, SDF integration and parameter definitions. This guide explains how to compare configurations and prepare the CUDA backend.
 
+## Where to run this guide
+
+Use the Linux terminals prepared in [Prepare your terminals](terminals.md) on an NVIDIA-equipped Ubuntu or supported WSL 2 host, or in a container with GPU access. Edit and build in that environment; `POSIM_WS` is its workspace path.
+
+The macOS Docker/RDP setup does not expose a CUDA GPU. Run this sonar backend on an NVIDIA-equipped Linux or WSL 2 host.
+
 ## Establish a baseline
 
 Start the [BlueView P900 example](sonar.md#run-a-sonar-example) and keep its scene, target distance and sensor pose fixed. Confirm that the image and raw observations arrive before measuring throughput. If the CUDA libraries are not installed, complete the toolchain steps below first.
@@ -32,7 +38,7 @@ Change one setting in a copy of the [sonar descriptor](sonar.md#sensor-configura
 | Update rate | Request 30 Hz versus 10 Hz | Received rate and simulator real-time factor |
 | Ray skipping | Compare `raySkips` 10 and 5 | Vertical sampling detail and computation time |
 
-These are comparisons to run, not promised speedups. Keep `writeLog` and `debugFlag` disabled when measuring throughput; enable them separately when investigating raw returns or timing. Save the SDF, POSIM revision, GPU/toolkit versions and observations with each run. The [ROS 2 guide](ros.md#visualization-and-recording) covers recording topics.
+These are comparisons to run, not promised speedups. Keep `writeLog` and `debugFlag` disabled when measuring throughput; enable them separately when investigating raw returns or timing. Save the SDF, POSIM revision, GPU/toolkit versions and observations with each run. The [sensor data guide](visualization.md) covers recording topics.
 
 ## Check the toolchain
 
@@ -45,7 +51,7 @@ nvidia-smi
 nvcc --version
 ```
 
-GPU visibility and compiler availability are separate checks. For containers, configure [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html) on the host as well as the required libraries inside the image.
+GPU visibility and compiler availability are separate checks. For Docker Engine on Linux, configure the host's [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html). On Windows, follow the [Docker Desktop WSL 2 GPU setup](https://docs.docker.com/desktop/features/gpu/). The container image also needs the CUDA libraries.
 
 ## Select a CUDA architecture
 

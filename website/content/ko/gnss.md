@@ -4,9 +4,10 @@
 
 ## 수신기 빌드와 장착
 
-설정된 POSIM ROS 작업 공간에서 실행합니다.
+[설치 방식에 맞게 준비한 터미널 A](terminals.md)에서 실행합니다. macOS는 RDP로 접속한 Linux 데스크톱의 터미널을 사용합니다.
 
 ```bash
+cd "$POSIM_WS"
 source /opt/ros/lyrical/setup.bash
 colcon build --merge-install --packages-select posim_gz_gnss posim_robot_models
 source install/setup.bash
@@ -53,7 +54,7 @@ source install/setup.bash
 
 ## 측정과 차단 상태 확인
 
-예제 토픽의 출력을 확인합니다.
+설정한 모델을 실행한 뒤 준비한 터미널 B에서 토픽 출력을 확인합니다.
 
 ```bash
 gz topic -e -t /model/my_robot/gnss

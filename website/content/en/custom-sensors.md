@@ -2,6 +2,10 @@
 
 A sensor needs its model definition, the system that updates it and a route to the consumer. Add one sensor at a time and verify its measurements before adding another.
 
+## Where to run this guide
+
+Use the Linux terminals prepared in [Prepare your terminals](terminals.md). This applies to native Ubuntu, Ubuntu in WSL, and POSIM containers. On macOS, use the Linux terminal inside the RDP desktop. Edit and build inside that environment; `POSIM_WS` is its workspace path.
+
 ## Choose the integration point
 
 | Measurement | Model placement | World system / ROS path |
@@ -44,7 +48,7 @@ Stop the previous world, validate the edited file and start it again in Terminal
 
 ```bash
 gz sdf -k calm_water.sdf
-gz sim -s -r calm_water.sdf
+gz sim -r calm_water.sdf
 ```
 
 In sourced **Terminal B**, start the bridge and leave it running:

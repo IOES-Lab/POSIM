@@ -4,12 +4,14 @@ The `SphericalCoords` ROS plugin provides services for the world's geographic or
 
 ## Start a configured world
 
+Run in [terminal A prepared for your installation](terminals.md):
+
 ```bash
 ros2 launch posim_demos posim_world.launch.py \
-  world_name:=posim_bimanual_example headless:=true
+  world_name:=posim_bimanual_example headless:=false
 ```
 
-In a second terminal with the same environment loaded:
+In the prepared terminal B:
 
 ```bash
 ros2 service list -t

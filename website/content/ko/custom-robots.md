@@ -2,11 +2,19 @@
 
 구조가 비슷한 POSIM 모델을 참고해 로봇을 만듭니다. SDF는 기계적 구성과 시스템을, ROS 설정은 관측값과 제어 명령의 연결을 정의합니다.
 
+## 이 문서를 실행할 위치
+
+[터미널 준비](terminals.md)에서 설정한 Linux 터미널을 사용합니다. Ubuntu 네이티브, WSL의 Ubuntu, POSIM 컨테이너에서 같은 순서로 진행할 수 있습니다. macOS는 RDP로 접속한 Linux 데스크톱 안의 터미널을 사용하세요. 파일 수정과 빌드도 그 환경 안에서 수행하며, `POSIM_WS`는 해당 작업 공간의 경로입니다.
+
 ## 1. 참고 모델 선택
 
 Gazebo 추진기를 사용하는 로봇은 [REXROV](https://github.com/IOES-Lab/POSIM/tree/main/models/posim_robot_models/description/rexrov)를, ArduSub·MAVROS 통합은 [BlueROV2](https://github.com/IOES-Lab/POSIM/tree/main/models/posim_robot_models/description/bluerov2)를 참고합니다. 다른 구조는 [Slocum 가이드](gliders.md)에서 살펴볼 수 있습니다.
 
-`~/posim_ws`에서 REXROV의 완전한 사본을 만드세요. 메시·브리지 설정·토픽 이름을 함께 복사합니다. `my_robot`이 이미 있으면 스크립트가 중단됩니다.
+`$POSIM_WS`에서 REXROV의 완전한 사본을 만드세요. 메시·브리지 설정·토픽 이름을 함께 복사합니다. `my_robot`이 이미 있으면 스크립트가 중단됩니다.
+
+```bash
+cd "$POSIM_WS"
+```
 
 ```python
 from pathlib import Path
@@ -73,7 +81,7 @@ source install/setup.bash
 ros2 launch posim_demos posim_robot.launch.py --show-args
 ros2 launch posim_demos posim_robot.launch.py \
   namespace:=my_robot world_name:=posim_ocean_waves z:=-2 paused:=false \
-  gui:=false headless:=true use_teleop:=false use_web_joystick:=false
+  gui:=true headless:=false use_teleop:=false use_web_joystick:=false
 ```
 
 작은 제어 명령으로 각 축의 동작을 확인합니다. 소스 디렉터리 밖에서도 실행하세요.

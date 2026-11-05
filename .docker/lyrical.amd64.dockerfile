@@ -25,8 +25,12 @@ RUN mkdir -p /opt/QGC && cd /opt/QGC && \
     chmod +x QGroundControl-x86_64.AppImage && \
     ./QGroundControl-x86_64.AppImage --appimage-extract && \
     mv squashfs-root/* /opt/QGC/ && \
-    rm QGroundControl-x86_64.AppImage && \
-    ln -sf /opt/QGC/AppRun /usr/local/bin/qgroundcontrol
+    chmod -R a+rX /opt/QGC && \
+    rm QGroundControl-x86_64.AppImage
+
+COPY .docker/qgroundcontrol.sh /usr/local/bin/qgroundcontrol
+RUN useradd --create-home --user-group --groups dialout --shell /bin/bash posim-qgc && \
+    chmod 0755 /usr/local/bin/qgroundcontrol
 
 # Install Firefox from Mozilla.
 RUN curl -L "https://download.mozilla.org/?product=firefox-latest-ssl&os=linux64&lang=en-US" \

@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { pages } from '../scripts/pages.mjs';
+import { languages, messages } from '../scripts/locales.mjs';
 
 test('desktop navigation, search, copy, language and shared emblem', async ({ page, context }, info) => {
   const errors = [];
@@ -33,7 +34,7 @@ test('desktop navigation, search, copy, language and shared emblem', async ({ pa
   expect(errors).toEqual([]);
 });
 
-test('mobile menu, search, language switching and all page widths', async ({ page }, info) => {
+test('mobile menu, search and language switching', async ({ page }, info) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/');
   await page.locator('.docs-mobile-menu summary').click();
@@ -45,13 +46,61 @@ test('mobile menu, search, language switching and all page widths', async ({ pag
   await page.locator('[data-language-select]').selectOption('ko/sonar.html');
   await expect(page).toHaveURL(/\/ko\/sonar.html$/);
   await page.screenshot({ path: info.outputPath('mobile-korean-sonar.png') });
-  for (const lang of ['', 'ko/']) {
+});
+
+for (const { code, directory } of languages) {
+  test(`${code} translated controls, section search and all mobile page widths`, async ({ page }, info) => {
+    const errors = [];
+    page.on('pageerror', error => errors.push(error.message));
+    await page.goto('/pressure.html');
+    await page.locator('[data-language-select]').selectOption(`${directory}pressure.html`);
+    await expect(page).toHaveURL(new RegExp(`/${directory}pressure.html$`));
+    await expect(page.locator('html')).toHaveAttribute('lang', code);
+    await expect(page.locator('[data-language-select] option')).toHaveCount(languages.length);
+    await expect(page.locator('main h1')).toHaveText(messages[code].pages.pressure);
+    await expect(page.locator('.docs-code-copy').first()).toHaveText(messages[code].ui.copy);
+
+    const search = page.locator('.docs-sidebar input[type=search]');
+    const results = page.locator('.docs-sidebar .docs-search-results');
+    // This SDF parameter appears in the page body, outside navigation labels.
+    await search.fill('noiseFreq');
+    const result = results.locator(`a[lang="${code}"][href^="currents.html#"]`).first();
+    await expect(result).toBeVisible();
+    await expect(results.locator(`a:not([lang="${code}"])`)).toHaveCount(0);
+    await result.click();
+    await expect(page).toHaveURL(new RegExp(`/${directory}currents.html#`));
+    await expect(page.locator('html')).toHaveAttribute('lang', code);
+    // Inline prose names terminals A/B; replacing it with the page title breaks the sentence.
+    await expect(page.locator('main a[href="terminals.html"]').first()).toContainText(/A.*B/);
+    await page.evaluate(() => scrollTo(0, 0));
+    await page.screenshot({ path: info.outputPath(`${code}-desktop.png`) });
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto(`/${directory}requirements.html`);
+    await page.screenshot({ path: info.outputPath(`${code}-mobile-installation.png`), fullPage: true });
     for (const entry of pages) {
-      await page.goto(`/${lang}${entry.slug}.html`);
-      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `${lang}${entry.slug} overflows`).toBe(true);
+      await page.goto(`/${directory}${entry.slug}.html`);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `${directory}${entry.slug} overflows`).toBe(true);
       await expect(page.locator('main h1')).toBeVisible();
       await expect(page.locator('.docs-brand img')).toBeVisible();
     }
+    expect(errors).toEqual([]);
+  });
+}
+
+test('search from a translated page links to English and a third language', async ({ page }) => {
+  for (const [query, language, destination] of [
+    ['Sea pressure', 'en', '/pressure.html'],
+    ['관성', 'ko', '/ko/'],
+  ]) {
+    await page.goto('/ja/index.html');
+    await page.locator('.docs-sidebar [data-search-other]').check();
+    await page.locator('.docs-sidebar input[type=search]').fill(query);
+    const result = page.locator(`.docs-sidebar .docs-search-results a[lang="${language}"]`).first();
+    await expect(result).toBeVisible();
+    await result.click();
+    await expect(page.locator('html')).toHaveAttribute('lang', language);
+    expect(new URL(page.url()).pathname.startsWith(destination)).toBe(true);
   }
 });
 

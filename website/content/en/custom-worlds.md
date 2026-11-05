@@ -2,6 +2,10 @@
 
 Build a small, self-contained world before adding terrain and a moving robot. This example holds a pressure sensor at a known depth so you can change the world and measure the result.
 
+## Where to run this guide
+
+Use the Linux terminals prepared in [Prepare your terminals](terminals.md). This applies to native Ubuntu, Ubuntu in WSL, and POSIM containers. On macOS, use the Linux terminal inside the RDP desktop. Edit and build inside that environment; `POSIM_WS` is its workspace path.
+
 ## Save a complete world
 
 In your sourced POSIM workspace, save this as `calm_water.sdf`. It uses primitive geometry and installed plugins, so it needs no downloaded meshes.
@@ -61,6 +65,14 @@ In your sourced POSIM workspace, save this as `calm_water.sdf`. It uses primitiv
 </sdf>
 ```
 
+This world contains:
+
+- **Physics:** a maximum step of 0.001 s, a target real-time factor of 1 and downward gravity.
+- **Light and scene:** a directional sun, ambient light and background colour.
+- **Seabed:** a fixed box with matching visual and collision geometry at z = −20 m.
+- **Pressure station:** a fixed marker at z = −2 m. Its model-level [Sea pressure](pressure.md) plugin publishes pressure and estimated depth.
+
+
 The fixed station is a depth-measurement fixture. Its pressure reference is the world z = 0 plane. Wave shape, buoyancy and vehicle motion are additional systems you can add after this baseline works.
 
 ## Validate and start
@@ -69,10 +81,10 @@ In Terminal A, from the directory containing the file:
 
 ```bash
 gz sdf -k calm_water.sdf
-gz sim -s -r calm_water.sdf
+gz sim -r calm_water.sdf
 ```
 
-Validation should succeed, then the simulation should continue running. `-s` runs the server without a GUI; `-r` starts time advancing. For a desktop view, run the same command without `-s` after stopping the server.
+Validation should succeed, then a Gazebo window opens. `-r` starts simulation time. Select `pressure_station` in the entity tree and focus the view on it to find the marker.
 
 In a second sourced terminal:
 

@@ -4,9 +4,11 @@ Worlds live in `models/posim_worlds/worlds`. Choose a world by its filename with
 
 ## Start a world
 
+Run commands in the [POSIM terminal prepared for your installation](terminals.md), whether you use native Ubuntu, WSL, Docker or the RDP desktop.
+
 ```bash
 ros2 launch posim_demos posim_world.launch.py \
-  world_name:=posim_ocean_waves headless:=true
+  world_name:=posim_ocean_waves headless:=false
 ```
 
 The filename and internal world name can differ. `posim_ocean_waves.world` declares `oceans_waves`, which appears in Gazebo topic and service paths. Read the `<world name="…">` element before constructing a path.
@@ -28,7 +30,7 @@ Sonar-specific worlds require the [sonar backend](sonar-tuning.md). First-use Fu
 
 ## Source catalog
 
-The list below is generated from the world files in this checkout when the website is built. Open a file to see its systems, included models, origin, lights and camera configuration.
+Open a world file to see its systems, included models, origin, lights and camera configuration.
 
 | World SDF |
 | --- |
@@ -54,10 +56,7 @@ gz service -s /world/posim_integrated/scene/info \
 # For posim_ocean_models.world, use /world/posim_ocean_model/scene/info.
 ```
 
-A populated scene response, advancing simulation time and the expected sensor
-outputs are separate checks. If a download stalls, preserve the verbose log
-and check network access from the machine/container running Gazebo. A startup
-interrupted during a download is not a successful runtime/shutdown test.
+Confirm that the response includes the expected models, then check the simulation clock and sensor outputs. If a download stalls, inspect the resource-loading message and network access from the machine or container running Gazebo.
 
 ## Choose launch arguments
 

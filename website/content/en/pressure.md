@@ -4,15 +4,15 @@ The pressure plugin converts model depth to hydrostatic pressure and publishes R
 
 ## Observe pressure on REXROV
 
-Start REXROV in a sourced terminal:
+Start REXROV in [prepared terminal A](terminals.md):
 
 ```bash
 ros2 launch posim_demos posim_robot.launch.py \
   namespace:=rexrov world_name:=posim_ocean_waves z:=-5 paused:=false \
-  gui:=false headless:=true use_teleop:=false use_web_joystick:=false
+  gui:=true headless:=false use_teleop:=false use_web_joystick:=false
 ```
 
-In a second sourced terminal:
+In prepared terminal B:
 
 ```bash
 ros2 topic echo /model/rexrov/sea_pressure sensor_msgs/msg/FluidPressure --once

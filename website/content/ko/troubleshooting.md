@@ -1,6 +1,6 @@
 # 문제 해결
 
-Launch 로그의 첫 오류부터 살펴보세요. 환경 경로, 모델 리소스, 시뮬레이션 시간, 플러그인, 데이터 수신을 차례로 확인하면 원인을 좁힐 수 있습니다. 전체 로그도 함께 보관하세요.
+Launch 로그의 첫 오류부터 살펴보세요. 환경 경로, 모델 리소스, 시뮬레이션 시간, 플러그인, 데이터 수신을 차례로 확인하면 원인을 좁힐 수 있습니다. 첫 오류와 그 앞뒤의 관련 로그를 기록하세요.
 
 ## 패키지를 찾지 못할 때
 
@@ -9,7 +9,7 @@ printf 'ROS_DISTRO=%s\n' "$ROS_DISTRO"
 ros2 pkg prefix posim_demos
 ```
 
-`lyrical`과 선택한 작업 공간 경로가 나와야 합니다. [설치](install.md) 또는 [Docker](docker.md)에 따라 환경을 불러오세요. 호스트와 컨테이너의 경로를 확인합니다.
+`lyrical`과 선택한 작업 공간 경로가 나와야 합니다. [선택한 설치 방법](requirements.md)에 맞춰 [터미널 환경](terminals.md)을 불러오고, 호스트와 컨테이너의 경로를 확인하세요.
 
 ## 모델·메시가 없을 때
 
@@ -17,7 +17,7 @@ ros2 pkg prefix posim_demos
 
 ## 영상이 없거나 렌더링 초기화가 실패할 때
 
-영상 센서는 화면 없이 실행해도 렌더러가 필요합니다. 디스플레이·offscreen 설정을 확인하세요. [Docker 환경](docker.md)의 Xvfb 설정이나 [CUDA 라이브러리](sonar-tuning.md)를 확인합니다.
+[설치 가이드](requirements.md)의 그래픽 드라이버와 화면 연결 설정을 확인하세요. Gazebo GUI와 영상 센서에는 정상 작동하는 렌더러가 필요합니다. CUDA 소나는 [CUDA 라이브러리](sonar-tuning.md)도 확인하세요.
 
 [수중 장면 효과](underwater-rendering.md)는 `/posim/appearance/<session_nonce>/state` 서비스, 렌더러·셰이더 경로와 활성 카메라 수를 확인합니다. 부유 입자의 기본값은 꺼짐이므로 직접 켜세요. 렌더링 후 적용 리비전과 준비 상태를 확인합니다. 카메라 감쇠 예제만 실행하면 장면 효과 시스템은 불러오지 않습니다.
 

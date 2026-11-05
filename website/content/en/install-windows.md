@@ -1,35 +1,57 @@
-# Install on Windows
+# Windows: WSL installation
 
-Use Windows Subsystem for Linux 2 (WSL2) to run POSIM in Ubuntu 26.04. Commands in the Ubuntu guide run inside the Linux distribution, not in PowerShell.
+Install POSIM directly in Ubuntu 26.04 running under Windows Subsystem for Linux 2 (WSL2). WSLg displays Gazebo windows on your Windows desktop. To use a prepared image instead, choose [Windows: WSL + Docker](install-windows-docker.md).
 
 ## 1. Install WSL and Ubuntu
 
-In PowerShell opened as Administrator, install WSL and Ubuntu 26.04:
+Open PowerShell as Administrator and run:
 
 ```powershell
 wsl --install -d Ubuntu-26.04
 ```
 
-Restart Windows if prompted. Start Ubuntu and create its Linux username and password. If WSL is already installed, [Microsoft's WSL instructions](https://learn.microsoft.com/en-us/windows/wsl/install) describe installing another distribution and troubleshooting. To check the installed distribution and WSL version, run in PowerShell:
+Restart Windows if requested. Open Ubuntu and create your Linux username and password. In PowerShell, check that the Ubuntu distribution uses version 2:
 
 ```powershell
 wsl --list --verbose
 ```
 
-The Ubuntu distribution should show version 2. In its Ubuntu terminal, confirm the release:
+See [Microsoft's WSL installation guide](https://learn.microsoft.com/en-us/windows/wsl/install) for an existing WSL installation or a failed setup.
+
+## 2. Prepare the graphics driver and WSLg
+
+Install or update the **Windows graphics driver** for your Intel, AMD or NVIDIA GPU. NVIDIA users need this step too. WSLg uses the Windows driver to display accelerated Linux graphics; follow [Microsoft's GUI application setup](https://learn.microsoft.com/en-us/windows/wsl/tutorials/gui-apps).
+
+For NVIDIA, follow [CUDA on WSL](https://docs.nvidia.com/cuda/wsl-user-guide/index.html): install the Windows driver, not a Linux display driver inside WSL. A CUDA toolkit is a separate requirement when building the sonar plugin.
+
+Update WSL from PowerShell:
+
+```powershell
+wsl --update
+```
+
+Save work in any running WSL terminals before applying a requested restart. Reopen Ubuntu after the update.
+
+## 3. Install POSIM in the Ubuntu terminal
+
+Use the **Ubuntu** profile in Windows Terminal for Linux commands. Check the distribution:
 
 ```bash
 cat /etc/os-release
 ```
 
-## 2. Install POSIM inside Ubuntu
+Follow [Ubuntu: native installation](install.md) from downloading the source through dependency installation and building. Store the workspace at `~/posim_ws` in the Linux home directory. The installer uses `sudo` and updates packages inside Ubuntu.
 
-In the Ubuntu terminal, follow [Install on Ubuntu](install.md) from **Get the source** through **Build and source**. Use the Linux home directory for the workspace. Review the installer first: it uses `sudo`, configures repositories and runs a full system package upgrade inside the distribution.
+If image topics are visible but frames stall, use [large-image transport troubleshooting](troubleshooting.md#image-topics-appear-but-frames-stall). For subsequent experiments, [Prepare your terminals](terminals.md) explains the two Ubuntu terminal windows.
 
-## 3. Run and view a simulation
+## 4. Run the demo world
 
-In each Ubuntu terminal, source the environment as described in the Ubuntu guide. Then follow [First simulation](quickstart.md). For a Gazebo window, use WSLg with a compatible graphics driver; see Microsoft's [Linux GUI app setup](https://learn.microsoft.com/en-us/windows/wsl/tutorials/gui-apps). For a world launch, set `headless:=false`; for robot and sensor launches, set `gui:=true headless:=false`. Keep the terminal open until the launch stops.
+Run this in the Ubuntu terminal. A Gazebo window should appear on the Windows desktop and display the ocean scene. First use may download Fuel models. Stop the simulation with Ctrl+C before starting another example.
 
-WSL rendering and DDS network behavior depend on the Windows and GPU configuration. If image topics appear but frames stall, follow the optional [large-image transport setup](troubleshooting.md#image-topics-appear-but-frames-stall). Multibeam sonar also needs a compatible NVIDIA/CUDA setup as described in [sonar setup](sonar-tuning.md).
-
-For container-based operation, use [Docker environment](docker.md) instead of installing the POSIM stack directly in Ubuntu.
+```bash
+source /opt/ros/lyrical/setup.bash
+source "$HOME/.ros_ardusub_env/env"
+source ~/posim_ws/install/setup.bash
+ros2 launch posim_demos posim_world.launch.py \
+  world_name:=posim_ocean_waves headless:=false
+```

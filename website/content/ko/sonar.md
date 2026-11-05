@@ -4,10 +4,12 @@ POSIM 멀티빔 소나는 음선(ray) 기반 점 산란 모델로 강도·거리
 
 ## 소나 예제 실행
 
+지원되는 NVIDIA/CUDA 환경에서 [POSIM 터미널 A와 B](terminals.md)를 준비하세요. 터미널 A에서 시뮬레이션을 실행하고, 터미널 B에서 출력을 확인합니다.
+
 ```bash
 ros2 launch posim_demos posim_sensor.launch.py \
   namespace:=blueview_p900 world_name:=posim_multibeam_sonar \
-  paused:=false x:=4 z:=2.0 yaw:=3.14 gui:=false headless:=true
+  paused:=false x:=4 z:=2.0 yaw:=3.14 gui:=true headless:=false
 ```
 
 `posim_multibeam_sonar_demo` 패키지의 별도 예제도 있습니다.
@@ -41,7 +43,7 @@ BlueView 센서 Launch는 Gazebo 시뮬레이션 시간을 ROS `/clock`으로 �
 <plugin filename="libmultibeam_sonar_system" name="custom::MultibeamSonarSystem"/>
 ```
 
-다음 P900 센서를 모델의 `<link>` 안에 넣습니다. 서버 모드에서도 렌더러를 준비하세요.
+다음 P900 센서를 모델의 `<link>` 안에 넣습니다. Gazebo 렌더링과 CUDA를 모두 준비하세요.
 
 ```xml
 <sensor name="multibeam_sonar" type="custom" gz:type="multibeam_sonar">
@@ -127,11 +129,17 @@ BlueView 센서 Launch는 Gazebo 시뮬레이션 시간을 ROS `/clock`으로 �
 | `debugFlag` | 진단 콘솔 출력 | false | false |
 | `plotScaler` | 읽고 출력하지만 영상 생성에는 사용하지 않음 | 10 | 생략 |
 
-토픽 접미사는 센서의 `<topic>` 뒤에 붙습니다. 예제에서는 `/sensor/multibeam_sonar`입니다. 원시 관측값은 `marine_acoustic_msgs/msg/ProjectedSonarImage`를 사용합니다. 점군은 Gazebo `gz.msgs.PointCloudPacked`이며, 포함된 ROS 브리지가 필요합니다.
+### 토픽과 좌표계
+
+토픽 접미사는 센서의 `<topic>` 뒤에 붙습니다. 예제에서는 `/sensor/multibeam_sonar`입니다. 원시 관측값은 `marine_acoustic_msgs/msg/ProjectedSonarImage`를 사용합니다. 점군은 Gazebo `gz.msgs.PointCloudPacked`이며, 포함된 ROS 브리지가 필요합니다. `pointCloudTopicName`은 `sensor_config.py`와 일치시키고, `frameName`에는 소나 광학 좌표계를 지정하세요.
+
+### 음선의 범위와 각도
 
 `<ray>` 블록의 기본값은 수평 빔 256개, 수직 ray 3개, 수평 각도 ±π/4, 수직 각도 ±π/8, 범위 0.1–5 m입니다. 스캔 각도는 `degrees="true"`이면 도, 그 외에는 rad 단위입니다. `<gz:multibeam_sonar>` 안의 선택 항목 `<reference_frame>`은 영 자세가 기본값입니다. `<ray>`와 `<spec>` 블록을 모두 유지하세요. 위 기본값은 블록 내부 항목에 적용됩니다. 파싱과 발행 방식은 [구현](https://github.com/IOES-Lab/POSIM/blob/main/gazebo/posim_gz_multibeam_sonar/multibeam_sonar/MultibeamSonarSensor.cc)에서 확인할 수 있습니다.
 
-`<spec>`에서 `sonarFreq`, `bandwidth`, `soundSpeed`, `sourceLevel`, `maxDistance`, `raySkips`와 출력 이름을 설정합니다. Ray 범위와 처리 거리를 맞추세요. `pointCloudTopicName`은 ROS–Gazebo 브리지 설정과 일치시키고 `frameName`에 소나 광학 좌표계를 지정합니다.
+음선의 거리 범위와 `maxDistance`를 일치시키세요.
+
+### 반복 실험 설정
 
 `writeLog`, `writeFrameInterval`, `debugFlag`로 진단 기록과 처리 시간을 확인할 수 있습니다. 기록 자체가 실험 목적이 아니라면 처리율 측정 시 기록을 끄세요. 반복 가능한 조절 순서는 [소나 설정과 실험](sonar-tuning.md), 모델의 연구 출처는 [인용 안내](citation.md)에 있습니다.
 
@@ -160,7 +168,7 @@ CUDA와 렌더링 환경을 준비한 뒤 작업 공간을 다시 빌드하고 �
 ros2 run posim_multibeam_sonar_demo plotdata.py SonarRawData_000001.csv
 ```
 
-데스크톱이 없는 환경에서는 PNG로 저장합니다.
+그림을 PNG 파일로 저장하려면 다음 명령을 사용합니다.
 
 ```bash
 ros2 run posim_multibeam_sonar_demo plotdata.py SonarRawData_000001.csv \

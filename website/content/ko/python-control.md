@@ -1,6 +1,6 @@
 # Python으로 제어하기
 
-[첫 시뮬레이션](quickstart.md)에 따라 REXROV를 시작하고 계속 실행하세요. 두 번째 터미널에서 같은 환경을 불러온 뒤 아래 프로그램을 실행합니다. 먼저 위치를 읽고, 이어서 추진기에 짧은 명령을 보냅니다.
+[첫 시뮬레이션](quickstart.md)에 따라 터미널 A에서 REXROV를 실행한 채로 두세요. 아래 프로그램은 [준비한 터미널 B](terminals.md)에서 실행합니다. 먼저 위치를 읽고, 이어서 추진기에 짧은 명령을 보냅니다.
 
 ## Python에서 구독
 
@@ -72,7 +72,7 @@ finally:
     rclpy.shutdown()
 ```
 
-시그널 옵션을 명시하여 Ctrl+C를 눌러도 ROS 발행자가 살아 있는 동안 종료 명령을 보내도록 합니다. 프로세스를 강제로 종료했다면 시뮬레이터를 정지하거나 [추진기와 Autopilot](robot-control.md)에 따라 중립 명령을 보내세요.
+시그널 옵션을 명시하여 Ctrl+C를 눌러도 ROS 발행자가 살아 있는 동안 종료 명령을 보내도록 합니다. 프로세스를 강제로 종료했다면 시뮬레이터를 정지하거나 [추진기와 조이스틱 제어](robot-control.md)에 따라 중립 명령을 보내세요.
 
 ## 추진기와 차량 반응 확인하기
 
@@ -88,4 +88,4 @@ ros2 topic echo --no-daemon /model/rexrov/joint/thruster1_joint/ang_vel std_msgs
 
 측정 상태와 제어 법칙을 사용해 REXROV의 추진기 8개에 힘을 분배하세요. 토픽 이름, 장착 축과 단위를 일치시킵니다. 실험 로직에는 시뮬레이션 시간을 사용하고, 종료할 때 제어한 모든 추진기에 중립 값을 보내세요.
 
-BlueROV2는 [추진기와 Autopilot](robot-control.md)의 MAVROS·ArduSub 경로를 사용합니다. 관측 데이터를 저장하고 비교하려면 [센서 데이터 보기와 기록](visualization.md)을 참고하세요.
+BlueROV2는 [추진기와 조이스틱 제어](robot-control.md)의 MAVROS·ArduSub 경로를 사용합니다. 관측 데이터를 저장하고 비교하려면 [센서 데이터 보기와 기록](visualization.md)을 참고하세요.
