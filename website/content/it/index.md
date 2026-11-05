@@ -10,8 +10,8 @@ POSIM è una libreria open source per la simulazione di robot marini con ROS 2 e
 
 Poi [prepara i terminali](terminals.md) e avvia la [prima simulazione](quickstart.md).
 
-- ROS: **ROS 2 Lyrical**
-- Simulatore Gazebo Sim: **Gazebo Jetty**
+- ROS: **ROS 2 Lyrical** — LTS; fine del supporto: [maggio 2031](https://docs.ros.org/en/lyrical/Releases/Release-Lyrical-Luth.html)
+- Simulatore Gazebo Sim: **Gazebo Jetty** — LTS; fine del supporto: [maggio 2031](https://gazebosim.org/docs/latest/releases/#release-list)
 
 ## Cosa puoi simulare
 
