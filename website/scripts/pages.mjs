@@ -1,3 +1,5 @@
+import { languages, messages } from './locales.mjs';
+
 export const sections = [
   { en: 'Introducing POSIM', ko: 'POSIM 소개', pages: [
     ['index', 'Overview', '소개', ['requirements', 'installation']],
@@ -25,6 +27,7 @@ export const sections = [
     ['ros', 'ROS terminals & topics', 'ROS 터미널과 토픽', ['quickstart', 'rovs']],
     ['python-control', 'Control with Python', 'Python으로 제어하기', ['rovs']],
     ['robot-control', 'Thrusters & joystick control', '추진기와 조이스틱 제어', ['rovs']],
+    ['qgroundcontrol', 'Control with QGroundControl', 'QGroundControl로 제어하기', []],
     ['surface', 'Surface robots & waves', '수상 로봇과 파도', []],
   ] },
   { en: 'Advanced guides', ko: '상세 가이드', pages: [
@@ -51,5 +54,12 @@ export const sections = [
     ['citation', 'Citation & licenses', '인용과 라이선스', []],
   ] },
 ];
+sections.forEach((section, index) => {
+  for (const { code } of languages) section[code] = messages[code].sections[index];
+});
+
 export const pages = sections.flatMap(section => section.pages.map(([slug, en, ko, sources]) =>
-  ({ slug, en, ko, sources, sectionEn: section.en, sectionKo: section.ko })));
+  ({ slug, en, ko, sources, sectionEn: section.en, sectionKo: section.ko,
+    ...Object.fromEntries(languages.map(({ code }) => [code, messages[code].pages[slug]])),
+    sectionTitles: Object.fromEntries(languages.map(({ code }) => [code, section[code]])),
+  })));

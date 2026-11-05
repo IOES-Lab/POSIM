@@ -46,7 +46,8 @@
     "sonar": "Mehrstrahlsonar",
     "troubleshooting": "Fehlerbehebung",
     "contributing": "Mitwirken",
-    "citation": "Zitieren und Lizenzen"
+    "citation": "Zitieren und Lizenzen",
+    "qgroundcontrol": "Steuern mit QGroundControl"
   },
   "ui": {
     "documentationLanguage": "Sprache der Dokumentation",
@@ -142,6 +143,14 @@
       "Anordnung von USBL-Sendeempfänger und Transpondern",
       "Nachrichtenfluss bei gemeinsamer und einzelner Abfrage",
       "Positionsmessungen des Transponders"
+    ],
+    "qgroundcontrol": [
+      "Aktivieren Sie die virtuellen Joysticks und die automatische Zentrierung des Schubreglers, bevor Sie den BlueROV2 steuern.",
+      "Der Videoempfänger läuft in derselben Linux-Umgebung wie der Simulator.",
+      "Die Frontkamera zeigt die Objekte der Beispielwelt. Beide virtuellen Joysticks bleiben über dem Videobild bedienbar."
+    ],
+    "install-macos": [
+      "Das vorbereitete ARM64-Image zeigt Gazebo auf dem RDP-Desktop."
     ]
   },
   "overview": "Meeresumgebung → Roboter und Dynamik → Sensormessungen → ROS-2-Steuerung. Ein Klick auf ein Bild öffnet die Anleitung."

@@ -46,7 +46,8 @@
     "sonar": "Sonar multibeam",
     "troubleshooting": "Risoluzione dei problemi",
     "contributing": "Contribuire",
-    "citation": "Citazioni e licenze"
+    "citation": "Citazioni e licenze",
+    "qgroundcontrol": "Controllo con QGroundControl"
   },
   "ui": {
     "documentationLanguage": "Lingua della documentazione",
@@ -142,6 +143,14 @@
       "Disposizione di ricetrasmettitore e transponder USBL",
       "Flusso dei messaggi di interrogazione comune e individuale",
       "Misure di posizione del transponder"
+    ],
+    "qgroundcontrol": [
+      "Attiva i joystick virtuali e il ricentraggio automatico del comando di spinta prima di pilotare il BlueROV2.",
+      "Il ricevitore video viene eseguito nello stesso ambiente Linux del simulatore.",
+      "La telecamera frontale mostra gli oggetti del mondo di esempio. I joystick virtuali restano disponibili sopra il video."
+    ],
+    "install-macos": [
+      "L’immagine ARM64 pronta all’uso mostra Gazebo nel desktop remoto."
     ]
   },
   "overview": "Ambiente oceanico → robot e dinamica → misure dei sensori → controllo ROS 2. Seleziona un’immagine per aprire la guida."

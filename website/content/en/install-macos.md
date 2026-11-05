@@ -65,3 +65,8 @@ ros2 launch posim_demos posim_world.launch.py \
 ```
 
 Gazebo should display the ocean world inside the remote desktop. Leave the terminal open while it runs. Press **Ctrl+C** before continuing to [your first robot simulation](quickstart.md).
+
+<figure>
+  <img src="{{ASSET_PREFIX}}media/guides/macos-rdp-gazebo.png" alt="POSIM ocean world running in the Linux RDP desktop on an Apple Silicon Mac" loading="lazy" width="1280" height="900">
+  <figcaption>The prepared ARM64 image displays Gazebo inside the RDP desktop.</figcaption>
+</figure>

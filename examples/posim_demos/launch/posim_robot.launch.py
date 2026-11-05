@@ -122,6 +122,8 @@ def launch_setup(context, *args, **kwargs):
             "joystick_ws_port": joystick_ws_port,
             "zoom_camera": zoom_camera_value,
             "zoom_camera_delay": zoom_camera_delay,
+            "qgc_video": LaunchConfiguration("qgc_video"),
+            "qgc_video_port": LaunchConfiguration("qgc_video_port"),
             "open_qgc": open_qgc,
             "open_virtual_joystick": open_virtual_joystick,
             "virtual_joystick_url": virtual_joystick_url,
@@ -233,6 +235,17 @@ def generate_launch_description():
             "joystick_ws_port",
             default_value="8765",
             description="Bind port for websocket joystick bridge",
+        ),
+        DeclareLaunchArgument(
+            "qgc_video",
+            default_value="false",
+            choices=["true", "false"],
+            description="Add an optional H.264 camera stream for QGroundControl",
+        ),
+        DeclareLaunchArgument(
+            "qgc_video_port",
+            default_value="5600",
+            description="Local UDP destination port for the QGroundControl video stream",
         ),
         DeclareLaunchArgument(
             "open_qgc",

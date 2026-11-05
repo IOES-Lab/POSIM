@@ -66,7 +66,7 @@ The AMD64 image uses `/opt/posim_ws`; the ARM64 image uses `/home/docker/posim_w
 
 The OS guides mount the Docker volume `posim-data` at `/work`. Save standalone SDF files and recordings there. Files elsewhere in a container survive a stop/start, but removing that container removes those files. Commit modified source or copy it out before replacing a container. A volume stays separate from the container until you explicitly remove the volume.
 
-## Stop, return and update
+## Stop, return and update {#update-an-existing-container}
 
 Stop the simulation with Ctrl+C in its terminal, then run Docker commands from the host:
 

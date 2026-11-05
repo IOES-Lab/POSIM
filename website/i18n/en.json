@@ -73,7 +73,8 @@
     "sonar": "Multibeam sonar",
     "troubleshooting": "Troubleshooting",
     "contributing": "Contributing",
-    "citation": "Citation & licenses"
+    "citation": "Citation & licenses",
+    "qgroundcontrol": "Control with QGroundControl"
   },
   "sections": [
     "Introducing POSIM",

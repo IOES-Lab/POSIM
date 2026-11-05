@@ -5,7 +5,7 @@ Choose the command interface that matches the robot. Read sensor data first, the
 | Vehicle | Command path | Next step |
 |---|---|---|
 | REXROV | ROS force commands → Gazebo thrusters | [Control with Python](python-control.md) |
-| BlueROV2 | ROS/joystick → MAVROS → ArduSub | [ROVs & BlueROV2](rovs.md) |
+| BlueROV2 | ROS/joystick → MAVROS → ArduSub | [QGC and live video](qgroundcontrol.md) · [ROS/joystick](rovs.md) |
 | WAM-V | Surface integration and vehicle controller | [Surface robots & waves](surface.md) |
 
 ## REXROV thruster commands

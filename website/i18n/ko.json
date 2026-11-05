@@ -73,7 +73,8 @@
     "sonar": "멀티빔 소나",
     "troubleshooting": "문제 해결",
     "contributing": "기여하기",
-    "citation": "인용과 라이선스"
+    "citation": "인용과 라이선스",
+    "qgroundcontrol": "QGroundControl로 제어하기"
   },
   "sections": [
     "POSIM 소개",

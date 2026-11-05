@@ -46,7 +46,8 @@
     "sonar": "多波束声呐",
     "troubleshooting": "故障排查",
     "contributing": "参与贡献",
-    "citation": "引用与许可证"
+    "citation": "引用与许可证",
+    "qgroundcontrol": "使用 QGroundControl 控制"
   },
   "ui": {
     "documentationLanguage": "文档语言",
@@ -142,6 +143,14 @@
       "USBL收发器与应答器的布置",
       "公共询问与单独询问的消息流程",
       "应答器位置观测"
+    ],
+    "qgroundcontrol": [
+      "操纵 BlueROV2 前，先启用虚拟摇杆和油门自动回中。",
+      "视频接收端与仿真器运行在同一个 Linux 环境中。",
+      "前视相机显示示例世界中的物体。显示视频时，仍可操作画面上的虚拟摇杆。"
+    ],
+    "install-macos": [
+      "使用预构建的 ARM64 镜像，在 RDP 远程桌面内运行 Gazebo。"
     ]
   },
   "overview": "海洋环境 → 机器人与动力学 → 传感器观测 → ROS 2控制。点击图片即可打开指南。"

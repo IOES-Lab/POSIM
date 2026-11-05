@@ -5,7 +5,7 @@
 | 차량 | 명령 전달 경로 | 다음 단계 |
 |---|---|---|
 | REXROV | ROS 추력 명령 → Gazebo 추진기 | [Python으로 제어하기](python-control.md) |
-| BlueROV2 | ROS·조이스틱 → MAVROS → ArduSub | [ROV와 BlueROV2](rovs.md) |
+| BlueROV2 | ROS·조이스틱 → MAVROS → ArduSub | [QGC와 실시간 영상](qgroundcontrol.md) · [ROS·조이스틱](rovs.md) |
 | WAM-V | 수상 로봇 통합과 차량 제어기 | [수상 로봇과 파도](surface.md) |
 
 ## REXROV 추진기 명령

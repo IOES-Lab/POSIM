@@ -65,3 +65,8 @@ ros2 launch posim_demos posim_world.launch.py \
 ```
 
 원격 데스크톱 안의 Gazebo 창에 해양 월드가 나타나야 합니다. 실행 중에는 터미널을 열어 두세요. **Ctrl+C**로 종료한 뒤 [첫 로봇 시뮬레이션](quickstart.md)으로 진행합니다.
+
+<figure>
+  <img src="{{ASSET_PREFIX}}media/guides/macos-rdp-gazebo.png" alt="Apple Silicon Mac의 Linux RDP 데스크톱에서 실행한 POSIM 해양 월드" loading="lazy" width="1280" height="900">
+  <figcaption>배포된 ARM64 이미지로 RDP 데스크톱 안에서 Gazebo를 실행한 화면입니다.</figcaption>
+</figure>
