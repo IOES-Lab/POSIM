@@ -4,20 +4,25 @@ POSIM generates ocean currents for the world, calculates the flow at each robot 
 
 ## Run the example
 
+Prepare [terminals A and B](terminals.md) in your selected POSIM environment: native Ubuntu, WSL, Docker or the macOS remote desktop. Start the example in terminal A.
+
 ```bash
 ros2 launch posim_demos posim_robot.launch.py \
   namespace:=rexrov world_name:=ocean_current_plugin z:=-5 paused:=false \
   gui:=true headless:=false use_teleop:=false use_web_joystick:=false
 ```
 
-In a second terminal, inspect Gazebo and ROS data in turn:
+In terminal B, inspect Gazebo and ROS data in turn:
 
 ```bash
 gz topic -e -t /ocean_current
-ros2 topic echo /hydrodynamics/currentVelocityTopic --once
 ```
 
-Stop each viewer before running the next command.
+Press Ctrl+C to stop the Gazebo viewer before running the ROS command.
+
+```bash
+ros2 topic echo /hydrodynamics/currentVelocityTopic --once
+```
 
 ## Configure uniform and stratified currents
 
@@ -135,13 +140,7 @@ ros2 interface show posim_interfaces/srv/SetStratifiedCurrentVelocity
 
 Each request either applies completely or returns `success: false` without changing the current. Values must be finite and within the configured bounds. Velocity bounds are nonnegative; horizontal-angle bounds stay within −π to π, and vertical-angle bounds within −π/2 to π/2. Model settings apply to the global model and every depth layer while preserving each layer's mean, so new bounds must contain those means too.
 
-## Depth variation and tidal inputs
-
-The world plugin loads a configured depth database and uses stochastic current models. The optional tidal configuration uses a database or supplied harmonic constituents with a configured start time and ebb/flood direction. These are experiment inputs, rather than live current observations.
-
-Preserve the database units, interpolation range, world origin and time reference when changing a profile. Compare received current and vehicle response with the same initial pose before interpreting a navigation result.
-
-## Adjust currents with ROS services
+### Read and adjust the models
 
 The example ROS namespace is `/hydrodynamics`. Inspect actual names with `ros2 service list -t` before calling them.
 
@@ -166,6 +165,12 @@ ros2 service call /hydrodynamics/set_stratified_current_velocity \
 | `set_stratified_current_horz_angle`, `set_stratified_current_vert_angle` | `SetStratifiedCurrentDirection` | `layer`, `angle` |
 
 Speed is in m/s, angles in rad and `layer` is a zero-based database index. Check both `success` and observed topics. The ROS service field corresponding to SDF `noiseAmp` is `noise`.
+
+## Tidal inputs
+
+The world plugin loads a configured depth database and uses stochastic current models. The optional tidal configuration uses a database or supplied harmonic constituents with a configured start time and ebb/flood direction. These are experiment inputs, rather than live current observations.
+
+Preserve the database units, interpolation range, world origin and time reference when changing a profile. Compare received current and vehicle response with the same initial pose before interpreting a navigation result.
 
 For tides, configure `<tidal_oscillation>` with CSV input or harmonic constituents such as M2/S2/N2, ebb/flood directions and a GMT start time. Example harmonic units are amplitude in m, phase in degrees and angular speed in degrees/hour. Distinguish tidal direction settings from the radian angles used by current services.
 
