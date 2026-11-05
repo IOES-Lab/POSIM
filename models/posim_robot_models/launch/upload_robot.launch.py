@@ -60,7 +60,9 @@ def launch_setup(context, *args, **kwargs):
             raise ValueError("qgc_video requires a robot with a camera sensor")
         if any(plugin.get("filename") == "GstCameraPlugin" for plugin in camera.findall("plugin")):
             raise ValueError("The camera already defines GstCameraPlugin; configure it in the SDF")
-        plugin = ET.SubElement(camera, "plugin", name="GstCameraPlugin", filename="GstCameraPlugin")
+        plugin = ET.SubElement(
+            camera, "plugin", name="GstCameraPlugin", filename="GstCameraPlugin"
+        )
         for name, value in (
             ("udp_host", "127.0.0.1"),
             ("udp_port", str(port)),
