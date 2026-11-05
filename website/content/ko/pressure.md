@@ -4,7 +4,7 @@
 
 ## REXROV에서 수압 확인
 
-환경을 불러온 터미널에서 REXROV를 실행합니다.
+[준비한 터미널 A](terminals.md)에서 REXROV를 실행합니다.
 
 ```bash
 ros2 launch posim_demos posim_robot.launch.py \
@@ -12,7 +12,7 @@ ros2 launch posim_demos posim_robot.launch.py \
   gui:=true headless:=false use_teleop:=false use_web_joystick:=false
 ```
 
-같은 환경의 두 번째 터미널에서 확인합니다.
+같은 방식으로 준비한 터미널 B에서 확인합니다.
 
 ```bash
 ros2 topic echo /model/rexrov/sea_pressure sensor_msgs/msg/FluidPressure --once
