@@ -235,8 +235,11 @@ RUN mkdir -p ~/QGC && wget -O ~/QGC/QGroundControl-aarch64-DailyBuild.AppImage \
     cd ~/QGC && chmod +x QGroundControl-aarch64-DailyBuild.AppImage && \
     ./QGroundControl-aarch64-DailyBuild.AppImage --appimage-extract && \
     mv ~/QGC/squashfs-root/* ~/QGC/. && rm ~/QGC/QGroundControl-aarch64-DailyBuild.AppImage && \
-    mkdir -p /home/$USER/.local/bin && \
-    ln -sf /home/$USER/QGC/AppRun /home/$USER/.local/bin/qgroundcontrol
+    mkdir -p /home/$USER/.local/bin
+
+# Isolate the bundled GStreamer from Gazebo's system plugins and shared cache.
+COPY --chown=$USER:$USER .docker/qgroundcontrol-arm64.sh /home/$USER/.local/bin/qgroundcontrol
+RUN chmod 0755 /home/$USER/.local/bin/qgroundcontrol
 
 # Install Firefox from Mozilla's ARM64 archive, matching the previous image.
 RUN curl -L "https://download.mozilla.org/?product=firefox-latest-ssl&os=linux64-aarch64&lang=en-US" \
