@@ -34,6 +34,18 @@ POSIM 전용 메시지는 `posim_interfaces`에 정의되어 있습니다. 별�
 
 센서 토픽과 메시지 자료형은 [카메라](camera.md), [압력](pressure.md), [DVL](dvl.md), [USBL](usbl.md), [소나](sonar.md) 참고 문서에서 확인합니다. [해류](currents.md)와 [구면 좌표](coordinates.md)는 실험 입력을 바꾸는 ROS 서비스도 제공합니다.
 
+이 카메라 단독 실행은 ROS `/clock` 발행자를 만들지 않습니다. 시뮬레이션 시간도 녹화하려면 A·B와 같은 ROS 환경으로 터미널 C를 준비하고 아래 단방향 브리지를 계속 실행하세요. `/clock` 발행자가 이미 있다면 브리지를 중복 실행하지 마세요.
+
+```bash
+ros2 run ros_gz_bridge parameter_bridge '/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock'
+```
+
+터미널 B로 돌아와 녹화 전에 시계 메시지 수신을 확인하세요:
+
+```bash
+ros2 topic echo --no-daemon /clock rosgraph_msgs/msg/Clock --once
+```
+
 ```bash
 ros2 bag record -o camera_run --topics /underwater_camera/simulated_image /clock
 ```
@@ -43,6 +55,8 @@ Ctrl+C를 눌러 기록을 마칩니다. 실행할 때마다 새 출력 디렉�
 ```bash
 ros2 bag info camera_run
 ```
+
+녹화 후 bag에 영상 토픽과 `/clock`이 모두 포함되어 있는지 확인하세요. bag을 재생하기 전에 터미널 C의 브리지를 Ctrl+C로 종료하세요.
 
 동일한 토픽으로 관측 데이터를 재생하기 전에 시뮬레이터를 종료합니다.
 

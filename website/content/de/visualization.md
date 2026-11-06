@@ -22,12 +22,22 @@ Jeder separate ROS-Client benötigt installierte und geladene `posim_interfaces`
 
 ## Aufzeichnen und wiedergeben
 
+Dieser eigenständige Kamerastart erstellt keinen ROS-Publisher für `/clock`. Um auch die Simulationszeit aufzuzeichnen, bereiten Sie Terminal C in derselben ROS-Umgebung wie A und B vor und lassen Sie die folgende unidirektionale Bridge laufen. Starten Sie keine zweite Bridge, wenn `/clock` bereits einen Publisher hat.
+
 {{CODE:visualization:2}}
 
-Strg+C beendet die Aufzeichnung. Verwenden Sie bei jedem Durchlauf ein neues Ausgabeverzeichnis und prüfen Sie die Anzahl der Nachrichten:
+Prüfen Sie vor der Aufzeichnung in Terminal B, ob eine Clock-Nachricht ankommt:
 
 {{CODE:visualization:3}}
 
+{{CODE:visualization:4}}
+
+Strg+C beendet die Aufzeichnung. Verwenden Sie bei jedem Durchlauf ein neues Ausgabeverzeichnis und prüfen Sie die Anzahl der Nachrichten:
+
+{{CODE:visualization:5}}
+
+Prüfen Sie nach der Aufzeichnung, ob das Bag sowohl das Bild-Topic als auch `/clock` enthält. Beenden Sie die Bridge in Terminal C mit Ctrl+C, bevor Sie das Bag wiedergeben.
+
 Beenden Sie den Simulator, bevor Sie die Daten auf denselben Topics wiedergeben:
 
-{{CODE:visualization:4}}
+{{CODE:visualization:6}}

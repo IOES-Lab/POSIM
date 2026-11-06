@@ -22,12 +22,22 @@ Chaque client ROS séparé doit installer et charger `posim_interfaces` pour les
 
 ## Enregistrer et relire
 
+Ce lancement autonome de la caméra ne crée pas de publisher ROS `/clock`. Pour enregistrer aussi le temps de simulation, préparez le terminal C dans le même environnement ROS que A et B et laissez fonctionner le pont unidirectionnel suivant. Ne lancez pas un second pont si `/clock` possède déjà un publisher.
+
 {{CODE:visualization:2}}
 
-Appuyez sur Ctrl+C pour terminer. Choisissez un nouveau dossier pour chaque enregistrement, puis vérifiez le nombre de messages :
+Dans le terminal B, vérifiez la réception d’un message d’horloge avant de lancer l’enregistrement :
 
 {{CODE:visualization:3}}
 
+{{CODE:visualization:4}}
+
+Appuyez sur Ctrl+C pour terminer. Choisissez un nouveau dossier pour chaque enregistrement, puis vérifiez le nombre de messages :
+
+{{CODE:visualization:5}}
+
+Après l’enregistrement, vérifiez que le bag contient le topic image et `/clock`. Arrêtez le pont du terminal C avec Ctrl+C avant de relire le bag.
+
 Arrêtez le simulateur avant de relire les données sur les mêmes topics :
 
-{{CODE:visualization:4}}
+{{CODE:visualization:6}}
