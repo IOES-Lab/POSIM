@@ -315,3 +315,50 @@ TEST_F(GnssTest, LatencyPreservesAcquisitionStampAndLossDiscardsQueuedFixes)
     }
   }
 }
+
+TEST_F(GnssTest, DestroyingReceiverWithLargeWaveAndBlockedTrafficIsSafe)
+{
+  const auto destination = topic + "/large_waves";
+  auto waves = observer.Advertise<gz::msgs::Double_V>(destination);
+  auto blocks = observer.Advertise<gz::msgs::Boolean>(topic + "/blocked");
+  std::atomic<bool> done{false};
+  std::thread traffic(
+    [&]
+    {
+      gz::msgs::Double_V wave;
+      for (const double value : {1., 256., 10., 10., 0., 0., 0., 0.})
+      {
+        wave.add_data(value);
+      }
+      for (int i = 0; i < 256 * 256; ++i)
+      {
+        wave.add_data(0);
+      }
+      gz::msgs::Boolean blocked;
+      while (!done)
+      {
+        waves.Publish(wave);
+        blocked.set_data(!blocked.data());
+        blocks.Publish(blocked);
+        std::this_thread::sleep_for(1ms);
+      }
+    });
+  for (int iteration = 0; iteration < 20; ++iteration)
+  {
+    auto temporary = std::make_unique<posim::Gnss>();
+    temporary->Configure(
+      model, Config("<wave_topic>" + destination + "</wave_topic>"), ecm, events);
+    const auto deadline = std::chrono::steady_clock::now() + 2s;
+    while ((!waves.HasConnections() || !blocks.HasConnections()) &&
+           std::chrono::steady_clock::now() < deadline)
+    {
+      std::this_thread::sleep_for(1ms);
+    }
+    EXPECT_TRUE(waves.HasConnections());
+    EXPECT_TRUE(blocks.HasConnections());
+    std::this_thread::sleep_for(3ms);
+    temporary.reset();
+  }
+  done = true;
+  traffic.join();
+}

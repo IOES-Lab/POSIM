@@ -6,6 +6,7 @@
 #include <atomic>
 #include <cmath>
 #include <deque>
+#include <functional>
 #include <gz/plugin/Register.hh>
 #include <gz/sim/Model.hh>
 #include <gz/sim/System.hh>
@@ -14,6 +15,7 @@
 #include <gz/sim/components/World.hh>
 #include <gz/transport/Node.hh>
 #include <limits>
+#include <memory>
 #include <mutex>
 #include <random>
 #include <stdexcept>
@@ -64,12 +66,22 @@ public:
     const auto topic =
       sdf->Get<std::string>("topic", "/model/" + gz::sim::Model(entity).Name(ecm) + "/gnss").first;
     publisher = node.Advertise<gz::msgs::Double_V>(topic);
-    node.Subscribe(topic + "/blocked", &Gnss::Block, this);
+    // Unsubscription does not join callbacks already acquired by transport.
+    // Keep callback data alive without retaining or accessing the System.
+    const auto state = input;
+    std::function<void(const gz::msgs::Boolean &)> block = [state](const auto & msg)
+    { state->blocked = msg.data(); };
+    node.Subscribe(topic + "/blocked", block);
     const auto wave = sdf->Get<std::string>("wave_topic", "").first;
     requireWave = !wave.empty();
     if (requireWave)
     {
-      node.Subscribe(wave, &Gnss::Wave, this);
+      std::function<void(const gz::msgs::Double_V &)> receiveWave = [state](const auto & msg)
+      {
+        std::lock_guard<std::mutex> guard(state->mutex);
+        state->wave.assign(msg.data().begin(), msg.data().end());
+      };
+      node.Subscribe(wave, receiveWave);
     }
   }
   void Reset(const gz::sim::UpdateInfo &, gz::sim::EntityComponentManager &) override { Clear(); }
@@ -92,12 +104,12 @@ public:
     bool surfaceValid = true;
     if (requireWave)
     {
-      std::lock_guard<std::mutex> guard(mutex);
+      std::lock_guard<std::mutex> guard(input->mutex);
       surfaceValid = Surface(p.X(), p.Y(), now, water);
     }
     // Loss is immediate at the wet boundary. Recovery needs continuous dry
     // clearance above a separate threshold, followed by acquisition time.
-    int reason = !enabled ? 0 : !surfaceValid ? 5 : blocked ? 4 : p.Z() <= water ? 1 : 2;
+    int reason = !enabled ? 0 : !surfaceValid ? 5 : input->blocked ? 4 : p.Z() <= water ? 1 : 2;
     if (reason != 2)
     {
       drySince = -1;
@@ -209,8 +221,8 @@ private:
     drySince = -1;
     locked = false;
     pending.clear();
-    std::lock_guard<std::mutex> guard(mutex);
-    wave.clear();
+    std::lock_guard<std::mutex> guard(input->mutex);
+    input->wave.clear();
   }
   double Noise(double sigma) { return sigma * normal(rng); }
   void Publish(const std::vector<double> & row)
@@ -222,14 +234,9 @@ private:
     }
     publisher.Publish(msg);
   }
-  void Block(const gz::msgs::Boolean & msg) { blocked = msg.data(); }
-  void Wave(const gz::msgs::Double_V & msg)
-  {
-    std::lock_guard<std::mutex> guard(mutex);
-    wave.assign(msg.data().begin(), msg.data().end());
-  }
   bool Surface(double x, double y, double now, double & height)
   {
+    const auto & wave = input->wave;
     if (
       wave.size() < 8 || wave[0] != 1 || !std::isfinite(wave[1]) || wave[1] < 2 || wave[1] > 256 ||
       std::floor(wave[1]) != wave[1] || !std::isfinite(wave[2]) || !std::isfinite(wave[3]) ||
@@ -260,9 +267,13 @@ private:
   }
   gz::transport::Node::Publisher publisher;
   gz::sim::Entity link = gz::sim::kNullEntity;
-  std::mutex mutex;
-  std::vector<double> wave;
-  std::atomic<bool> blocked{false};
+  struct InputState
+  {
+    std::mutex mutex;
+    std::vector<double> wave;
+    std::atomic<bool> blocked{false};
+  };
+  std::shared_ptr<InputState> input = std::make_shared<InputState>();
   bool enabled = true, requireWave = false, locked = false;
   unsigned epoch = 0;
   double hz = 5, latency = .2, reacquire = 3, margin = .05, horizontal = .7, vertical = 1.2,
@@ -272,7 +283,7 @@ private:
   std::deque<std::pair<double, std::vector<double>>> pending;
   std::mt19937 rng{42};
   std::normal_distribution<double> normal{0, 1};
-  // Destroy transport subscriptions before the fields used by their callbacks.
+  // Stop new subscriptions first; in-flight callbacks own their InputState.
   gz::transport::Node node;
 };
 }  // namespace posim
