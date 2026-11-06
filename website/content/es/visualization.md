@@ -22,12 +22,22 @@ Cada cliente ROS independiente necesita instalar y cargar `posim_interfaces` par
 
 ## Grabar y reproducir
 
+Este inicio independiente de la cámara no crea un publicador ROS de `/clock`. Para grabar también el tiempo de simulación, prepara la Terminal C en el mismo entorno ROS que A y B y mantén activo el siguiente puente unidireccional. No inicies un segundo puente si `/clock` ya tiene un publicador.
+
 {{CODE:visualization:2}}
 
-Pulsa Ctrl+C para terminar. Usa una carpeta de salida nueva para cada grabación y comprueba los recuentos de mensajes:
+En la Terminal B, comprueba la recepción de un mensaje de reloj antes de grabar:
 
 {{CODE:visualization:3}}
 
+{{CODE:visualization:4}}
+
+Pulsa Ctrl+C para terminar. Usa una carpeta de salida nueva para cada grabación y comprueba los recuentos de mensajes:
+
+{{CODE:visualization:5}}
+
+Después de grabar, comprueba que el bag contenga tanto el tema de imagen como `/clock`. Detén el puente de la Terminal C con Ctrl+C antes de reproducir el bag.
+
 Detén el simulador antes de reproducir los datos sobre los mismos tópicos:
 
-{{CODE:visualization:4}}
+{{CODE:visualization:6}}
