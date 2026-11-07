@@ -109,7 +109,14 @@ RUN export ROS_APT_SOURCE_VERSION=$(curl -s https://api.github.com/repos/ros-inf
     apt install -y --no-install-recommends \
       ros-${ROS_DISTRO}-desktop ros-${ROS_DISTRO}-ros-gz \
       ros-${ROS_DISTRO}-image-view \
+      ros-${ROS_DISTRO}-mavros ros-${ROS_DISTRO}-mavros-msgs \
+      ros-${ROS_DISTRO}-ament-cmake-google-benchmark \
       python3-rosdep python3-vcstool python3-colcon-common-extensions
+
+# Build the tested Router backport before POSIM so its setup records this underlay.
+ENV POSIM_MAVROS_OVERLAY=/opt/posim/mavros-router
+COPY extras/mavros /tmp/posim-mavros
+RUN bash /tmp/posim-mavros/build_overlay.sh "$POSIM_MAVROS_OVERLAY"
 
 # --- POSIM workspace ---
 # Build the exact checked-out revision supplied as the Docker build context.
@@ -133,6 +140,7 @@ RUN apt-get update && \
 USER $USER
 WORKDIR $POSIM_UNDERLAY
 RUN . "/opt/ros/${ROS_DISTRO}/setup.sh" && \
+    . "$POSIM_MAVROS_OVERLAY/install/setup.sh" && \
     colcon build --merge-install --executor sequential --symlink-install
 
 # --- ArduSub SITL (BlueROV2) — Python 3.14 compatibility shims required, see notes/ardusub-sitl-setup.md ---

@@ -14,8 +14,15 @@ for tool in curl tar git colcon sha256sum; do command -v "$tool" >/dev/null; don
 python3 - <<'CHECK'
 from pathlib import Path
 import xml.etree.ElementTree as ET
-p = Path('/opt/ros/lyrical/share/mavros/package.xml')
-assert ET.parse(p).findtext('version') == '2.16.0', 'This profile requires MAVROS 2.16.0'
+for package in ('mavros', 'libmavconn', 'mavros_msgs'):
+    path = Path('/opt/ros/lyrical/share') / package / 'package.xml'
+    version = ET.parse(path).findtext('version')
+    if version != '2.16.0':
+        raise SystemExit(
+            f'This Router backport requires {package} 2.16.0; found {version}. '
+            'Review the upstream Router fixes in the official release before '
+            'updating or retiring this backport.'
+        )
 CHECK
 mkdir -p "$workspace/src"
 workspace=$(cd -- "$workspace" && pwd)

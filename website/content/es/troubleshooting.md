@@ -79,3 +79,13 @@ Sigue las comprobaciones exactas de SDK y código fuente, compila con el asisten
 ## Preparar un informe reproducible
 
 Incluye el SHA del código o digest de la imagen, versiones de dependencias, comando y argumentos, primer error, resultado esperado, tipos de tópicos pertinentes y un ejemplo mínimo. Distingue entre descubrir un tópico y recibir datos por él.
+
+## MAVROS 2.16.0 termina con SIGSEGV
+
+El instalador de POSIM y las compilaciones oficiales de Docker incluyen la
+[corrección del ciclo de vida del Router](https://github.com/IOES-Lab/POSIM/tree/main/extras/mavros)
+para MAVROS 2.16.0. Tras cargar el entorno de POSIM, `ros2 pkg prefix mavros`
+debe mostrar `/opt/posim/mavros-router/install`. Para una instalación existente,
+sigue las instrucciones de compilación independiente del enlace. Si el fallo
+persiste, adjunta al informe el registro de MAVROS y las rutas de las bibliotecas
+que se han cargado.

@@ -96,9 +96,9 @@ Ogre-Next 2.3.3을 사용하는 네이티브 arm64 SDK에는 깊이 카메라의
 
 ## MAVROS 2.16.0 종료 시 SIGSEGV
 
-Ubuntu 26.04 / Lyrical용 선택적
-[Router 수명 관리 오버레이](https://github.com/IOES-Lab/POSIM/tree/main/extras/mavros)는
-설치된 ROS 라이브러리를 덮어쓰지 않고 상위 저장소의 소유권 수정을 적용합니다.
-정확한 버전 조건과 실제 로드된 라이브러리 경로를 확인하세요. 표준 설치 절차에서
-자동 활성화되지는 않습니다. 전체 로그를 보존하고 MAVROS 자식 프로세스 충돌과
-런처 종료 코드를 구분하세요.
+POSIM 설치 스크립트와 공식 Docker 빌드에는 MAVROS 2.16.0의
+[Router 수명 관리 수정본](https://github.com/IOES-Lab/POSIM/tree/main/extras/mavros)이
+기본으로 포함됩니다. POSIM 환경을 불러온 뒤 `ros2 pkg prefix mavros`를 실행하면
+`/opt/posim/mavros-router/install`이 출력되어야 합니다. 기존 설치에는 링크의 별도
+빌드 방법을 적용할 수 있습니다. 계속 충돌한다면 MAVROS 프로세스의 로그와 실제
+로드된 라이브러리 경로를 문제 보고에 함께 적어주세요.

@@ -96,9 +96,9 @@ Include source SHA or image digest, dependency versions, command/arguments, firs
 
 ## MAVROS 2.16.0 exits with SIGSEGV
 
-For the tested Ubuntu 26.04 / Lyrical profile, the optional
-[Router lifetime overlay](https://github.com/IOES-Lab/POSIM/tree/main/extras/mavros)
-backports the upstream ownership correction without replacing installed ROS
-libraries. Read its exact version prerequisites and verify the loaded library
-paths. It is not automatically enabled by the standard installer. Retain the
-full log and distinguish a MAVROS child crash from the launcher's exit status.
+The POSIM installer and official Docker builds include the
+[Router lifetime correction](https://github.com/IOES-Lab/POSIM/tree/main/extras/mavros)
+for MAVROS 2.16.0. After loading your POSIM environment, `ros2 pkg prefix mavros`
+should print `/opt/posim/mavros-router/install`. Existing installations can use
+the separate build instructions at that link. If a crash persists, include the
+MAVROS process log and the loaded library paths in your issue report.
