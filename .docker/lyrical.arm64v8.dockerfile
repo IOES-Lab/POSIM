@@ -147,6 +147,11 @@ RUN . "/opt/ros/${ROS_DISTRO}/setup.sh" && \
     . "$POSIM_MAVROS_OVERLAY/install/setup.sh" && \
     colcon build --merge-install --executor sequential --symlink-install
 
+RUN . "$POSIM_UNDERLAY/install/setup.sh" && \
+    test "$(ros2 pkg prefix mavros)" = "$POSIM_MAVROS_OVERLAY/install" && \
+    python3 "$POSIM_UNDERLAY/src/posim/extras/mavros/test_library_selection.py" \
+      "$POSIM_MAVROS_OVERLAY/install"
+
 # --- ArduSub SITL (BlueROV2) — Python 3.14 compatibility shims required, see notes/ardusub-sitl-setup.md ---
 # Pinned to the commit used by the verified Ubuntu 26.04 / Python 3.14 build.
 USER root

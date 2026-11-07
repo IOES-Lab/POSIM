@@ -52,7 +52,8 @@ jobs:
       - name: Verify POSIM selects the corrected libraries in a fresh terminal
         shell: bash
         run: |
-          source /opt/posim/mavros-router/install/setup.bash
+          source /opt/ros/lyrical/setup.bash
+          source /opt/posim/mavros-router/install/local_setup.bash
           colcon --log-base /tmp/posim-check/log build \
             --base-paths examples/posim_demos \
             --build-base /tmp/posim-check/build \
