@@ -111,6 +111,9 @@ RUN export ROS_APT_SOURCE_VERSION=$(curl -s https://api.github.com/repos/ros-inf
       ros-${ROS_DISTRO}-image-view \
       ros-${ROS_DISTRO}-mavros ros-${ROS_DISTRO}-mavros-msgs \
       ros-${ROS_DISTRO}-ament-cmake-google-benchmark \
+      ros-${ROS_DISTRO}-angles ros-${ROS_DISTRO}-ament-cmake-gmock \
+      ros-${ROS_DISTRO}-ament-cmake-pytest ros-${ROS_DISTRO}-ament-lint-auto \
+      ros-${ROS_DISTRO}-ament-lint-common \
       python3-rosdep python3-vcstool python3-colcon-common-extensions \
       python3-colcon-override-check
 

@@ -110,7 +110,9 @@ sudo chmod +x ardusub-ubuntu-install.sh && sudo bash ./ardusub-ubuntu-install.sh
 
 # Mavros install
 sudo apt-get -y install "ros-${DIST}-mavros" "ros-${DIST}-mavros-msgs" \
-    "ros-${DIST}-ament-cmake-google-benchmark"
+    "ros-${DIST}-ament-cmake-google-benchmark" "ros-${DIST}-angles" \
+    "ros-${DIST}-ament-cmake-gmock" "ros-${DIST}-ament-cmake-pytest" \
+    "ros-${DIST}-ament-lint-auto" "ros-${DIST}-ament-lint-common"
 sudo mkdir -p /opt/mavros_ws && cd /opt/mavros_ws || exit
 sudo wget https://raw.githubusercontent.com/mavlink/mavros/master/mavros/scripts/install_geographiclib_datasets.sh
 sudo chmod +x install_geographiclib_datasets.sh && sudo bash ./install_geographiclib_datasets.sh
