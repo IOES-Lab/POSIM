@@ -36,7 +36,7 @@ POSIM 命令在这个 Linux 桌面中运行。macOS 终端用于管理 Docker。
 
 {{CODE:install-macos:3}}
 
-容器启动后，用 Windows App 重新连接。镜像采用软件渲染，复杂场景的运行速度可能较慢。CUDA 多波束声呐需要受支持的 NVIDIA GPU，因此不包含在此 ARM64 镜像中。建议先运行[相机和压力传感器示例](features.md)。
+启动容器后，用 Windows App 重新连接。Linux 使用软件渲染，复杂场景可能较慢。声呐请在[编译并检查相关包](sonar-tuning.md#build-the-sonar-packages)后从 CPU 开始。Metal 可用于原生 macOS 进程，不提供给此 Linux 容器。也可先运行[相机和压力传感器示例](features.md)进行检查。
 
 ## 5. 运行演示世界
 

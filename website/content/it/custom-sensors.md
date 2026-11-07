@@ -16,7 +16,7 @@ Usa i [terminali Linux preparati](terminals.md) su Ubuntu nativo, WSL o Docker. 
 | [Pressione](pressure.md) | Plugin direttamente sotto `model` | Pubblicazione ROS diretta di pressione e profondità |
 | [GNSS marino](gnss.md) | Plugin del ricevitore sul modello | Uscite ROS configurate del ricevitore |
 | [USBL](usbl.md) | Plugin di ricetrasmettitore e transponder | Identificativi acustici corrispondenti e interfacce ROS |
-| [Sonar multibeam](sonar.md) | Sensore personalizzato sotto un link | Renderer Sensors, sistema multibeam del mondo e CUDA |
+| [Sonar multibeam](sonar.md) | Sensore personalizzato sotto un link | Renderer Sensors, sistema multibeam del mondo e CPU/WGPU/CUDA |
 
 Consulta l'SDF e la tabella dei parametri di ogni riferimento. Rispetta la posizione: i sistemi del mondo vanno nel mondo, mentre i plugin di modello richiedono l'entità su cui agiscono.
 

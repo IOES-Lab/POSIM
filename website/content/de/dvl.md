@@ -54,7 +54,7 @@ Die [Bridge-Implementierung](https://github.com/IOES-Lab/POSIM/blob/main/gazebo/
 | `sonardyne_syrinx600` | Sonardyne |
 | `teledyne_explorer1000`, `teledyne_explorer4000` | Teledyne Explorer |
 | `teledyne_whn` | Teledyne WHN |
-| `nortek_dvl500_300_with_multibeam_sonar` | DVL mit [CUDA-Sonar](sonar-tuning.md) |
+| `nortek_dvl500_300_with_multibeam_sonar` | DVL mit [Sonar](sonar-tuning.md) |
 
 Prüfen Sie Abtastung und Geometrie in der jeweiligen SDF.
 

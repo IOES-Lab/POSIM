@@ -1,10 +1,10 @@
 # Sonar multihaz
 
-El sonar multihaz de POSIM genera datos de intensidad y distancia e imágenes acústicas mediante un modelo de dispersores puntuales. Antes de ejecutarlo, prepara el [entorno NVIDIA/CUDA](sonar-tuning.md).
+El sonar multihaz de POSIM utiliza un modelo de dispersores puntuales para generar datos de intensidad y distancia e imágenes acústicas. El mismo plugin permite calcular con CPU, WGPU o CUDA. WGPU utiliza Vulkan en Linux o Metal en un entorno nativo de macOS para trabajar con GPU de distintos fabricantes. Consulta la [configuración del cálculo](sonar-tuning.md).
 
 ## Ejecutar un ejemplo {#run-a-sonar-example}
 
-Prepara los [terminales A y B](terminals.md) en una instalación compatible con NVIDIA/CUDA. Inicia la simulación en A y consulta los datos en B.
+Prepara las [terminales A y B](terminals.md) y, si faltan, [compila los paquetes del sonar](sonar-tuning.md#build-the-sonar-packages). Inicia la simulación en A y consulta los datos en B. El primer comando selecciona el motor de cálculo automáticamente; el ejemplo específico selecciona WGPU y abre RViz.
 
 {{CODE:sonar:0}}
 
@@ -12,7 +12,7 @@ El paquete `posim_multibeam_sonar_demo` también ofrece un ejemplo independiente
 
 {{CODE:sonar:1}}
 
-Ejecuta solo uno de los dos. Para montar el sensor en un robot, selecciona `bluerov2_heavy_multibeam_sonar` con un mundo adecuado para sonar.
+Ejecuta un solo ejemplo a la vez. Sustituye `wgpu` por `cpu`, `cuda` o `auto` para cambiar el motor de cálculo. Para un sonar a bordo, selecciona `bluerov2_heavy_multibeam_sonar` con un mundo adecuado.
 
 ## Consultar los datos
 
@@ -48,7 +48,7 @@ El ejemplo solicita 512 haces horizontales en unos 130°, 300 rayos verticales e
 | `sourceLevel` | Nivel de la fuente, dB | 220 | 220 |
 | `maxDistance` | Distancia de procesamiento, m; debe coincidir con el alcance de los rayos | 60 | 10 |
 | `raySkips` | Paso de muestreo vertical; entero positivo | 10 | 10 |
-| `sensorGain` | Se lee y se muestra, pero no interviene en la generación de imágenes | 0.02 | 0.02 |
+| `sensorGain` | Ganancia de amplitud de ecos en CPU; sin uso en WGPU/CUDA | 0.02 | 0.02 |
 | `blazingSonarImage` | Semilla aleatoria basada en el reloj real; con `false`, semilla fija 1234 | false | true |
 | `pointCloudTopicName` | Sufijo del tópico de nube de puntos de Gazebo | `point_cloud` | Igual |
 | `sonarImageRawTopicName` | Sufijo del tópico ROS de datos acústicos | `sonar_image_raw` | Igual |
@@ -73,12 +73,23 @@ Mantén completos los bloques `<ray>` y `<spec>`: los valores predeterminados se
 
 Deja desactivado el registro al medir rendimiento, salvo que forme parte del experimento. Consulta [Configuración y ajuste del sonar](sonar-tuning.md) y conserva los parámetros acústicos y `blazingSonarImage` al comparar ejecuciones.
 
+### Motor de cálculo {#compute-backend}
+
+| Selección | Comportamiento |
+| --- | --- |
+| `auto` | Prueba CUDA, WGPU y CPU, en ese orden; opción predeterminada |
+| `wgpu` | Usa un adaptador Vulkan/Metal compatible; si no está disponible, el sensor no se inicializa |
+| `cuda` | Requiere GPU NVIDIA y el backend CUDA compilado e instalado; falla si no está disponible |
+| `cpu` | Calcula los ecos en la CPU; Gazebo sigue necesitando renderizado |
+
+El ejemplo específico admite `compute_backend`; los demás lanzamientos leen `POSIM_SONAR_COMPUTE_BACKEND`. Comprueba la línea `Using sonar compute backend:` al arrancar. La guía [Configurar el sonar](sonar-tuning.md) explica la selección del adaptador, los requisitos y las diferencias numéricas.
+
 ## Añadir otro sensor
 
 1. Copia `models/posim_sensor_models/description/blueview_p900/` con un nuevo identificador.
 2. Prepara su `config/<identificador>/sensor_config.py`. Alinea nombres de modelo, enlaces, sistemas de referencia y tópicos del puente.
 3. Ajusta muestras, ángulos y alcance. Incluye los dos sistemas del apartado de configuración en el mundo; usa el [SDF de ejemplo](https://github.com/IOES-Lab/POSIM/blob/main/models/posim_worlds/worlds/posim_multibeam_sonar.world) como referencia.
-4. Prepara CUDA y el renderizado, vuelve a compilar el espacio de trabajo y carga su entorno. Selecciona el sensor con los [argumentos de lanzamiento](quickstart.md).
+4. Prepara el motor de cálculo y el renderizado, vuelve a compilar el espacio de trabajo y carga su entorno. Selecciona el sensor con los [argumentos de lanzamiento](quickstart.md).
 
 ## Guardar y representar datos sin procesar
 

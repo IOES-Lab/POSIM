@@ -1,10 +1,10 @@
 # 多波束声呐
 
-POSIM 使用基于声线的点散射模型，生成强度—距离数据和声呐图像。运行前请先配置 [NVIDIA/CUDA 环境](sonar-tuning.md)。
+POSIM 多波束声呐采用点散射模型，生成随距离变化的回波强度和声呐图像。同一个插件支持 CPU、WGPU 和 CUDA 计算。WGPU 通过 Linux 的 Vulkan 或 macOS 原生环境的 Metal 使用不同厂商的 GPU。请参阅[计算环境配置与选择](sonar-tuning.md)。
 
 ## 运行示例 {#run-a-sonar-example}
 
-在支持 NVIDIA/CUDA 的安装环境中准备[终端 A 和 B](terminals.md)。在 A 中启动仿真，在 B 中检查输出。
+准备好[终端 A 和 B](terminals.md)；若尚未安装声呐包，请先[编译声呐包](sonar-tuning.md#build-the-sonar-packages)。在 A 中启动仿真，在 B 中查看输出。第一条命令自动选择计算后端；专用示例指定 WGPU，并同时启动 RViz。
 
 {{CODE:sonar:0}}
 
@@ -12,7 +12,7 @@ POSIM 使用基于声线的点散射模型，生成强度—距离数据和声�
 
 {{CODE:sonar:1}}
 
-每次只运行其中一个示例。需要在机器人上安装声呐时，选择 `bluerov2_heavy_multibeam_sonar`，并配合适合声呐的世界场景。
+一次只运行一个示例。将 `wgpu` 改为 `cpu`、`cuda` 或 `auto` 即可切换后端。若需搭载声呐的机器人，请选择 `bluerov2_heavy_multibeam_sonar` 和合适的声呐世界。
 
 ## 查看输出
 
@@ -48,7 +48,7 @@ POSIM 使用基于声线的点散射模型，生成强度—距离数据和声�
 | `sourceLevel` | 声源级，dB | 220 | 220 |
 | `maxDistance` | 处理距离，m；应与声线距离范围一致 | 60 | 10 |
 | `raySkips` | 垂直采样步长，正整数 | 10 | 10 |
-| `sensorGain` | 读取并输出，但不参与图像生成 | 0.02 | 0.02 |
+| `sensorGain` | CPU 回波幅值增益；WGPU/CUDA 不使用此参数 | 0.02 | 0.02 |
 | `blazingSonarImage` | 根据实际时钟生成随机种子；`false` 时固定为 1234 | false | true |
 | `pointCloudTopicName` | Gazebo 点云话题后缀 | `point_cloud` | 相同 |
 | `sonarImageRawTopicName` | ROS 原始声学数据话题后缀 | `sonar_image_raw` | 相同 |
@@ -73,12 +73,23 @@ POSIM 使用基于声线的点散射模型，生成强度—距离数据和声�
 
 测量处理性能时应关闭记录功能，除非记录本身也是实验的一部分。按照[声呐配置与调优](sonar-tuning.md)设置实验，并保存声学参数及 `blazingSonarImage` 的取值，以便比较多次运行。
 
+### 计算后端 {#compute-backend}
+
+| 选项 | 行为 |
+| --- | --- |
+| `auto` | 依次尝试 CUDA、WGPU、CPU；默认选项 |
+| `wgpu` | 使用兼容的 Vulkan/Metal 适配器；不可用时传感器初始化失败 |
+| `cuda` | 需要 NVIDIA GPU 及已编译安装的 CUDA 后端；不可用时初始化失败 |
+| `cpu` | 在 CPU 上计算声学回波；仍需 Gazebo 渲染环境 |
+
+专用启动命令接受 `compute_backend`，其他启动命令读取环境变量 `POSIM_SONAR_COMPUTE_BACKEND`。请在启动输出中查看 `Using sonar compute backend:`。有关适配器选择、运行条件和数值差异，请参阅[声呐配置与调优](sonar-tuning.md)。
+
 ## 添加新的声呐传感器
 
 1. 将 `models/posim_sensor_models/description/blueview_p900/` 复制为新的传感器目录。
 2. 准备对应的 `config/<传感器标识>/sensor_config.py`，统一模型、连杆、坐标系名称和桥接话题。
 3. 调整采样数、角度和距离范围。在世界中加载上面的两个系统；其他配置可参考[声呐世界 SDF](https://github.com/IOES-Lab/POSIM/blob/main/models/posim_worlds/worlds/posim_multibeam_sonar.world)。
-4. 准备 CUDA 和渲染环境，重新编译工作空间并加载环境，然后用[启动参数](quickstart.md)选择新传感器。
+4. 准备计算后端和渲染环境，重新编译工作空间并加载环境，然后用[启动参数](quickstart.md)选择新传感器。
 
 ## 记录和绘制原始数据
 

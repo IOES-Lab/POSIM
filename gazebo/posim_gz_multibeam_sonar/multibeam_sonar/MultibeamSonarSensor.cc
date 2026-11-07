@@ -45,16 +45,19 @@
 #include <gz/sensors/RenderingEvents.hh>
 #include <gz/sensors/SensorTypes.hh>
 #include "MultibeamSonarSensor.hh"
+#include "RangeSampling.hh"
+#include "RaySurfaceNormals.hh"
 #include "SonarLog.hh"
-#include "sonar_calculation_cuda.cuh"
 
 #include <algorithm>
-#include <cv_bridge/cv_bridge.hpp>
+#include <cstdlib>
+#include <cstring>
 #include <geometry_msgs/msg/vector3.hpp>
 #include <marine_acoustic_msgs/msg/ping_info.hpp>
 #include <marine_acoustic_msgs/msg/sonar_image_data.hpp>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/opencv.hpp>
+#include <sensor_msgs/image_encodings.hpp>
 
 namespace gz
 {
@@ -142,7 +145,7 @@ public:
     }
     if (this->zData && this->zSession)
     {
-      const auto interpolation = this->zData->LookUp(this->ySession.value(), _pos);
+      const auto interpolation = this->zData->LookUp(this->zSession.value(), _pos);
       outcome.Z(interpolation.value_or(0.));
     }
     return outcome;
@@ -173,6 +176,41 @@ private:
   const GridT * zData{nullptr};
 };
 
+/// \brief Copy an 8-bit OpenCV image into a ROS image message.
+///
+/// The sonar only publishes BGR8 and RGB8 visualization images here. Keeping
+/// this small conversion local avoids requiring cv_bridge for a byte-for-byte
+/// copy and prevents OpenCV major-version coupling at runtime.
+void CopyImageToMessage(
+  const cv::Mat & _image, const std::string & _encoding, sensor_msgs::msg::Image & _message)
+{
+  _message.height = static_cast<uint32_t>(_image.rows);
+  _message.width = static_cast<uint32_t>(_image.cols);
+  _message.encoding = _encoding;
+  _message.is_bigendian = false;
+  _message.step = static_cast<uint32_t>(_image.cols * _image.elemSize());
+
+  const auto dataSize = static_cast<size_t>(_message.step) * _message.height;
+  _message.data.resize(dataSize);
+  if (dataSize == 0)
+  {
+    return;
+  }
+
+  if (_image.isContinuous())
+  {
+    std::memcpy(_message.data.data(), _image.data, dataSize);
+    return;
+  }
+
+  for (int row = 0; row < _image.rows; ++row)
+  {
+    std::memcpy(
+      _message.data.data() + static_cast<size_t>(row) * _message.step, _image.ptr(row),
+      _message.step);
+  }
+}
+
 }  // namespace
 
 using namespace gz::msgs;
@@ -183,15 +221,73 @@ MultibeamSonarSensor::MultibeamSonarSensor() : dataPtr(new Implementation()) {}
 //////////////////////////////////////////////////
 MultibeamSonarSensor::~MultibeamSonarSensor()
 {
-  this->dataPtr->rayConnection.reset();
   this->dataPtr->sceneChangeConnection.reset();
-  // CSV log write stream close
-  this->dataPtr->writeLog.close();
+  this->dataPtr->Shutdown(this);
+}
+
+//////////////////////////////////////////////////
+void MultibeamSonarSensor::Implementation::Shutdown(MultibeamSonarSensor * _sensor)
+{
+  // Stop receiving frames, then finish the worker before releasing its inputs.
+  this->rayConnection.reset();
+  {
+    std::lock_guard<std::mutex> lk(this->computeMutex_);
+    this->stopThread_ = true;
+  }
+  this->computeCV_.notify_one();
+  if (this->computeThread_.joinable())
+  {
+    this->computeThread_.join();
+  }
+
+  std::lock_guard<std::mutex> rayLock(this->rayMutex);
+  this->initialized = false;
+  this->newFrameReady_ = false;
+  this->publishingPointCloud = false;
+  this->computeBackend.reset();
+  if (this->raySensor && _sensor->Scene() && _sensor->Scene()->IsInitialized())
+  {
+    _sensor->Scene()->DestroySensor(this->raySensor);
+  }
+  this->raySensor.reset();
+  if (this->ros_executor_ && this->ros_node_)
+  {
+    this->ros_executor_->remove_node(this->ros_node_);
+  }
+  this->sonarImageRawPub.reset();
+  this->sonarImagePub.reset();
+  this->normalImagePub.reset();
+  this->ros_executor_.reset();
+  this->ros_node_.reset();
+  if (this->ros_context_)
+  {
+    this->ros_context_->shutdown("Multibeam sonar sensor stopped");
+    this->ros_context_.reset();
+  }
+  this->writeLog.close();
+}
+
+//////////////////////////////////////////////////
+void MultibeamSonarSensor::Reset()
+{
+  this->dataPtr->Shutdown(this);
+  auto replacement = std::make_unique<Implementation>();
+  // Keep the logical sensor identity and configuration. All renderer, backend,
+  // publisher, calibration and frame-buffer state belongs to one scene only.
+  replacement->sensorSdf = this->dataPtr->sensorSdf;
+  replacement->entityId = this->dataPtr->entityId;
+  replacement->worldState = this->dataPtr->worldState;
+  replacement->frameCounter = this->dataPtr->frameCounter;
+  replacement->sceneChangeConnection = std::move(this->dataPtr->sceneChangeConnection);
+  this->dataPtr.swap(replacement);
 }
 
 //////////////////////////////////////////////////
 bool MultibeamSonarSensor::Load(const sdf::Sensor & _sdf)
 {
+  this->dataPtr->sceneChangeConnection.reset();
+  this->Reset();
+  this->dataPtr->sensorSdf.reset();
   if (!gz::sensors::RenderingSensor::Load(_sdf))
   {
     return false;
@@ -228,17 +324,6 @@ bool MultibeamSonarSensor::Load(const sdf::Sensor & _sdf)
     return false;
   }
   this->dataPtr->sensorSdf = elem->GetElement("gz:multibeam_sonar");
-  // for csv write logs
-  this->dataPtr->writeCounter = 0;
-  this->dataPtr->writeNumber = 1;
-
-  // Initialize the point message.
-  // Align packed point fields to memory boundaries.
-  msgs::InitPointCloudPacked(
-    this->dataPtr->pointMsg, this->FrameId(), true,
-    {{"xyz", msgs::PointCloudPacked::Field::FLOAT32},
-     {"intensity", msgs::PointCloudPacked::Field::FLOAT32},
-     {"ring", msgs::PointCloudPacked::Field::UINT16}});
 
   // Setup sensors
   if (this->Scene())
@@ -268,12 +353,28 @@ bool MultibeamSonarSensor::Load(sdf::ElementPtr _sdf)
 //////////////////////////////////////////////////
 bool MultibeamSonarSensor::Implementation::Initialize(MultibeamSonarSensor * _sensor)
 {
+  if (this->initialized)
+  {
+    return true;
+  }
+  if (!_sensor->Scene() || !this->sensorSdf)
+  {
+    return false;
+  }
+  // Align packed point fields to memory boundaries.
+  msgs::InitPointCloudPacked(
+    this->pointMsg, _sensor->FrameId(), true,
+    {{"xyz", msgs::PointCloudPacked::Field::FLOAT32},
+     {"intensity", msgs::PointCloudPacked::Field::FLOAT32},
+     {"ring", msgs::PointCloudPacked::Field::UINT16}});
+
   gzmsg << "Initializing [" << _sensor->Name() << "] sensor." << std::endl;
 
   if (!this->InitializeBeamArrangement(_sensor))
   {
     gzerr << "Failed to initialize beam arrangement for "
           << "[" << _sensor->Name() << "] sensor." << std::endl;
+    this->Shutdown(_sensor);
     return false;
   }
 
@@ -281,6 +382,30 @@ bool MultibeamSonarSensor::Implementation::Initialize(MultibeamSonarSensor * _se
     this->sensorSdf->Get<gz::math::Pose3d>("reference_frame", gz::math::Pose3d{}).first;
 
   this->referenceFrameRotation = referenceFrameTransform.Rot().Inverse();
+
+  // Each initialization owns a new worker; no pending frame crosses scenes.
+  {
+    std::lock_guard<std::mutex> lk(this->computeMutex_);
+    this->stopThread_ = false;
+    this->newFrameReady_ = false;
+  }
+  // Spawn background sonar compute thread now that all setup is complete.
+  this->computeThread_ = std::thread(
+    [this]()
+    {
+      while (true)
+      {
+        std::unique_lock<std::mutex> lk(this->computeMutex_);
+        this->computeCV_.wait(lk, [this] { return this->newFrameReady_ || this->stopThread_; });
+        if (this->stopThread_)
+        {
+          break;
+        }
+        this->newFrameReady_ = false;
+        lk.unlock();
+        this->ComputeSonarImage();
+      }
+    });
 
   gzmsg << "Initialized [" << _sensor->Name() << "] sensor." << std::endl;
   this->initialized = true;
@@ -293,6 +418,28 @@ bool MultibeamSonarSensor::Implementation::InitializeBeamArrangement(MultibeamSo
   this->beams.clear();
   this->beamTargets.clear();
 
+  // Select the compute backend before adding anything to the scene, so an unavailable
+  // backend fails this sensor without leaving a half-configured GpuRays behind.
+  if (const char * backendEnv = std::getenv("POSIM_SONAR_COMPUTE_BACKEND"))
+  {
+    this->requestedBackend = backendEnv;
+    gzmsg << "POSIM_SONAR_COMPUTE_BACKEND=" << this->requestedBackend << std::endl;
+  }
+  else
+  {
+    this->requestedBackend = "auto";
+    gzmsg << "POSIM_SONAR_COMPUTE_BACKEND not set. Using default backend=auto" << std::endl;
+  }
+
+  this->computeBackend = CreateComputeBackend(this->requestedBackend);
+  if (!this->computeBackend)
+  {
+    gzerr << "Unable to initialize requested sonar backend [" << this->requestedBackend << "]."
+          << std::endl;
+    return false;
+  }
+  gzmsg << "Using sonar compute backend: " << this->computeBackend->Name() << std::endl;
+
   this->raySensor = _sensor->Scene()->CreateGpuRays(_sensor->Name() + "_ray_sensor");
   if (!this->raySensor)
   {
@@ -300,6 +447,9 @@ bool MultibeamSonarSensor::Implementation::InitializeBeamArrangement(MultibeamSo
           << "for [" << _sensor->Name() << "] sensor." << std::endl;
     return false;
   }
+
+  // The renderer is attached to the parent link; retain the sensor mounting pose.
+  this->raySensor->SetLocalPose(_sensor->Pose());
 
   // Read ray definition from SDF
   sdf::ElementPtr rayElement = this->sensorSdf->GetElement("ray");
@@ -379,27 +529,31 @@ bool MultibeamSonarSensor::Implementation::InitializeBeamArrangement(MultibeamSo
     sensorElement->Get<std::string>("sonarImageTopicName", "sonar_image").first;
   gzmsg << "sonarImageTopicName: " << this->sonarImageTopicName << std::endl;
 
+  // NOTE: frameName is the TF frame name for published sonar messages (frame_id in ROS headers).
+  // This is explicitly configured in SDF <frameName> rather than derived from Gazebo's
+  // internal sensor frame ID. Must match TF tree for RViz transforms to work correctly.
+  // Verify in SDF files that <frameName> matches the expected TF frame name.
   this->frameName =
     sensorElement->Get<std::string>("frameName", "forward_sonar_optical_link").first;
   gzmsg << "frameName: " << this->frameName << std::endl;
 
-  this->frameId = _sensor->FrameId();
-  size_t pos = 0;
-  while ((pos = this->frameId.find("::", pos)) != std::string::npos)
-  {
-    this->frameId.replace(pos, 2, "/");
-    pos += 1;
-  }
-  gzmsg << "frameId: " << this->frameId << std::endl;
-
   // ROS Initialization
 
-  if (!rclcpp::ok())
-  {
-    rclcpp::init(0, nullptr, rclcpp::InitOptions(), rclcpp::SignalHandlerOptions::None);
-  }
-
-  this->ros_node_ = std::make_shared<rclcpp::Node>("multibeam_sonar_node");
+  // Gazebo owns process signals. Keep this sensor's ROS lifetime independent
+  // from the global context and from other plugins' signal handlers. In
+  // particular, shutdown must not invalidate the context during node creation.
+  this->ros_context_ = std::make_shared<rclcpp::Context>();
+  rclcpp::InitOptions initOptions;
+  initOptions.shutdown_on_signal = false;
+  this->ros_context_->init(0, nullptr, initOptions);
+  rclcpp::NodeOptions nodeOptions;
+  nodeOptions.context(this->ros_context_);
+  this->ros_node_ = std::make_shared<rclcpp::Node>("multibeam_sonar_node", nodeOptions);
+  rclcpp::ExecutorOptions executorOptions;
+  executorOptions.context = this->ros_context_;
+  this->ros_executor_ =
+    std::make_shared<rclcpp::executors::SingleThreadedExecutor>(executorOptions);
+  this->ros_executor_->add_node(this->ros_node_);
 
   // Create the point cloud publisher
   this->pointPub = this->node.Advertise<gz::msgs::PointCloudPacked>(
@@ -530,28 +684,23 @@ bool MultibeamSonarSensor::Implementation::InitializeBeamArrangement(MultibeamSo
   // Rendering sensors' FOV must be symmetric about its main axis
   beamsSphericalFootprint.Merge(beamsSphericalFootprint.Flip());
 
-  this->raySensor->SetAngleMin(horizAngleMin);
-  this->raySensor->SetAngleMax(horizAngleMax);
-  gzmsg << "Beams Angle Min: " << beamsSphericalFootprint.XMin() << std::endl;
-  gzmsg << "Beams Angle Max: " << beamsSphericalFootprint.XMax() << std::endl;
-  gzmsg << "V Angle Max: " << beamsSphericalFootprint.YMax() << std::endl;
-  gzmsg << "V Angle Min: " << beamsSphericalFootprint.YMin() << std::endl;
+  // Scan limits describe the complete imaging fan. AcousticBeam footprints
+  // include an aperture around each ray and must not enlarge that fan.
+  const double scanHorizontalMin = horizAngleMin * angleUnit.Radian();
+  const double scanHorizontalMax = horizAngleMax * angleUnit.Radian();
+  const double scanVerticalMin = verticalAngleMin * angleUnit.Radian();
+  const double scanVerticalMax = verticalAngleMax * angleUnit.Radian();
+  this->raySensor->SetAngleMin(scanHorizontalMin);
+  this->raySensor->SetAngleMax(scanHorizontalMax);
+  this->raySensor->SetVerticalAngleMin(scanVerticalMin);
+  this->raySensor->SetVerticalAngleMax(scanVerticalMax);
+  gzmsg << "Rendered horizontal limits: " << scanHorizontalMin << ", " << scanHorizontalMax
+        << "; vertical limits: " << scanVerticalMin << ", " << scanVerticalMax << std::endl;
 
-  auto horizontalRayCount = beamCount;
-  if (horizontalRayCount % 2 == 0)
-  {
-    ++horizontalRayCount;  // ensure odd
-  }
+  const auto horizontalRayCount = beamCount;
+  const auto verticalRayCount = rayCount;
   this->raySensor->SetRayCount(horizontalRayCount);
   this->nBeams = horizontalRayCount;
-
-  this->raySensor->SetVerticalAngleMin(beamsSphericalFootprint.YMin());
-  this->raySensor->SetVerticalAngleMax(beamsSphericalFootprint.YMax());
-  auto verticalRayCount = rayCount;
-  if (verticalRayCount % 2 == 0)
-  {
-    ++verticalRayCount;  // ensure odd
-  }
 
   // Currently, this->width equals # of beams, and this->height equals # of rays
   // Each beam consists of (elevation,azimuth)=(this->height,1) rays
@@ -562,7 +711,7 @@ bool MultibeamSonarSensor::Implementation::InitializeBeamArrangement(MultibeamSo
 
   this->ray_nElevationRays = this->nRays;
   this->ray_nAzimuthRays = 1;
-  this->elevation_angles = new float[this->nRays];
+  this->elevation_angles.resize(this->nRays);
 
   gzmsg << "Horizontal Resolution " << this->raySensor->HorizontalResolution() << " px"
         << std::endl;
@@ -575,10 +724,10 @@ bool MultibeamSonarSensor::Implementation::InitializeBeamArrangement(MultibeamSo
   gzmsg << "Horizontal Ray " << this->raySensor->VerticalRayCount() << " px" << std::endl;
 
   auto & intrinsics = this->raySensorIntrinsics;
-  intrinsics.offset.X(horizAngleMin);
-  intrinsics.offset.Y(beamsSphericalFootprint.YMin());
+  intrinsics.offset.X(scanHorizontalMin);
+  intrinsics.offset.Y(scanVerticalMin);
   intrinsics.step.X(this->hFOV / (horizontalRayCount - 1));
-  intrinsics.step.Y(beamsSphericalFootprint.YSize() / (verticalRayCount - 1));
+  intrinsics.step.Y(this->vFOV / (verticalRayCount - 1));
 
   // Pre-compute scan indices covered by beam spherical
   // footprints for speed during scan iteration
@@ -589,7 +738,12 @@ bool MultibeamSonarSensor::Implementation::InitializeBeamArrangement(MultibeamSo
       AxisAlignedPatch2i{(beam.SphericalFootprint() - intrinsics.offset) / intrinsics.step});
   }
 
-  this->raySensor->SetVisibilityMask(GZ_VISIBILITY_ALL);
+  // Keep RGB-only decorative geometry out of acoustic range measurements when
+  // the world author assigns it a dedicated visibility category.
+  const auto visibilityMask =
+    sensorElement->Get<unsigned int>("visibilityMask", GZ_VISIBILITY_ALL).first;
+  this->raySensor->SetVisibilityMask(visibilityMask);
+  gzmsg << "Acoustic visibility mask: " << visibilityMask << std::endl;
 
   _sensor->AddSensor(this->raySensor);
 
@@ -608,13 +762,15 @@ bool MultibeamSonarSensor::Implementation::InitializeBeamArrangement(MultibeamSo
   this->attenuation = this->absorption * log(10) / 20.0;
 
   // Range vector
-  const float max_T = this->maxDistance * 2.0 / this->soundSpeed;
-  float delta_f = 1.0 / max_T;
   const float delta_t = 1.0 / this->bandwidth;
-  this->nFreq = ceil(this->bandwidth / delta_f);
-  delta_f = this->bandwidth / this->nFreq;
+  this->nFreq = RangeSampleCount(this->maxDistance, this->soundSpeed, this->bandwidth);
+  if (this->nFreq < 2)
+  {
+    gzerr << "Invalid or unrepresentable sonar range sampling parameters." << std::endl;
+    return false;
+  }
   const int nTime = nFreq;
-  this->rangeVector = new float[nTime];
+  this->rangeVector.resize(nTime);
   for (int i = 0; i < nTime; i++)
   {
     this->rangeVector[i] = delta_t * i * this->soundSpeed / 2.0;
@@ -636,7 +792,7 @@ bool MultibeamSonarSensor::Implementation::InitializeBeamArrangement(MultibeamSo
     this->ros_node_->get_logger(), "Maximum view range  [m] = " << this->maxDistance);
   RCLCPP_INFO_STREAM(
     this->ros_node_->get_logger(),
-    "Distance resolution [m] = " << this->soundSpeed / (2.0 * this->nFreq * delta_f));
+    "Distance resolution [m] = " << this->soundSpeed * delta_t / 2.0);
   RCLCPP_INFO_STREAM(this->ros_node_->get_logger(), "# of Beams = " << this->nBeams);
   RCLCPP_INFO_STREAM(
     this->ros_node_->get_logger(), "# of Rays / Beam (Elevation, Azimuth) = ("
@@ -653,7 +809,7 @@ bool MultibeamSonarSensor::Implementation::InitializeBeamArrangement(MultibeamSo
 
   // Hamming window
   gzmsg << "Computing Hamming window for " << this->nFreq << " frequencies." << std::endl;
-  this->window = new float[this->nFreq];
+  this->window.resize(this->nFreq);
   float windowSum = 0;
 
   for (size_t f = 0; f < this->nFreq; f++)
@@ -673,15 +829,47 @@ bool MultibeamSonarSensor::Implementation::InitializeBeamArrangement(MultibeamSo
   gzmsg << "Hamming window computation complete." << std::endl;
 
   // Sonar corrector preallocation
-  this->beamCorrector = new float *[this->nBeams];
+  this->beamCorrectorStorage.resize(static_cast<size_t>(this->nBeams) * this->nBeams);
+  this->beamCorrector.resize(this->nBeams);
   for (int i = 0; i < this->nBeams; i++)
   {
-    this->beamCorrector[i] = new float[this->nBeams];
+    this->beamCorrector[i] = this->beamCorrectorStorage.data() + i * this->nBeams;
   }
   this->beamCorrectorSum = 0.0;
 
   this->constMu = true;
   this->mu = 1e-3;
+
+  SonarComputeInput prototype;
+  prototype.depthImage = &this->pointCloudImage;
+  prototype.nBeams = this->nBeams;
+  prototype.nRays = this->nRays;
+  prototype.nFreq = this->nFreq;
+  prototype.raySkips = this->raySkips;
+  prototype.hFOV = this->hFOV;
+  prototype.vFOV = this->vFOV;
+  prototype.maxDistance = this->maxDistance;
+  prototype.soundSpeed = this->soundSpeed;
+  prototype.attenuation = this->attenuation;
+  prototype.sensorGain = this->sensorGain;
+  prototype.debugFlag = this->debugFlag;
+  prototype.blazingFlag = this->blazingFlag;
+  prototype.window = this->window.data();
+  prototype.rangeVector = this->rangeVector.data();
+  prototype.beamCorrector = this->beamCorrector.data();
+  prototype.beamCorrectorSum = this->beamCorrectorSum;
+  prototype.sourceLevel = this->sourceLevel;
+  prototype.bandwidth = this->bandwidth;
+  prototype.sonarFreq = this->sonarFreq;
+  prototype.elevation_angles = this->elevation_angles;
+  prototype.seed = this->sonarSeed;
+
+  if (!this->computeBackend->Initialize(prototype))
+  {
+    gzerr << "Failed to initialize sonar backend [" << this->computeBackend->Name() << "]."
+          << std::endl;
+    return false;
+  }
 
   return true;
 }
@@ -689,6 +877,10 @@ bool MultibeamSonarSensor::Implementation::InitializeBeamArrangement(MultibeamSo
 //////////////////////////////////////////////////
 std::vector<gz::rendering::SensorPtr> MultibeamSonarSensor::RenderingSensors() const
 {
+  if (!this->dataPtr->raySensor)
+  {
+    return {};
+  }
   return {this->dataPtr->raySensor};
 }
 
@@ -708,57 +900,43 @@ void MultibeamSonarSensor::Implementation::OnNewFrame(
   unsigned int samples = _width * _height * _channels;
   unsigned int rayBufferSize = samples * sizeof(float);
 
+  this->lastMeasurementTime = static_cast<double>(this->renderStamp) * 1e-9;
+
   // Allocate memory for the ray buffer if not already allocated
-  if (!this->rayBuffer)
+  if (this->rayBuffer.size() != samples)
   {
-    this->rayBuffer = new float[samples];
+    this->rayBuffer.resize(samples);
   }
 
   // Copy the incoming scan data into the ray buffer
-  memcpy(this->rayBuffer, _scan, rayBufferSize);
+  memcpy(this->rayBuffer.data(), _scan, rayBufferSize);
 
   // Fill point cloud with the ray buffer
-  this->FillPointCloudMsg(this->rayBuffer);
+  this->FillPointCloudMsg(this->rayBuffer.data());
 
+  // Signals the background compute thread to process the new frame
   if (this->pointCloudImage.size().width != 0)
   {
-    try
     {
-      this->ComputeSonarImage();
+      std::lock_guard<std::mutex> lk(this->computeMutex_);
+      this->newFrameReady_ = true;
     }
-    catch (const rclcpp::exceptions::RCLError &)
-    {
-      if (rclcpp::ok(this->ros_node_->get_node_base_interface()->get_context()))
-      {
-        throw;
-      }
-    }
+    this->computeCV_.notify_one();
   }
 }
 
 /////////////////////////////////////////////////
 void MultibeamSonarSensor::SetScene(gz::rendering::ScenePtr _scene)
 {
-  // APIs make it possible for the scene pointer to change
-  if (this->Scene() != _scene)
+  if (this->Scene() == _scene)
   {
-    // Reset the ray sensor and its buffer when the scene changes.
-    this->dataPtr->raySensor = nullptr;
-    if (this->dataPtr->rayBuffer)
-    {
-      delete[] this->dataPtr->rayBuffer;
-      this->dataPtr->rayBuffer = nullptr;
-    }
-    RenderingSensor::SetScene(_scene);
-    if (!this->dataPtr->initialized)
-    {
-      if (!this->dataPtr->Initialize(this))
-      {
-        gzerr << "Failed to initialize "
-              << "[" << this->Name() << "]"
-              << " sensor." << std::endl;
-      }
-    }
+    return;
+  }
+  this->Reset();
+  RenderingSensor::SetScene(_scene);
+  if (_scene && this->dataPtr->sensorSdf && !this->dataPtr->Initialize(this))
+  {
+    gzerr << "Failed to initialize [" << this->Name() << "] sensor." << std::endl;
   }
 }
 
@@ -794,9 +972,12 @@ bool MultibeamSonarSensor::Update(const std::chrono::steady_clock::duration & _n
     this->dataPtr->publishingPointCloud = true;
   }
 
+  // Capture simulation time before the render callback produces this frame.
+  {
+    std::lock_guard<std::mutex> lock(this->dataPtr->rayMutex);
+    this->dataPtr->renderStamp = std::chrono::duration_cast<std::chrono::nanoseconds>(_now).count();
+  }
   // Generate sensor data
-  this->dataPtr->measurementTime = _now;
-  this->dataPtr->lastMeasurementTime = std::chrono::duration<double>(_now).count();
   this->Render();
 
   return true;
@@ -813,26 +994,9 @@ void MultibeamSonarSensor::PostUpdate(const std::chrono::steady_clock::duration 
            << "cannot estimate velocities." << std::endl;
     return;
   }
-  if (!this->dataPtr->ros_node_)
+  if (this->dataPtr->ros_executor_)
   {
-    return;
-  }
-  const auto context = this->dataPtr->ros_node_->get_node_base_interface()->get_context();
-  if (!rclcpp::ok(context))
-  {
-    return;
-  }
-  try
-  {
-    rclcpp::spin_some(this->dataPtr->ros_node_);
-  }
-  catch (const rclcpp::exceptions::RCLError &)
-  {
-    if (rclcpp::ok(context))
-    {
-      throw;
-    }
-    return;
+    this->dataPtr->ros_executor_->spin_some();
   }
 
   if (this->dataPtr->publishingPointCloud)
@@ -940,6 +1104,7 @@ void MultibeamSonarSensor::Implementation::FillPointCloudMsg(const float * _rayB
 
   // After filling pointMsg, compute pointCloudImage as well
   std::lock_guard<std::mutex> lock(this->lock_);
+  this->snapshotStamp = this->renderStamp;
   this->pointCloudImage.create(height, width, CV_32FC1);
   cv::MatIterator_<float> iter_image = this->pointCloudImage.begin<float>();
 
@@ -995,66 +1160,25 @@ void MultibeamSonarSensor::Implementation::FillPointCloudMsg(const float * _rayB
 }
 
 cv::Mat MultibeamSonarSensor::Implementation::ComputeNormalImage(cv::Mat & depth)
-
 {
-  // filters
-  cv::Mat_<float> f1 = (cv::Mat_<float>(3, 3) << 1, 2, 1, 0, 0, 0, -1, -2, -1) / 8;
-
-  cv::Mat_<float> f2 = (cv::Mat_<float>(3, 3) << 1, 0, -1, 2, 0, -2, 1, 0, -1) / 8;
-
-  cv::Mat f1m, f2m;
-  cv::flip(f1, f1m, 0);
-  cv::flip(f2, f2m, 1);
-
-  cv::Mat n1, n2;
-  cv::filter2D(depth, n1, -1, f1m, cv::Point(-1, -1), 0, cv::BORDER_REPLICATE);
-  cv::filter2D(depth, n2, -1, f2m, cv::Point(-1, -1), 0, cv::BORDER_REPLICATE);
-
-  cv::Mat no_readings;
-  cv::erode(depth == 0, no_readings, cv::Mat(), cv::Point(-1, -1), 2, 1, 1);
-  // cv::dilate(no_readings, no_readings, cv::Mat(),
-  //            cv::Point(-1, -1), 2, 1, 1);
-  n1.setTo(0, no_readings);
-  n2.setTo(0, no_readings);
-
-  std::vector<cv::Mat> images(3);
-  cv::Mat white = cv::Mat::ones(depth.rows, depth.cols, CV_32FC1);
-
-  // NOTE: with different focal lengths, the expression becomes
-  // (-dzx*fy, -dzy*fx, fx*fy)
-  images.at(0) = n1;  // for green channel
-  images.at(1) = n2;  // for red channel
-
-  // Calculate focal length (?) Not sure if this is the right way;
-  // I could not find in the original DAVE the definition of the focal length
-  double focal_length = (0.5 * this->pointMsg.width()) / tan(0.5 * this->hFOV);
-  images.at(2) = 1.0 / focal_length * depth;  // for blue channel
-
-  cv::Mat normal_image;
-  cv::merge(images, normal_image);
-
-  for (int i = 0; i < normal_image.rows; ++i)
-  {
-    for (int j = 0; j < normal_image.cols; ++j)
-    {
-      cv::Vec3f & n = normal_image.at<cv::Vec3f>(i, j);
-      n = cv::normalize(n);
-      float & d = depth.at<float>(i, j);
-    }
-  }
-
-  return normal_image;
+  return gz::sensors::RaySurfaceNormals(
+    depth, this->azimuth_angles, this->elevation_angles, this->maxDistance);
 }
 
 // Precalculation of corrector sonar calculation
-void MultibeamSonarSensor::Implementation::ComputeCorrector()
+void MultibeamSonarSensor::Implementation::ComputeCorrector(int _snapshotWidth, int _nBeams)
 {
-  double hPixelSize = this->hFOV / (this->pointMsg.width() - 1);
+  if (_snapshotWidth <= 1 || _nBeams <= 0)
+  {
+    return;
+  }
+
+  double hPixelSize = this->hFOV / (_snapshotWidth - 1);
 
   // Beam culling correction precalculation
-  for (size_t beam = 0; beam < this->nBeams; beam++)
+  for (int beam = 0; beam < _nBeams; beam++)
   {
-    for (size_t beam_other = 0; beam_other < this->nBeams; beam_other++)
+    for (int beam_other = 0; beam_other < _nBeams; beam_other++)
     {
       float azimuthBeamPattern = unnormalized_sinc(
         M_PI * 0.884 / hPixelSize *
@@ -1070,21 +1194,51 @@ void MultibeamSonarSensor::Implementation::ComputeCorrector()
 void MultibeamSonarSensor::Implementation::ComputeSonarImage()
 
 {
-  std::lock_guard<std::mutex> lock(this->lock_);
-  cv::Mat normal_image = this->ComputeNormalImage(this->pointCloudImage);
-  double vPixelSize = this->vFOV / (this->pointMsg.height() - 1);
-  double hPixelSize = this->hFOV / (this->pointMsg.width() - 1);
-
-  if (this->beamCorrectorSum == 0)
+  // Snapshot the depth image quickly, then release the lock so the render
+  // thread can fill the next frame without waiting for GPU compute.
+  cv::Mat depthSnapshot;
+  // Capture the timestamp and image dimensions while holding the lock so that
+  // all published messages share one coherent stamp matching when the data was
+  // recorded -- mismatched stamps are the primary cause of RViz flicker.
+  rclcpp::Time capturedStamp;
   {
-    ComputeCorrector();
-  }
+    std::lock_guard<std::mutex> snapshot_lk(this->lock_);
+    if (this->pointCloudImage.empty())
+    {
+      return;
+    }
+    depthSnapshot = this->pointCloudImage.clone();
+    capturedStamp = rclcpp::Time(this->snapshotStamp, RCL_ROS_TIME);
 
-  if (this->reflectivityImage.rows == 0)
-  {
-    this->reflectivityImage =
-      cv::Mat(this->pointMsg.width(), this->pointMsg.height(), CV_32FC1, cv::Scalar(this->mu));
+    if (this->beamCorrectorSum == 0)
+    {
+      ComputeCorrector(depthSnapshot.cols, this->nBeams);
+    }
+
+    if (this->reflectivityImage.rows == 0)
+    {
+      this->reflectivityImage =
+        cv::Mat(depthSnapshot.rows, depthSnapshot.cols, CV_32FC1, cv::Scalar(this->mu));
+    }
   }
+  // lock_ released -> render thread can proceed immediately.
+
+  // NOTE: reflectivityImage is used here without a lock.
+  // This is safe for now because only the compute thread writes to it
+  // and the render thread only reads it. If the render thread ever starts modifying
+  // reflectivityImage, this will cause a data race.
+  // TODO: Either guarantee that reflectivityImage stays read-only
+  // after initialization, or add proper locking around the compute step.
+
+  // Use snapshot dimensions from here on to avoid racing with the render thread
+  // that may be writing pointMsg concurrently.
+  const int snapWidth = depthSnapshot.cols;
+  const int snapHeight = depthSnapshot.rows;
+
+  double vPixelSize = this->vFOV / (snapHeight - 1);
+  double hPixelSize = this->hFOV / (snapWidth - 1);
+
+  cv::Mat normal_image = this->ComputeNormalImage(depthSnapshot);
 
   auto start = std::chrono::high_resolution_clock::now();
 
@@ -1092,35 +1246,50 @@ void MultibeamSonarSensor::Implementation::ComputeSonarImage()
   // --------      Sonar calculations       -------- //
   // ------------------------------------------------//
 
-  CArray2D P_Beams = NpsGazeboSonar::sonar_calculation_wrapper(
-    this->pointCloudImage,        // cv::Mat& depth_image (the point cloud image)
-    normal_image,                 // cv::Mat& normal_image
-    hPixelSize,                   // hPixelSize
-    vPixelSize,                   // vPixelSize
-    hFOV,                         // hFOV
-    vFOV,                         // VFOV
-    hPixelSize,                   // _beam_azimuthAngleWidth
-    verticalFOV / 180 * M_PI,     // _beam_elevationAngleWidth
-    hPixelSize,                   // _ray_azimuthAngleWidth
-    this->elevation_angles,       // _ray_elevationAngles
-    vPixelSize * (raySkips + 1),  // _ray_elevationAngleWidth
-    this->soundSpeed,             // _soundSpeed
-    this->maxDistance,            // _maxDistance
-    this->sourceLevel,            // _sourceLevel
-    this->nBeams,                 // _nBeams
-    this->nRays,                  // _nRays
-    this->raySkips,               // _raySkips
-    this->sonarFreq,              // _sonarFreq
-    this->bandwidth,              // _bandwidth
-    this->nFreq,                  // _nFreq
-    this->reflectivityImage,      // reflectivity_image
-    this->attenuation,            // _attenuation
-    this->window,                 // _window
-    this->beamCorrector,          // _beamCorrector
-    this->beamCorrectorSum,       // _beamCorrectorSum
-    this->debugFlag,              // debugFlag
-    this->blazingFlag             // _blazingFlag
-  );
+  SonarComputeInput input;
+  input.depthImage = &depthSnapshot;
+  input.normalImage = &normal_image;
+  input.reflectivityImage = &this->reflectivityImage;
+  input.nBeams = this->nBeams;
+  input.nRays = this->nRays;
+  input.nFreq = this->nFreq;
+  input.raySkips = this->raySkips;
+  input.hFOV = this->hFOV;
+  input.vFOV = this->vFOV;
+  input.maxDistance = this->maxDistance;
+  input.soundSpeed = this->soundSpeed;
+  input.attenuation = this->attenuation;
+  input.sensorGain = this->sensorGain;
+  input.debugFlag = this->debugFlag;
+  input.blazingFlag = this->blazingFlag;
+  input.window = this->window.data();
+  input.rangeVector = this->rangeVector.data();
+  input.beamCorrector = this->beamCorrector.data();
+  input.beamCorrectorSum = this->beamCorrectorSum;
+  input.sourceLevel = this->sourceLevel;
+  input.bandwidth = this->bandwidth;
+  input.sonarFreq = this->sonarFreq;
+  input.elevation_angles = this->elevation_angles;
+  input.frameIndex = this->frameCounter++;
+  input.seed = this->sonarSeed;
+
+  SonarComputeOutput backendOutput;
+  if (!this->computeBackend->Compute(input, backendOutput))
+  {
+    RCLCPP_ERROR_STREAM(
+      this->ros_node_->get_logger(),
+      "Sonar compute backend failed: " << this->computeBackend->Name());
+    return;
+  }
+
+  CArray2D P_Beams(CArray(this->nFreq), this->nBeams);
+  for (int beam = 0; beam < this->nBeams; ++beam)
+  {
+    for (int freq = 0; freq < this->nFreq; ++freq)
+    {
+      P_Beams[beam][freq] = backendOutput.At(beam, freq);
+    }
+  }
 
   // For calc time measure
   auto stop = std::chrono::high_resolution_clock::now();
@@ -1128,9 +1297,11 @@ void MultibeamSonarSensor::Implementation::ComputeSonarImage()
 
   if (debugFlag)
   {
+    double timeMs = duration.count() / 1000.0;
     RCLCPP_INFO_STREAM(
-      this->ros_node_->get_logger(),
-      "GPU Sonar Frame Calc Time " << duration.count() / 10000 << "/100 [s]\n");
+      this->ros_node_->get_logger(), this->computeBackend->Name()
+                                       << " Sonar Frame Calc Time " << std::fixed
+                                       << std::setprecision(3) << timeMs << " [ms]\n");
   }
 
   // CSV log write stream
@@ -1185,17 +1356,26 @@ void MultibeamSonarSensor::Implementation::ComputeSonarImage()
     }
   }
 
-  const rclcpp::Time now(
-    std::chrono::duration_cast<std::chrono::nanoseconds>(this->measurementTime).count(),
-    RCL_ROS_TIME);
+  // Use the single timestamp captured at snapshot time for all publications.
+  // This ensures sonarRawDataMsg, sonarImgMsg, and normalImgMsg all carry the
+  // same stamp - the sim time when the depth frame was actually recorded -
+  // so RViz TF lookups succeed and images don't flicker.
 
+  // FEEDBACK_NEEDED/TODO: Solved?
+  // Using frameName (from SDF <frameName> tag) as the ROS frame_id.
+  // This is user-friendly but requires the SDF value to match an actual TF frame exactly.
+  // The old approach used frameId (Gazebo's internal sensor ID) which was more likely
+  // to match the TF tree automatically.
+  // If TF lookup errors appear in RViz, shall revert back to frameId.
   this->sonarRawDataMsg = marine_acoustic_msgs::msg::ProjectedSonarImage();
 
   this->sonarRawDataMsg.header.frame_id = this->frameId;
 
-  this->sonarRawDataMsg.header.stamp.sec = static_cast<int32_t>(now.seconds());
+  this->sonarRawDataMsg.header.frame_id = this->frameName;
+
+  this->sonarRawDataMsg.header.stamp.sec = static_cast<int32_t>(capturedStamp.seconds());
   this->sonarRawDataMsg.header.stamp.nanosec =
-    static_cast<uint32_t>(now.nanoseconds() % 1000000000);
+    static_cast<uint32_t>(capturedStamp.nanoseconds() % 1000000000);
 
   marine_acoustic_msgs::msg::PingInfo ping_info_msg_;
 
@@ -1232,7 +1412,7 @@ void MultibeamSonarSensor::Implementation::ComputeSonarImage()
   sonar_image_data.beam_count = this->nBeams;
   // this->sonar_image_raw_msg_.data_size = 1;  // sizeof(float) * nFreq * nBeams;
   std::vector<float> intensities;
-  int Intensity[this->nBeams][this->nFreq];
+  // int Intensity[this->nBeams][this->nFreq];
 
   for (size_t r = 0; r < P_Beams[0].size(); r++)
   {
@@ -1247,17 +1427,16 @@ void MultibeamSonarSensor::Implementation::ComputeSonarImage()
   this->sonarRawDataMsg.image = sonar_image_data;
   this->sonarImageRawPub->publish(this->sonarRawDataMsg);
 
-  // Construct visual sonar image for rqt plot in sensor::image msg format
-  cv_bridge::CvImage img_bridge;
-
-  // Generate image of CV_8UC1
-  cv::Mat Intensity_image = cv::Mat::zeros(cv::Size(this->nBeams, this->nFreq), CV_8UC1);
+  // Fan coordinates are metric (one range bin per pixel), not beam-index
+  // coordinates. Keep the full lateral extent and the zero-range origin inside
+  // the raster, independently of the number of horizontal beams.
+  const unsigned int radius = this->nFreq;
+  cv::Mat Intensity_image = cv::Mat::zeros(cv::Size(2 * radius + 1, radius + 1), CV_8UC1);
 
   const float rangeMax = this->maxDistance;
   const float rangeRes = ranges[1] - ranges[0];
   const int nEffectiveRanges = ceil(rangeMax / rangeRes);
-  const unsigned int radius = Intensity_image.size().height;
-  const cv::Point origin(Intensity_image.size().width / 2, Intensity_image.size().height);
+  const cv::Point origin(radius, radius);
   const float binThickness = 2 * ceil(radius / nEffectiveRanges);
 
   struct BearingEntry
@@ -1310,19 +1489,28 @@ void MultibeamSonarSensor::Implementation::ComputeSonarImage()
   float max_dB = 20.0f * log10(max_power + 1e-10f);
   float min_dB = max_dB - 60.0f;
 
-  for (int r = 0; r < ranges.size(); ++r)
+  // With no returns, the per-bin and maximum powers share the epsilon floor.
+  // Normalizing it would draw a false full-white fan. Keep the black image
+  // instead; the raw -inf samples and positive-return rendering are unchanged.
+  for (int r = 0; max_power > 0.0f && r < ranges.size(); ++r)
   {
-    if (ranges[r] > rangeMax)
+    // The last bin center may lie just beyond maxDistance. Render its
+    // overlapping half-cell at the outer edge without relabeling raw ranges.
+    if (ranges[r] - 0.5f * rangeRes > rangeMax)
     {
       continue;
     }
     for (int b = 0; b < this->nBeams; ++b)
     {
       const float range = ranges[r];
-      const float power_dB = 20.0f * log10(std::abs(P_Beams[this->nBeams - 1 - b][r]) + 1e-10f);
+      const float power = std::abs(P_Beams[this->nBeams - 1 - b][r]);
+      // No echo must stay black, including a frame with no finite returns.
+      // The logarithm epsilon otherwise maps an all-zero frame to full white.
+      const float power_dB =
+        power > 0.0f && std::isfinite(power) ? 20.0f * log10(power + 1e-10f) : min_dB;
       int intensity = static_cast<int>(255.0f * (power_dB - min_dB) / (max_dB - min_dB));
       const float begin = angles[b].begin + ThetaShift, end = angles[b].end + ThetaShift;
-      const float rad = static_cast<float>(radius) * range / rangeMax;
+      const float rad = static_cast<float>(radius) * std::min(range, rangeMax) / rangeMax;
       // Assume angles are in image frame x-right, y-down
       cv::ellipse(
         Intensity_image, origin, cv::Size(rad, rad), 0.0, begin * 180.0 / M_PI, end * 180.0 / M_PI,
@@ -1334,28 +1522,24 @@ void MultibeamSonarSensor::Implementation::ComputeSonarImage()
   cv::applyColorMap(Intensity_image, Itensity_image_color, cv::COLORMAP_HOT);
 
   this->sonarImgMsg.header.frame_id = this->frameName;
-  this->sonarImgMsg.header.stamp.sec = static_cast<int32_t>(now.seconds());
-  this->sonarImgMsg.header.stamp.nanosec = static_cast<uint32_t>(now.nanoseconds() % 1000000000);
+  this->sonarImgMsg.header.stamp.sec = static_cast<int32_t>(capturedStamp.seconds());
+  this->sonarImgMsg.header.stamp.nanosec =
+    static_cast<uint32_t>(capturedStamp.nanoseconds() % 1000000000);
 
-  img_bridge = cv_bridge::CvImage(
-    this->sonarImgMsg.header, sensor_msgs::image_encodings::BGR8, Itensity_image_color);
-  // from cv_bridge to sensor_msgs::Image
-  img_bridge.toImageMsg(this->sonarImgMsg);
+  CopyImageToMessage(Itensity_image_color, sensor_msgs::image_encodings::BGR8, this->sonarImgMsg);
   this->sonarImagePub->publish(this->sonarImgMsg);
 
-  // ---------------------------------------- End of sonar calculation
-
   this->normalImgMsg.header.frame_id = this->frameName;
-  this->normalImgMsg.header.stamp.sec = static_cast<int32_t>(now.seconds());
-  this->normalImgMsg.header.stamp.nanosec = static_cast<uint32_t>(now.nanoseconds() % 1000000000);
+  this->normalImgMsg.header.stamp.sec = static_cast<int32_t>(capturedStamp.seconds());
+  this->normalImgMsg.header.stamp.nanosec =
+    static_cast<uint32_t>(capturedStamp.nanoseconds() % 1000000000);
 
   cv::Mat normal_image8;
   normal_image.convertTo(normal_image8, CV_8UC3, 255.0);
-  img_bridge = cv_bridge::CvImage(
-    this->normalImgMsg.header, sensor_msgs::image_encodings::RGB8, normal_image8);
-  img_bridge.toImageMsg(this->normalImgMsg);
-  // from cv_bridge to sensor_msgs::Image
+  CopyImageToMessage(normal_image8, sensor_msgs::image_encodings::RGB8, this->normalImgMsg);
   this->normalImagePub->publish(this->normalImgMsg);
+
+  // ---------------------------------------- End of sonar calculation
 }
 
 }  // namespace sensors

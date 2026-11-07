@@ -25,11 +25,11 @@
 | DVL 측정과 ROS 변환 | Gazebo DVL, `posim_ros_gz_plugins` | [빔 설정과 출력](dvl.md) |
 | 정수압과 압력 기반 깊이 | `posim_gz_sensor_plugins` | [수압 설정과 단위](pressure.md) |
 | USBL 음향 요청·응답과 위치 추정 | `posim_gz_sensor_plugins` | [송수신기·응답기 예제](usbl.md) |
-| CUDA 멀티빔 소나 | `gazebo/posim_gz_multibeam_sonar` | [소나 모델](sonar.md), [빌드·조절](sonar-tuning.md) |
+| 멀티빔 소나 | `gazebo/posim_gz_multibeam_sonar` | [소나 모델](sonar.md), [빌드·조절](sonar-tuning.md) |
 | REXROV·BlueROV2 계열·Slocum 글라이더 | `models/posim_robot_models` | [ROV](rovs.md), [글라이더](gliders.md), [사용자 로봇](custom-robots.md) |
 | ArduRover WAM-V 연동과 ROS 제어 | `extras/surface`, 모델 Launch 설정, `posim_interfaces` | [수상 차량](surface.md), [ROS 2](ros.md) |
 
-사용 가능한 센서는 설치된 플러그인과 모델 설정에 따라 달라집니다. GNSS 프로필을 적용할 때는 장착 링크와 수신기를 연결합니다. CUDA 소나에는 지원 GPU와 개발 도구가 필요합니다. 각 센서 참고 문서의 빠른 시작 예제로 실시간 측정값을 확인하세요.
+사용 가능한 센서는 설치된 플러그인과 모델 설정에 따라 달라집니다. GNSS 프로필을 적용할 때는 장착 링크와 수신기를 연결합니다. 소나는 환경에 맞춰 CPU·WGPU·CUDA 계산을 선택할 수 있습니다. 각 센서 참고 문서의 빠른 시작 예제로 실시간 측정값을 확인하세요.
 
 ## 소스 디렉토리
 

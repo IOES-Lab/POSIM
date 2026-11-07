@@ -1,73 +1,99 @@
 # ソナーの設定と性能調整
 
-実験に合わせて観測範囲、細かさ、更新周波数を選びます。[マルチビームソナー](sonar.md)にはクイックスタート、SDF、パラメーターがあります。このガイドでは設定の比較と CUDA の準備を説明します。
+計算バックエンドを選び、観測範囲、細かさ、更新周波数を比較します。[マルチビームソナー](sonar.md)には、クイックスタート、SDF、パラメーター表があります。
 
-## 必要な実行環境
+## 実行環境を選ぶ
 
-NVIDIA GPU を搭載した Ubuntu または対応する WSL 2、あるいは GPU にアクセスできるコンテナで、[準備済み Linux ターミナル](terminals.md)を使います。編集とビルドもそこで行い、`POSIM_WS` にそのワークスペースを指定します。macOS の Docker/RDP 構成では CUDA GPU を利用できません。このソナーは NVIDIA GPU のある Linux または WSL 2 ホストで実行してください。
+[準備済みの POSIM ターミナル](terminals.md)を使います。編集、ビルド、実行は、POSIM をインストールした同じ Ubuntu、WSL、Docker 環境内で行ってください。`POSIM_WS` はそのワークスペースのパスです。どの計算バックエンドでも Gazebo の描画センサーが必要です。
 
-## 基準となる計測を行う
+| 環境 | 計算方法と条件 |
+| --- | --- |
+| Linux ネイティブ | CPU、利用可能な Vulkan アダプターによる WGPU、対応 NVIDIA GPU とツールキットによる CUDA |
+| WSL 2 または Linux コンテナ | CPU。GPU 計算には、その環境の**内部から**アダプターとドライバーを利用できることが必要 |
+| macOS の Docker/RDP | CPU から始めます。Linux コンテナは Mac の Metal デバイスを公開しません。 |
+| macOS ネイティブ | 別途用意したネイティブ ROS/Gazebo 環境で WGPU の Metal を利用可能。[macOS インストールガイド](install-macos.md)は Docker/RDP 方式です。 |
 
-[BlueView P900 の例](sonar.md#run-a-sonar-example)を起動し、シーン、対象までの距離、センサー姿勢を固定します。画像と生データを受信してから性能を測ります。CUDA がない場合は先に実行環境を準備してください。
+`auto` は CUDA → WGPU → CPU の順で選択します。比較実験では `cpu`、`wgpu`、`cuda` を明示してください。指定したバックエンドが使えなければ、センサーの初期化は失敗します。[選択表](sonar.md#compute-backend)を参照してください。
 
-別の準備済みターミナルで受信画像の周波数を測ります。
+## ソナーパッケージをビルドする {#build-the-sonar-packages}
+
+[ソースからのインストール](install.md)と依存関係の準備を済ませてください。`wgpu_vendor` は CPU を使う場合も Rust ライブラリをビルドします。Rust と Cargo がなければ[公式の導入手順](https://www.rust-lang.org/tools/install)に従います。
 
 {{CODE:sonar-tuning:0}}
 
-安定した値を得たら Ctrl+C で止めます。シミュレーションの進行速度は別に確認します。
+環境を読み込んだワークスペースで、ライブラリ、センサー、ワールドシステム、例をビルドします。
 
 {{CODE:sonar-tuning:1}}
 
-ワールドの内部名は `default` です。`real_time_factor` はシミュレーション時間と実時間の比なので、画像の受信周波数と一緒に記録します。30 Hz を要求しても、実時間の 1 秒に 30 枚届くとは限りません。Ctrl+C で表示を終了します。
-
-## 1 つの設定を比較する
-
-[センサー定義](sonar.md#sensor-configuration)のコピーで 1 項目を変更し、再ビルドして環境を読み込み、同じ姿勢で起動します。
-
-| 実験 | 比較 | 観察する点 |
-|---|---|---|
-| 角度方向の細かさ | 視野角を固定し、水平ビーム 512 本と 256 本 | 近接した対象の分離と受信周波数 |
-| 垂直方向のサンプリング | レイ 300 本と 150 本 | 対象の連続性と計算時間 |
-| 観測範囲 | レイの範囲と `maxDistance` を同時に変更 | 最遠の対象と距離軸の目盛り |
-| 更新周波数 | 30 Hz と 10 Hz | 受信周波数と `real_time_factor` |
-| レイの間引き | `raySkips` の 10 と 5 | 垂直方向の細かさと計算量 |
-
-比較結果は実測してください。性能測定中は `writeLog` と `debugFlag` を無効にし、生データや処理時間を調べるときに別途有効にします。SDF、POSIM のリビジョン、GPU/CUDA のバージョン、観測結果を保存します。トピックの記録は [センサーデータの表示と記録](visualization.md)を参照してください。
-
-## ツールチェーンを確認する
-
-[プラグイン](sonar.md)には NVIDIA ドライバー、CUDA コンパイラーとランタイム、cuFFT、cuBLAS、Gazebo の描画が必要です。ソナーを実行する環境で確認します。
+CUDA は任意です。インストール済みの CUDA を使わず CPU/WGPU 用にビルドする場合は、`--cmake-args -DCMAKE_DISABLE_FIND_PACKAGE_CUDAToolkit=ON` を追加します。Rust の依存関係は `Cargo.lock` で固定され、初回のダウンロードにはインターネット接続が必要です。
 
 {{CODE:sonar-tuning:2}}
 
-GPU へのアクセスとコンパイラーの有無は別々に確認します。Linux の Docker Engine ではホストに [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html)を設定します。Windows では [Docker Desktop/WSL 2 の GPU 設定](https://docs.docker.com/desktop/features/gpu/)に従います。イメージ内にも CUDA ライブラリが必要です。
+4 パッケージを確認し、[ソナーの例](sonar.md#run-a-sonar-example)で画像と生データを受信してください。パッケージ一覧だけではセンサーの読み込みを確認できません。コンテナ内でパッケージを確認し、なければソースからビルドします。イメージタグだけで同梱を判断しないでください。
 
-## CUDA アーキテクチャを選ぶ
+## WGPU アダプターを選ぶ
 
-`CMAKE_CUDA_ARCHITECTURES` には GPU とツールキットが対応する SM を指定します。以下は SM 75 の例です。`75` を対象 GPU の値に変え、準備済みワークスペースで実行します。
+Linux では、Gazebo を実行する環境内で `vulkaninfo --summary` を確認します。システムに合った Vulkan ドライバーとツールが必要です。llvmpipe などのソフトウェアアダプターは Vulkan を実行できますが、ハードウェアによる高速化は行いません。WGPU の起動出力に選択されたアダプターが表示されます。
 
 {{CODE:sonar-tuning:3}}
 
-`nvcc --list-gpu-code` で対応ターゲットを確認できます。未指定の場合は CMake がコンパイラーの既定値を使います。CUDA が複数ある場合は `-DCUDAToolkit_ROOT=/path/to/cuda` で選び、その `bin` ディレクトリを `PATH` に含めます。
+| 環境変数 | 用途 |
+| --- | --- |
+| `WGPU_BACKEND` | Linux は `vulkan`、macOS ネイティブプロセスは `metal`。省略時はプラットフォームの既定値 |
+| `WGPU_ADAPTER_NAME` | 名前に指定文字列を含む最初のアダプター。大文字と小文字は区別しません。ドライバーや起動出力の名前を使用 |
+| `WGPU_POWER_PREF` | `high`、`low`、`none`。名前の指定がなければ既定値は `high` |
 
-## インストール結果を確認する
+変数は起動前に設定します。初期化はプロセス内で共有されるため、変更後はシミュレーションを終了して再起動してください。API は [wgpu プロジェクト](https://github.com/gfx-rs/wgpu)で説明されています。初期化やリソース確認に失敗した場合は、表示されたアダプターと上限を確認し、`cpu` を選ぶかセンサーの規模を縮小します。
+
+## CUDA を使う場合
+
+NVIDIA ドライバー、CUDA コンパイラーとランタイム、cuFFT、cuBLAS が必要です。実行環境で確認します。
 
 {{CODE:sonar-tuning:4}}
 
-CUDA のビルドを省略してもパッケージは登録される場合があります。ライブラリを確認します。
+Linux コンテナではホストに [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html)を設定します。Windows は [CUDA on WSL](https://docs.nvidia.com/cuda/wsl-user-guide/index.html)と、必要に応じて [Docker Desktop の GPU 設定](https://docs.docker.com/desktop/features/gpu/)に従います。ディスプレイドライバーは Windows に導入し、WSL 内に Linux 用を入れないでください。コンテナ内にも CUDA ライブラリが必要です。
+
+GPU とツールキットが対応するアーキテクチャを選びます。以下の SM 75 の例では、`75` を自分の GPU の値に置き換えてください。`OFF` は CPU/WGPU 専用ビルドで無効にしたツールキット検出を再び有効にします。
 
 {{CODE:sonar-tuning:5}}
 
-各コマンドの終了コードは 0 になる必要があります。省略されたターゲットやロードエラーを確認し、[マルチビームソナー](sonar.md)の画像と生データを受信してください。
+`nvcc --list-gpu-code` で対応ターゲットを確認できます。指定がなければコンパイラーの既定値を使います。複数のツールキットがある場合は `-DCUDAToolkit_ROOT=/path/to/cuda` で選び、その `bin` を `PATH` に追加します。`compute_backend:=cuda` で例を起動してください。
 
-## 計測結果を読み解く
+## 基準を測定する
 
-測定前に描画を安定させます。同じシーンと姿勢で、フレーム処理時間、受信周波数、`real_time_factor`、CPU/GPU 使用率、メモリーを記録します。物理、描画、CUDA 計算、配信、ログの負荷を分けて考えます。
+シーン、対象までの距離、センサー姿勢を固定します。ターミナル B で画像の受信周波数を測ります。
 
-`blazingSonarImage` は変化する乱数シードと固定シード `1234` を切り替えるため、再現性を比較できます。数値カーネルを変える際は基準データを残し、画像に加えて強度と距離を比較してください。研究の出典は[引用](citation.md)にあります。
+{{CODE:sonar-tuning:6}}
 
-## GPU の処理の流れ
+Ctrl+C で止め、シミュレーション速度を確認します。
+
+{{CODE:sonar-tuning:7}}
+
+ワールドのエンティティ名は `default` です。受信周波数と `real_time_factor` を記録します。シミュレーション時間で 30 Hz を要求しても、実時間の 1 秒に 30 枚届くとは限りません。Ctrl+C で終了します。
+
+## サンプリングと距離を調整する
+
+[SDF](sonar.md#sensor-configuration) のコピーで 1 項目ずつ変更します。再ビルドして環境を読み込み、同じ姿勢で起動します。
+
+| 実験 | 比較 | 確認する点 |
+| --- | --- | --- |
+| 角度方向の細かさ | 視野角を固定し、ビーム 512 本と 256 本 | 近接対象の分離と受信周波数 |
+| 垂直サンプリング | レイ 300 本と 150 本。別に `raySkips` 10 と 5 | 対象の連続性と計算時間 |
+| 観測範囲 | レイ範囲と `maxDistance` を同時に変更 | 最も遠い対象と距離軸 |
+| 更新周波数 | 30 Hz と 10 Hz | 受信周波数と実時間係数 |
+
+距離間隔は `soundSpeed / (2 × bandwidth)`、セル数は `ceil(maxDistance / 間隔) + 1` です。1500 m/s、29.9 kHz、15 m では 599 セルになります。最後の座標は `maxDistance` を少し超える場合がありますが、設定範囲外の反射は除外されます。実際の距離配列とビーム数は生メッセージまたは CSV から読み取ってください。
+
+WGPU は 2 の累乗以外でも要求した変換長を維持し、FFT の段階を自動選択します。距離と帯域幅を増やすとメモリーと計算量も増えます。CPU は反射を最も近い距離セルに割り当て、GPU は周波数領域で処理します。バックエンドを比較するときは振幅と距離応答もそれぞれ測定してください。
+
+## 再現可能な比較を記録する
+
+描画が安定してから測定します。性能測定中は `writeLog` と `debugFlag` を無効にし、[CSV](sonar.md) や [ROS](visualization.md) の記録は別に行います。`blazingSonarImage=false` は乱数シードを 1234 に固定します。
+
+SDF、POSIM リビジョン、バックエンドとアダプター、ドライバーとツールキットの版、フレーム時間、受信周波数、実時間係数、メモリー使用量を保存します。画面だけでなく、生の強度・距離データも比較してください。研究モデルの出典は[引用](citation.md)にあります。
+
+## GPU の処理フロー
 
 {{MEDIA:sonar-tuning}}
 
-処理にはレイの加算、窓関数・補正、FFT が含まれます。プロファイリングでは各段階と GPU メモリー転送の時間を分けます。図の出典：POSIM Notion Wiki。
+レイの加算、窓関数・補正、FFT の各段階があります。計算時間とメモリー転送時間を分けて測定します。図：POSIM Notion Wiki。

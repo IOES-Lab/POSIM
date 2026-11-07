@@ -25,11 +25,11 @@ POSIM 提供 Gazebo 系统、机器人模型和 ROS 接口。世界 SDF 与启�
 | DVL 测量与 ROS 转换 | Gazebo DVL、`posim_ros_gz_plugins` | [DVL](dvl.md) |
 | 静水压力与推算深度 | `posim_gz_sensor_plugins` | [压力](pressure.md) |
 | USBL 声学询问与定位 | `posim_gz_sensor_plugins` | [USBL](usbl.md) |
-| CUDA 多波束声纳 | `gazebo/posim_gz_multibeam_sonar` | [声纳](sonar.md)、[配置与性能](sonar-tuning.md) |
+| 多波束声纳 | `gazebo/posim_gz_multibeam_sonar` | [声纳](sonar.md)、[配置与性能](sonar-tuning.md) |
 | REXROV、BlueROV2 各型号和 Slocum 滑翔机 | `models/posim_robot_models` | [ROV](rovs.md)、[滑翔机](gliders.md)、[添加机器人](custom-robots.md) |
 | WAM-V 的 ArduRover 集成与 ROS 控制 | `extras/surface`、启动配置、`posim_interfaces` | [水面艇](surface.md)、[ROS 2](ros.md) |
 
-可用传感器取决于已安装的插件和模型配置。GNSS 配置描述安装位置，集成时还需加入连杆和接收机。CUDA 声纳需要兼容的 GPU 和工具链。各传感器参考页的快速入门可用于确认仿真中的实时测量输出。
+可用传感器取决于已安装的插件和模型配置。GNSS 配置描述安装位置，集成时还需加入连杆和接收机。声呐可按环境选择 CPU、WGPU 或 CUDA。 各传感器参考页的快速入门可用于确认仿真中的实时测量输出。
 
 ## 源码目录
 

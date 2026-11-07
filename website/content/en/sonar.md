@@ -1,10 +1,10 @@
 # Multibeam sonar
 
-POSIM's multibeam sonar uses a ray-based point-scattering model to generate intensity–range data and sonar imagery. Prepare the [NVIDIA/CUDA backend](sonar-tuning.md) before running the sensor.
+POSIM's multibeam sonar uses a ray-based point-scattering model to generate intensity–range data and sonar imagery. The same plugin offers CPU, WGPU and CUDA computation. WGPU supports GPU vendors through Vulkan on Linux or Metal in a native macOS environment; see [backend setup and selection](sonar-tuning.md).
 
 ## Run a sonar example
 
-Use [prepared POSIM terminals A and B](terminals.md) in an installation with the supported NVIDIA/CUDA backend. Start the simulation in terminal A and inspect its outputs in terminal B.
+Use [prepared POSIM terminals A and B](terminals.md). Build the [sonar packages](sonar-tuning.md#build-the-sonar-packages) if they are not installed. Start the simulation in terminal A and inspect its outputs in terminal B. The first command selects a backend automatically; the dedicated example below explicitly selects WGPU and also opens RViz.
 
 ```bash
 ros2 launch posim_demos posim_sensor.launch.py \
@@ -15,10 +15,11 @@ ros2 launch posim_demos posim_sensor.launch.py \
 A dedicated example is also supplied by `posim_multibeam_sonar_demo`:
 
 ```bash
-ros2 launch posim_multibeam_sonar_demo multibeam_sonar_demo.launch.py
+ros2 launch posim_multibeam_sonar_demo multibeam_sonar_demo.launch.py \
+  compute_backend:=wgpu
 ```
 
-Use one launch at a time. For the robot variant, select `bluerov2_heavy_multibeam_sonar` with a suitable sonar world.
+Use one launch at a time. Replace `wgpu` with `cpu`, `cuda` or `auto` to choose another backend. For the robot variant, select `bluerov2_heavy_multibeam_sonar` with a suitable sonar world.
 
 ## Observe outputs
 
@@ -118,7 +119,7 @@ Actual received rate depends on computation and rendering. Read [the sensor mode
 | `sourceLevel` | Source level, dB | 220 | 220 |
 | `maxDistance` | Processing range, m; match ray range | 60 | 10 |
 | `raySkips` | Elevation sampling stride; use a positive integer | 10 | 10 |
-| `sensorGain` | Parsed and printed, but not used in image generation | 0.02 | 0.02 |
+| `sensorGain` | Echo amplitude gain for CPU; unused by WGPU/CUDA | 0.02 | 0.02 |
 | `blazingSonarImage` | Use a wall-clock-dependent random seed; false uses seed 1234 | false | true |
 | `pointCloudTopicName` | Gazebo point-cloud suffix | `point_cloud` | Same |
 | `sonarImageRawTopicName` | ROS raw-return suffix | `sonar_image_raw` | Same |
@@ -143,6 +144,17 @@ Keep the ray range and `maxDistance` consistent.
 
 `writeLog`, `writeFrameInterval` and `debugFlag` support diagnostic recording and timing. Keep logging disabled for throughput measurements unless logging is part of the experiment. See [Configure and tune sonar](sonar-tuning.md) for a repeatable tuning workflow and [Citation](citation.md) for the sonar model's research source.
 
+### Compute backend {#compute-backend}
+
+| Selection | Behavior |
+| --- | --- |
+| `auto` | Try CUDA, then WGPU, then CPU; the default |
+| `wgpu` | Use a compatible Vulkan/Metal adapter; fail sensor initialization if unavailable |
+| `cuda` | Use an NVIDIA GPU with the CUDA backend built and installed; fail if unavailable |
+| `cpu` | Compute acoustic returns on the CPU; Gazebo rendering is still required |
+
+The dedicated launch accepts `compute_backend`. Other launches read the environment variable `POSIM_SONAR_COMPUTE_BACKEND`. Check `Using sonar compute backend:` in the launch output. [Configure and tune sonar](sonar-tuning.md) explains adapter selection, platform requirements and numerical differences.
+
 ## Add a sonar sensor and world
 
 Copy `models/posim_sensor_models/description/blueview_p900/` to a new sensor identifier. Also prepare a matching `config/<sensor identifier>/sensor_config.py`; align SDF model/link/frame names with bridge topics. Set horizontal/vertical samples, angles and range in `<ray>` to match your sensor specification.
@@ -156,7 +168,7 @@ Include the Gazebo rendering-sensor system and sonar system in the world. Consul
 <plugin filename="libmultibeam_sonar_system" name="custom::MultibeamSonarSystem"/>
 ```
 
-Prepare CUDA and rendering, rebuild the workspace and load its environment, then select your sensor model using the [sensor launch arguments](quickstart.md). The ROS point-cloud bridge connects `sensor_msgs/msg/PointCloud2` to Gazebo `gz.msgs.PointCloudPacked`. Match `pointCloudTopicName` to the path configured in `sensor_config.py`.
+Prepare a compute backend and rendering, rebuild the workspace and load its environment, then select your sensor model using the [sensor launch arguments](quickstart.md). The ROS point-cloud bridge connects `sensor_msgs/msg/PointCloud2` to Gazebo `gz.msgs.PointCloudPacked`. Match `pointCloudTopicName` to the path configured in `sensor_config.py`.
 
 ## Record raw sonar data
 

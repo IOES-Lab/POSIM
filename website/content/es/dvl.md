@@ -54,7 +54,7 @@ La [implementación del puente](https://github.com/IOES-Lab/POSIM/blob/main/gaze
 | `sonardyne_syrinx600` | Sonardyne |
 | `teledyne_explorer1000`, `teledyne_explorer4000` | Teledyne Explorer |
 | `teledyne_whn` | Teledyne WHN |
-| `nortek_dvl500_300_with_multibeam_sonar` | DVL con [sonar CUDA](sonar-tuning.md) |
+| `nortek_dvl500_300_with_multibeam_sonar` | DVL con [sonar ](sonar-tuning.md) |
 
 Revisa el muestreo y la geometría de cada SDF.
 

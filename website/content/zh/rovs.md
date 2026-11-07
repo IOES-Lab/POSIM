@@ -9,7 +9,7 @@
 | `rexrov` | Gazebo 推进器、水动力学和里程计 |
 | `bluerov2` | 集成 ArduSub SITL 与 MAVROS 的 BlueROV2 |
 | `bluerov2_heavy` | Heavy 配置 |
-| `bluerov2_heavy_multibeam_sonar` | 配备 CUDA 声呐的 Heavy 配置 |
+| `bluerov2_heavy_multibeam_sonar` | 配备 声呐的 Heavy 配置 |
 
 请使用[与安装方式对应的终端](terminals.md)。REXROV 可从[第一次仿真](quickstart.md)开始。
 
@@ -17,7 +17,7 @@
 
 {{CODE:rovs:0}}
 
-使用 `namespace:=bluerov2_heavy` 选择 Heavy 型。通过启动输出和 `/mavros/state` 确认自动驾驶仪连接。带声呐的模型需要先[配置 CUDA](sonar-tuning.md)。
+使用 `namespace:=bluerov2_heavy` 选择 Heavy 型。通过启动输出和 `/mavros/state` 确认自动驾驶仪连接。带声呐的模型需要先[配置计算后端](sonar-tuning.md)。
 
 ## 键盘控制
 

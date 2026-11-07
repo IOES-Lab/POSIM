@@ -14,7 +14,7 @@
 
 ## 没有图像或渲染初始化失败
 
-检查[安装指南](requirements.md)中的显卡驱动和显示连接步骤。Gazebo 图形界面和相机都需要正常的渲染器；声呐还需要相应的 [CUDA 库](sonar-tuning.md)。
+检查[安装指南](requirements.md)中的显卡驱动和显示连接。Gazebo 与图像传感器需要正常的渲染器。声呐还需检查[所选后端和已安装的包](sonar-tuning.md)。
 
 对于[水下场景效果](underwater-rendering.md)，检查：
 

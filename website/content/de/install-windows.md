@@ -18,7 +18,7 @@ Bei vorhandenem WSL oder Installationsproblemen hilft die [Microsoft-Anleitung](
 
 Installieren oder aktualisieren Sie den **Windows-Grafiktreiber** für Ihre Intel-, AMD- oder NVIDIA-GPU. Das gilt auch für NVIDIA. WSLg nutzt diesen Treiber zur Grafikbeschleunigung; siehe [grafische Anwendungen unter WSL](https://learn.microsoft.com/de-de/windows/wsl/tutorials/gui-apps).
 
-Befolgen Sie bei NVIDIA die Anleitung zu [CUDA unter WSL](https://docs.nvidia.com/cuda/wsl-user-guide/index.html): Installieren Sie den Windows-Treiber, **keinen Linux-Grafiktreiber innerhalb von WSL**. Der Build des Sonar-Plugins benötigt zusätzlich das CUDA Toolkit.
+Befolgen Sie bei NVIDIA die Anleitung zu [CUDA unter WSL](https://docs.nvidia.com/cuda/wsl-user-guide/index.html): Installieren Sie den Windows-Treiber, keinen Linux-Anzeigetreiber innerhalb von WSL. Das CUDA Toolkit wird nur zum Bauen des CUDA-Sonarbackends benötigt.
 
 Aktualisieren Sie WSL in PowerShell:
 

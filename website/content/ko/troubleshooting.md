@@ -17,7 +17,7 @@ ros2 pkg prefix posim_demos
 
 ## 영상이 없거나 렌더링 초기화가 실패할 때
 
-[설치 가이드](requirements.md)의 그래픽 드라이버와 화면 연결 설정을 확인하세요. Gazebo GUI와 영상 센서에는 정상 작동하는 렌더러가 필요합니다. CUDA 소나는 [CUDA 라이브러리](sonar-tuning.md)도 확인하세요.
+[설치 안내](requirements.md)의 그래픽 드라이버와 화면 연결을 확인하세요. Gazebo와 영상 센서에는 정상 작동하는 렌더러가 필요합니다. 소나는 [선택한 계산 백엔드와 설치된 패키지](sonar-tuning.md)도 확인합니다.
 
 [수중 장면 효과](underwater-rendering.md)는 `/posim/appearance/<session_nonce>/state` 서비스, 렌더러·셰이더 경로와 활성 카메라 수를 확인합니다. 부유 입자의 기본값은 꺼짐이므로 직접 켜세요. 렌더링 후 적용 리비전과 준비 상태를 확인합니다. 카메라 감쇠 예제만 실행하면 장면 효과 시스템은 불러오지 않습니다.
 

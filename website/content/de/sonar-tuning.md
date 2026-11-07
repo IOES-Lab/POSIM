@@ -1,73 +1,99 @@
-# Sonar einrichten und abstimmen
+# Sonar konfigurieren und abstimmen
 
-Wählen Sie Abdeckung, Detailgrad und Aktualisierungsrate passend zum Versuch. Schnellstart, SDF und Parameter stehen in der [Multibeam-Sonar-Referenz](sonar.md). Hier vergleichen Sie Einstellungen und bereiten CUDA vor.
+Wähle ein Rechenbackend und vergleiche anschließend Reichweite, Detailgrad und Aktualisierungsrate. Die [Mehrstrahlsonar-Referenz](sonar.md) enthält Schnellstart, SDF und Parameter.
 
-## Benötigte Umgebung
+## Ausführungsumgebung wählen
 
-Verwenden Sie die [vorbereiteten Linux-Terminals](terminals.md) unter Ubuntu oder unterstütztem WSL 2 mit NVIDIA-GPU, oder in einem Container mit GPU-Zugriff. Bearbeiten und bauen Sie dort; `POSIM_WS` bezeichnet den Arbeitsbereich. Das macOS-Docker/RDP-System stellt keine CUDA-GPU bereit. Führen Sie dieses Sonar-Backend auf einem NVIDIA-bestückten Linux- oder WSL-2-Host aus.
+Nutze die [vorbereiteten POSIM-Terminals](terminals.md). Bearbeite, baue und starte in derselben Ubuntu-, WSL- oder Docker-Umgebung; `POSIM_WS` bezeichnet deren Workspace. Alle Rechenbackends benötigen Gazebos Rendering-Sensoren.
 
-## Ausgangsmessung aufnehmen
+| Umgebung | Möglichkeiten |
+| --- | --- |
+| Natives Linux | CPU; WGPU mit nutzbarem Vulkan-Adapter; CUDA mit geeigneter NVIDIA-GPU und Toolkit |
+| WSL 2 oder Linux-Container | CPU; für GPU-Berechnungen müssen Adapter und Treiber **innerhalb** der Umgebung verfügbar sein |
+| macOS mit Docker/RDP | Beginne mit CPU. Der Linux-Container stellt das Metal-Gerät des Macs nicht bereit. |
+| Natives macOS | WGPU kann Metal mit einer separat eingerichteten nativen ROS-/Gazebo-Werkzeugkette nutzen; die [macOS-Anleitung](install-macos.md) beschreibt Docker/RDP. |
 
-Starten Sie das [BlueView-P900-Beispiel](sonar.md#run-a-sonar-example). Halten Sie Szene, Zielentfernung und Sensorpose konstant. Prüfen Sie Bild- und Rohdaten vor der Durchsatzmessung. Fehlt CUDA, richten Sie zunächst die Werkzeugkette ein.
+`auto` versucht CUDA → WGPU → CPU. Wähle für Vergleichsmessungen ausdrücklich `cpu`, `wgpu` oder `cuda`. Ist das gewählte Backend nicht verfügbar, schlägt die Sensorinitialisierung fehl. Siehe die [Auswahltabelle](sonar.md#compute-backend).
 
-Messen Sie in einem weiteren vorbereiteten Terminal die empfangene Bildrate:
+## Sonarpakete bauen {#build-the-sonar-packages}
+
+Ausgangspunkt ist die [Installation aus dem Quellcode](install.md) mit allen Abhängigkeiten. `wgpu_vendor` baut die Rust-Bibliothek auch für CPU-Betrieb. Prüfe Rust und Cargo; fehlen sie, folge der [offiziellen Installationsanleitung](https://www.rust-lang.org/tools/install).
 
 {{CODE:sonar-tuning:0}}
 
-Beenden Sie nach einer stabilen Messung mit Strg+C. Prüfen Sie die Simulationsgeschwindigkeit getrennt:
+Baue Bibliothek, Sensor, Weltsystem und Beispiel im Workspace mit geladener Umgebung:
 
 {{CODE:sonar-tuning:1}}
 
-Der interne Weltname ist `default`. Notieren Sie `real_time_factor`: Angeforderte 30 Hz Simulationszeit garantieren keine 30 Bilder je realer Sekunde. Strg+C beendet die Anzeige.
-
-## Eine Einstellung vergleichen
-
-Ändern Sie eine Einstellung in einer Kopie der [Sensorbeschreibung](sonar.md#sensor-configuration). Bauen und laden Sie den Arbeitsbereich erneut, dann starten Sie mit derselben Pose.
-
-| Versuch | Vergleich | Beobachtung |
-|---|---|---|
-| Winkeldetail | 512 gegen 256 horizontale Strahlen bei gleichem Sichtfeld | Zieltrennung und empfangene Rate |
-| Vertikale Abtastung | 300 gegen 150 Strahlen | Zielkontinuität und Rechenzeit |
-| Abdeckung | Strahlreichweite und `maxDistance` gemeinsam ändern | Entferntestes Ziel und Entfernungsachse |
-| Aktualisierung | 30 gegen 10 Hz | Empfangsrate und Echtzeitfaktor |
-| Strahlen überspringen | `raySkips` 10 gegen 5 | Vertikale Details und Rechenaufwand |
-
-Messen Sie das Ergebnis jedes Vergleichs. Lassen Sie `writeLog` und `debugFlag` bei Durchsatzmessungen aus; schalten Sie sie für Rohdaten oder Zeitdiagnosen gesondert ein. Bewahren Sie SDF, POSIM-Revision, GPU-/CUDA-Versionen und Beobachtungen auf. [Anleitung zu Sensordaten](visualization.md) beschreibt Topic-Aufzeichnungen.
-
-## Werkzeugkette prüfen
-
-Das [Plugin](sonar.md) benötigt NVIDIA-Treiber, CUDA-Compiler und -Laufzeit, cuFFT, cuBLAS und Gazebo-Rendering. Prüfen Sie in der späteren Ausführungsumgebung:
+CUDA ist optional. Um ein installiertes Toolkit beim CPU-/WGPU-Build auszulassen, ergänze `--cmake-args -DCMAKE_DISABLE_FIND_PACKAGE_CUDAToolkit=ON`. `Cargo.lock` fixiert die Rust-Abhängigkeiten; der erste Download benötigt Internet.
 
 {{CODE:sonar-tuning:2}}
 
-GPU-Zugriff und Compiler sind getrennte Voraussetzungen. Für Docker Engine unter Linux richten Sie das [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html) auf dem Host ein. Unter Windows verwenden Sie die [GPU-Einrichtung für Docker Desktop/WSL 2](https://docs.docker.com/desktop/features/gpu/). Das Image benötigt zusätzlich CUDA-Bibliotheken.
+Prüfe alle vier Pakete und starte das [Beispiel](sonar.md#run-a-sonar-example), bis Bilder und Rohdaten ankommen. Ein Paketeintrag bestätigt noch keinen geladenen Sensor. Prüfe die Pakete im Container; fehlen sie, baue aus den Quellen. Ein Image-Tag allein bestätigt ihren Inhalt nicht.
 
-## CUDA-Architektur wählen
+## WGPU-Adapter auswählen
 
-Setzen Sie `CMAKE_CUDA_ARCHITECTURES` auf eine von GPU und Toolkit unterstützte SM-Version. Das Beispiel verwendet SM 75. Ersetzen Sie `75` durch Ihre Architektur und bauen Sie im vorbereiteten Arbeitsbereich:
+Führe unter Linux `vulkaninfo --summary` in Gazebos Umgebung aus. Nutze die Vulkan-Treiber und -Werkzeuge des Systems. Softwareadapter wie llvmpipe können Vulkan ohne Hardwarebeschleunigung ausführen. WGPU nennt den gewählten Adapter beim Start.
 
 {{CODE:sonar-tuning:3}}
 
-`nvcc --list-gpu-code` zeigt unterstützte Ziele. Ohne explizite Architektur verwendet CMake die Compilervorgabe. Bei mehreren CUDA-Installationen wählen Sie mit `-DCUDAToolkit_ROOT=/path/to/cuda` die passende aus und ergänzen deren `bin`-Verzeichnis in `PATH`.
+| Variable | Bedeutung |
+| --- | --- |
+| `WGPU_BACKEND` | `vulkan` unter Linux, `metal` im nativen macOS-Prozess; ohne Angabe gelten Plattformvorgaben |
+| `WGPU_ADAPTER_NAME` | Erster Adapter, dessen Name den Text enthält, unabhängig von Groß-/Kleinschreibung; verwende einen Namen aus Treiber- oder Startausgabe |
+| `WGPU_POWER_PREF` | `high`, `low` oder `none`; ohne Adapternamen standardmäßig `high` |
 
-## Installierte Komponenten prüfen
+Setze die Variablen vor dem Start. Beende und starte die Simulation nach Änderungen erneut: Die Initialisierung wird im Prozess gemeinsam genutzt. Das [wgpu-Projekt](https://github.com/gfx-rs/wgpu) beschreibt die APIs. Prüfe bei Initialisierungs- oder Ressourcenfehlern Adapter und Grenzen; wähle `cpu` oder verkleinere die Sensordimensionen.
+
+## CUDA optional einrichten
+
+Benötigt werden NVIDIA-Treiber, CUDA-Compiler und -Laufzeit, cuFFT und cuBLAS. Prüfe die Ausführungsumgebung:
 
 {{CODE:sonar-tuning:4}}
 
-Pakete können registriert sein, obwohl CUDA-Ziele ausgelassen wurden. Prüfen Sie die Bibliotheken:
+Richte für Linux-Container das [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html) auf dem Host ein. Unter Windows gelten [CUDA unter WSL](https://docs.nvidia.com/cuda/wsl-user-guide/index.html) und gegebenenfalls die [GPU-Einrichtung von Docker Desktop](https://docs.docker.com/desktop/features/gpu/). Installiere den Windows-Anzeigetreiber, keinen Linux-Anzeigetreiber in WSL. Auch der Container braucht CUDA-Bibliotheken.
+
+Wähle eine von GPU und Toolkit unterstützte Architektur. Ersetze im SM-75-Beispiel `75` durch den Wert deiner GPU. `OFF` aktiviert die Toolkit-Suche nach einem reinen CPU-/WGPU-Build wieder.
 
 {{CODE:sonar-tuning:5}}
 
-Jeder Befehl muss mit Status 0 enden. Prüfen Sie ausgelassene Ziele oder Ladefehler und empfangen Sie anschließend die unter [Multibeam-Sonar](sonar.md) beschriebenen Daten.
+`nvcc --list-gpu-code` zeigt unterstützte Ziele. Ohne Angabe gilt die Compilervorgabe. Wähle bei mehreren Toolkits `-DCUDAToolkit_ROOT=/path/to/cuda` und nimm dessen `bin` in `PATH` auf. Starte das Beispiel mit `compute_backend:=cuda`.
 
-## Messungen auswerten
+## Ausgangsmessung aufnehmen
 
-Lassen Sie den Renderer vor Zeitmessungen anlaufen. Erfassen Sie bei gleicher Szene und Pose Bildverarbeitungszeit, Empfangsrate, Echtzeitfaktor, CPU-/GPU-Auslastung und Speicher. Trennen Sie Physik, Rendering, CUDA, Veröffentlichung und Protokollierung.
+Halte Szene, Zielentfernung und Sensorpose konstant. Miss in Terminal B:
 
-`blazingSonarImage` wählt wechselnde Zufalls-Startwerte oder den festen Startwert `1234`; vergleichen Sie die Wiederholbarkeit. Behalten Sie bei Änderungen numerischer Kernel Referenzdaten und vergleichen Sie Intensität und Entfernung zusätzlich zu Bildern. Die zugrunde liegende Forschung finden Sie unter [Zitieren](citation.md).
+{{CODE:sonar-tuning:6}}
+
+Beende mit Strg+C und prüfe die Simulationsgeschwindigkeit:
+
+{{CODE:sonar-tuning:7}}
+
+Die Weltentität heißt `default`. Erfasse `real_time_factor` zusammen mit der Empfangsrate: Angeforderte 30 Hz Simulationszeit garantieren keine 30 Bilder pro realer Sekunde. Beende die Anzeige mit Strg+C.
+
+## Abtastung und Reichweite abstimmen
+
+Ändere jeweils einen Wert in einer Kopie des [SDF](sonar.md#sensor-configuration), baue neu, lade die Umgebung und starte mit derselben Pose.
+
+| Versuch | Vergleich | Beobachtung |
+| --- | --- | --- |
+| Winkeldetail | 512 und 256 Strahlen, gleiches Sichtfeld | Zieltrennung und Empfangsrate |
+| Vertikale Abtastung | 300 und 150 Rays; separat `raySkips` 10 und 5 | Zielkontinuität und Rechenzeit |
+| Abdeckung | Ray-Reichweite und `maxDistance` gemeinsam ändern | Fernstes Ziel und Entfernungsskala |
+| Aktualisierung | 30 und 10 Hz | Empfangsrate und Echtzeitfaktor |
+
+Der Entfernungsabstand ist `soundSpeed / (2 × bandwidth)`; das Raster hat `ceil(maxDistance / Abstand) + 1` Zellen. Bei 1500 m/s, 29.9 kHz und 15 m sind es 599. Die letzte Koordinate kann `maxDistance` leicht überschreiten; Echos außerhalb der Reichweite werden ausgeschlossen. Lies Entfernungen und Strahlzahl aus Rohdaten oder CSV.
+
+WGPU erhält die angeforderte Transformationslänge auch bei Nicht-Zweierpotenzen und wählt die FFT-Stufen automatisch. Größere Reichweite und Bandbreite erhöhen Speicherbedarf und Rechenaufwand. CPU ordnet Echos der nächsten Entfernungszelle zu; GPU verarbeitet im Frequenzbereich. Vergleiche beim Backendwechsel auch Amplitude und Entfernungsantwort.
+
+## Vergleich reproduzierbar aufzeichnen
+
+Lass den Renderer warmlaufen. Schalte `writeLog` und `debugFlag` für Durchsatzmessungen aus; zeichne getrennt mit [CSV](sonar.md) oder [ROS](visualization.md) auf. `blazingSonarImage=false` setzt den Startwert des Zufallsgenerators auf 1234.
+
+Bewahre SDF, POSIM-Revision, Backend/Adapter, Treiber-/Toolkit-Versionen, Bildzeit, Empfangsrate, Echtzeitfaktor und Speichernutzung auf. Vergleiche rohe Intensitäts-/Entfernungsdaten zusätzlich zu Screenshots. Die [Quellenangaben](citation.md) nennen das Forschungsmodell.
 
 ## GPU-Verarbeitung
 
 {{MEDIA:sonar-tuning}}
 
-Die Verarbeitung umfasst Strahlensummierung, Fensterung/Korrektur und FFT. Trennen Sie diese Stufen beim Profiling von GPU-Speichertransfers. Abbildung: POSIM-Notion-Wiki.
+Die Stufen umfassen Strahlsummierung, Fensterung/Korrektur und FFT. Miss Berechnung und Speichertransfers getrennt. Abbildung: POSIM Notion Wiki.

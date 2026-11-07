@@ -42,7 +42,7 @@ Sichern Sie eigene Änderungen zuerst als Git-Commit. Notieren Sie die Revision,
 
 {{CODE:install:6}}
 
-Für NVIDIA/CUDA-Sonar gelten zusätzliche [Build-Anforderungen](sonar-tuning.md).
+Fahren Sie mit der [ersten Simulation](quickstart.md) fort. Für Sonar gilt die [Build- und Einrichtungsanleitung für CPU/WGPU/CUDA](sonar-tuning.md).
 
 ## 5. Demowelt starten
 

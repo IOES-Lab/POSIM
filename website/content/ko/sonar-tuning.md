@@ -1,104 +1,99 @@
 # 소나 설정과 실험
 
-소나 실험에 필요한 관측 범위, 세부 표현과 갱신율을 선택합니다. 빠른 시작, SDF 구성과 설정값의 정의는 [멀티빔 소나 참고 문서](sonar.md)에 있습니다. 이 가이드는 설정별 결과를 비교하고 CUDA 실행 환경을 준비하는 방법을 설명합니다.
+계산 백엔드를 선택한 뒤 관측 범위, 세부 표현과 갱신율을 비교합니다. 빠른 시작, SDF와 설정표는 [멀티빔 소나 참고 문서](sonar.md)에 있습니다.
 
-## 이 문서를 실행할 위치
+## 실행 환경 선택
 
-[터미널 준비](terminals.md)에서 설정한 Linux 터미널을 사용합니다. NVIDIA GPU가 있는 Ubuntu 또는 지원되는 WSL 2 호스트, GPU에 접근할 수 있는 컨테이너에서 진행하세요. 파일 수정과 빌드도 그 환경 안에서 수행하며, `POSIM_WS`는 해당 작업 공간의 경로입니다.
+[준비한 POSIM 터미널](terminals.md)을 사용하세요. Ubuntu 네이티브, WSL, Docker 중 POSIM을 설치한 같은 환경 안에서 수정·빌드·실행합니다. `POSIM_WS`는 그 환경의 작업 공간 경로입니다. 어떤 계산 백엔드를 선택해도 Gazebo의 렌더링 센서는 필요합니다.
 
-macOS의 Docker·RDP 구성에서는 CUDA GPU를 사용할 수 없습니다. 이 소나는 NVIDIA GPU가 있는 Linux 또는 WSL 2 호스트에서 실행하세요.
+| 실행 환경 | 계산 방식과 준비 사항 |
+| --- | --- |
+| Linux 네이티브 | CPU, Vulkan 장치를 사용할 수 있는 WGPU, 호환 NVIDIA GPU·툴킷을 사용하는 CUDA |
+| WSL 2 또는 Linux 컨테이너 | CPU 사용 가능. GPU 계산에는 해당 환경 **안에서** 장치와 드라이버에 접근할 수 있어야 합니다. |
+| macOS Docker·RDP | CPU로 시작하세요. Linux 컨테이너는 Mac의 Metal 장치를 제공하지 않습니다. |
+| macOS 네이티브 | 별도로 준비한 네이티브 ROS·Gazebo 개발 환경에서 WGPU의 Metal 사용 가능. [macOS 설치 안내](install-macos.md)는 Docker·RDP 방식입니다. |
+
+`auto`는 CUDA → WGPU → CPU 순으로 선택합니다. 비교 실험에서는 `cpu`, `wgpu`, `cuda`를 직접 지정하세요. 지정한 백엔드를 사용할 수 없으면 센서 초기화가 중단됩니다. [선택값 표](sonar.md#compute-backend)를 참고하세요.
+
+## 소나 패키지 빌드 {#build-the-sonar-packages}
+
+[소스 설치](install.md)와 의존성 준비를 마친 환경에서 진행합니다. `wgpu_vendor`는 CPU 사용 시에도 Rust 라이브러리를 빌드합니다. Rust와 Cargo가 없다면 [공식 설치 안내](https://www.rust-lang.org/tools/install)를 따르세요.
+
+{{CODE:sonar-tuning:0}}
+
+환경을 불러온 작업 공간에서 vendor 라이브러리, 센서, 월드 시스템과 예제를 빌드합니다.
+
+{{CODE:sonar-tuning:1}}
+
+CUDA는 선택 사항입니다. 설치된 CUDA 툴킷을 제외하고 CPU·WGPU용으로 빌드하려면 `--cmake-args -DCMAKE_DISABLE_FIND_PACKAGE_CUDAToolkit=ON`을 덧붙입니다. Rust 의존성 버전은 `Cargo.lock`으로 고정되어 있으며, 첫 다운로드에는 인터넷 연결이 필요합니다.
+
+{{CODE:sonar-tuning:2}}
+
+네 패키지를 확인한 뒤 [소나 예제](sonar.md)를 실행해 영상·원시 데이터를 받으세요. 패키지가 목록에 있다고 센서 로드까지 확인된 것은 아닙니다. 컨테이너는 그 안에서 확인하고, 패키지가 없으면 소스에서 빌드합니다. 이미지 태그만으로 포함 여부를 판단하지 마세요.
+
+## WGPU 장치 선택
+
+Linux에서는 Gazebo를 실행할 환경 안에서 `vulkaninfo --summary`를 확인합니다. 시스템에 맞는 Vulkan 드라이버와 도구가 필요합니다. llvmpipe 같은 소프트웨어 장치는 Vulkan을 실행할 수 있지만 하드웨어 가속은 제공하지 않습니다. WGPU 시작 출력에서 선택한 장치를 확인하세요.
+
+{{CODE:sonar-tuning:3}}
+
+| 환경 변수 | 의미 |
+| --- | --- |
+| `WGPU_BACKEND` | Linux는 `vulkan`, macOS 네이티브 프로세스는 `metal`로 API를 지정합니다. 생략하면 플랫폼 기본값을 사용합니다. |
+| `WGPU_ADAPTER_NAME` | 이름에 지정한 문자열이 포함된 첫 장치를 선택합니다. 대소문자는 구분하지 않습니다. 드라이버·시작 출력에 표시된 이름을 사용하세요. |
+| `WGPU_POWER_PREF` | `high`, `low`, `none`. 장치 이름을 지정하지 않으면 기본값은 `high`입니다. |
+
+실행 전에 변수를 설정합니다. 장치 초기화는 프로세스 안에서 공유되므로 변경 후에는 시뮬레이션을 종료하고 다시 실행하세요. 그래픽 API는 [wgpu 프로젝트](https://github.com/gfx-rs/wgpu)를 참고하세요. 초기화나 자원 검사에 실패하면 출력된 장치와 제한값을 확인하고, `cpu`를 직접 선택하거나 센서 크기를 줄입니다.
+
+## CUDA를 사용할 때
+
+NVIDIA 드라이버, CUDA 컴파일러·런타임, cuFFT와 cuBLAS가 필요합니다. 실제 실행 환경에서 확인하세요.
+
+{{CODE:sonar-tuning:4}}
+
+Linux 컨테이너는 호스트에 [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html)을 설정합니다. Windows는 [CUDA on WSL](https://docs.nvidia.com/cuda/wsl-user-guide/index.html)과 필요한 경우 [Docker Desktop GPU 설정](https://docs.docker.com/desktop/features/gpu/)을 따릅니다. 디스플레이 드라이버는 Windows에 설치하고 WSL 안에 Linux용 드라이버를 설치하지 않습니다. 컨테이너 안에도 CUDA 라이브러리가 필요합니다.
+
+GPU와 툴킷이 지원하는 아키텍처를 선택하세요. 아래 SM 75 예제의 `75`를 자신의 GPU 값으로 바꿉니다. `OFF`는 CPU·WGPU 전용 빌드에서 껐던 CUDA 탐색을 다시 켭니다.
+
+{{CODE:sonar-tuning:5}}
+
+`nvcc --list-gpu-code`로 지원 타깃을 확인합니다. 아키텍처를 생략하면 컴파일러 기본값을 사용합니다. 여러 툴킷 중 하나를 고를 때는 `-DCUDAToolkit_ROOT=/path/to/cuda`를 지정하고 해당 `bin`을 `PATH`에 넣습니다. 예제를 `compute_backend:=cuda`로 실행해 CUDA 사용을 확인하세요.
 
 ## 기준 결과 측정
 
-[BlueView P900 예제](sonar.md)를 실행하고 장면, 표적 거리와 센서 자세를 고정합니다. 처리율을 측정하기 전에 영상과 원시 관측값이 도착하는지 확인하세요. CUDA 라이브러리가 없다면 먼저 아래 도구 준비 과정을 진행합니다.
+장면, 표적 거리와 센서 자세를 고정합니다. 터미널 B에서 영상 수신 빈도를 확인합니다.
 
-같은 환경을 불러온 다른 터미널에서 영상 수신 주기를 측정합니다.
+{{CODE:sonar-tuning:6}}
 
-```bash
-ros2 topic hz /sensor/multibeam_sonar/sonar_image
-```
+Ctrl+C로 종료한 뒤 시뮬레이션 속도를 확인합니다.
 
-안정된 표본을 모은 뒤 Ctrl+C로 종료합니다. 시뮬레이션 속도도 따로 확인합니다.
+{{CODE:sonar-tuning:7}}
 
-```bash
-gz topic -e -t /world/default/stats
-```
+이 월드의 엔티티 이름은 `default`입니다. 수신 빈도와 `real_time_factor`를 함께 기록하세요. 시뮬레이션 시간 기준 30 Hz가 실제 시간에서도 초당 30장을 보장하지는 않습니다. Ctrl+C로 확인 도구를 종료합니다.
 
-소나 예제의 월드 엔티티 이름은 `default`입니다. 수신 주기와 함께 `real_time_factor`를 기록하세요. 시뮬레이션 시간 기준으로 요청한 30 Hz가 실제 시간에서 초당 30장의 수신을 보장하지는 않습니다. 확인 도구는 Ctrl+C로 종료합니다.
+## 샘플링과 거리 조절
 
-## 비교 실험 선택
+[센서 SDF](sonar.md)를 복사해 한 번에 하나만 바꿉니다. 작업 공간을 빌드하고 환경을 다시 불러온 뒤 같은 자세에서 실행하세요.
 
-[소나 모델](sonar.md)을 복사해 설정을 하나씩 바꾸고 작업 공간을 빌드·source한 뒤 같은 자세에서 시뮬레이션을 다시 실행합니다.
-
-| 실험 | 첫 비교 | 확인할 결과 |
+| 실험 | 비교 | 확인할 결과 |
 | --- | --- | --- |
-| 각도별 세부 표현 | 시야각을 유지하고 수평 빔 512개와 256개 비교 | 가까운 표적의 분리와 수신 주기 |
-| 수직 샘플링 | 수직 ray 300개와 150개 비교 | 표적의 연속성과 계산 시간 |
-| 관측 범위 | ray 범위와 `maxDistance`를 함께 변경 | 가장 먼 표적과 거리 축의 크기 |
-| 갱신율 | 30 Hz와 10 Hz 요청 비교 | 수신 주기와 시뮬레이터 실시간 비율 |
-| Ray 건너뛰기 | `raySkips` 10과 5 비교 | 수직 샘플링의 세부 표현과 계산 시간 |
+| 각도 해상도 | 시야각을 유지하고 빔 512개와 256개 | 가까운 표적의 분리와 수신 빈도 |
+| 수직 샘플링 | 음선 300개와 150개, 별도로 `raySkips` 10과 5 | 표적의 연속성과 계산 시간 |
+| 관측 범위 | 음선 범위와 `maxDistance`를 함께 변경 | 가장 먼 표적과 거리 축 |
+| 갱신율 | 30 Hz와 10 Hz | 수신 빈도와 실시간 비율 |
 
-표의 설정으로 비교 실험을 수행해 효과를 측정합니다. 처리율을 측정할 때는 `writeLog`와 `debugFlag`를 끄고, 원시 관측값이나 처리 시간을 조사할 때 따로 켜세요. 실행마다 SDF, POSIM 커밋, GPU·툴킷 버전과 관측값을 보관합니다. 토픽 기록은 [센서 데이터 보기와 기록](visualization.md)를 참고하세요.
+거리 간격은 `soundSpeed / (2 × bandwidth)`이고, 셀 수는 `ceil(maxDistance / 간격) + 1`입니다. 1500 m/s, 29.9 kHz, 15 m에서는 599개입니다. 마지막 좌표는 `maxDistance`를 조금 넘을 수 있지만 설정 범위 밖의 반사값은 제외됩니다. 실제 거리 배열과 빔 수는 원시 메시지나 CSV에서 읽으세요.
 
-## 도구 확인
+WGPU는 2의 거듭제곱이 아닌 경우에도 요청한 변환 길이를 유지하고 FFT 단계를 자동 선택합니다. 거리와 대역폭을 늘리면 메모리·계산량도 증가합니다. CPU는 반사값을 가장 가까운 거리 셀에 배치하고 GPU는 주파수 영역에서 처리합니다. 백엔드를 비교할 때는 진폭과 거리 응답도 각각 측정하세요.
 
-[멀티빔 소나 플러그인](sonar.md)에는 NVIDIA 드라이버·CUDA 컴파일러와 런타임·cuFFT·cuBLAS·Gazebo 렌더링이 필요합니다.
+## 반복 가능한 비교 기록
 
-소나를 실행할 컴퓨터 또는 컨테이너 안에서 확인합니다.
+렌더링이 안정된 뒤 측정합니다. 처리율 측정 중에는 `writeLog`와 `debugFlag`를 끄고, [소나 CSV](sonar.md)나 [ROS 데이터 기록](visualization.md)은 따로 수행하세요. `blazingSonarImage=false`는 난수 시드를 1234로 고정합니다.
 
-```bash
-nvidia-smi
-nvcc --version
-```
-
-GPU 접근과 컴파일러 설치는 각각 확인합니다. Linux의 Docker Engine은 호스트에 [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html)을 설정합니다. Windows에서는 [Docker Desktop의 WSL 2 GPU 설정](https://docs.docker.com/desktop/features/gpu/)을 따르세요. 컨테이너 이미지 안에도 CUDA 라이브러리가 필요합니다.
-
-## CUDA 아키텍처 선택
-
-CMake의 `CMAKE_CUDA_ARCHITECTURES`에 GPU와 툴킷이 지원하는 SM 버전을 지정합니다. 다음 예제는 SM 75용으로 빌드합니다. `75`를 자신의 GPU 아키텍처로 바꾼 뒤 환경을 불러온 작업 공간에서 실행하세요.
-
-```bash
-colcon build --merge-install --executor sequential --symlink-install \
-  --cmake-args -DCMAKE_CUDA_ARCHITECTURES=75
-source install/setup.bash
-```
-
-`nvcc --list-gpu-code`로 툴킷의 지원 타깃을 확인합니다. 아키텍처 설정을 생략하면 CMake는 컴파일러의 기본값을 사용합니다. CUDA가 여러 개 설치되어 있으면 `-DCUDAToolkit_ROOT=/path/to/cuda`로 사용할 툴킷을 선택하세요. 셸에서 `nvcc`를 실행할 때는 해당 툴킷의 `bin` 디렉터리를 `PATH`에 포함합니다.
-
-## 설치 타깃 확인
-
-```bash
-ros2 pkg prefix multibeam_sonar
-ros2 pkg prefix multibeam_sonar_system
-ros2 pkg prefix posim_multibeam_sonar_demo
-```
-
-CUDA 타깃이 빌드되었는지 라이브러리 파일을 확인합니다. 패키지는 CUDA 타깃을 생략해도 등록될 수 있습니다.
-
-```bash
-test -f "$(ros2 pkg prefix multibeam_sonar)/lib/multibeam_sonar/libmultibeam_sonar.so"
-test -f "$(ros2 pkg prefix multibeam_sonar_system)/lib/multibeam_sonar_system/libmultibeam_sonar_system.so"
-```
-
-각 명령의 종료 상태가 0인지 확인하세요. 빌드·실행 로그에서 타깃 생략과 로드 오류를 확인하고, [멀티빔 소나](sonar.md)에서 영상·원시 데이터를 받습니다.
-
-## 한 번에 하나씩 조절
-
-| 설정 | 확인할 영향 |
-| --- | --- |
-| 수평 빔·수직 음선 수 | 각도 샘플링과 계산량 |
-| 거리·`maxDistance` | 관측 범위와 거리 처리 |
-| `raySkips` | 샘플링과 계산량의 균형 |
-| 센서 `update_rate` | 설정한 센서 갱신 빈도 |
-| `writeLog`, `debugFlag` | 디스크·콘솔 출력 부하 |
-| `blazingSonarImage` | 변화하는 난수 시드와 고정 시드 1234의 반복성 비교 |
-
-같은 장면·자세에서 프레임 처리 시간, 수신 토픽 주기, Gazebo 실시간 비율, CPU·GPU와 메모리 사용량을 기록합니다. 물리 계산, 렌더링, CUDA 계산, 발행과 기록 비용을 구분하세요. 측정 전에 렌더러를 충분히 실행합니다.
-
-계산 커널을 변경할 때는 기준 데이터를 보관합니다. 화면뿐 아니라 강도·거리 결과를 비교하세요. 관련 연구와 출처는 [인용 안내](citation.md)에 있습니다.
+SDF, POSIM 커밋, 백엔드·장치, 드라이버·툴킷 버전, 프레임 시간, 수신 빈도, 실시간 비율과 메모리 사용량을 보관합니다. 화면과 함께 원시 강도·거리 데이터도 비교하세요. 연구 모델 출처는 [인용 안내](citation.md)에 있습니다.
 
 ## GPU 계산 흐름
 
 <figure><a href="{{ASSET_PREFIX}}media/notion/sonar-optimization-a26c9419.png"><img width="1049" height="554" src="{{ASSET_PREFIX}}media/notion/sonar-optimization-a26c9419.png" alt="소나 계산의 GPU 처리 단계" loading="lazy" decoding="async"></a><figcaption>소나 계산의 GPU 처리 단계</figcaption></figure>
 
-소나 계산은 산란점 합산, 창 함수·보정과 FFT 단계로 구성됩니다. 프로파일링할 때 각 단계의 실행 시간과 GPU 메모리 전송을 구분하세요. 그림 출처: POSIM Notion Wiki.
+GPU 처리는 음선 합산, 창 함수·보정, FFT 단계로 구성됩니다. 계산 시간과 메모리 전송 시간을 구분해서 측정하세요. 그림 출처: POSIM Notion Wiki.

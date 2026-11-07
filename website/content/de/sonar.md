@@ -1,10 +1,10 @@
 # Multibeam-Sonar
 
-Das Sonar von POSIM berechnet Intensitätsdaten über der Entfernung und Sonarbilder mit einem Punktstreumodell. Richten Sie vor dem Start die [NVIDIA/CUDA-Umgebung](sonar-tuning.md) ein.
+Das Mehrstrahlsonar von POSIM erzeugt Intensitäts- und Entfernungsdaten sowie Sonarbilder mit einem Punktstreumodell. Dasselbe Plugin bietet Berechnungen über CPU, WGPU und CUDA. WGPU nutzt Vulkan unter Linux oder Metal in einer nativen macOS-Umgebung und unterstützt damit GPUs verschiedener Hersteller. Hinweise zur [Einrichtung und Auswahl](sonar-tuning.md).
 
 ## Ein Beispiel starten {#run-a-sonar-example}
 
-Bereiten Sie die [Terminals A und B](terminals.md) in einer unterstützten NVIDIA/CUDA-Installation vor. Starten Sie die Simulation in A und prüfen Sie die Daten in B.
+Bereite die [Terminals A und B](terminals.md) vor. Falls die Sonarpakete fehlen, [baue sie zunächst](sonar-tuning.md#build-the-sonar-packages). Starte die Simulation in A und prüfe die Daten in B. Der erste Befehl wählt das Backend automatisch; das gesonderte Beispiel wählt WGPU und öffnet zusätzlich RViz.
 
 {{CODE:sonar:0}}
 
@@ -12,7 +12,7 @@ Das Paket `posim_multibeam_sonar_demo` enthält außerdem ein eigenständiges Be
 
 {{CODE:sonar:1}}
 
-Starten Sie jeweils nur ein Beispiel. Für ein Sonar am Fahrzeug wählen Sie `bluerov2_heavy_multibeam_sonar` mit einer geeigneten Sonarwelt.
+Starte jeweils nur ein Beispiel. Ersetze `wgpu` durch `cpu`, `cuda` oder `auto`, um das Backend zu wechseln. Für ein Sonar am Roboter wählst du `bluerov2_heavy_multibeam_sonar` und eine passende Welt.
 
 ## Ausgaben prüfen
 
@@ -48,7 +48,7 @@ Das Beispiel fordert 512 horizontale Strahlen über etwa 130°, 300 vertikale Ab
 | `sourceLevel` | Quellpegel, dB | 220 | 220 |
 | `maxDistance` | Verarbeitungsreichweite, m; an die Strahlreichweite anpassen | 60 | 10 |
 | `raySkips` | Vertikale Abtastschrittweite; positive ganze Zahl | 10 | 10 |
-| `sensorGain` | Wird eingelesen und ausgegeben, wirkt aber nicht auf die Bilderzeugung | 0.02 | 0.02 |
+| `sensorGain` | Verstärkung der Echoamplitude auf CPU; von WGPU/CUDA nicht verwendet | 0.02 | 0.02 |
 | `blazingSonarImage` | Zufallsstartwert aus der tatsächlichen Uhrzeit; bei `false` fest 1234 | false | true |
 | `pointCloudTopicName` | Suffix des Gazebo-Punktwolken-Topics | `point_cloud` | Gleich |
 | `sonarImageRawTopicName` | Suffix des ROS-Topics für Rohdaten | `sonar_image_raw` | Gleich |
@@ -73,12 +73,23 @@ Behalten Sie die vollständigen Blöcke `<ray>` und `<spec>` bei: Die Standardwe
 
 Lassen Sie die Aufzeichnung bei Durchsatzmessungen ausgeschaltet, sofern sie nicht selbst zum Versuch gehört. Nutzen Sie die Anleitung [Sonar konfigurieren und abstimmen](sonar-tuning.md) und halten Sie für Vergleiche die akustischen Parameter sowie `blazingSonarImage` fest.
 
+### Rechenbackend {#compute-backend}
+
+| Auswahl | Verhalten |
+| --- | --- |
+| `auto` | Versucht CUDA, danach WGPU, dann CPU; Standardeinstellung |
+| `wgpu` | Nutzt einen geeigneten Vulkan-/Metal-Adapter; ohne ihn schlägt die Sensorinitialisierung fehl |
+| `cuda` | Benötigt eine NVIDIA-GPU und das gebaute, installierte CUDA-Backend; andernfalls schlägt die Initialisierung fehl |
+| `cpu` | Berechnet Schallreflexionen auf der CPU; Gazebo benötigt weiterhin einen Renderer |
+
+Der gesonderte Launch akzeptiert `compute_backend`. Andere Launches lesen `POSIM_SONAR_COMPUTE_BACKEND`. Prüfe beim Start die Zeile `Using sonar compute backend:`. [Sonar konfigurieren und abstimmen](sonar-tuning.md) erläutert Adapterwahl, Voraussetzungen und numerische Unterschiede.
+
 ## Einen Sensor hinzufügen
 
 1. Kopieren Sie `models/posim_sensor_models/description/blueview_p900/` unter einer neuen Sensorkennung.
 2. Erstellen Sie die passende `config/<Sensorkennung>/sensor_config.py`. Stimmen Sie Modell-, Link- und Frame-Namen mit den Bridge-Topics ab.
 3. Passen Sie Abtastung, Winkel und Reichweite an. Laden Sie die beiden oben gezeigten Systeme in der Welt; weitere Einstellungen zeigt die [Sonarwelt als SDF](https://github.com/IOES-Lab/POSIM/blob/main/models/posim_worlds/worlds/posim_multibeam_sonar.world).
-4. Bereiten Sie CUDA und Rendering vor, bauen Sie den Workspace neu und laden Sie seine Umgebung. Wählen Sie den Sensor über die [Startargumente](quickstart.md).
+4. Bereiten Sie Rechenbackend und Rendering vor, bauen Sie den Workspace neu und laden Sie seine Umgebung. Wählen Sie den Sensor über die [Startargumente](quickstart.md).
 
 ## Rohdaten aufzeichnen und darstellen
 

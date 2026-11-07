@@ -66,7 +66,7 @@ source "$HOME/.ros_ardusub_env/env"
 source ~/posim_ws/install/setup.bash
 ```
 
-Continue with [First simulation](quickstart.md). NVIDIA/CUDA sonar has additional [build requirements](sonar-tuning.md).
+Continue with [First simulation](quickstart.md). For sonar, follow the [CPU/WGPU/CUDA build and setup guide](sonar-tuning.md).
 
 If the compiler is killed because memory is exhausted, limit compiler jobs as well as package concurrency. `--executor sequential` serializes packages, not compiler processes:
 

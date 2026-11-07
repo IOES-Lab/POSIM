@@ -25,11 +25,11 @@ Die Unterwasseroptik verändert PBR-Oberflächen und erhält numerische Tiefenwe
 | DVL-Messungen und ROS-Umsetzung | Gazebo-DVL; `posim_ros_gz_plugins` | [DVL](dvl.md) |
 | Hydrostatischer Druck und berechnete Tiefe | `posim_gz_sensor_plugins` | [Druck](pressure.md) |
 | Akustische USBL-Abfrage und Positionierung | `posim_gz_sensor_plugins` | [USBL](usbl.md) |
-| CUDA-Multibeam-Sonar | `gazebo/posim_gz_multibeam_sonar` | [Sonar](sonar.md), [Einrichtung und Leistung](sonar-tuning.md) |
+| Multibeam-Sonar | `gazebo/posim_gz_multibeam_sonar` | [Sonar](sonar.md), [Einrichtung und Leistung](sonar-tuning.md) |
 | REXROV, BlueROV2-Varianten und Slocum-Gleiter | `models/posim_robot_models` | [ROVs](rovs.md), [Gleiter](gliders.md), [eigene Roboter](custom-robots.md) |
 | WAM-V mit ArduRover und ROS-Steuerung | `extras/surface`, Startkonfigurationen, `posim_interfaces` | [Oberflächenfahrzeug](surface.md), [ROS 2](ros.md) |
 
-Verfügbare Sensoren hängen von installierten Plugins und der Modellkonfiguration ab. GNSS-Profile beschreiben die Montage; ergänzen Sie bei der Integration Link und Empfänger. CUDA-Sonar benötigt eine unterstützte GPU und Werkzeugkette. Prüfen Sie laufende Messungen mit dem Schnellstart der jeweiligen Sensorreferenz.
+Verfügbare Sensoren hängen von installierten Plugins und der Modellkonfiguration ab. GNSS-Profile beschreiben die Montage; ergänzen Sie bei der Integration Link und Empfänger. Für Sonar stehen je nach Umgebung CPU, WGPU oder CUDA zur Auswahl. Prüfen Sie laufende Messungen mit dem Schnellstart der jeweiligen Sensorreferenz.
 
 ## Quellverzeichnisse
 
