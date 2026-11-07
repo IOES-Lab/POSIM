@@ -79,13 +79,3 @@ Respectez les versions de SDK et de sources indiquées, utilisez l'outil de comp
 ## Fournir un cas reproductible
 
 Indiquez le SHA du code ou le digest de l'image, les versions des dépendances, la commande et ses arguments, la première erreur, le résultat attendu, les types de topics concernés et un exemple minimal. Distinguez un topic simplement découvert d'un topic qui transmet réellement des données.
-
-## MAVROS 2.16.0 s'arrête avec SIGSEGV
-
-Le programme d'installation de POSIM et les builds Docker officiels intègrent le
-[correctif de durée de vie du Router](https://github.com/IOES-Lab/POSIM/tree/main/extras/mavros)
-pour MAVROS 2.16.0. Après avoir chargé l'environnement POSIM, `ros2 pkg prefix mavros`
-doit afficher `/opt/posim/mavros-router/install`. Pour une installation existante,
-suivez les instructions de compilation séparée indiquées dans ce lien. Si le
-plantage persiste, joignez au rapport le journal de MAVROS et les chemins des
-bibliothèques effectivement chargées.

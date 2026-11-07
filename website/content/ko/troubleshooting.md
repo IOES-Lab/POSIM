@@ -93,12 +93,3 @@ Ogre-Next 2.3.3을 사용하는 네이티브 arm64 SDK에는 깊이 카메라의
 ## 재현 가능한 보고 작성
 
 소스 SHA 또는 이미지 digest, 의존성 버전, 명령·인수, 첫 오류, 기대 동작, 관련 토픽 자료형과 짧은 재현 예제를 포함합니다. 토픽이 목록에만 나타나는지, 데이터도 수신되는지 함께 적어주세요.
-
-## MAVROS 2.16.0 종료 시 SIGSEGV
-
-POSIM 설치 스크립트와 공식 Docker 빌드에는 MAVROS 2.16.0의
-[Router 수명 관리 수정본](https://github.com/IOES-Lab/POSIM/tree/main/extras/mavros)이
-기본으로 포함됩니다. POSIM 환경을 불러온 뒤 `ros2 pkg prefix mavros`를 실행하면
-`/opt/posim/mavros-router/install`이 출력되어야 합니다. 기존 설치에는 링크의 별도
-빌드 방법을 적용할 수 있습니다. 계속 충돌한다면 MAVROS 프로세스의 로그와 실제
-로드된 라이브러리 경로를 문제 보고에 함께 적어주세요.

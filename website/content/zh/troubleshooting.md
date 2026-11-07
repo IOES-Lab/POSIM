@@ -79,11 +79,3 @@
 ## 提供可复现的报告
 
 请附上源码 SHA 或镜像摘要、依赖版本、命令和参数、第一个错误、预期行为、相关话题类型，以及最小复现示例。说明话题只是能被发现，还是确实能收到数据。
-
-## MAVROS 2.16.0 因 SIGSEGV 退出
-
-POSIM 安装脚本和官方 Docker 构建默认包含 MAVROS 2.16.0 的
-[Router 生命周期修复](https://github.com/IOES-Lab/POSIM/tree/main/extras/mavros)。
-加载 POSIM 环境后，运行 `ros2 pkg prefix mavros` 应输出
-`/opt/posim/mavros-router/install`。已有安装可按链接中的单独编译步骤应用修复。
-如果仍然崩溃，请在问题报告中附上 MAVROS 日志和实际加载的库文件路径。
