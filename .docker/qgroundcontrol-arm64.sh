@@ -20,6 +20,10 @@ cache_dir="${cache_root}/posim-qgc/gstreamer-1.0"
 # Only the final QGC registry directory needs private permissions.
 # shellcheck disable=SC2174
 mkdir -p -m 0700 "$cache_dir"
+if [[ ! -w "$cache_dir" || ! -x "$cache_dir" ]]; then
+  printf 'QGroundControl cache directory is not writable: %s\n' "$cache_dir" >&2
+  exit 1
+fi
 
 export APPDIR="$app_dir"
 export GST_PLUGIN_PATH="$plugins" GST_PLUGIN_PATH_1_0="$plugins"

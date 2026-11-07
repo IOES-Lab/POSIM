@@ -127,6 +127,18 @@ class QgcArm64LauncherTest(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertEqual(result.stdout, "")
 
+    def test_existing_unwritable_cache_fails_without_launch(self):
+        if os.geteuid() == 0:
+            self.skipTest("root can write to a read-only directory")
+        private = self.cache / "posim-qgc/gstreamer-1.0"
+        private.mkdir(parents=True)
+        private.chmod(0o500)
+        self.addCleanup(private.chmod, 0o700)
+        result = self.launch()
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("cache directory is not writable", result.stderr)
+        self.assertEqual(result.stdout, "")
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
