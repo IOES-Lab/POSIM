@@ -4,6 +4,7 @@ FROM osrf/ros:${ROS_DISTRO}-desktop-full
 ARG ROS_DISTRO="lyrical"
 ENV ROS_DISTRO=${ROS_DISTRO}
 ENV DEBIAN_FRONTEND=noninteractive
+ENV POSIM_MAVROS_OVERLAY=/opt/posim/mavros-router
 
 # The installer expects sudo even when the image build runs as root.
 RUN apt-get update && \
@@ -54,7 +55,13 @@ RUN apt-get update && \
 
 WORKDIR $POSIM_WS
 RUN . "/opt/ros/${ROS_DISTRO}/setup.sh" && \
+    . "$POSIM_MAVROS_OVERLAY/install/setup.sh" && \
     colcon build --merge-install --executor sequential --symlink-install
+
+RUN . "$POSIM_WS/install/setup.sh" && \
+    test "$(ros2 pkg prefix mavros)" = "$POSIM_MAVROS_OVERLAY/install" && \
+    python3 "$POSIM_WS/src/posim/extras/mavros/test_library_selection.py" \
+      "$POSIM_MAVROS_OVERLAY/install"
 
 RUN echo "source /opt/ros/${ROS_DISTRO}/setup.bash" >> /root/.bashrc && \
     echo "source $POSIM_WS/install/setup.bash" >> /root/.bashrc && \
