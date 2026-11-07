@@ -15,6 +15,7 @@
  */
 
 #include <algorithm>
+#include <array>
 #include <functional>
 #include <iostream>
 
@@ -23,6 +24,7 @@
 #include <rclcpp/rclcpp.hpp>
 #include "gz/plugin/Register.hh"
 
+#include "DVLConversion.hh"
 #include "posim_ros_gz_plugins/DVLBridge.hh"
 
 GZ_ADD_PLUGIN(
@@ -107,17 +109,22 @@ void DVLBridge::Configure(
   this->dataPtr->gz_node.Subscribe(this->dataPtr->dvl_topic, callback);
 }
 
-void DVLBridge::receiveGazeboCallback(const gz::msgs::DVLVelocityTracking & msg)
+namespace
 {
-  std::lock_guard<std::mutex> lock(this->dataPtr->mutex_);
-
-  if (
-    !this->ros_node_ || !this->dataPtr->dvl_pub ||
-    !rclcpp::ok(this->ros_node_->get_node_base_interface()->get_context()))
+void CopyLinearCovariance(
+  const gz::msgs::DVLKinematicEstimate & source, std::array<double, 36> & target)
+{
+  // Gazebo supplies a row-major 3x3 linear covariance. ROS stores a 6x6
+  // linear/angular covariance; only its upper-left 3x3 block is measured.
+  for (int i = 0; i < std::min(9, source.covariance_size()); ++i)
   {
-    return;
+    target[(i / 3) * 6 + i % 3] = source.covariance(i);
   }
+}
+}  // namespace
 
+posim_interfaces::msg::DVL detail::ConvertDVL(const gz::msgs::DVLVelocityTracking & msg)
+{
   auto dvl_msg = posim_interfaces::msg::DVL();
   dvl_msg.header.stamp.sec = msg.header().stamp().sec();
   dvl_msg.header.stamp.nanosec = msg.header().stamp().nsec();
@@ -180,13 +187,7 @@ void DVLBridge::receiveGazeboCallback(const gz::msgs::DVLVelocityTracking & msg)
   dvl_msg.velocity.twist.linear.y = msg.velocity().mean().y();
   dvl_msg.velocity.twist.linear.z = msg.velocity().mean().z();
 
-  const size_t covariance_size = std::min<size_t>(9, msg.velocity().covariance().size());
-
-  for (size_t i = 0; i < covariance_size; i++)
-  {
-    // Gazebo is 3x3 linear covariance; ROS TwistWithCovariance is 6x6.
-    dvl_msg.velocity.covariance[(i / 3) * 6 + i % 3] = msg.velocity().covariance()[i];
-  }
+  CopyLinearCovariance(msg.velocity(), dvl_msg.velocity.covariance);
 
   size_t beam_size = msg.beams().size();
 
@@ -218,18 +219,37 @@ void DVLBridge::receiveGazeboCallback(const gz::msgs::DVLVelocityTracking & msg)
     beam.velocity.twist.linear.y = msg.beams()[i].velocity().mean().y();
     beam.velocity.twist.linear.z = msg.beams()[i].velocity().mean().z();
 
-    const size_t beam_covariance_size =
-      std::min<size_t>(9, msg.beams()[i].velocity().covariance().size());
-
-    for (size_t j = 0; j < beam_covariance_size; j++)
-    {
-      beam.velocity.covariance[(j / 3) * 6 + j % 3] = msg.beams()[i].velocity().covariance()[j];
-    }
+    CopyLinearCovariance(msg.beams()[i].velocity(), beam.velocity.covariance);
 
     dvl_msg.beams.push_back(beam);
   }
 
-  this->dataPtr->dvl_pub->publish(dvl_msg);
+  return dvl_msg;
+}
+
+void DVLBridge::receiveGazeboCallback(const gz::msgs::DVLVelocityTracking & msg)
+{
+  std::lock_guard<std::mutex> lock(this->dataPtr->mutex_);
+  if (!this->ros_node_ || !this->dataPtr->dvl_pub)
+  {
+    return;
+  }
+  const auto context = this->ros_node_->get_node_base_interface()->get_context();
+  if (!rclcpp::ok(context))
+  {
+    return;
+  }
+  try
+  {
+    this->dataPtr->dvl_pub->publish(detail::ConvertDVL(msg));
+  }
+  catch (const rclcpp::exceptions::RCLError &)
+  {
+    if (rclcpp::ok(context))
+    {
+      throw;
+    }
+  }
 }
 
 void DVLBridge::PostUpdate(

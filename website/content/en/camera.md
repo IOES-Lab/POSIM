@@ -6,14 +6,16 @@ The `UnderwaterCamera` plugin uses depth data to reduce RGB color intensity with
 
 This sensor example uses the depth-based camera filter. The scene renderer has its own [build, world plugin and appearance settings](underwater-rendering.md).
 
+Run in [terminal A prepared for your installation](terminals.md):
+
 ```bash
 ros2 launch posim_demos posim_sensor.launch.py \
   namespace:=underwater_camera world_name:=camera_tutorial \
   x:=10 z:=-93.5 pitch:=0.3 yaw:=3.14 \
-  paused:=false gui:=false headless:=true
+  paused:=false gui:=true headless:=false
 ```
 
-In a second terminal with the same environment loaded:
+In the prepared terminal B:
 
 ```bash
 ros2 topic echo /underwater_camera/simulated_image \
@@ -21,47 +23,13 @@ ros2 topic echo /underwater_camera/simulated_image \
 ros2 topic hz /underwater_camera/simulated_image
 ```
 
-Use an RViz Image display to inspect the resulting image. A working renderer is needed even when no GUI is shown.
-
-## Suspended particles
-
-The native renderer can show suspended specks in RGB and RGBD color images. Specks are off by default. Enable them through the host application's appearance controls or the renderer's [appearance service](https://github.com/IOES-Lab/POSIM/tree/main/gazebo/posim_gz_rendering).
-
-Particles occupy shared positions in the world and drift uniformly with simulation time. Different camera views observe the same positions at the same time. Opaque surfaces hide particles behind them. The visible interval is 0.05–3 m, clipped by the scene and the mean water level. Numeric depth and acoustic rays retain their values.
-
-This is a procedural optical effect. Its drift is independent of simulated currents. When evaluating visual navigation, treat suspended particles as moving observations and keep appearance settings fixed across comparisons.
+Use an RViz Image display to inspect the resulting image. If the topic is discovered but images stop arriving, check [large-image transport](troubleshooting.md#image-topics-appear-but-frames-stall).
 
 ## Configure the plugin
 
 The model uses an RGBD sensor and the plugin `UnderwaterCamera`, class `posim_gz_sensor_plugins::UnderwaterCamera`. Keep its sensor/data topics consistent with the model configuration.
 
-| SDF parameter | Meaning | Code default |
-| --- | --- | --- |
-| `attenuationR` | Red-channel attenuation per meter | `1/30` |
-| `attenuationG` | Green-channel attenuation per meter | `1/30` |
-| `attenuationB` | Blue-channel attenuation per meter | `1/30` |
-| `backgroundR` | Red background channel | `0` |
-| `backgroundG` | Green background channel | `0` |
-| `backgroundB` | Blue background channel | `0` |
-
-The example model uses these values. SDF settings override code defaults.
-
-- RGB attenuation: **0.8, 0.5, 0.2**
-- RGB background: **85, 107, 47**
-- Image size: **320 × 240**
-- Requested rate: **10 Hz**
-
-## Tune and compare
-
-Place a recognizable object at known distances. Keep pose, lighting, scene materials and camera settings fixed while changing one attenuation channel. Verify image timestamps and received rate in addition to the visual result.
-
-Camera-specific attenuation changes the sensor image. Use the [scene renderer](underwater-rendering.md) to apply shared underwater effects to PBR surfaces in scene and camera views. When that native system is active, `POSIM_UNDERWATER_PLUGIN` enables pass-through in this compatibility output to avoid filtering the same pixels twice. The [camera model](https://github.com/IOES-Lab/POSIM/blob/main/models/posim_sensor_models/description/underwater_camera/model.sdf) defines input wiring and output names.
-
-## Configure RGBD sensing and water appearance
-
-The RGBD sensor supplies color and depth images. The plugin uses depth-derived range, per-channel attenuation and background values to produce underwater imagery. Attenuation follows a per-channel exponential model; background channels range from 0 to 255.
-
-For an unattenuated comparison, explicitly set `attenuationR`, `attenuationG`, `attenuationB` and all three background values to zero. For murky coastal water, use the example values 0.8/0.5/0.2 and 85/107/47 above. Omitting tags uses the code defaults.
+Place this sensor inside a model `<link>`. The world also needs `gz-sim-sensors-system` with `<render_engine>ogre2</render_engine>`, as in [the camera world](https://github.com/IOES-Lab/POSIM/blob/main/models/posim_worlds/worlds/camera_tutorial.world). The plugin reads Gazebo RGB/depth images and directly publishes the ROS output `/underwater_camera/simulated_image`.
 
 ```xml
 <sensor name="underwater_camera" type="rgbd_camera">
@@ -84,7 +52,53 @@ For an unattenuated comparison, explicitly set `attenuationR`, `attenuationG`, `
 </sensor>
 ```
 
+| SDF parameter | Meaning | Code default |
+| --- | --- | --- |
+| `attenuationR` | Red-channel attenuation per meter, finite and ≥ 0 | `1/30` |
+| `attenuationG` | Green-channel attenuation per meter, finite and ≥ 0 | `1/30` |
+| `attenuationB` | Blue-channel attenuation per meter, finite and ≥ 0 | `1/30` |
+| `backgroundR` | Red background channel, integer 0–255 | `0` |
+| `backgroundG` | Green background channel, integer 0–255 | `0` |
+| `backgroundB` | Blue background channel, integer 0–255 | `0` |
+
+## Image topics and camera geometry
+
+The sensor's `<topic>` must produce a valid ROS topic name. Omitting it uses Gazebo's `/world/<world>/model/<model>/link/<link>/sensor/<sensor>` scope; the ROS image is published below that scope at `/simulated_image`. Nested models add their parent model scopes.
+
+Depth-to-range conversion uses an explicit camera lens projection when supplied, then explicit lens intrinsics, otherwise image dimensions and horizontal field of view. Explicit zero principal-point coordinates are valid. Focal lengths must be positive, lens values finite and clipping distances satisfy `0 < near < far` in meters. Invalid settings produce a log error and disable the plugin's output.
+
+## Frame timing and example values
+
+Color and depth frames are paired by their acquisition timestamp, whichever arrives first. Each ROS image preserves the color frame's timestamp and frame ID. Unmatched frames are discarded when the pending buffer fills; resetting simulation time clears pending frames and allows timestamps to restart.
+
+The example model uses these values. SDF settings override code defaults.
+
+- RGB attenuation: **0.8, 0.5, 0.2**
+- RGB background: **85, 107, 47**
+- Image size: **320 × 240**
+- Requested rate: **10 Hz**
+
+## Tune and compare
+
+Place a recognizable object at known distances. Keep pose, lighting, scene materials and camera settings fixed while changing one attenuation channel. Verify image timestamps and received rate in addition to the visual result.
+
+Camera-specific attenuation changes the sensor image. Use the [scene renderer](underwater-rendering.md) to apply shared underwater effects to PBR surfaces in scene and camera views. When that native system is active, `POSIM_UNDERWATER_PLUGIN` enables pass-through in this compatibility output to avoid filtering the same pixels twice. The [camera model](https://github.com/IOES-Lab/POSIM/blob/main/models/posim_sensor_models/description/underwater_camera/model.sdf) defines input wiring and output names.
+
+## Configure RGBD sensing and water appearance
+
+The RGBD sensor supplies color and depth images. The plugin uses depth-derived range, per-channel attenuation and background values to produce underwater imagery. Attenuation follows a per-channel exponential model; background channels range from 0 to 255.
+
+For an unattenuated comparison, explicitly set `attenuationR`, `attenuationG`, `attenuationB` and all three background values to zero. For murky coastal water, use the example values 0.8/0.5/0.2 and 85/107/47 above. Omitting tags uses the code defaults.
+
 This sensor implements distance-dependent RGB attenuation and background blending. The [scene renderer](underwater-rendering.md) supplies visual sunlight, caustics and optional suspended specks. Studies of calibrated particle scattering need a suitable optical model beyond these visual approximations.
+
+## Suspended particles
+
+The native renderer can show suspended specks in RGB and RGBD color images. Specks are off by default. Enable them through the renderer's [appearance service](underwater-rendering.md#turn-on-marine-snow).
+
+Particles occupy shared positions in the world and drift uniformly with simulation time. Different camera views observe the same positions at the same time. Opaque surfaces hide particles behind them. The visible interval is 0.05–3 m, clipped by the scene and the mean water level. Numeric depth and acoustic rays retain their values.
+
+This is a procedural optical effect. Its drift is independent of simulated currents. When evaluating visual navigation, treat suspended particles as moving observations and keep appearance settings fixed across comparisons.
 
 ## Compare underwater images
 

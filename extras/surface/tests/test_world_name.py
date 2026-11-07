@@ -5,12 +5,19 @@ import os
 from pathlib import Path
 import shlex
 import tempfile
+from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 import xml.etree.ElementTree as ET
 
-from launch import LaunchContext
-from launch.actions import DeclareLaunchArgument, ExecuteProcess, OpaqueFunction
+from launch import LaunchContext, LaunchDescription, LaunchService
+from launch.actions import (
+    DeclareLaunchArgument,
+    ExecuteProcess,
+    OpaqueFunction,
+    RegisterEventHandler,
+)
+from launch.event_handlers import OnProcessExit
 from launch_ros.actions import Node
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -20,6 +27,51 @@ SPEC.loader.exec_module(surface_launch)
 
 
 class WorldNameTests(unittest.TestCase):
+    def test_process_exit_gates_next_stage(self):
+        for exit_code in (0, 4):
+            with self.subTest(exit_code=exit_code), tempfile.TemporaryDirectory() as temporary:
+                marker = Path(temporary) / "next-stage"
+                first = ExecuteProcess(cmd=["bash", "-c", f"exit {exit_code}"])
+                next_stage = ExecuteProcess(cmd=["touch", str(marker)])
+                handler = RegisterEventHandler(
+                    OnProcessExit(
+                        target_action=first,
+                        on_exit=lambda event, context: surface_launch.continue_on_success(
+                            event, context, [next_stage], "model spawn"
+                        ),
+                    )
+                )
+                service = LaunchService(noninteractive=True)
+                service.include_launch_description(LaunchDescription([handler, first]))
+                result = service.run()
+                self.assertEqual(marker.exists(), exit_code == 0)
+                self.assertEqual(result, 0 if exit_code == 0 else 1)
+
+    def test_failed_startup_does_not_start_the_next_stage(self):
+        next_stage = [object(), object()]
+        for stage in ("model spawn", "IMU readiness"):
+            with self.subTest(stage=stage):
+                context = SimpleNamespace(is_shutdown=False)
+                self.assertIs(
+                    surface_launch.continue_on_success(
+                        SimpleNamespace(returncode=0), context, next_stage, stage
+                    ),
+                    next_stage,
+                )
+                with self.assertRaisesRegex(RuntimeError, stage):
+                    surface_launch.continue_on_success(
+                        SimpleNamespace(returncode=1), context, next_stage, stage
+                    )
+                self.assertEqual(
+                    surface_launch.continue_on_success(
+                        SimpleNamespace(returncode=-2),
+                        SimpleNamespace(is_shutdown=True),
+                        next_stage,
+                        stage,
+                    ),
+                    [],
+                )
+
     def test_default_and_application_names_keep_world_spawn_and_imu_connected(self):
         for override, expected in (
             (None, "posim_surface"),
@@ -74,6 +126,7 @@ class WorldNameTests(unittest.TestCase):
                 )
                 node_configs = [call.kwargs for call in nodes.call_args_list]
                 create = next(c for c in node_configs if c["package"] == "ros_gz_sim")
+                self.assertEqual(create["prefix"], "timeout --kill-after=10s 180s")
                 self.assertEqual(create["arguments"][1], world.get("name"))
                 bridge = next(c for c in node_configs if c["package"] == "ros_gz_bridge")
                 self.assertIn(imu + "@sensor_msgs/msg/Imu[gz.msgs.IMU", bridge["arguments"])

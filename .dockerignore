@@ -1,6 +1,10 @@
 .git
+.validation
 build
 install
 log
 *.pptx
 *.pdf
+**/__pycache__
+docs/engineering
+website

@@ -42,6 +42,13 @@ public:
     vertical = number("vertical_stddev", 1.2);
     speed = number("velocity_stddev", .1);
     level = number("water_level", 0);
+    for (const double value : {hz, latency, reacquire, margin, horizontal, vertical, speed, level})
+    {
+      if (!std::isfinite(value))
+      {
+        throw std::runtime_error("GNSS parameters must be finite");
+      }
+    }
     if (!(hz > 0 && hz <= 100 && latency >= 0 && latency <= 10 && reacquire >= 0 && margin >= 0 &&
           horizontal >= 0 && vertical >= 0 && speed >= 0))
     {
@@ -225,7 +232,9 @@ private:
   {
     if (
       wave.size() < 8 || wave[0] != 1 || !std::isfinite(wave[1]) || wave[1] < 2 || wave[1] > 256 ||
-      !(wave[2] > 0 && wave[3] > 0) || now - wave[7] > .6 || now < wave[7])
+      std::floor(wave[1]) != wave[1] || !std::isfinite(wave[2]) || !std::isfinite(wave[3]) ||
+      !(wave[2] > 0 && wave[3] > 0) || !std::isfinite(wave[7]) || now - wave[7] > .6 ||
+      now < wave[7] || !std::isfinite(x) || !std::isfinite(y))
     {
       return false;
     }
@@ -236,7 +245,9 @@ private:
     }
     auto index = [&](double p, double size)
     {
-      double c = (p / size + .5) * n - .5;
+      // Reduce the periodic coordinate before dividing, keeping even very
+      // large positions and small positive tile sizes inside the grid.
+      double c = (std::remainder(p, size) / size + .5) * n - .5;
       return c - std::floor(c / n) * n;
     };
     double u = index(x, wave[2]), v = index(y, wave[3]);
@@ -247,7 +258,6 @@ private:
              b * ((1 - a) * h(ix, iy + 1) + a * h(ix + 1, iy + 1)) + level;
     return std::isfinite(height);
   }
-  gz::transport::Node node;
   gz::transport::Node::Publisher publisher;
   gz::sim::Entity link = gz::sim::kNullEntity;
   std::mutex mutex;
@@ -262,6 +272,8 @@ private:
   std::deque<std::pair<double, std::vector<double>>> pending;
   std::mt19937 rng{42};
   std::normal_distribution<double> normal{0, 1};
+  // Destroy transport subscriptions before the fields used by their callbacks.
+  gz::transport::Node node;
 };
 }  // namespace posim
 GZ_ADD_PLUGIN(

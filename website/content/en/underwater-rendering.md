@@ -4,27 +4,13 @@ POSIM's `posim_gz_rendering` applies water-path haze, RGB absorption, depth-depe
 
 The Gazebo scene, RGB cameras and RGBD color share this rendering path. Numeric depth and collision geometry remain unchanged. Use [underwater camera](camera.md) for the separate depth-based image attenuation plugin.
 
-## Effects and defaults
-
-| Setting | Appearance | Default |
-| --- | --- | --- |
-| Water optics | Master switch for the optical effects below | On |
-| Haze | Distance-dependent blending along the underwater light path | On |
-| RGB absorption | Wavelength-dependent color loss | On |
-| Sunlight fading | Weaker directional illumination with depth | On |
-| Caustics | Animated patterns of sunlight on submerged surfaces | On |
-| Suspended specks / marine snow | Sparse procedural bright specks along the viewing ray | Off |
-| Seabed texture | Detail from the seabed's supplied PBR maps | On |
-| Seabed grid | Measurement lines, 10 m spacing; adjustable 1–500 m | Off |
-| Depth contours | Depth lines, 5 m spacing; adjustable 1–50 m | Off |
-
-Turning water optics off retains the texture, grid and contour selections. Seabed overlays recognize visuals named `seabed` or `shallow`, including Gazebo scoped names. [POSIM-Terrain](libraries.md) supplies sand maps and terrain exports; the renderer does not download textures.
-
 ## Build and attach the system
 
-Use a configured Gazebo Jetty/Ogre2 development environment matching the server. From the POSIM checkout, build the system and its rendering helper together:
+Use a Gazebo Jetty/Ogre2 development environment matching the server. In [terminal A prepared for your installation](terminals.md), build the system and its rendering helper from the POSIM checkout. On macOS, use the Linux terminal inside the RDP desktop:
 
 ```bash
+cd "$POSIM_WS/src/posim"
+export PKG_CONFIG_PATH="/opt/ros/lyrical/opt/gz_ogre_next_vendor/lib/pkgconfig${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
 cmake -S gazebo/posim_gz_rendering -B build/underwater \
   -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="$PWD/install/underwater"
 cmake --build build/underwater --parallel 2
@@ -44,7 +30,25 @@ Add this plugin inside your SDF `<world>`. Replace `/absolute/underwater` with t
 </plugin>
 ```
 
-macOS libraries use `.dylib`. A rendering scene and active camera are needed, including for headless image output. When also using `UnderwaterCamera`, set `POSIM_UNDERWATER_PLUGIN` to the loaded system's path in the server environment. That flag makes the compatibility camera output pass through the native-colored pixels, avoiding a second attenuation stage. Set it only with a successfully installed native system.
+Linux libraries use `.so`, including Docker/RDP on macOS. A library built directly for macOS uses `.dylib`. To produce sensor images, the scene needs an active camera.
+
+When also using `UnderwaterCamera`, set `POSIM_UNDERWATER_PLUGIN` to the loaded system's path in the server environment. That flag passes through the scene's colored pixels to avoid a second attenuation stage. Set it only when the scene-rendering system is installed and loaded.
+
+## Effects and defaults
+
+| Setting | Appearance | Default |
+| --- | --- | --- |
+| Water optics | Master switch for the optical effects below | On |
+| Haze | Distance-dependent blending along the underwater light path | On |
+| RGB absorption | Wavelength-dependent color loss | On |
+| Sunlight fading | Weaker directional illumination with depth | On |
+| Caustics | Animated patterns of sunlight on submerged surfaces | On |
+| Suspended specks / marine snow | Sparse procedural bright specks along the viewing ray | Off |
+| Seabed texture | Detail from the seabed's supplied PBR maps | On |
+| Seabed grid | Measurement lines, 10 m spacing; adjustable 1–500 m | Off |
+| Depth contours | Depth lines, 5 m spacing; adjustable 1–50 m | Off |
+
+Turning water optics off retains the texture, grid and contour selections. Seabed overlays recognize visuals named `seabed` or `shallow`, including Gazebo scoped names. Supply the texture files in your terrain assets; see [Heightmap terrain](heightmaps.md).
 
 ## Turn on marine snow
 

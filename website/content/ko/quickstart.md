@@ -1,104 +1,48 @@
 # 첫 시뮬레이션
 
-해양 월드, 로봇, 카메라를 차례로 실행해 봅니다. 같은 [Ubuntu](install.md) 또는 [Docker](docker.md) 환경을 불러온 터미널 두 개를 준비하세요.
+해양 월드에서 REXROV 한 대를 실행하고, 실시간 측정값을 받은 뒤 정상 종료해 봅니다. 첫 실행은 기본 로봇 모델과 월드를 그대로 사용하세요.
 
-- **A:** 월드·로봇·센서 실행
-- **B:** 시간과 데이터 확인
+## 시작 전 준비
 
-## 1. 해양 월드 실행
+[실행 환경 선택](requirements.md)에서 고른 설치를 마친 뒤 [터미널 준비](terminals.md)를 따라 창 두 개를 열고 각각 ROS·POSIM 환경을 불러오세요. 터미널 A는 시뮬레이터를 실행하고, B는 결과를 읽습니다. Docker에서도 설치할 때 준비한 Linux 데스크톱, WSLg 또는 RDP를 통해 Gazebo 창을 봅니다.
 
-터미널 A에서 실행합니다.
+## 1. 로봇과 월드 시작하기
 
-```bash
-ros2 launch posim_demos posim_world.launch.py \
-  world_name:=posim_ocean_waves headless:=true
-```
-
-터미널 B에서 시뮬레이션 시간을 확인합니다.
-
-```bash
-gz topic -e -t /world/oceans_waves/clock
-```
-
-시간이 계속 증가하는지 확인하세요. 파일 이름은 `posim_ocean_waves.world`이지만 내부 월드 이름은 `oceans_waves`입니다. 다음 예제를 시작하기 전에 토픽 확인 도구와 Launch를 차례로 Ctrl+C로 종료합니다.
-
-## 2. REXROV 배치
-
-로봇 Launch는 월드도 함께 시작합니다. 앞에서 실행한 월드를 종료한 뒤 진행하세요.
+작업공간을 불러온 **터미널 A**에서 실행합니다.
 
 ```bash
 ros2 launch posim_demos posim_robot.launch.py \
   namespace:=rexrov world_name:=posim_ocean_waves z:=-5 paused:=false \
-  gui:=false headless:=true use_teleop:=false use_web_joystick:=false
+  gui:=true headless:=false use_teleop:=false use_web_joystick:=false
 ```
 
-터미널 B에서 위치·속도 데이터를 받습니다.
+이 명령은 월드를 시작하고 z = 0보다 5 m 아래에 REXROV를 배치하며 ROS 브리지를 실행합니다. 터미널 A를 계속 실행하세요. 로봇 Launch가 월드도 시작하므로 하나의 시뮬레이션으로 실행합니다.
+
+## 2. 실시간 위치 읽기
+
+**터미널 B**에서 같은 작업공간을 불러온 뒤 실행합니다.
 
 ```bash
-ros2 topic echo /model/rexrov/odometry nav_msgs/msg/Odometry --once
+ros2 topic echo --no-daemon /model/rexrov/odometry nav_msgs/msg/Odometry --field pose.pose.position
 ```
 
-타임스탬프, 위치, 자세와 속도를 확인하세요. 로봇이 정지해 있어도 정상적인 Odometry 메시지를 받을 수 있습니다. BlueROV2와 제어 인터페이스는 [ROV 예제](rovs.md)에서 이어서 다룹니다.
+위치 데이터가 계속 들어와야 합니다. 차량이 안정되는 동안 값이 조금만 변하거나 거의 같을 수 있습니다. 확인을 마치면 **터미널 B에서 Ctrl+C**를 누르세요.
 
-## 3. 카메라 영상 받기
-
-REXROV를 종료하고 센서 렌더러가 준비되어 있는지 확인합니다. 디스플레이가 없는 컨테이너에서는 먼저 [Docker 렌더링 설정](docker.md)을 따르세요. 현재 Launch의 `headless:=true`는 GUI만 끕니다. 준비한 셸에서 아래 명령을 실행합니다.
+## 3. 시뮬레이션 시간 확인하기
 
 ```bash
-ros2 launch posim_demos posim_sensor.launch.py \
-  namespace:=underwater_camera world_name:=camera_tutorial \
-  x:=10 z:=-93.5 pitch:=0.3 yaw:=3.14 \
-  paused:=false gui:=false headless:=true
+ros2 topic echo --no-daemon /clock rosgraph_msgs/msg/Clock
 ```
 
-터미널 B에서 영상 메시지를 확인합니다.
+시뮬레이션 시간이 증가해야 합니다. Ctrl+C로 확인 도구를 종료하세요. 시간이 멈춰 있거나 메시지가 오지 않으면 [문제 해결](troubleshooting.md)을 확인합니다.
 
-```bash
-ros2 topic echo /underwater_camera/simulated_image \
-  sensor_msgs/msg/Image --once --no-arr
-```
+## 4. 세션 종료하기
 
-너비·높이가 0보다 큰지, 영상 형식과 타임스탬프가 있는지 확인합니다. `--no-arr`은 터미널에 픽셀 배열을 출력하지 않도록 하는 옵션입니다. 영상을 보려면 RViz의 Image 디스플레이에서 이 토픽을 선택하세요. 감쇠 설정은 [수중 카메라](camera.md)에서 설명합니다.
+**터미널 A에서 Ctrl+C**를 누르고 Launch 프로세스가 종료될 때까지 기다립니다. 토픽 확인 도구를 닫아도 시뮬레이터는 계속 실행됩니다. 다른 예제를 시작하기 전에 현재 시뮬레이션을 종료하세요.
 
-## 데스크톱에서 보기
+## 이어서 배우기
 
-디스플레이와 렌더러가 있는 환경에서 Gazebo 창을 엽니다.
-
-- 로봇·센서 Launch: `gui:=true headless:=false`
-- 월드 Launch: `headless:=false`
-
-## 실행 결과 확인
-
-각 예제에서 다음 결과를 확인하세요.
-
-- 시뮬레이션 시간 증가
-- Odometry 위치·속도 메시지
-- 영상 크기·형식·타임스탬프
-
-제어 방법은 [ROV](rovs.md), 소나는 [멀티빔 소나](sonar.md)를 참고하세요.
-
-## 다음 실험
-
-[DVL](dvl.md), [USBL](usbl.md), [해류](currents.md)와 [월드 목록](worlds.md)을 살펴보세요. 첫 실행은 Gazebo Fuel 자산을 내려받느라 시간이 더 걸릴 수 있습니다. 데이터가 오지 않으면 시뮬레이션 시간부터 확인한 뒤 [문제 해결](troubleshooting.md)에 따라 플러그인과 리소스 로그를 확인합니다.
-
-## Launch 인수 선택하기
-
-로봇·센서 launch에서 `--show-args`로 사용할 수 있는 인수를 확인합니다.
-
-```bash
-ros2 launch posim_demos posim_sensor.launch.py --show-args
-```
-
-| 인수 | 의미 | 센서 launch 기본값 |
-| --- | --- | --- |
-| `namespace` | 설치된 모델 디렉터리 선택 | 빈 값; 직접 지정 |
-| `world_name` | 월드 파일 선택 | `empty.sdf` |
-| `paused` | 일시 정지 상태로 시작 | `true` |
-| `gui` / `headless` | Gazebo GUI 표시 / 숨김 | `true` / `false` |
-| `use_sim_time` | ROS 노드의 시뮬레이션 시계 사용 | `true` |
-| `x`, `y`, `z` | 초기 위치, m | 각각 `0.0` |
-| `roll`, `pitch`, `yaw` | 초기 자세, rad | 각각 `0.0` |
-| `debug` / `verbosity_level` | 상세 로그 / 로그 수준 | `false` / `1` |
-| `use_ned_frame` | NED 프레임 사용 | `false` |
-
-센서 예제에서는 `paused:=false`를 지정해 데이터가 생성되도록 합니다. 로봇·월드 launch의 인수는 해당 launch의 `--show-args`로 확인하세요.
+- [센서 데이터 보기와 기록](visualization.md): 수중 카메라를 실행하고 영상을 확인합니다.
+- [Python으로 제어하기](python-control.md): REXROV를 관찰하고 추진기 하나를 시험합니다.
+- [ROV와 BlueROV2](rovs.md): ArduSub, 키보드 또는 로컬 조이스틱을 사용합니다.
+- [월드 목록](worlds.md): 다른 환경을 선택하고 Launch 인수를 확인합니다.

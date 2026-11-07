@@ -1,101 +1,48 @@
 # First simulation
 
-Try an ocean world, a robot and a camera in turn. Use two terminals with the same [Ubuntu](install.md) or [Docker](docker.md) environment loaded: Terminal A runs the simulation; Terminal B inspects data.
+Start one REXROV in an ocean world, receive live measurements and stop cleanly. Keep the default robot model and world for this first run.
 
-## 1. Start an ocean world
+## Before you start
 
-In Terminal A:
+Complete the installation route in [Choose an environment](requirements.md). Then use [Prepare your terminals](terminals.md) to open two terminal windows and load ROS/POSIM in each. Terminal A runs the simulator; Terminal B reads its output. Docker users see the Gazebo window through their configured Linux desktop, WSLg or RDP connection.
 
-```bash
-ros2 launch posim_demos posim_world.launch.py \
-  world_name:=posim_ocean_waves headless:=true
-```
+## 1. Start the robot and world
 
-In Terminal B:
-
-```bash
-gz topic -e -t /world/oceans_waves/clock
-```
-
-Simulation time should advance. The world entity is `oceans_waves`, although the file is `posim_ocean_waves.world`. Stop the topic viewer and then the launch with Ctrl+C before starting the next example.
-
-## 2. Spawn REXROV
-
-The robot launch also starts a world. Stop the previous example before continuing.
+In **Terminal A**, with the workspace loaded:
 
 ```bash
 ros2 launch posim_demos posim_robot.launch.py \
   namespace:=rexrov world_name:=posim_ocean_waves z:=-5 paused:=false \
-  gui:=false headless:=true use_teleop:=false use_web_joystick:=false
+  gui:=true headless:=false use_teleop:=false use_web_joystick:=false
 ```
 
-In Terminal B:
+This command starts the world, places REXROV five metres below z = 0 and starts its ROS bridges. Keep Terminal A running. Starting the robot also starts its world, so run this as one simulation.
+
+## 2. Read live position
+
+In **Terminal B**, load the same workspace and run:
 
 ```bash
-ros2 topic echo /model/rexrov/odometry nav_msgs/msg/Odometry --once
+ros2 topic echo --no-daemon /model/rexrov/odometry nav_msgs/msg/Odometry --field pose.pose.position
 ```
 
-Check the timestamp, position, orientation and velocity. A stationary robot can still publish valid odometry. See [ROVs](rovs.md) to select BlueROV2 and its control interfaces.
+Position samples should continue to arrive. Small or nearly constant values can be normal while the vehicle settles. Press **Ctrl+C in Terminal B** to finish watching.
 
-## 3. Receive a camera image
-
-Stop REXROV. Before starting the camera, confirm that a sensor renderer is available. In a container without a display, follow [Docker rendering setup](docker.md) first: `headless:=true` only hides the GUI in the current launcher. Then run:
+## 3. Check simulation time
 
 ```bash
-ros2 launch posim_demos posim_sensor.launch.py \
-  namespace:=underwater_camera world_name:=camera_tutorial \
-  x:=10 z:=-93.5 pitch:=0.3 yaw:=3.14 \
-  paused:=false gui:=false headless:=true
+ros2 topic echo --no-daemon /clock rosgraph_msgs/msg/Clock
 ```
 
-In Terminal B:
+The clock should advance. Stop this viewer with Ctrl+C. If time is paused or no messages arrive, use [Troubleshooting](troubleshooting.md).
 
-```bash
-ros2 topic echo /underwater_camera/simulated_image \
-  sensor_msgs/msg/Image --once --no-arr
-```
+## 4. Stop the session
 
-Check nonzero width and height, encoding and timestamp. `--no-arr` hides the pixel array from terminal output. To see the image, use an RViz Image display subscribed to this topic. [Underwater camera](camera.md) explains the attenuation settings.
+Press **Ctrl+C in Terminal A** and wait for the launch processes to exit. Closing a topic viewer does not stop the simulator. Stop the current simulation before starting a different example.
 
-## Desktop viewing
+## Continue learning
 
-Open Gazebo windows on a host with a display and renderer.
-
-- Robot/sensor launch: `gui:=true headless:=false`
-- World launch: `headless:=false`
-
-## Check the results
-
-Check these outputs from the examples.
-
-- Advancing simulation time
-- Odometry position and velocity
-- Image size, format and timestamp
-
-See [ROVs](rovs.md) for control and [Multibeam sonar](sonar.md) for sonar.
-
-## Next experiments
-
-Try [DVL](dvl.md), [USBL](usbl.md), [currents](currents.md) or the [world library](worlds.md). The first run may take longer while Gazebo downloads Fuel assets. If data does not arrive, inspect the advancing clock, then plugin and resource logs using [Troubleshooting](troubleshooting.md).
-
-## Choose launch arguments
-
-Use `--show-args` to inspect arguments accepted by a robot or sensor launch.
-
-```bash
-ros2 launch posim_demos posim_sensor.launch.py --show-args
-```
-
-| Argument | Meaning | Sensor launch default |
-| --- | --- | --- |
-| `namespace` | Select an installed model directory | Empty; set explicitly |
-| `world_name` | Select a world file | `empty.sdf` |
-| `paused` | Start paused | `true` |
-| `gui` / `headless` | Show / hide Gazebo GUI | `true` / `false` |
-| `use_sim_time` | Use the simulation clock in ROS nodes | `true` |
-| `x`, `y`, `z` | Initial position, m | `0.0` each |
-| `roll`, `pitch`, `yaw` | Initial attitude, rad | `0.0` each |
-| `debug` / `verbosity_level` | Verbose logging / log level | `false` / `1` |
-| `use_ned_frame` | Use NED frame | `false` |
-
-Use `paused:=false` in sensor examples to produce data. Inspect robot/world launch arguments with that launch's `--show-args`.
+- [View & record sensor data](visualization.md): run the underwater camera and inspect images.
+- [Control with Python](python-control.md): observe REXROV and exercise one thruster.
+- [ROVs & BlueROV2](rovs.md): use ArduSub, keyboard controls or the local joystick.
+- [World library](worlds.md): choose another environment and inspect launch arguments.

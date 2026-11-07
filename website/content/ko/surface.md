@@ -4,16 +4,27 @@ WAM-V 수상 로봇에 Wave Sim의 파도와 ArduRover의 보트 제어를 적�
 
 ## WAM-V 통합 빌드
 
-선택형 수상 로봇 이미지는 ARM64 기본 이미지 구조를 사용합니다. POSIM 소스 디렉터리에서 [Docker 환경](docker.md)에 따라 `posim:dev-arm64-rdp`를 먼저 만든 뒤 실행합니다.
+이 선택형 이미지는 ARM64 데스크톱 구성을 사용합니다. Apple Silicon Mac에서 [Docker와 RDP 클라이언트](install-macos.md)를 준비한 뒤, macOS 터미널의 POSIM 소스 디렉토리에서 실행하세요.
 
 ```bash
+docker pull ioeslab/posim:latest
 docker build -f extras/surface/Dockerfile \
-  --build-arg POSIM_BASE_IMAGE=posim:dev-arm64-rdp -t posim:surface .
-docker run --rm -it --entrypoint bash posim:surface -lc \
-  'source /opt/ros/lyrical/setup.bash; source /home/docker/posim_ws/install/setup.bash; ros2 launch /opt/posim-surface/wamv.launch.py headless:=true'
+  --build-arg POSIM_BASE_IMAGE=ioeslab/posim:latest -t posim:surface .
+docker run -d --name posim-surface --shm-size=1g \
+  -p 127.0.0.1:3390:3389 posim:surface
 ```
 
-이미지에는 ArduSub와 ArduRover가 각각 별도 바이너리로 들어 있습니다. 단일 로봇 예제에서는 ArduRover의 보트 구성(`FRAME_CLASS=2`)을 선택합니다. 여러 로봇을 실행할 때는 컨트롤러 식별자와 통신 포트를 각각 배정해야 합니다.
+RDP 클라이언트에서 **127.0.0.1:3390**에 `docker` 계정으로 접속합니다. 이 Linux 데스크톱 안의 터미널에서 로봇을 실행하세요.
+
+```bash
+source /opt/ros/lyrical/setup.bash
+source /home/docker/posim_ws/install/setup.bash
+ros2 launch /opt/posim-surface/wamv.launch.py headless:=false
+```
+
+이미지에는 ArduSub와 ArduRover가 각각 별도 바이너리로 들어 있습니다. 단일 로봇 예제에서는 ArduRover의 보트 구성(`FRAME_CLASS=2`)을 선택합니다. 한 환경에서 한 인스턴스만 실행하세요. 런처가 차량 이름, 생성 파일 경로와 제어기 포트를 고정해서 사용하므로 `world_name`만 바꿔서는 두 번째 인스턴스가 독립적으로 동작하지 않습니다. 여러 차량에는 파일·이름·제어기 식별자·통신 포트를 분리한 별도 통합 구성이나 격리된 환경이 필요합니다.
+
+차량을 생성하고 IMU 데이터가 발행된 뒤 제어기가 시작됩니다. 차량 생성에 실패하거나 180초가 넘게 걸리는 경우, 또는 생성 후 180초 안에 IMU 샘플이 도착하지 않으면 Launch가 0이 아닌 상태로 종료되고 실패한 단계를 알립니다. 다시 실행하기 전에 Gazebo와 센서 로그를 확인하세요.
 
 ## 모델, 제어기와 위치 정보
 
@@ -35,12 +46,12 @@ gz topic -l
 
 ```bash
 SURFACE_WORLD=harbour
-ros2 launch /opt/posim-surface/wamv.launch.py headless:=true world_name:="$SURFACE_WORLD"
+ros2 launch /opt/posim-surface/wamv.launch.py headless:=false world_name:="$SURFACE_WORLD"
 ```
 
 생성되는 SDF, 로봇 생성 요청, IMU 브리지와 시작 대기 명령이 모두 이 이름을 사용합니다. 위 예제의 파도 토픽은 `/world/harbour/waves`이고, ROS IMU 토픽은 `/model/wamv/imu`로 유지됩니다. 이 인자는 생성할 월드의 이름을 지정하며 지형 파일을 선택하지 않습니다.
 
-이 예제는 z = −10 m의 평평한 해저면을 사용하며 GEBCO 수심 데이터를 불러오지 않습니다. GEBCO 데이터를 포함한 실제 지형은 별도 공개 라이브러리인 [POSIM-Terrain](libraries.md#posim-terrain)으로 생성할 수 있습니다.
+이 예제는 z = −10 m의 평평한 해저면을 사용합니다. 직접 지형을 준비하려면 [높이맵 지형](heightmaps.md)을 참고하세요.
 
 각 설정값의 자료형은 `double`입니다.
 

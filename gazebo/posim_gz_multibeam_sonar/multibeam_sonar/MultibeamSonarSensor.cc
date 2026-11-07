@@ -45,9 +45,10 @@
 #include <gz/sensors/RenderingEvents.hh>
 #include <gz/sensors/SensorTypes.hh>
 #include "MultibeamSonarSensor.hh"
+#include "SonarLog.hh"
 #include "sonar_calculation_cuda.cuh"
 
-#include <sys/stat.h>
+#include <algorithm>
 #include <cv_bridge/cv_bridge.hpp>
 #include <geometry_msgs/msg/vector3.hpp>
 #include <marine_acoustic_msgs/msg/ping_info.hpp>
@@ -395,11 +396,10 @@ bool MultibeamSonarSensor::Implementation::InitializeBeamArrangement(MultibeamSo
 
   if (!rclcpp::ok())
   {
-    rclcpp::init(0, nullptr);
+    rclcpp::init(0, nullptr, rclcpp::InitOptions(), rclcpp::SignalHandlerOptions::None);
   }
 
   this->ros_node_ = std::make_shared<rclcpp::Node>("multibeam_sonar_node");
-  this->ros_node_->set_parameters({rclcpp::Parameter("use_sim_time", true)});
 
   // Create the point cloud publisher
   this->pointPub = this->node.Advertise<gz::msgs::PointCloudPacked>(
@@ -428,26 +428,25 @@ bool MultibeamSonarSensor::Implementation::InitializeBeamArrangement(MultibeamSo
 
   if (this->writeLogFlag)
   {
-    this->writeInterval = sensorElement->Get<int>("writeFrameInterval", 10).first;
-
-    RCLCPP_INFO_STREAM(
-      this->ros_node_->get_logger(), "Raw data at " << "/SonarRawData_{numbers}.csv"
-                                                    << " every " << this->writeInterval
-                                                    << " frames");
-    RCLCPP_INFO_STREAM(
-      this->ros_node_->get_logger(), "Beam angles at SonarRawData_beam_angles.csv");
-    RCLCPP_INFO_STREAM(this->ros_node_->get_logger(), "");
-
-    struct stat buffer;
-    std::string logfilename("SonarRawData_000001.csv");
-    std::string logfilename_angles("SonarRawData_beam_angles.csv");
-    if (stat(logfilename.c_str(), &buffer) == 0)
+    const int interval = sensorElement->Get<int>("writeFrameInterval", 10).first;
+    this->writeInterval = std::max(1, interval);
+    if (interval < 1)
     {
-      system("rm SonarRawData*.csv");
+      gzwarn << "writeFrameInterval must be positive; using 1." << std::endl;
     }
-    if (stat(logfilename_angles.c_str(), &buffer) == 0)
+    try
     {
-      system("rm SonarRawData_beam_angles.csv");
+      this->logDirectory =
+        posim::sonar::CreateLogDirectory(std::filesystem::current_path()).string();
+      RCLCPP_INFO_STREAM(
+        this->ros_node_->get_logger(), "Sonar CSV directory: " << this->logDirectory
+                                                               << ", recording every "
+                                                               << this->writeInterval << " frames");
+    }
+    catch (const std::exception & error)
+    {
+      this->writeLogFlag = false;
+      gzerr << "Sonar CSV logging disabled: " << error.what() << std::endl;
     }
   }
 
@@ -637,7 +636,7 @@ bool MultibeamSonarSensor::Implementation::InitializeBeamArrangement(MultibeamSo
     this->ros_node_->get_logger(), "Maximum view range  [m] = " << this->maxDistance);
   RCLCPP_INFO_STREAM(
     this->ros_node_->get_logger(),
-    "Distance resolution [m] = " << this->soundSpeed * (1.0 / (this->nFreq * delta_f)));
+    "Distance resolution [m] = " << this->soundSpeed / (2.0 * this->nFreq * delta_f));
   RCLCPP_INFO_STREAM(this->ros_node_->get_logger(), "# of Beams = " << this->nBeams);
   RCLCPP_INFO_STREAM(
     this->ros_node_->get_logger(), "# of Rays / Beam (Elevation, Azimuth) = ("
@@ -698,14 +697,16 @@ void MultibeamSonarSensor::Implementation::OnNewFrame(
   const float * _scan, unsigned int _width, unsigned int _height, unsigned int _channels,
   const std::string & /*_format*/)
 {
+  if (!this->ros_node_ || !rclcpp::ok(this->ros_node_->get_node_base_interface()->get_context()))
+  {
+    return;
+  }
   // Lock the ray buffer for thread safety
   std::lock_guard<std::mutex> lock(this->rayMutex);
 
   // Total number of points in the scan
   unsigned int samples = _width * _height * _channels;
   unsigned int rayBufferSize = samples * sizeof(float);
-
-  this->lastMeasurementTime = this->ros_node_->now().seconds();
 
   // Allocate memory for the ray buffer if not already allocated
   if (!this->rayBuffer)
@@ -721,7 +722,17 @@ void MultibeamSonarSensor::Implementation::OnNewFrame(
 
   if (this->pointCloudImage.size().width != 0)
   {
-    this->ComputeSonarImage();
+    try
+    {
+      this->ComputeSonarImage();
+    }
+    catch (const rclcpp::exceptions::RCLError &)
+    {
+      if (rclcpp::ok(this->ros_node_->get_node_base_interface()->get_context()))
+      {
+        throw;
+      }
+    }
   }
 }
 
@@ -784,6 +795,8 @@ bool MultibeamSonarSensor::Update(const std::chrono::steady_clock::duration & _n
   }
 
   // Generate sensor data
+  this->dataPtr->measurementTime = _now;
+  this->dataPtr->lastMeasurementTime = std::chrono::duration<double>(_now).count();
   this->Render();
 
   return true;
@@ -800,7 +813,27 @@ void MultibeamSonarSensor::PostUpdate(const std::chrono::steady_clock::duration 
            << "cannot estimate velocities." << std::endl;
     return;
   }
-  rclcpp::spin_some(this->dataPtr->ros_node_);
+  if (!this->dataPtr->ros_node_)
+  {
+    return;
+  }
+  const auto context = this->dataPtr->ros_node_->get_node_base_interface()->get_context();
+  if (!rclcpp::ok(context))
+  {
+    return;
+  }
+  try
+  {
+    rclcpp::spin_some(this->dataPtr->ros_node_);
+  }
+  catch (const rclcpp::exceptions::RCLError &)
+  {
+    if (rclcpp::ok(context))
+    {
+      throw;
+    }
+    return;
+  }
 
   if (this->dataPtr->publishingPointCloud)
   {
@@ -906,7 +939,7 @@ void MultibeamSonarSensor::Implementation::FillPointCloudMsg(const float * _rayB
   this->pointMsg.set_is_dense(isDense);
 
   // After filling pointMsg, compute pointCloudImage as well
-  this->lock_.lock();
+  std::lock_guard<std::mutex> lock(this->lock_);
   this->pointCloudImage.create(height, width, CV_32FC1);
   cv::MatIterator_<float> iter_image = this->pointCloudImage.begin<float>();
 
@@ -959,7 +992,6 @@ void MultibeamSonarSensor::Implementation::FillPointCloudMsg(const float * _rayB
       }
     }
   }
-  this->lock_.unlock();
 }
 
 cv::Mat MultibeamSonarSensor::Implementation::ComputeNormalImage(cv::Mat & depth)
@@ -1038,7 +1070,7 @@ void MultibeamSonarSensor::Implementation::ComputeCorrector()
 void MultibeamSonarSensor::Implementation::ComputeSonarImage()
 
 {
-  this->lock_.lock();
+  std::lock_guard<std::mutex> lock(this->lock_);
   cv::Mat normal_image = this->ComputeNormalImage(this->pointCloudImage);
   double vPixelSize = this->vFOV / (this->pointMsg.height() - 1);
   double hPixelSize = this->hFOV / (this->pointMsg.width() - 1);
@@ -1110,8 +1142,8 @@ void MultibeamSonarSensor::Implementation::ComputeSonarImage()
     {
       double time = this->lastMeasurementTime;
       std::stringstream filename;
-      filename << "SonarRawData_" << std::setw(6) << std::setfill('0') << this->writeNumber
-               << ".csv";
+      filename << this->logDirectory << "/SonarRawData_" << std::setw(6) << std::setfill('0')
+               << this->writeNumber << ".csv";
       writeLog.open(filename.str().c_str(), std::ios_base::app);
       filename.clear();
       writeLog << "# Raw Sonar Data Log (Row: beams, Col: time series data)\n";
@@ -1124,14 +1156,8 @@ void MultibeamSonarSensor::Implementation::ComputeSonarImage()
         writeLog << this->rangeVector[i];
         for (size_t b = 0; b < this->nBeams; b++)
         {
-          if (P_Beams[b][i].imag() > 0)
-          {
-            writeLog << "," << P_Beams[b][i].real() << "+" << P_Beams[b][i].imag() << "i";
-          }
-          else
-          {
-            writeLog << "," << P_Beams[b][i].real() << P_Beams[b][i].imag() << "i";
-          }
+          writeLog << ',';
+          posim::sonar::WriteComplexCsvValue(writeLog, P_Beams[b][i]);
         }
         writeLog << "\n";
       }
@@ -1141,7 +1167,7 @@ void MultibeamSonarSensor::Implementation::ComputeSonarImage()
       if (this->writeNumber == 1)
       {
         std::stringstream filename_angle;
-        filename_angle << "SonarRawData_beam_angles.csv";
+        filename_angle << this->logDirectory << "/SonarRawData_beam_angles.csv";
         writeLog.open(filename_angle.str().c_str(), std::ios_base::app);
         filename_angle.clear();
         writeLog << "# Raw Sonar Data Log \n";
@@ -1159,7 +1185,9 @@ void MultibeamSonarSensor::Implementation::ComputeSonarImage()
     }
   }
 
-  rclcpp::Time now = this->ros_node_->now();
+  const rclcpp::Time now(
+    std::chrono::duration_cast<std::chrono::nanoseconds>(this->measurementTime).count(),
+    RCL_ROS_TIME);
 
   this->sonarRawDataMsg = marine_acoustic_msgs::msg::ProjectedSonarImage();
 
@@ -1305,7 +1333,6 @@ void MultibeamSonarSensor::Implementation::ComputeSonarImage()
   cv::Mat Itensity_image_color;
   cv::applyColorMap(Intensity_image, Itensity_image_color, cv::COLORMAP_HOT);
 
-  now = this->ros_node_->now();
   this->sonarImgMsg.header.frame_id = this->frameName;
   this->sonarImgMsg.header.stamp.sec = static_cast<int32_t>(now.seconds());
   this->sonarImgMsg.header.stamp.nanosec = static_cast<uint32_t>(now.nanoseconds() % 1000000000);
@@ -1318,7 +1345,6 @@ void MultibeamSonarSensor::Implementation::ComputeSonarImage()
 
   // ---------------------------------------- End of sonar calculation
 
-  now = this->ros_node_->now();
   this->normalImgMsg.header.frame_id = this->frameName;
   this->normalImgMsg.header.stamp.sec = static_cast<int32_t>(now.seconds());
   this->normalImgMsg.header.stamp.nanosec = static_cast<uint32_t>(now.nanoseconds() % 1000000000);
@@ -1330,8 +1356,6 @@ void MultibeamSonarSensor::Implementation::ComputeSonarImage()
   img_bridge.toImageMsg(this->normalImgMsg);
   // from cv_bridge to sensor_msgs::Image
   this->normalImagePub->publish(this->normalImgMsg);
-
-  this->lock_.unlock();
 }
 
 }  // namespace sensors

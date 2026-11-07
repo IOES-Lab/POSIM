@@ -57,11 +57,20 @@ without `manifest.json` as a completed build.
 ## Run a separate process and inspect loading
 
 ```bash
-# Configure POSIM resource paths / ROS environment for this same engine first.
+# Load POSIM model/world paths and the ROS environment for this same engine first.
+export GZ_SIM_SYSTEM_PLUGIN_PATH="${GZ_SIM_SYSTEM_PLUGIN_PATH:+$GZ_SIM_SYSTEM_PLUGIN_PATH:}$ENGINE_PREFIX/lib/gz-sim-10/plugins"
+export GZ_SIM_PHYSICS_ENGINE_PATH="${GZ_SIM_PHYSICS_ENGINE_PATH:+$GZ_SIM_PHYSICS_ENGINE_PATH:}$ENGINE_PREFIX/lib/gz-physics-9/engine-plugins"
+export GZ_RENDERING_PLUGIN_PATH="${GZ_RENDERING_PLUGIN_PATH:+$GZ_RENDERING_PLUGIN_PATH:}$ENGINE_PREFIX/lib/gz-rendering-10/engine-plugins"
+export GZ_RENDERING_RESOURCE_PATH="${GZ_RENDERING_RESOURCE_PATH:+$GZ_RENDERING_RESOURCE_PATH:}$ENGINE_PREFIX/share/gz/gz-rendering"
+export OGRE2_RESOURCE_PATH="${OGRE2_RESOURCE_PATH:+$OGRE2_RESOURCE_PATH:}$ENGINE_PREFIX/lib/OGRE-Next:$ENGINE_PREFIX/share/OGRE-Next"
 python3 extras/ogre/run_overlay.py --overlay "$WORK/overlay" --trace-loads -- \
   "$ENGINE_PREFIX/libexec/gz/sim10/gz-sim-server" \
   -r --render-engine-server-api-backend metal /absolute/path/to/world.sdf
 ```
+
+The resource paths above let Gazebo find the installed Metal renderer and its
+shaders. They are needed even when the patched Ogre core loads successfully.
+Existing component paths remain first in each search list.
 
 The launch wrapper checks both installed and overlay hashes before executing.
 It preserves caller-supplied component overlay paths **ahead of the installed

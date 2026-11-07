@@ -1,0 +1,2 @@
+# Linux build tools and Docker contexts require consistent text line endings.
+* text=auto eol=lf

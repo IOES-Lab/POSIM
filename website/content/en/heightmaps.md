@@ -2,6 +2,10 @@
 
 A heightmap represents terrain as a regular grid of elevations. Configure visual and collision geometry together so the seabed seen by a camera agrees with the surface used for contact.
 
+## Where to run this guide
+
+Use the Linux terminals prepared in [Prepare your terminals](terminals.md). This applies to native Ubuntu, Ubuntu in WSL, and POSIM containers. On macOS, use the Linux terminal inside the RDP desktop. Edit and build inside that environment; `POSIM_WS` is its workspace path.
+
 ## Example terrain
 
 Use [Santorini](https://github.com/IOES-Lab/POSIM/blob/main/models/posim_worlds/worlds/posim_Santorini.world) for a geographic scene and [graded seabed](https://github.com/IOES-Lab/POSIM/blob/main/models/posim_worlds/worlds/posim_graded_seabed.world) for a seabed scene. Santorini uses the Fuel model `Santorini Scaled`.
@@ -38,4 +42,4 @@ Rebuild and source the workspace after adding resources. Launch the new world fr
 
 ## Check collision placement on Jetty
 
-Validate vertical placement with a falling-body contact test. A nonzero `<heightmap><pos>` can affect the rendered terrain without producing the same collision offset with the selected physics backend. Keep the heightmap offset at zero and apply the common translation in the enclosing model pose when this occurs. Check visual and collision alignment again before using the terrain.
+Validate vertical placement with a falling-body contact test and a camera or depth sensor. On Jetty, a nonzero `<heightmap><pos>` can affect the rendered terrain without producing the same collision offset. Moving the translation to the enclosing model pose can also leave the two surfaces misaligned, so verify both placements with your renderer and physics backend. If they still disagree, use a terrain geometry or backend that passes the contact and visual checks before running navigation experiments.

@@ -1,8 +1,48 @@
-# 소나 빌드와 성능
+# 소나 설정과 실험
 
-멀티빔 소나는 CUDA를 사용합니다. NVIDIA 드라이버·CUDA 컴파일러와 런타임·cuFFT·cuBLAS·Gazebo 렌더링을 준비하세요.
+소나 실험에 필요한 관측 범위, 세부 표현과 갱신율을 선택합니다. 빠른 시작, SDF 구성과 설정값의 정의는 [멀티빔 소나 참고 문서](sonar.md)에 있습니다. 이 가이드는 설정별 결과를 비교하고 CUDA 실행 환경을 준비하는 방법을 설명합니다.
+
+## 이 문서를 실행할 위치
+
+[터미널 준비](terminals.md)에서 설정한 Linux 터미널을 사용합니다. NVIDIA GPU가 있는 Ubuntu 또는 지원되는 WSL 2 호스트, GPU에 접근할 수 있는 컨테이너에서 진행하세요. 파일 수정과 빌드도 그 환경 안에서 수행하며, `POSIM_WS`는 해당 작업 공간의 경로입니다.
+
+macOS의 Docker·RDP 구성에서는 CUDA GPU를 사용할 수 없습니다. 이 소나는 NVIDIA GPU가 있는 Linux 또는 WSL 2 호스트에서 실행하세요.
+
+## 기준 결과 측정
+
+[BlueView P900 예제](sonar.md)를 실행하고 장면, 표적 거리와 센서 자세를 고정합니다. 처리율을 측정하기 전에 영상과 원시 관측값이 도착하는지 확인하세요. CUDA 라이브러리가 없다면 먼저 아래 도구 준비 과정을 진행합니다.
+
+같은 환경을 불러온 다른 터미널에서 영상 수신 주기를 측정합니다.
+
+```bash
+ros2 topic hz /sensor/multibeam_sonar/sonar_image
+```
+
+안정된 표본을 모은 뒤 Ctrl+C로 종료합니다. 시뮬레이션 속도도 따로 확인합니다.
+
+```bash
+gz topic -e -t /world/default/stats
+```
+
+소나 예제의 월드 엔티티 이름은 `default`입니다. 수신 주기와 함께 `real_time_factor`를 기록하세요. 시뮬레이션 시간 기준으로 요청한 30 Hz가 실제 시간에서 초당 30장의 수신을 보장하지는 않습니다. 확인 도구는 Ctrl+C로 종료합니다.
+
+## 비교 실험 선택
+
+[소나 모델](sonar.md)을 복사해 설정을 하나씩 바꾸고 작업 공간을 빌드·source한 뒤 같은 자세에서 시뮬레이션을 다시 실행합니다.
+
+| 실험 | 첫 비교 | 확인할 결과 |
+| --- | --- | --- |
+| 각도별 세부 표현 | 시야각을 유지하고 수평 빔 512개와 256개 비교 | 가까운 표적의 분리와 수신 주기 |
+| 수직 샘플링 | 수직 ray 300개와 150개 비교 | 표적의 연속성과 계산 시간 |
+| 관측 범위 | ray 범위와 `maxDistance`를 함께 변경 | 가장 먼 표적과 거리 축의 크기 |
+| 갱신율 | 30 Hz와 10 Hz 요청 비교 | 수신 주기와 시뮬레이터 실시간 비율 |
+| Ray 건너뛰기 | `raySkips` 10과 5 비교 | 수직 샘플링의 세부 표현과 계산 시간 |
+
+표의 설정으로 비교 실험을 수행해 효과를 측정합니다. 처리율을 측정할 때는 `writeLog`와 `debugFlag`를 끄고, 원시 관측값이나 처리 시간을 조사할 때 따로 켜세요. 실행마다 SDF, POSIM 커밋, GPU·툴킷 버전과 관측값을 보관합니다. 토픽 기록은 [센서 데이터 보기와 기록](visualization.md)를 참고하세요.
 
 ## 도구 확인
+
+[멀티빔 소나 플러그인](sonar.md)에는 NVIDIA 드라이버·CUDA 컴파일러와 런타임·cuFFT·cuBLAS·Gazebo 렌더링이 필요합니다.
 
 소나를 실행할 컴퓨터 또는 컨테이너 안에서 확인합니다.
 
@@ -11,19 +51,19 @@ nvidia-smi
 nvcc --version
 ```
 
-GPU 접근과 컴파일러 설치는 각각 확인합니다. 컨테이너에서는 호스트의 [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html)과 이미지 안의 라이브러리를 모두 준비해야 합니다.
+GPU 접근과 컴파일러 설치는 각각 확인합니다. Linux의 Docker Engine은 호스트에 [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html)을 설정합니다. Windows에서는 [Docker Desktop의 WSL 2 GPU 설정](https://docs.docker.com/desktop/features/gpu/)을 따르세요. 컨테이너 이미지 안에도 CUDA 라이브러리가 필요합니다.
 
 ## CUDA 아키텍처 선택
 
-소나 CMake에는 기본값이 `60`인 `CUDA_ARCHITECTURE` 변수가 있습니다. GPU와 CUDA 툴킷에서 지원하는 SM 버전을 선택한 뒤 작업 공간에서 다시 빌드합니다.
+CMake의 `CMAKE_CUDA_ARCHITECTURES`에 GPU와 툴킷이 지원하는 SM 버전을 지정합니다. 다음 예제는 SM 75용으로 빌드합니다. `75`를 자신의 GPU 아키텍처로 바꾼 뒤 환경을 불러온 작업 공간에서 실행하세요.
 
 ```bash
 colcon build --merge-install --executor sequential --symlink-install \
-  --cmake-args -DCUDA_ARCHITECTURE=YOUR_GPU_SM
+  --cmake-args -DCMAKE_CUDA_ARCHITECTURES=75
 source install/setup.bash
 ```
 
-`YOUR_GPU_SM`을 해당 아키텍처 숫자로 바꿉니다. 툴킷이 오래된 타깃 지원을 종료했을 수 있으므로 지원 목록을 확인하세요. 이 프로젝트의 단수형 변수와 CMake의 `CMAKE_CUDA_ARCHITECTURES`는 구분합니다.
+`nvcc --list-gpu-code`로 툴킷의 지원 타깃을 확인합니다. 아키텍처 설정을 생략하면 CMake는 컴파일러의 기본값을 사용합니다. CUDA가 여러 개 설치되어 있으면 `-DCUDAToolkit_ROOT=/path/to/cuda`로 사용할 툴킷을 선택하세요. 셸에서 `nvcc`를 실행할 때는 해당 툴킷의 `bin` 디렉터리를 `PATH`에 포함합니다.
 
 ## 설치 타깃 확인
 
@@ -51,7 +91,7 @@ test -f "$(ros2 pkg prefix multibeam_sonar_system)/lib/multibeam_sonar_system/li
 | `raySkips` | 샘플링과 계산량의 균형 |
 | 센서 `update_rate` | 설정한 센서 갱신 빈도 |
 | `writeLog`, `debugFlag` | 디스크·콘솔 출력 부하 |
-| 센서 이득(gain) | 영상 표현. 물리적 반사 강도와 구분 |
+| `blazingSonarImage` | 변화하는 난수 시드와 고정 시드 1234의 반복성 비교 |
 
 같은 장면·자세에서 프레임 처리 시간, 수신 토픽 주기, Gazebo 실시간 비율, CPU·GPU와 메모리 사용량을 기록합니다. 물리 계산, 렌더링, CUDA 계산, 발행과 기록 비용을 구분하세요. 측정 전에 렌더러를 충분히 실행합니다.
 

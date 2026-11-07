@@ -40,7 +40,7 @@ class UsblTransceiver : public gz::sim::System,
 {
 public:
   UsblTransceiver();
-  ~UsblTransceiver() override = default;
+  ~UsblTransceiver() override;
 
   void Configure(
     const gz::sim::Entity & entity, const std::shared_ptr<const sdf::Element> & sdf,

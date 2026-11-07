@@ -7,11 +7,11 @@ It supports any model with a named antenna link; vehicle mounts and receiver
 defaults are in `config/profiles.json`. BlueROV mounts are optional and disabled
 by default. The WAM-V model requires the external Wave Sim `wam-v` model.
 
-Build:
+Build from the configured POSIM workspace root:
 
 ```sh
 source /opt/ros/lyrical/setup.bash
-colcon build --packages-select posim_gz_gnss posim_robot_models
+colcon build --merge-install --packages-select posim_gz_gnss posim_robot_models
 source install/setup.bash
 ```
 
@@ -20,6 +20,9 @@ The model plugin accepts the receiver keys in the profile plus `enabled`,
 `water_level` plane. A nonempty wave topic requires a fresh periodic sampled
 heightfield (version 1, count, tile X/Y, wind speed/angle, steepness, simulation
 time, row-major heights). Wind metadata does not gate reception.
+Receiver settings must be finite. A heightfield needs an integer count from
+2 to 256, count-squared heights, finite positive tile sizes and a finite
+timestamp within the preceding 0.6 simulation seconds.
 
 ## Atomic measurement
 

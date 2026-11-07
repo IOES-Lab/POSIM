@@ -60,7 +60,7 @@ Build the `underwater-settings-test`, `underwater-render-test` and
 Metal or headless Ogre2 context and run separately.
 
 ```sh
-python tests/verify_particles.py \
+python3 tests/verify_particles.py \
   --binary build/underwater-particle-render-test \
   --sdk /absolute/matching-sdk \
   --renderer-dir build \

@@ -2,6 +2,8 @@
 
 POSIM includes object descriptions for manipulation, inspection and interaction. Models are installed by the `posim_object_models` package alongside their mesh and configuration resources.
 
+Run the commands in the [POSIM terminal for your installation](terminals.md), including WSL, Docker and RDP environments.
+
 ## Explore the catalog
 
 Local descriptions are installed with POSIM. Other task objects are referenced from Gazebo Fuel by the example worlds. The local catalog is generated from `models/posim_object_models/description` in the current checkout. Open a directory to inspect its SDF, links, joints and resources.
@@ -12,7 +14,7 @@ Local descriptions are installed with POSIM. Other task objects are referenced f
 
 ```bash
 ros2 launch posim_demos posim_world.launch.py \
-  world_name:=posim_plug_and_socket headless:=true
+  world_name:=posim_plug_and_socket headless:=false
 ```
 
 Other task scenes include `posim_electrical_mating` and `posim_bimanual_example`. These worlds load a blowout preventer panel, male and female plugs, and submerged vases from Fuel for inspection and manipulation experiments. The world SDF records each asset URI and placement. Read it before selecting robot placement, contact or joint-control experiments.
@@ -43,7 +45,7 @@ With the workspace sourced, start the packaged `mossy_cinder_block`.
 
 ```bash
 ros2 launch posim_demos posim_object.launch.py \
-  namespace:=mossy_cinder_block paused:=false gui:=false headless:=true
+  namespace:=mossy_cinder_block paused:=false gui:=true headless:=false
 ```
 
 The object launch starts its own world. To combine it with another example, compose the scene using world `<include>` elements.

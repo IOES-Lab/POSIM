@@ -2,15 +2,18 @@
 #include <gz/msgs/fluid_pressure.pb.h>
 #include <algorithm>
 #include <chrono>
+#include <cmath>
 #include <geometry_msgs/msg/point_stamped.hpp>
 #include <gz/math/Pose3.hh>
 #include <gz/math/Vector3.hh>
 #include <gz/msgs/Utility.hh>
 #include <gz/plugin/Register.hh>
 #include <gz/sim/System.hh>
+#include <gz/sim/Util.hh>
 #include <gz/sim/World.hh>
 #include <gz/sim/components/CustomSensor.hh>
 #include <gz/sim/components/Link.hh>
+#include <gz/sim/components/Model.hh>
 #include <gz/sim/components/Name.hh>
 #include <gz/sim/components/ParentEntity.hh>
 #include <gz/sim/components/Pose.hh>
@@ -18,6 +21,7 @@
 #include <gz/sim/components/World.hh>
 #include <gz/transport/Node.hh>
 #include <memory>
+#include <rclcpp/expand_topic_or_service_name.hpp>
 #include <rclcpp/rclcpp.hpp>
 #include <sensor_msgs/msg/fluid_pressure.hpp>
 
@@ -32,18 +36,19 @@ namespace posim_gz_sensor_plugins
 struct SubseaPressureSensorPlugin::PrivateData
 {
 public:
-  double saturation;
-  gz::sim::EntityComponentManager * ecm = nullptr;
+  double saturation = 3000.0;
+  bool configured = false;
+  bool measurementReady = false;
+  std::chrono::steady_clock::duration measurementTime{0};
   std::chrono::steady_clock::duration lastMeasurementTime{0};
   bool hasMeasurement = false;
-  bool estimateDepth;
+  bool estimateDepth = true;
   double standardPressure = 101.325;
   double kPaPerM = 9.80638;
   std::shared_ptr<gz::transport::Node> gazeboNode;
   gz::transport::Node::Publisher gz_pressure_sensor_pub;
   rclcpp::Publisher<sensor_msgs::msg::FluidPressure>::SharedPtr ros_pressure_sensor_pub;
   rclcpp::Publisher<geometry_msgs::msg::PointStamped>::SharedPtr ros_depth_estimate_pub;
-  std::shared_ptr<rclcpp::Node> rosNode;
   std::string robotNamespace;
   std::string topic;
   double noiseAmp = 0.0;
@@ -51,8 +56,7 @@ public:
   double updateRate = 0.0;
   double inferredDepth = 0.0;
   double pressure = 0.0;
-  std::string modelName;
-  gz::sim::Entity modelEntity;
+  gz::sim::Entity modelEntity = gz::sim::kNullEntity;
 };
 
 SubseaPressureSensorPlugin::SubseaPressureSensorPlugin() : dataPtr(std::make_unique<PrivateData>())
@@ -65,97 +69,86 @@ void SubseaPressureSensorPlugin::Configure(
   const gz::sim::Entity & _entity, const std::shared_ptr<const sdf::Element> & _sdf,
   gz::sim::EntityComponentManager & _ecm, gz::sim::EventManager & _eventManager)
 {
-  if (!rclcpp::ok())
-  {
-    rclcpp::init(0, nullptr, rclcpp::InitOptions(), rclcpp::SignalHandlerOptions::None);
-  }
-
-  gzdbg << "posim_gz_sensor_plugins::SubseaPressureSensorPlugin::Configure on entity: " << _entity
-        << std::endl;
-
-  // Initialize the ROS 2 node
-  this->rosNode = std::make_shared<rclcpp::Node>("subsea_pressure_sensor");
-
-  // Initialize the Gazebo node
-  this->dataPtr->gazeboNode = std::make_shared<gz::transport::Node>();
-
-  if (!_sdf->HasElement("namespace"))
+  this->dataPtr = std::make_unique<PrivateData>();
+  this->rosNode.reset();
+  if (!_sdf || !_sdf->HasElement("namespace"))
   {
     gzerr << "Missing required parameter <namespace>, "
           << "plugin will not be initialized." << std::endl;
     return;
   }
   this->dataPtr->robotNamespace = _sdf->Get<std::string>("namespace");
-
-  if (_sdf->HasElement("topic"))
+  this->dataPtr->topic = _sdf->Get<std::string>("topic", "sea_pressure").first;
+  bool parsed = true;
+  const auto parameter = [&](const char * key, auto defaultValue)
   {
-    this->dataPtr->topic = _sdf->Get<std::string>("topic");
+    sdf::Errors errors;
+    const auto value = _sdf->Get<decltype(defaultValue)>(errors, key, defaultValue);
+    parsed = parsed && errors.empty() && (!_sdf->HasElement(key) || value.second);
+    if (!errors.empty())
+    {
+      gzerr << "Invalid pressure parameter <" << key << ">." << std::endl;
+    }
+    return value.first;
+  };
+  this->dataPtr->saturation = parameter("saturation", 3000.0);
+  this->dataPtr->estimateDepth = parameter("estimate_depth_on", true);
+  this->dataPtr->standardPressure = parameter("standard_pressure", 101.325);
+  this->dataPtr->kPaPerM = parameter("kPa_per_meter", 9.80638);
+  this->dataPtr->updateRate = parameter("update_rate", 0.0);
+  if (
+    !_ecm.Component<gz::sim::components::Model>(_entity) ||
+    !_ecm.Component<gz::sim::components::Pose>(_entity))
+  {
+    gzerr << "The pressure plugin must be attached to a model with a pose." << std::endl;
+    return;
   }
-  else
+  if (
+    !parsed || !std::isfinite(this->dataPtr->standardPressure) ||
+    this->dataPtr->standardPressure < 0.0 || !std::isfinite(this->dataPtr->kPaPerM) ||
+    this->dataPtr->kPaPerM <= 0.0 || !std::isfinite(this->dataPtr->updateRate))
   {
-    this->dataPtr->topic = "sea_pressure";
-  }
-
-  if (_sdf->HasElement("saturation"))
-  {
-    this->dataPtr->saturation = _sdf->Get<double>("saturation");
-  }
-  else
-  {
-    this->dataPtr->saturation = 3000;
-  }
-
-  if (_sdf->HasElement("estimate_depth_on"))
-  {
-    this->dataPtr->estimateDepth = _sdf->Get<bool>("estimate_depth_on");
-  }
-  else
-  {
-    this->dataPtr->estimateDepth = true;
-  }
-
-  if (_sdf->HasElement("standard_pressure"))
-  {
-    this->dataPtr->standardPressure = _sdf->Get<double>("standard_pressure");
-  }
-  else
-  {
-    this->dataPtr->standardPressure = 101.325;
-  }
-
-  if (_sdf->HasElement("kPa_per_meter"))
-  {
-    this->dataPtr->kPaPerM = _sdf->Get<double>("kPa_per_meter");
-  }
-  else
-  {
-    this->dataPtr->kPaPerM = 9.80638;
+    gzerr << "Pressure parameters must be finite, with standard_pressure >= 0 and "
+             "kPa_per_meter > 0."
+          << std::endl;
+    return;
   }
 
-  if (_sdf->HasElement("update_rate"))
+  std::string outputTopic;
+  try
   {
-    this->dataPtr->updateRate = std::max(0.0, _sdf->Get<double>("update_rate"));
+    outputTopic = rclcpp::expand_topic_or_service_name(
+      "/model/" + this->dataPtr->robotNamespace + "/" + this->dataPtr->topic,
+      "subsea_pressure_sensor", "/");
+  }
+  catch (const rclcpp::exceptions::InvalidTopicNameError & error)
+  {
+    gzerr << "Invalid pressure namespace/topic: " << error.what() << std::endl;
+    return;
   }
 
-  // this->dataPtr->gazeboNode->Init();
-  this->dataPtr->modelEntity = GetModelEntity(this->dataPtr->robotNamespace, _ecm);
+  if (!rclcpp::ok())
+  {
+    rclcpp::init(0, nullptr, rclcpp::InitOptions(), rclcpp::SignalHandlerOptions::None);
+  }
+  this->rosNode = std::make_shared<rclcpp::Node>("subsea_pressure_sensor");
+  this->dataPtr->gazeboNode = std::make_shared<gz::transport::Node>();
+  this->dataPtr->modelEntity = _entity;
 
   this->dataPtr->ros_pressure_sensor_pub =
     this->rosNode->create_publisher<sensor_msgs::msg::FluidPressure>(
-      "model/" + this->dataPtr->robotNamespace + "/" + this->dataPtr->topic,
-      rclcpp::QoS(10).reliable());
+      outputTopic, rclcpp::QoS(10).reliable());
 
   if (this->dataPtr->estimateDepth)
   {
     this->dataPtr->ros_depth_estimate_pub =
       this->rosNode->create_publisher<geometry_msgs::msg::PointStamped>(
-        "model/" + this->dataPtr->robotNamespace + "/" + this->dataPtr->topic + "_depth",
-        rclcpp::QoS(10).reliable());
+        outputTopic + "_depth", rclcpp::QoS(10).reliable());
   }
 
   this->dataPtr->gz_pressure_sensor_pub =
-    this->dataPtr->gazeboNode->Advertise<gz::msgs::FluidPressure>(
-      "model/" + this->dataPtr->robotNamespace + "/" + this->dataPtr->topic);
+    this->dataPtr->gazeboNode->Advertise<gz::msgs::FluidPressure>(outputTopic);
+  this->dataPtr->configured = static_cast<bool>(this->dataPtr->gz_pressure_sensor_pub);
 }
 //////////////////////////////////////////
 
@@ -164,8 +157,10 @@ gz::sim::Entity SubseaPressureSensorPlugin::GetModelEntity(
 {
   gz::sim::Entity modelEntity = gz::sim::kNullEntity;
 
-  ecm.Each<gz::sim::components::Name>(
-    [&](const gz::sim::Entity & entity, const gz::sim::components::Name * nameComp) -> bool
+  ecm.Each<gz::sim::components::Model, gz::sim::components::Name>(
+    [&](
+      const gz::sim::Entity & entity, const gz::sim::components::Model *,
+      const gz::sim::components::Name * nameComp) -> bool
     {
       if (nameComp->Data() == modelName)
       {
@@ -184,7 +179,7 @@ gz::math::Pose3d SubseaPressureSensorPlugin::GetModelPose(
   const auto * poseComp = ecm.Component<gz::sim::components::Pose>(modelEntity);
   if (poseComp)
   {
-    return poseComp->Data();
+    return gz::sim::worldPose(modelEntity, ecm);
   }
   else
   {
@@ -196,8 +191,19 @@ gz::math::Pose3d SubseaPressureSensorPlugin::GetModelPose(
 void SubseaPressureSensorPlugin::PreUpdate(
   const gz::sim::UpdateInfo & _info, gz::sim::EntityComponentManager & _ecm)
 {
-  // Get model pose
+  this->dataPtr->measurementReady = false;
+  if (
+    !this->dataPtr->configured || _info.paused || _info.simTime.count() < 0 ||
+    !_ecm.Component<gz::sim::components::Model>(this->dataPtr->modelEntity) ||
+    !_ecm.Component<gz::sim::components::Pose>(this->dataPtr->modelEntity))
+  {
+    return;
+  }
   gz::math::Pose3d sea_pressure_sensor_pos = GetModelPose(this->dataPtr->modelEntity, _ecm);
+  if (!sea_pressure_sensor_pos.IsFinite())
+  {
+    return;
+  }
   // POSIM worlds use ENU with the water surface at z=0.
   const double depth = std::max(0.0, -sea_pressure_sensor_pos.Z());
   this->dataPtr->pressure = this->dataPtr->standardPressure + depth * this->dataPtr->kPaPerM;
@@ -211,15 +217,22 @@ void SubseaPressureSensorPlugin::PreUpdate(
     this->dataPtr->inferredDepth =
       (this->dataPtr->pressure - this->dataPtr->standardPressure) / this->dataPtr->kPaPerM;
   }
+  this->dataPtr->measurementTime = _info.simTime;
+  this->dataPtr->measurementReady =
+    std::isfinite(this->dataPtr->pressure * 1000.0) && std::isfinite(this->dataPtr->inferredDepth);
 }
 
 void SubseaPressureSensorPlugin::PostUpdate(
   const gz::sim::UpdateInfo & _info, const gz::sim::EntityComponentManager & _ecm)
 {
-  if (!this->rosNode || !this->dataPtr->ros_pressure_sensor_pub)
+  if (
+    !this->dataPtr->configured || !this->dataPtr->measurementReady || _info.paused ||
+    this->dataPtr->measurementTime != _info.simTime || !this->rosNode ||
+    !this->dataPtr->ros_pressure_sensor_pub)
   {
     return;
   }
+  this->dataPtr->measurementReady = false;
   const auto context = this->rosNode->get_node_base_interface()->get_context();
   if (!rclcpp::ok(context))
   {
@@ -227,13 +240,13 @@ void SubseaPressureSensorPlugin::PostUpdate(
   }
   try
   {
-    if (this->dataPtr->hasMeasurement && this->dataPtr->updateRate > 0.0)
+    if (this->dataPtr->hasMeasurement && _info.simTime >= this->dataPtr->lastMeasurementTime)
     {
-      const auto period = std::chrono::duration_cast<std::chrono::steady_clock::duration>(
-        std::chrono::duration<double>(1.0 / this->dataPtr->updateRate));
+      const double elapsed =
+        std::chrono::duration<double>(_info.simTime - this->dataPtr->lastMeasurementTime).count();
       if (
-        _info.simTime >= this->dataPtr->lastMeasurementTime &&
-        _info.simTime - this->dataPtr->lastMeasurementTime < period)
+        elapsed == 0.0 ||
+        (this->dataPtr->updateRate > 0.0 && elapsed * this->dataPtr->updateRate < 1.0))
       {
         return;
       }
@@ -251,6 +264,10 @@ void SubseaPressureSensorPlugin::PostUpdate(
 
     // Publishing Sea_Pressure and depth estimate on gazebo topic
     gz::msgs::FluidPressure gzPressureMsg;
+    gzPressureMsg.mutable_header()->mutable_stamp()->set_sec(
+      std::chrono::duration_cast<std::chrono::seconds>(_info.simTime).count());
+    gzPressureMsg.mutable_header()->mutable_stamp()->set_nsec(
+      std::chrono::duration_cast<std::chrono::nanoseconds>(_info.simTime).count() % 1000000000);
     gzPressureMsg.set_pressure(pressurePa);
     gzPressureMsg.set_variance(variancePa2);
 
