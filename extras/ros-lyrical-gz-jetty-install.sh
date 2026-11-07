@@ -75,6 +75,7 @@ sudo apt update && sudo apt install -y \
     python3-rosinstall-generator \
     python3-colcon-core \
     python3-colcon-common-extensions \
+    python3-colcon-override-check \
     python3-vcstool \
     "ros-${DIST}-desktop-full" \
     "ros-${DIST}-ros-gz" \

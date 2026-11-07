@@ -111,7 +111,8 @@ RUN export ROS_APT_SOURCE_VERSION=$(curl -s https://api.github.com/repos/ros-inf
       ros-${ROS_DISTRO}-image-view \
       ros-${ROS_DISTRO}-mavros ros-${ROS_DISTRO}-mavros-msgs \
       ros-${ROS_DISTRO}-ament-cmake-google-benchmark \
-      python3-rosdep python3-vcstool python3-colcon-common-extensions
+      python3-rosdep python3-vcstool python3-colcon-common-extensions \
+      python3-colcon-override-check
 
 # Build the tested Router backport before POSIM so its setup records this underlay.
 ENV POSIM_MAVROS_OVERLAY=/opt/posim/mavros-router

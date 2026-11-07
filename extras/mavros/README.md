@@ -30,8 +30,8 @@ and `libmavros_plugins.so` should come from this installation.
 ## Build separately for an existing installation
 
 Use a new writable workspace. Standard ROS development dependencies and the
-MAVROS dependencies must already be installed. The test build additionally
-requires `ros-lyrical-ament-cmake-google-benchmark`; install this through your
+MAVROS dependencies must already be installed. The build additionally requires
+`python3-colcon-override-check` and `ros-lyrical-ament-cmake-google-benchmark`; install these through your
 normal package-management process if missing. The helper does not run sudo.
 
 ```bash

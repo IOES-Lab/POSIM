@@ -38,6 +38,7 @@ jobs:
           apt-get update
           apt-get install -y --no-install-recommends \
             build-essential cmake curl git python3-colcon-common-extensions \
+            python3-colcon-override-check \
             ros-lyrical-mavros ros-lyrical-mavros-msgs \
             ros-lyrical-ament-cmake-google-benchmark
       - name: Build and test the default MAVROS runtime
