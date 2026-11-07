@@ -229,6 +229,11 @@ RUN apt-get update && \
     test -r /usr/share/GeographicLib/geoids/egm96-5.pgm && \
     rm -rf /var/lib/apt/lists/*
 
+RUN . "$POSIM_UNDERLAY/install/setup.sh" && \
+    test "$(ros2 pkg prefix mavros)" = "/opt/ros/$ROS_DISTRO" && \
+    python3 "$POSIM_UNDERLAY/src/posim/extras/mavros/test_library_selection.py" \
+      "/opt/ros/$ROS_DISTRO"
+
 USER $USER
 RUN mkdir -p ~/QGC && wget -O ~/QGC/QGroundControl-aarch64-DailyBuild.AppImage \
     "https://d176tv9ibo4jno.cloudfront.net/builds/master/QGroundControl-aarch64.AppImage" && \

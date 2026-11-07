@@ -56,6 +56,11 @@ WORKDIR $POSIM_WS
 RUN . "/opt/ros/${ROS_DISTRO}/setup.sh" && \
     colcon build --merge-install --executor sequential --symlink-install
 
+RUN . "$POSIM_WS/install/setup.sh" && \
+    test "$(ros2 pkg prefix mavros)" = "/opt/ros/$ROS_DISTRO" && \
+    python3 "$POSIM_WS/src/posim/extras/mavros/test_library_selection.py" \
+      "/opt/ros/$ROS_DISTRO"
+
 RUN echo "source /opt/ros/${ROS_DISTRO}/setup.bash" >> /root/.bashrc && \
     echo "source $POSIM_WS/install/setup.bash" >> /root/.bashrc && \
     echo "export PS1='\[\e[1;36m\]\u@POSIM_docker\[\e[0m\]\[\e[1;34m\](\$(hostname | cut -c1-12))\[\e[0m\]:\[\e[1;34m\]\w\[\e[0m\]\$ '" >> /root/.bashrc
