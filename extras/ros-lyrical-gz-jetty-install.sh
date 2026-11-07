@@ -75,7 +75,6 @@ sudo apt update && sudo apt install -y \
     python3-rosinstall-generator \
     python3-colcon-core \
     python3-colcon-common-extensions \
-    python3-colcon-override-check \
     python3-vcstool \
     "ros-${DIST}-desktop-full" \
     "ros-${DIST}-ros-gz" \
@@ -109,29 +108,10 @@ fi
 sudo chmod +x ardusub-ubuntu-install.sh && sudo bash ./ardusub-ubuntu-install.sh
 
 # Mavros install
-sudo apt-get -y install "ros-${DIST}-mavros" "ros-${DIST}-mavros-msgs" \
-    "ros-${DIST}-ament-cmake-google-benchmark" "ros-${DIST}-angles" \
-    "ros-${DIST}-ament-cmake-gmock" "ros-${DIST}-ament-cmake-pytest" \
-    "ros-${DIST}-ament-lint-auto" "ros-${DIST}-ament-lint-common"
+sudo apt-get -y install "ros-${DIST}-mavros" "ros-${DIST}-mavros-msgs"
 sudo mkdir -p /opt/mavros_ws && cd /opt/mavros_ws || exit
 sudo wget https://raw.githubusercontent.com/mavlink/mavros/master/mavros/scripts/install_geographiclib_datasets.sh
 sudo chmod +x install_geographiclib_datasets.sh && sudo bash ./install_geographiclib_datasets.sh
-
-# Build and test the upstream Router lifetime corrections outside the ROS packages.
-MAVROS_OVERLAY=/opt/posim/mavros-router
-if [[ -f "${POSIM_EXTRAS_DIR}/mavros/build_overlay.sh" ]]; then
-    sudo bash "${POSIM_EXTRAS_DIR}/mavros/build_overlay.sh" "$MAVROS_OVERLAY"
-else
-    MAVROS_HELPERS="$(mktemp -d)"
-    for MAVROS_HELPER in build_overlay.sh \
-        a974025818cd6101a633c8c059c1a0155132d588.patch \
-        2b788a04e69e0aaaef78b9175f816dfcc565b5a0.patch; do
-        curl -fsSL "https://raw.githubusercontent.com/IOES-Lab/POSIM/main/extras/mavros/$MAVROS_HELPER" \
-            -o "$MAVROS_HELPERS/$MAVROS_HELPER"
-    done
-    sudo bash "$MAVROS_HELPERS/build_overlay.sh" "$MAVROS_OVERLAY"
-    rm -rf "$MAVROS_HELPERS"
-fi
 
 # Fetch and build the pinned external waves during the same POSIM install.
 if [[ -n "${POSIM_EXTRAS_DIR:-}" && -f "${POSIM_EXTRAS_DIR}/install-waves.sh" ]]; then
@@ -168,10 +148,8 @@ mkdir -p "$ENV_DIR"
 cat > "$ENV_FILE" <<EOF
 if [ -n "\${ZSH_VERSION:-}" ]; then
     source /opt/ros/${DIST}/setup.zsh
-    source ${MAVROS_OVERLAY}/install/local_setup.zsh
 else
     source /opt/ros/${DIST}/setup.bash
-    source ${MAVROS_OVERLAY}/install/local_setup.bash
 fi
 export PATH=/opt/ardusub_ws/ardupilot/Tools/autotest:\$PATH
 export PATH=/opt/ardusub_ws/ardupilot/build/sitl/bin:\$PATH

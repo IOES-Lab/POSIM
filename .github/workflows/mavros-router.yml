@@ -1,5 +1,5 @@
 ---
-name: MAVROS Router backport
+name: Official MAVROS runtime
 
 # yamllint disable-line rule:truthy
 on:
@@ -20,6 +20,11 @@ on:
 permissions:
   contents: read
 
+env:
+  # Replace only after both Router fixes reach a release and Lyrical binary packages.
+  # This sentinel intentionally prevents this retirement draft from passing CI.
+  MAVROS_FIXED_VERSION: UNRELEASED
+
 jobs:
   router-tests:
     strategy:
@@ -33,27 +38,25 @@ jobs:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - name: Install the versioned ROS build dependencies
+      - name: Install the official ROS packages
         run: |
           apt-get update
           apt-get install -y --no-install-recommends \
             build-essential cmake curl git python3-colcon-common-extensions \
-            python3-colcon-override-check \
-            ros-lyrical-mavros ros-lyrical-mavros-msgs \
-            ros-lyrical-angles ros-lyrical-ament-cmake-google-benchmark \
-            ros-lyrical-ament-cmake-gmock ros-lyrical-ament-cmake-pytest \
-            ros-lyrical-ament-lint-auto ros-lyrical-ament-lint-common
-      - name: Build and test the default MAVROS runtime
-        shell: bash
-        run: |
-          bash extras/mavros/build_overlay.sh /opt/posim/mavros-router
-          source /opt/posim/mavros-router/install/setup.bash
-          test "$(ros2 pkg prefix mavros)" = /opt/posim/mavros-router/install
-      - name: Verify POSIM selects the corrected libraries in a fresh terminal
+            ros-lyrical-mavros ros-lyrical-mavros-msgs
+      - name: Require the reviewed official MAVROS release
         shell: bash
         run: |
           source /opt/ros/lyrical/setup.bash
-          source /opt/posim/mavros-router/install/local_setup.bash
+          actual="$(ros2 pkg xml mavros --tag version)"
+          if [[ "$actual" != "$MAVROS_FIXED_VERSION" ]]; then
+            echo "Awaiting the reviewed official release: expected $MAVROS_FIXED_VERSION, found $actual" >&2
+            exit 1
+          fi
+      - name: Verify POSIM selects the official libraries in a fresh terminal
+        shell: bash
+        run: |
+          source /opt/ros/lyrical/setup.bash
           colcon --log-base /tmp/posim-check/log build \
             --base-paths examples/posim_demos \
             --build-base /tmp/posim-check/build \
@@ -61,6 +64,6 @@ jobs:
             --cmake-args -DBUILD_TESTING=OFF
           env -i HOME="$HOME" PATH=/usr/bin:/bin bash -c '
             source /tmp/posim-check/install/setup.bash
-            test "$(ros2 pkg prefix mavros)" = /opt/posim/mavros-router/install
-            python3 extras/mavros/test_library_selection.py /opt/posim/mavros-router/install
+            test "$(ros2 pkg prefix mavros)" = /opt/ros/lyrical
+            python3 extras/mavros/test_library_selection.py /opt/ros/lyrical
           '

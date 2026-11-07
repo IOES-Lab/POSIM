@@ -79,13 +79,3 @@ Rispetta le versioni di SDK e sorgenti previste, usa lo strumento di compilazion
 ## Preparare una segnalazione riproducibile
 
 Includi SHA del codice o digest dell'immagine, versioni delle dipendenze, comando e argomenti, primo errore, risultato atteso, tipi dei topic interessati e un esempio minimo. Distingui un topic semplicemente trovato da uno che trasmette davvero dati.
-
-## MAVROS 2.16.0 termina con SIGSEGV
-
-Il programma di installazione di POSIM e le build Docker ufficiali includono la
-[correzione del ciclo di vita del Router](https://github.com/IOES-Lab/POSIM/tree/main/extras/mavros)
-per MAVROS 2.16.0. Dopo aver caricato l'ambiente POSIM, `ros2 pkg prefix mavros`
-deve mostrare `/opt/posim/mavros-router/install`. Per un'installazione esistente,
-segui le istruzioni per la compilazione separata disponibili al link. Se il crash
-persiste, allega alla segnalazione il log di MAVROS e i percorsi delle librerie
-effettivamente caricate.
