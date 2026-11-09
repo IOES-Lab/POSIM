@@ -69,7 +69,7 @@ Ajoutez aussi `<namespace>rexrov</namespace>` dans le plugin existant `gz-sim-hy
 
 La sortie `/model/rexrov/ocean_current` existe dans Gazebo (`gz.msgs.Vector3d`) et ROS (`geometry_msgs/msg/TwistStamped`). Contrôlez cette sortie et la réponse du véhicule.
 
-La profondeur vient de la position du modèle dans le monde ; elle vaut zéro au-dessus de l'eau. Le courant est interpolé entre les couches et prend la valeur de la couche la plus proche hors du profil. La pause ou une date de simulation répétée ne fait pas avancer le calcul. Un message de base de données invalide est rejeté entièrement ; le dernier profil valide reste actif.
+La profondeur vient de la position du modèle dans le monde ; elle vaut zéro au-dessus de l'eau. Le courant est interpolé entre les couches et prend la valeur de la couche la plus proche hors du profil. La pause ou un horodatage de simulation répété ne fait pas avancer le calcul. Un message de base de données invalide est rejeté entièrement ; le dernier profil valide reste actif.
 
 ## Systèmes et topics
 

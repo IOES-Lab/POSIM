@@ -15,7 +15,7 @@ Choose your installation route in [Choose an environment](requirements.md), then
 
 ## Library components
 
-Use [Features & examples](features.md) to find environment effects, sensors, robot integrations with their source and usage guides.
+Use [Features & examples](features.md) to find environment effects, sensors and robot integrations, along with their source and usage guides.
 
 | Component | Purpose | Guide |
 | --- | --- | --- |

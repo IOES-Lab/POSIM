@@ -68,7 +68,7 @@ WWW-POSIM verwendet diesen öffentlichen Renderer und ergänzt ein eigenes Einst
 
 ## Modellgrenzen und Vergleich
 
-Der Unterwasserweg nutzt eine mittlere Ebene bei **z = 0 m** und folgt nicht einzelnen Wellenkämmen. Kaustiken und Teilchen sind visuelle Näherungen ohne kalibrierte Partikelkonzentrationen oder optisches Sensorrauschen.
+Die Berechnung der Lichtweglänge unter Wasser verwendet eine mittlere Meeresspiegelebene bei **z = 0 m** und folgt nicht einzelnen Wellenkämmen. Kaustiken und Teilchen sind visuelle Näherungen ohne kalibrierte Partikelkonzentrationen oder optisches Sensorrauschen.
 
 Lokale Lampen behalten direkte Beleuchtung. Himmelsstrahlen werden unter Wasser gedämpft; unbeleuchtete Materialien und eigene Shader der Wasseroberfläche behalten ihr Rendering. Die Wellenunterseite hängt daher vom Oberflächenmaterial ab.
 

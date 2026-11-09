@@ -48,7 +48,7 @@ On macOS the libraries have the `.dylib` suffix. Use one instance per Gazebo pro
 - Contours: 5 m, adjustable from 1 to 50 m.
 - Turning water optics off preserves texture and measurement-overlay selections.
 
-Seabed visuals are named `seabed` or `shallow` (including Gazebo scoped names). Terrain exports supply their PBR maps. Texture detail and measurement overlays affect these visuals below sea level. The legacy `UnderwaterCamera` compatibility output passes native-colored pixels through when `POSIM_UNDERWATER_PLUGIN` is set. Hosts should enable this flag only when they install the native system, and surface renderer failures to users.
+Seabed visuals are named `seabed` or `shallow` (including Gazebo scoped names). Terrain exports supply their PBR maps. Texture detail and measurement overlays affect these visuals below sea level. The legacy `UnderwaterCamera` compatibility output passes native-colored pixels through when `POSIM_UNDERWATER_PLUGIN` is set. Hosts should enable this flag only when they install the native system, and report renderer failures to users.
 
 `underwater-settings-test` covers configuration and water-path boundaries. `underwater-render-test SHADER_DIRECTORY OUTPUT_DIRECTORY SAND_MAP_DIRECTORY` renders RGB and RGBD comparisons and requires byte-identical depth across settings. Run it in a configured Gazebo environment with the sand maps distributed by POSIM-Terrain.
 

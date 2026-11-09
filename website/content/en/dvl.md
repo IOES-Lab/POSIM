@@ -19,7 +19,7 @@ gz topic -e -t /dvl/velocity
 ros2 topic echo /dvl/velocity posim_interfaces/msg/DVL --once
 ```
 
-Stop the Gazebo viewer before the ROS command. Match the topic to your descriptor if you create a new sensor.
+Match the topic to your descriptor if you create a new sensor.
 
 ## SDF integration
 

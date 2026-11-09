@@ -19,7 +19,7 @@ gz topic -e -t /dvl/velocity
 ros2 topic echo /dvl/velocity posim_interfaces/msg/DVL --once
 ```
 
-Gazebo 확인 도구를 종료한 뒤 ROS 명령을 실행합니다. 새 센서를 만들었다면 모델의 토픽 이름에 맞춥니다.
+새 센서를 만들었다면 모델의 토픽 이름에 맞춥니다.
 
 ## SDF 구성
 

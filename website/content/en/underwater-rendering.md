@@ -1,6 +1,6 @@
 # Underwater scene effects
 
-POSIM's `posim_gz_rendering` applies water-path haze, RGB absorption, depth-dependent sunlight, seabed caustics and suspended specks to Ogre2 PBR surfaces. The specks resemble marine snow: sparse, animated bright particles seen through water. They are available in the public POSIM source and start **off**.
+POSIM's `posim_gz_rendering` applies water-path haze, RGB absorption, depth-dependent sunlight, seabed caustics and suspended specks to Ogre2 PBR surfaces. The specks resemble marine snow: sparse, animated bright particles seen through water. They are available in the public POSIM source and are **off** by default.
 
 The Gazebo scene, RGB cameras and RGBD color share this rendering path. Numeric depth and collision geometry remain unchanged. Use [underwater camera](camera.md) for the separate depth-based image attenuation plugin.
 

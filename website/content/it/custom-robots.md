@@ -38,7 +38,7 @@ Mantieni la meccanica copiata per il primo avvio. Quando modifichi lo scafo, con
 | `link/visual`, `link/collision` | m, rad | Scala e allineamento delle geometrie |
 | `joint/axis`, impostazioni dei propulsori | secondo il plugin | Direzione degli attuatori e ripartizione delle forze |
 
-STL fornisce la geometria. Definisci massa e dinamica nell'SDF e controlla unità e scala della mesh. Segui gli URI installati degli esempi. Scegli collisioni semplici quando il dettaglio visivo rende inutilmente costoso il contatto.
+STL fornisce la geometria. Definisci massa e dinamica nell'SDF e controlla unità e scala della mesh. Segui gli URI installati degli esempi. Scegli forme di collisione semplici quando il dettaglio visivo rende inutilmente oneroso il calcolo dei contatti.
 
 ## 3. Collegare sistemi e ROS
 
@@ -54,7 +54,7 @@ Dallo spazio di lavoro con l'ambiente caricato:
 
 {{CODE:custom-robots:3}}
 
-Prova ogni asse con comandi piccoli e verifica anche l'avvio da fuori della directory sorgente:
+Prova ogni asse con comandi di piccola ampiezza e verifica anche l'avvio da fuori della directory sorgente:
 
 - Percorsi delle risorse installate.
 - Massa, inerzia e posa di equilibrio.

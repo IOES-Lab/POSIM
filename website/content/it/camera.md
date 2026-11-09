@@ -38,7 +38,7 @@ La conversione da profondità a distanza lungo il raggio usa prima la proiezione
 
 ## Sincronizzazione e valori di esempio
 
-Colore e profondità vengono abbinati tramite il timestamp di acquisizione, indipendentemente dall'ordine di arrivo. ROS conserva timestamp e identificatore del sistema di riferimento dell'immagine a colori. Quando il buffer è pieno, i fotogrammi senza corrispondenza vengono scartati. Il reset del tempo simulato svuota quelli in attesa e permette di ripartire.
+Colore e profondità vengono abbinati tramite il timestamp di acquisizione, indipendentemente dall'ordine di arrivo. ROS conserva timestamp e identificatore del sistema di riferimento dell'immagine a colori. Quando il buffer è pieno, i fotogrammi senza corrispondenza vengono scartati. Il reset del tempo simulato scarta i fotogrammi in attesa e permette ai timestamp di ripartire.
 
 L'esempio richiede **320 × 240 a 10 Hz**, attenuazione RGB **0.8/0.5/0.2** e sfondo **85/107/47**. Il SDF sostituisce i valori predefiniti del codice.
 
@@ -54,7 +54,7 @@ Il [renderer di scena](underwater-rendering.md) applica effetti comuni a superfi
 
 Il renderer può mostrare particelle nelle immagini a colori RGB/RGBD. Sono inizialmente disattivate: attivale tramite il [servizio per l'aspetto della scena](underwater-rendering.md#turn-on-marine-snow).
 
-- Le camere condividono le stesse posizioni delle particelle nel mondo. Queste derivano uniformemente con il tempo simulato, indipendentemente dalle correnti.
+- Le camere condividono le stesse posizioni delle particelle nel mondo. Queste si spostano alla deriva in modo uniforme con il tempo simulato, indipendentemente dalle correnti.
 - Le superfici opache le nascondono. Sono visibili tra **0.05 e 3 m**, entro i limiti della scena e del livello medio dell'acqua.
 - Profondità numerica e raggi acustici conservano i propri valori.
 

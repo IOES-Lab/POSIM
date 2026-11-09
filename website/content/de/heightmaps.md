@@ -37,4 +37,4 @@ Bauen und laden Sie den Arbeitsbereich nach neuen Ressourcen erneut. Starten Sie
 - Kontakt mit einem kontrollierten Fallversuch.
 - Meeresspiegel und Starthöhe des Roboters.
 
-Unter Jetty kann ein von null verschiedenes `<heightmap><pos>` die Darstellung verschieben, ohne die Kollision gleich zu versetzen. Auch eine Verschiebung über die Modellpose kann Abweichungen lassen. Prüfen Sie beides mit Ihrem Renderer und Physik-Backend. Bleiben Unterschiede, wählen Sie vor Navigationsversuchen eine Geometrie oder ein Backend, das Kontakt- und Darstellungsprüfung besteht.
+Unter Jetty kann ein von null verschiedenes `<heightmap><pos>` die Darstellung verschieben, ohne die Kollision gleich zu versetzen. Auch nach einer Verschiebung über die Modellpose können Abweichungen bestehen bleiben. Prüfen Sie beides mit Ihrem Renderer und Physik-Backend. Bleiben Unterschiede, wählen Sie vor Navigationsversuchen eine Geometrie oder ein Backend, das Kontakt- und Darstellungsprüfung besteht.

@@ -8,7 +8,7 @@ DVL 估计相对于海底或周围水体的速度。POSIM 使用 Gazebo DVL 系�
 
 {{CODE:dvl:0}}
 
-在准备好的终端 B 中先查看 Gazebo 数据，按 **Ctrl+C** 停止查看，再读取 ROS：
+在准备好的终端 B 中先查看 Gazebo 数据，按 **Ctrl+C** 停止查看，再读取 ROS 数据：
 
 {{CODE:dvl:1}}
 

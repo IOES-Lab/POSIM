@@ -32,7 +32,7 @@ Cambia un ajuste en una copia del [descriptor](sonar.md#sensor-configuration), r
 | Actualización | 30 frente a 10 Hz | Frecuencia recibida y factor de tiempo real |
 | Salto de rayos | `raySkips` de 10 frente a 5 | Detalle vertical y coste de cálculo |
 
-Mide el resultado de cada comparación. Desactiva `writeLog` y `debugFlag` al medir rendimiento; actívalos por separado para estudiar retornos o tiempos. Guarda SDF, revisión POSIM, versiones GPU/CUDA y observaciones. [guía de datos de sensores](visualization.md) explica la grabación de tópicos.
+Mide el resultado de cada comparación. Desactiva `writeLog` y `debugFlag` al medir rendimiento; actívalos por separado para estudiar retornos o tiempos. Guarda SDF, revisión POSIM, versiones GPU/CUDA y observaciones. La [guía de datos de sensores](visualization.md) explica la grabación de tópicos.
 
 ## Preparar las herramientas
 

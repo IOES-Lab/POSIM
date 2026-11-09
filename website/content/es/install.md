@@ -10,7 +10,7 @@ Mantén el nombre `posim` para que coincida con el manifiesto de repositorios.
 
 ## 2. Instalar ROS, Gazebo y las dependencias
 
-Lee primero `src/posim/extras/ros-lyrical-gz-jetty-install.sh`. El asistente configura repositorios, usa `sudo` y ejecuta `apt-get full-upgrade -y`. Se recomienda un entorno Ubuntu dedicado.
+Lee primero `src/posim/extras/ros-lyrical-gz-jetty-install.sh`. El script configura repositorios, usa `sudo` y ejecuta `apt-get full-upgrade -y`. Se recomienda un entorno Ubuntu dedicado.
 
 {{CODE:install:1}}
 
