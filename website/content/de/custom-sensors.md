@@ -14,7 +14,7 @@ Nutzen Sie die [vorbereiteten Linux-Terminals](terminals.md) unter nativem Ubunt
 | [Unterwasserkamera](camera.md) | RGBD-Sensor und Effekt-Plugin | Sensors-System mit Renderer und Kamera-Topics |
 | [DVL](dvl.md) | DVL-Sensor und Strahlkonfiguration | DVL-System und mitgelieferte Bridge für Akustiknachrichten |
 | [Druck](pressure.md) | Plugin direkt unter `model` | Direkte ROS-Ausgabe von Druck und Tiefe |
-| [Marine-GNSS](gnss.md) | Empfänger-Plugin am Modell | Konfigurierte ROS-Ausgaben des Empfängers |
+| [Marine-GNSS](gnss.md) | Empfänger-Plugin am Modell | Gazebo-Nachrichten vom Typ `gz.msgs.Double_V`; für ROS ist ein separater Adapter erforderlich |
 | [USBL](usbl.md) | Transceiver- und Transponder-Plugins | Passende akustische IDs und ROS-Schnittstellen |
 | [Multibeam-Sonar](sonar.md) | Benutzerdefinierter Sensor unter einem Link | Sensors-Renderer, Multibeam-Weltsystem und CUDA |
 

@@ -14,7 +14,7 @@ Ubuntu ネイティブ、WSL、Docker の[準備済み Linux ターミナル](te
 | [水中カメラ](camera.md) | RGBD センサーと画像効果プラグイン | 描画エンジンを使う Sensors システム、カメラトピック |
 | [DVL](dvl.md) | DVL センサーとビーム設定 | DVL システム、付属の音響メッセージブリッジ |
 | [圧力](pressure.md) | `model` 直下のプラグイン | 圧力と深度を ROS に直接出力 |
-| [海洋 GNSS](gnss.md) | ロボットモデルの受信機プラグイン | 設定した受信機の ROS 出力 |
+| [海洋 GNSS](gnss.md) | ロボットモデルの受信機プラグイン | Gazebo の `gz.msgs.Double_V` メッセージ。ROS への接続には別途アダプターが必要 |
 | [USBL](usbl.md) | 送受信器とトランスポンダーのプラグイン | 対応する音響 ID と ROS インターフェース |
 | [マルチビームソナー](sonar.md) | リンク下のカスタムセンサー | Sensors の描画、ワールドのマルチビームシステム、CUDA |
 
