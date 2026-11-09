@@ -53,7 +53,7 @@ Vuelve a **Fly View** y pulsa la vista previa del vídeo para ampliarla.
 
 {{MEDIA:qgroundcontrol}}
 
-La cámara genera imágenes de **640 × 480 a 5 Hz de tiempo simulado**. El renderizado por software puede reducir la velocidad real. BlueROV2 tiene flotabilidad positiva y puede ascender sin armar los motores, dejando los objetos fuera de la imagen.
+La cámara genera imágenes de **640 × 480 a 5 Hz en tiempo simulado**. El renderizado por software puede ralentizar la simulación y reducir la frecuencia de imágenes mostrada. BlueROV2 tiene flotabilidad positiva y puede ascender sin armar los motores, dejando los objetos fuera de la imagen.
 
 `qgc_video:=true` añade el emisor H.264 a esta ejecución. Transmite la cámara RGB normal; el [filtro de cámara submarina](camera.md) tiene una salida ROS independiente.
 

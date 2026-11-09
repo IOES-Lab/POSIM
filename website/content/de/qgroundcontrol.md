@@ -53,7 +53,7 @@ Wechseln Sie zu **Fly View** und klicken Sie auf die Videovorschau, um sie zu ve
 
 {{MEDIA:qgroundcontrol}}
 
-Die Kamera liefert **640 × 480 Pixel bei 5 Hz Simulationszeit**. Software-Rendering kann die tatsächliche Bildrate verringern. BlueROV2 hat positiven Auftrieb: Auch bei deaktivierten Antrieben kann es aufsteigen, sodass die Objekte aus dem Bild verschwinden.
+Die Kamera liefert Bilder mit **640 × 480 Pixeln bei 5 Hz bezogen auf die Simulationszeit**. Software-Rendering kann die tatsächliche Bildrate verringern. BlueROV2 hat positiven Auftrieb: Auch bei deaktivierten Antrieben kann es aufsteigen, sodass die Objekte aus dem Bild verschwinden.
 
 `qgc_video:=true` fügt für diesen Start einen H.264-Sender hinzu. Er überträgt die normale RGB-Kamera; der [Unterwasserkamerafilter](camera.md) besitzt einen eigenen ROS-Ausgang.
 

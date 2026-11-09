@@ -42,7 +42,7 @@ USBL（超短基線方式）は音響信号で水中機器の位置を求めま�
 | `transceiver_model` | トランスポンダー | 位置取得に使う送受信機のモデル名。必須 |
 | `sound_speed` | 両方 | 10 °C、z = 0 での基準音速、m/s。`1540`。有限かつ正 |
 | `enable_ping_scheduler` | 送受信機 | 必須の真偽値。`false` なら手動で ping を送信 |
-| `ping_frequency` | 送受信機 | シミュレーション時刻での周波数、Hz。`1`、例は `0.5`。有限かつ正 |
+| `ping_frequency` | 送受信機 | シミュレーション時間を基準とした要求頻度、Hz。`1`、例は `0.5`。有限かつ正 |
 | `interrogation_mode` | 送受信機 | `common` または `individual`。既定は `common` |
 | `mu`, `sigma` | トランスポンダー | 位置ノイズの平均・標準偏差、m。既定は `0` と `1`、例は `0` と `0`。有限、sigma ≥ 0 |
 
