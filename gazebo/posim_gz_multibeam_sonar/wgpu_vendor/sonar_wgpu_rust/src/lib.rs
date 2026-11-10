@@ -29,8 +29,8 @@ struct BackscatterParams {
     h_fov: f32,
     v_fov: f32,
     use_area_weights: u32,
-    _pad1: u32,
-    _pad2: u32,
+    phase_scale_hi: f32, // Physical mode reuses the legacy padding.
+    phase_scale_lo: f32,
 }
 
 #[repr(C)]
@@ -344,6 +344,20 @@ unsafe fn compute_impl(
         return std::ptr::null_mut();
     }
 
+    // Preserve the physical frequency-step quotient beyond f32 precision before
+    // multiplying by range and frequency index in WGSL. The shader reduces the
+    // compensated product in cycles before applying 2*pi.
+    let phase_scale = if physical {
+        2.0 * f64::from(bandwidth) / (f64::from(sound_speed) * f64::from(n_freq))
+    } else {
+        0.0
+    };
+    let phase_scale_hi = phase_scale as f32;
+    let phase_scale_lo = (phase_scale - f64::from(phase_scale_hi)) as f32;
+    if physical && (!phase_scale_hi.is_finite() || phase_scale_hi <= 0.0) {
+        return std::ptr::null_mut();
+    }
+
     // ---- Per-frame uniform buffers (tiny, always recreated) ----
     let backscatter_params = BackscatterParams {
         n_beams,
@@ -364,8 +378,8 @@ unsafe fn compute_impl(
         h_fov,
         v_fov,
         use_area_weights: u32::from(physical),
-        _pad1: 0,
-        _pad2: 0,
+        phase_scale_hi,
+        phase_scale_lo,
     };
     let bs_param_buf = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
         label: Some("bs_param"),

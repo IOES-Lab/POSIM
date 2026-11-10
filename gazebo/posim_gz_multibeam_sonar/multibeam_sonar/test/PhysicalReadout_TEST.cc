@@ -3,6 +3,7 @@
 #include "PhysicalPulse.hh"
 #include "PhysicalSonarInput.hh"
 
+#include <array>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
@@ -330,6 +331,101 @@ void LargeRanges(ComputeBackend & backend)
   }
 }
 
+// Evaluate the physical equation independently in double, not through the CPU
+// implementation: CPU/WGPU agreement alone can hide shared large-phase errors.
+std::complex<double> ReferenceNoise(uint64_t seed, uint64_t frame)
+{
+  std::array<uint32_t, 4> c{uint32_t(frame), uint32_t(frame >> 32), 0, 0};
+  uint32_t k0 = uint32_t(seed), k1 = uint32_t(seed >> 32);
+  for (int round = 0; round < 10; ++round)
+  {
+    const uint64_t a = uint64_t(0xD2511F53u) * c[0];
+    const uint64_t b = uint64_t(0xCD9E8D57u) * c[2];
+    c = {uint32_t(b >> 32) ^ c[1] ^ k0, uint32_t(b), uint32_t(a >> 32) ^ c[3] ^ k1, uint32_t(a)};
+    k0 += 0x9E3779B9u;
+    k1 += 0xBB67AE85u;
+  }
+  const double radius = std::sqrt(-2. * std::log((double(c[0]) + .5) / 4294967296.));
+  const double angle = 2. * M_PI * ((double(c[1]) + .5) / 4294967296.);
+  return radius * std::complex<double>(std::sin(angle), std::cos(angle)) / std::sqrt(2.);
+}
+
+void IndependentFarRanges(ComputeBackend & backend)
+{
+  double maximum = 0;
+  for (int ranges : {4096, 4097, 8193})
+  {
+    const float bandwidth = (ranges - 1) * 75.f;
+    const auto pulse = MakePhysicalPulse(10, 1500, bandwidth);
+    AcousticReadout model;
+    model.geometryColumns = model.geometryRows = 1;
+    model.elevationIndices = {0};
+    model.angularAreas = {.01f};
+    model.receiveAngles = {0, 0, 0};
+    model.pressureResponse = {1, -.5f, .25f};
+    cv::Mat depth(1, 1, CV_32F);
+    cv::Mat normal(1, 1, CV_32FC3, cv::Scalar(0, 0, .8f));
+    cv::Mat material(1, 1, CV_32F, cv::Scalar(.3f));
+    SonarComputeInput input;
+    input.depthImage = &depth;
+    input.normalImage = &normal;
+    input.reflectivityImage = &material;
+    input.physicalReadout = &model;
+    input.nBeams = 3;
+    input.nRays = 1;
+    input.nFreq = static_cast<int>(pulse.spectrum.size());
+    input.nOutputRanges = ranges;
+    input.soundSpeed = 1500;
+    input.maxDistance = 10;
+    input.bandwidth = bandwidth;
+    input.sourceLevel = 220;
+    input.attenuation = .02f;
+    input.receiveGain = 1e-7f;
+    input.seed = 73;
+    input.frameIndex = (uint64_t(1) << 33) + 20;
+    input.window = pulse.spectrum.data();
+    for (float range : {4.f, 9.999f, 10.f})
+    {
+      depth.setTo(range);
+      const auto actual = Compute(backend, input);
+      const auto amplitude =
+        ReferenceNoise(input.seed, input.frameIndex) *
+        (std::pow(10., input.sourceLevel / 20.) * 1e-6 * std::exp(-2. * input.attenuation * range) /
+         range * std::sqrt(double(.3f)) * double(.8f) * std::sqrt(double(.01f)) *
+         input.receiveGain);
+      cv::Mat spectrum(1, input.nFreq, CV_64FC2), transformed;
+      for (int f = 0; f < input.nFreq; ++f)
+      {
+        const double frequency = double(bandwidth) * ((f + .5) / input.nFreq - .5);
+        const auto value =
+          amplitude *
+          std::polar(double(pulse.spectrum[f]), 4. * M_PI * range * frequency / input.soundSpeed);
+        spectrum.at<cv::Vec2d>(0, f) = {value.real(), value.imag()};
+      }
+      cv::dft(spectrum, transformed, cv::DFT_ROWS);
+      double difference = 0, energy = 0;
+      for (int beam = 0; beam < input.nBeams; ++beam)
+      {
+        for (int k = 0; k < ranges; ++k)
+        {
+          const auto value = transformed.at<cv::Vec2d>(0, k);
+          const double sign = k % 2 ? -1. : 1.;
+          const auto expected = std::complex<double>(value[0], value[1]) *
+                                std::polar(1., -M_PI * k / input.nFreq) *
+                                (sign * model.pressureResponse[beam] / input.nFreq);
+          difference += std::norm(std::complex<double>(actual.At(beam, k)) - expected);
+          energy += std::norm(expected);
+        }
+      }
+      const double error = std::sqrt(difference / energy);
+      maximum = std::max(maximum, error);
+      Require(error < 3e-4, "independent f64 far-range error " + std::to_string(error));
+    }
+  }
+  std::cout << "Independent f64 physical far ranges: max relative complex error="
+            << std::setprecision(9) << maximum << '\n';
+}
+
 void Selection(const std::string & name)
 {
   Scene prototype(17, 256, 64, 4);
@@ -389,6 +485,7 @@ int main(int argc, char ** argv)
     PulseControls(*backend);
     WeakReturns(*backend);
     LargeRanges(*backend);
+    IndependentFarRanges(*backend);
     std::ofstream arrays;
     if (argc > 3)
     {
