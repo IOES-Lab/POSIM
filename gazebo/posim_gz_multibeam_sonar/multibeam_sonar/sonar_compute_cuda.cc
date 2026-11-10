@@ -25,8 +25,14 @@ CudaComputeBackend::~CudaComputeBackend()
 
 const char * CudaComputeBackend::Name() const { return "cuda"; }
 
-bool CudaComputeBackend::Initialize(const SonarComputeInput &)
+bool CudaComputeBackend::Initialize(const SonarComputeInput & input)
 {
+  // The CUDA ABI has square beam buffers and scalar cell area. Do not silently
+  // reinterpret a physical rectangular readout with those legacy semantics.
+  if (input.physicalReadout)
+  {
+    return false;
+  }
 #ifdef POSIM_HAS_CUDA_BACKEND
   int deviceCount = 0;
   const cudaError_t err = cudaGetDeviceCount(&deviceCount);
@@ -44,6 +50,10 @@ bool CudaComputeBackend::Initialize(const SonarComputeInput &)
 
 bool CudaComputeBackend::Compute(const SonarComputeInput & input, SonarComputeOutput & output)
 {
+  if (input.physicalReadout)
+  {
+    return false;
+  }
 #ifdef POSIM_HAS_CUDA_BACKEND
   if (!this->initialized)
   {

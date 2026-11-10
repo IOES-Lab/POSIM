@@ -26,7 +26,9 @@
 #include <sensor_msgs/msg/image.hpp>
 #include <sensor_msgs/msg/point_cloud2.hpp>
 #include "AcousticBeam.hh"
+#include "AcousticReadout.hh"
 #include "AxisAlignedPatch2.hh"
+#include "PerspectiveSonarGeometry.hh"
 #include "sonar_compute_backend.hh"
 
 namespace gz
@@ -147,12 +149,14 @@ private:
 
     // Sensor properties
     double maximumRange;
+    double minimumRange{0.1};
     double hFOV;
     double vFOV;
     int nRays;
     int nBeams;
     std::vector<float> elevation_angles;
-    int nFreq;
+    int nFreq;               // published range samples
+    int spectrumSamples{0};  // physical frequency quadrature, including guard
     double sonarFreq;
     double bandwidth;
     double soundSpeed;
@@ -164,6 +168,11 @@ private:
     std::vector<float> window;
     float plotScaler;
     float sensorGain;
+    float receiveGain{1.f};
+    // Immutable after setup; geometry angles stay separate from receiver directions.
+    std::unique_ptr<const AcousticReadout> physicalReadout;
+    std::unique_ptr<const PerspectiveSonarGeometry> perspectiveGeometry;
+    std::vector<float> receiveAngles;
 
     // Topics and frame names
     std::string pointCloudTopicName;
@@ -199,6 +208,9 @@ private:
 
     // OpenCV images
     cv::Mat pointCloudImage;
+    cv::Mat measuredPoints;
+    int64_t physicalRenderStamp{0};    // Protected by rayMutex.
+    int64_t physicalSnapshotStamp{0};  // Protected by lock_, with both images.
     cv::Mat reflectivityImage;
     cv::Mat randImage;
 
@@ -210,6 +222,7 @@ private:
 
     // Rendering sensors
     gz::rendering::GpuRaysPtr raySensor;
+    gz::rendering::DepthCameraPtr depthSensor;
     gz::rendering::CameraPtr imageSensor;
 
     struct
@@ -222,6 +235,9 @@ private:
     void OnNewFrame(
       const float * _scan, unsigned int _width, unsigned int _height, unsigned int _channels,
       const std::string & /*_format*/);
+    void OnNewDepthFrame(
+      const float * _scan, unsigned int _width, unsigned int _height, unsigned int _channels,
+      const std::string & _format);
     void ComputeSonarImage();
     cv::Mat ComputeNormalImage(cv::Mat & depth);
     void ComputeCorrector(int _snapshotWidth, int _nBeams);
@@ -263,6 +279,7 @@ private:
 
     // Logging
     std::ofstream writeLog;
+    std::string logDirectory;
     u_int64_t writeCounter{0};
     u_int64_t writeNumber{1};
     u_int64_t writeInterval;

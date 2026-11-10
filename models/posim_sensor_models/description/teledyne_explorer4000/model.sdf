@@ -91,7 +91,7 @@
         <geometry>
           <mesh>
             <scale>1 1 1</scale>
-            <!-- Mesh is actually for a Teledyne Explorer4000 for now -->
+            <!-- Mesh represents a Teledyne Explorer4000 -->
             <uri>model://meshes/teledyne_explorer4000/MarineExplorer.dae</uri>
           </mesh>
         </geometry>

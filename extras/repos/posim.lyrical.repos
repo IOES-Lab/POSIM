@@ -15,3 +15,10 @@ repositories:
     type: git
     url: https://github.com/IOES-Lab/POSIM.git
     version: main
+
+  # Lyrical bridge lifetime fixes plus the POSIX launch fix from ros_gz #980.
+  # Pin the tested source while that launch PR awaits upstream integration.
+  ros_gz:
+    type: git
+    url: https://github.com/yeseorizi/ros_gz.git
+    version: c38a35deaaba29380665949872023a5998f24222

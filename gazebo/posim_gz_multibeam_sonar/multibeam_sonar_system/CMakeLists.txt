@@ -1,7 +1,8 @@
-cmake_minimum_required(VERSION 3.11.0 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.18 FATAL_ERROR)
 project(multibeam_sonar_system)
 
 find_package(ament_cmake REQUIRED)
+find_package(multibeam_sonar REQUIRED)
 find_package(gz-cmake 5 REQUIRED)
 find_package(gz-common 7 REQUIRED COMPONENTS profiler)
 find_package(gz-plugin 4 REQUIRED COMPONENTS register)
@@ -17,19 +18,13 @@ if(TARGET gz-rendering::ogre2)
   add_definitions(-DWITH_OGRE2)
 endif()
 
-add_subdirectory(../multibeam_sonar ${CMAKE_BINARY_DIR}/multibeam_sonar)
-
 add_library(${PROJECT_NAME} SHARED MultibeamSonarSystem.cc)
 target_link_libraries(${PROJECT_NAME}
   gz-common::gz-common
   gz-plugin::gz-plugin
   gz-sim::gz-sim
   gz-sensors::gz-sensors
-  multibeam_sonar
-)
-target_include_directories(${PROJECT_NAME}
-  PUBLIC
-    ../multibeam_sonar
+  multibeam_sonar::multibeam_sonar
 )
 
 install(TARGETS ${PROJECT_NAME}

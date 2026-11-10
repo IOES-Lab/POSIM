@@ -3,6 +3,8 @@
 #import <Cocoa/Cocoa.h>
 #endif
 #include <chrono>
+#include <cmath>
+#include <cstring>
 #include <gz/common/Event.hh>
 #include <gz/rendering/Geometry.hh>
 #include <gz/rendering/Material.hh>
@@ -63,6 +65,13 @@ int main(int argc, char ** argv)
       return 4;
     }
     auto config = *root.Model()->LinkByIndex(0)->SensorByIndex(0);
+    const auto settings = config.Element()->GetElement("gz:multibeam_sonar");
+    const bool physical =
+      settings->GetElement("spec")->Get<double>("receiveBeamWidth", 0.).first > 0;
+    const auto expectedBeams = settings->GetElement("ray")
+                                 ->GetElement("scan")
+                                 ->GetElement("horizontal")
+                                 ->Get<unsigned>("beams");
     config.SetTopic(
       "/sonar_lifecycle_" +
       std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
@@ -117,22 +126,49 @@ int main(int argc, char ** argv)
     rclcpp::executors::SingleThreadedExecutor executor(options);
     executor.add_node(observer);
     std::set<int64_t> stamps;
+    std::set<int64_t> imageStamps;
     int64_t minimumStamp = 0;
     bool valid = true;
+    bool finiteReturn = false;
     auto sub = observer->create_subscription<marine_acoustic_msgs::msg::ProjectedSonarImage>(
       config.Topic() + "/sonar_image_raw", rclcpp::SensorDataQoS(),
       [&](marine_acoustic_msgs::msg::ProjectedSonarImage::ConstSharedPtr msg)
       {
         valid &=
-          msg->image.beam_count > 0 && !msg->ranges.empty() &&
+          msg->image.beam_count == expectedBeams && !msg->ranges.empty() &&
           msg->image.data.size() == msg->image.beam_count * msg->ranges.size() * sizeof(float);
         const int64_t stamp =
           int64_t(msg->header.stamp.sec) * 1000000000 + msg->header.stamp.nanosec;
         if (stamp > minimumStamp)
         {
           stamps.insert(stamp);
+          for (size_t offset = 0; offset + sizeof(float) <= msg->image.data.size();
+               offset += sizeof(float))
+          {
+            float value;
+            std::memcpy(&value, msg->image.data.data() + offset, sizeof(value));
+            finiteReturn |= std::isfinite(value);
+          }
         }
       });
+    // Preserve the legacy raw-only subscription control. The physical fixture
+    // additionally checks that display and raw messages retain paired stamps.
+    rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr imageSub;
+    if (physical)
+    {
+      imageSub = observer->create_subscription<sensor_msgs::msg::Image>(
+        config.Topic() + "/sonar_image", rclcpp::SensorDataQoS(),
+        [&](sensor_msgs::msg::Image::ConstSharedPtr msg)
+        {
+          valid &= msg->width > 0 && msg->height > 0 && !msg->data.empty();
+          const int64_t stamp =
+            int64_t(msg->header.stamp.sec) * 1000000000 + msg->header.stamp.nanosec;
+          if (stamp > minimumStamp)
+          {
+            imageStamps.insert(stamp);
+          }
+        });
+    }
     auto sensor = std::make_unique<gz::sensors::MultibeamSonarSensor>();
     gz::sensors::WorldState state;
     if (!sensor->Load(config))
@@ -146,16 +182,29 @@ int main(int argc, char ** argv)
     {
       for (auto camera : sensor->RenderingSensors())
       {
+        valid &= camera->LocalPose() == config.RawPose();
         scene->RootVisual()->AddChild(camera);
       }
     };
     auto collect = [&](const char * phase)
     {
       stamps.clear();
+      imageStamps.clear();
+      finiteReturn = false;
       minimumStamp = sim;
+      auto paired = [&]()
+      {
+        size_t count = 0;
+        for (auto stamp : stamps)
+        {
+          count += imageStamps.count(stamp);
+        }
+        return count;
+      };
       bool updated = true;
       const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(8);
-      while (stamps.size() < 3 && std::chrono::steady_clock::now() < deadline)
+      while ((stamps.size() < 3 || (physical && paired() < 3)) &&
+             std::chrono::steady_clock::now() < deadline)
       {
         sim += 500000000;
         updated = static_cast<gz::sensors::Sensor *>(sensor.get())
@@ -173,7 +222,8 @@ int main(int argc, char ** argv)
                 << ",\"has_connections\":" << sensor->HasConnections()
                 << ",\"a_sensors\":" << a->SensorCount() << ",\"b_sensors\":" << b->SensorCount()
                 << "}" << std::endl;
-      return updated && stamps.size() >= 3 && valid;
+      return updated && stamps.size() >= 3 && valid &&
+             (!physical || (paired() >= 3 && finiteReturn));
     };
     sensor->SetScene(a);
     attach(a);
@@ -206,6 +256,7 @@ int main(int argc, char ** argv)
     passed &= a->SensorCount() == 0 && b->SensorCount() == 0;
     executor.remove_node(observer);
     sub.reset();
+    imageSub.reset();
     observer.reset();
     context->shutdown("control complete");
     engine->DestroyScene(a);

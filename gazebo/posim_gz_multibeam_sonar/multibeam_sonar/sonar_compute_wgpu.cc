@@ -1,15 +1,25 @@
 #include "sonar_compute_wgpu.hh"
+#include "PhysicalSonarInput.hh"
 
 #include <algorithm>
 #include <chrono>
 #include <complex>
 #include <cstdint>
 #include <iostream>
+#include <limits>
 #include <vector>
 
 extern "C"
 {
   bool sonar_wgpu_dimensions_supported(uint32_t n_beams, uint32_t n_rays, uint32_t n_freq);
+  bool sonar_wgpu_dimensions_supported_v2(
+    uint32_t n_geometry, uint32_t n_selected_rays, uint32_t n_receivers, uint32_t n_freq);
+  float * sonar_wgpu_compute_v2(
+    const float * depth, const float * normal, const float * reflectivity,
+    const float * angular_area, const float * pressure_response, const float * window,
+    uint32_t n_geometry, uint32_t n_selected_rays, uint32_t n_receivers, uint32_t n_freq,
+    float sound_speed, float max_distance, float source_level, float attenuation,
+    float receive_gain, float bandwidth, uint64_t frame_index, uint64_t seed, bool debug_flag);
 
   float * sonar_wgpu_compute(
     const float * depth_flat, const float * normal_flat, const float * reflectivity_flat,
@@ -40,7 +50,7 @@ bool WgpuComputeBackend::Initialize(const SonarComputeInput & prototype)
     return false;
   }
   if (
-    prototype.nFreq > 0 &&
+    !prototype.physicalReadout && prototype.nFreq > 0 &&
     (prototype.nBeams <= 0 || prototype.nRays <= 0 ||
      !sonar_wgpu_dimensions_supported(prototype.nBeams, prototype.nRays, prototype.nFreq)))
   {
@@ -48,6 +58,22 @@ bool WgpuComputeBackend::Initialize(const SonarComputeInput & prototype)
     std::cerr << "[sonar_wgpu] Sensor dimensions exceed GPU buffer or dispatch resources."
               << std::endl;
     return false;
+  }
+  if (prototype.physicalReadout)
+  {
+    // Exercise v2 with its actual shape and transform length. An adapter-only
+    // legacy probe cannot establish physical-model or exact-length support.
+    this->initialized = true;
+    SonarComputeOutput probeOutput;
+    this->initialized = this->Compute(prototype, probeOutput);
+    if (!this->initialized)
+    {
+      std::cerr << "[sonar_wgpu] Physical readout probe failed (geometry "
+                << prototype.physicalReadout->geometryColumns << " x " << prototype.nRays
+                << ", receivers " << prototype.nBeams << ", frequencies " << prototype.nFreq
+                << "). Check backend transform support and input parameters." << std::endl;
+    }
+    return this->initialized;
   }
   // Probe the Rust FFI to check if a GPU adapter is available. If it is not, report failure
   // so the factory can pick another backend instead of silently computing on the CPU.
@@ -78,6 +104,51 @@ bool WgpuComputeBackend::Compute(const SonarComputeInput & input, SonarComputeOu
   if (!this->initialized)
   {
     return false;
+  }
+
+  if (input.physicalReadout)
+  {
+    const auto & model = *input.physicalReadout;
+    if (
+      model.geometryColumns <= 0 || model.elevationIndices.empty() || input.nBeams <= 0 ||
+      input.nFreq <= 0 || model.elevationIndices.size() > std::numeric_limits<uint32_t>::max() ||
+      !sonar_wgpu_dimensions_supported_v2(
+        model.geometryColumns, static_cast<uint32_t>(model.elevationIndices.size()), input.nBeams,
+        input.nFreq))
+    {
+      return false;
+    }
+    const auto start = std::chrono::steady_clock::now();
+    PackedPhysicalSonar cells;
+    if (!PackPhysicalSonar(input, cells))
+    {
+      return false;
+    }
+    float * result = sonar_wgpu_compute_v2(
+      cells.depth.data(), cells.normal.data(), cells.reflectivity.data(), cells.angularArea.data(),
+      input.physicalReadout->pressureResponse.data(), input.window, cells.geometryColumns,
+      cells.selectedRows, input.nBeams, input.nFreq, input.soundSpeed, input.maxDistance,
+      input.sourceLevel, input.attenuation, input.receiveGain, input.bandwidth, input.frameIndex,
+      input.seed, input.debugFlag);
+    if (!result)
+    {
+      return false;
+    }
+    output.nBeams = input.nBeams;
+    output.nFreq = input.nOutputRanges ? input.nOutputRanges : input.nFreq;
+    output.beamSpectrum.resize(size_t(input.nBeams) * output.nFreq);
+    for (int beam = 0; beam < input.nBeams; ++beam)
+    {
+      for (int range = 0; range < output.nFreq; ++range)
+      {
+        const size_t i = size_t(beam) * input.nFreq + range;
+        output.At(beam, range) = {result[2 * i], result[2 * i + 1]};
+      }
+    }
+    sonar_wgpu_free(result, size_t(input.nBeams) * input.nFreq * 2);
+    output.computeMicros =
+      std::chrono::duration<double, std::micro>(std::chrono::steady_clock::now() - start).count();
+    return true;
   }
 
   if (!input.depthImage || !input.normalImage || !input.reflectivityImage)

@@ -1,8 +1,24 @@
+// Copyright (c) 2016 The dave Simulator Authors.
+// All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 // Standard Library Headers
 #include <algorithm>
 #include <chrono>
 #include <functional>
 #include <iostream>
+#include <limits>
 #include <memory>
 #include <string>
 #include <vector>
@@ -39,8 +55,44 @@ GZ_ADD_PLUGIN(
 
 namespace posim_ros_gz_plugins
 {
+namespace
+{
+// Validate the global model and every affected layer before changing live state.
+bool UpdateModelWithLayers(
+  posim_gz_world_plugins::GaussMarkovProcess & global,
+  std::vector<std::vector<posim_gz_world_plugins::GaussMarkovProcess>> & layers, size_t component,
+  const posim_interfaces::srv::SetCurrentModel::Request & request, double lowerBound,
+  double upperBound)
+{
+  auto candidate = global;
+  if (
+    request.min < lowerBound || request.max > upperBound ||
+    !candidate.SetModel(request.mean, request.min, request.max, request.mu, request.noise))
+  {
+    return false;
+  }
+  auto layerCandidates = layers;
+  for (auto & layer : layerCandidates)
+  {
+    if (layer.size() <= component)
+    {
+      return false;
+    }
+    auto & model = layer[component];
+    if (!model.SetModel(model.mean, request.min, request.max, request.mu, request.noise))
+    {
+      return false;
+    }
+  }
+  global = candidate;
+  layers = std::move(layerCandidates);
+  return true;
+}
+}  // namespace
+
 struct OceanCurrentPlugin::PrivateData
 {
+  bool configured = false;
   // Time management
   std::chrono::steady_clock::duration lastUpdate{0};
 
@@ -141,8 +193,6 @@ void OceanCurrentPlugin::Configure(
     return;
   }
 
-  // Access the "real" currentHorzAngleModel
-  auto & horzModel = worldPlugin->sharedDataPtr->currentHorzAngleModel;
   // Set the topic for the stratified current velocity database
   this->dataPtr->stratifiedCurrentVelocityDatabaseTopic =
     "stratified_current_velocity_topic_database";
@@ -156,8 +206,7 @@ void OceanCurrentPlugin::Configure(
     this->dataPtr->model_namespace = "hydrodynamics";
   }
 
-  // Reinitialize the ROS 2 node with the model namespace // TODO: Do we need this confirm with
-  // woen-sug : )
+  // Create the ROS 2 node in the model namespace.
 
   this->dataPtr->rosNode =
     std::make_shared<rclcpp::Node>("underwater_current_ros_plugin", this->dataPtr->model_namespace);
@@ -263,6 +312,7 @@ void OceanCurrentPlugin::Configure(
       "set_stratified_current_vert_angle", std::bind(
                                              &OceanCurrentPlugin::UpdateStratVertAngle, this,
                                              std::placeholders::_1, std::placeholders::_2));
+  this->dataPtr->configured = true;
 }
 
 /////////////////////////////////////////////////
@@ -296,7 +346,9 @@ bool OceanCurrentPlugin::UpdateStratHorzAngle(
   auto & stratifiedDatabase = worldPlugin->sharedDataPtr->stratifiedDatabase;
   auto & stratifiedCurrentModels = worldPlugin->sharedDataPtr->stratifiedCurrentModels;
 
-  if (_req->layer >= stratifiedDatabase.size())
+  if (
+    _req->layer >= stratifiedDatabase.size() || _req->layer >= stratifiedCurrentModels.size() ||
+    stratifiedCurrentModels[_req->layer].size() != 3)
   {
     _res->success = false;
     return true;
@@ -346,7 +398,9 @@ bool OceanCurrentPlugin::UpdateStratVertAngle(
   auto & stratifiedDatabase = worldPlugin->sharedDataPtr->stratifiedDatabase;
   auto & stratifiedCurrentModels = worldPlugin->sharedDataPtr->stratifiedCurrentModels;
 
-  if (_req->layer >= stratifiedDatabase.size())
+  if (
+    _req->layer >= stratifiedDatabase.size() || _req->layer >= stratifiedCurrentModels.size() ||
+    stratifiedCurrentModels[_req->layer].size() != 3)
   {
     _res->success = false;
     return true;
@@ -372,11 +426,16 @@ bool OceanCurrentPlugin::UpdateCurrentVelocity(
   auto & currentHorzAngleModel = worldPlugin->sharedDataPtr->currentHorzAngleModel;
   auto & currentVertAngleModel = worldPlugin->sharedDataPtr->currentVertAngleModel;
 
+  auto velocity = currentVelModel;
+  auto horizontal = currentHorzAngleModel;
+  auto vertical = currentVertAngleModel;
   if (
-    currentVelModel.SetMean(_req->velocity) &&
-    currentHorzAngleModel.SetMean(_req->horizontal_angle) &&
-    currentVertAngleModel.SetMean(_req->vertical_angle))
+    velocity.SetMean(_req->velocity) && horizontal.SetMean(_req->horizontal_angle) &&
+    vertical.SetMean(_req->vertical_angle))
   {
+    currentVelModel = velocity;
+    currentHorzAngleModel = horizontal;
+    currentVertAngleModel = vertical;
     gzmsg << "Current velocity [m/s] = " << _req->velocity << std::endl
           << "Current horizontal angle [rad] = " << _req->horizontal_angle << std::endl
           << "Current vertical angle [rad] = " << _req->vertical_angle << std::endl
@@ -406,16 +465,19 @@ bool OceanCurrentPlugin::UpdateStratCurrentVelocity(
   auto & stratifiedCurrentModels = worldPlugin->sharedDataPtr->stratifiedCurrentModels;
   auto & stratifiedDatabase = worldPlugin->sharedDataPtr->stratifiedDatabase;
 
-  if (_req->layer >= stratifiedDatabase.size())
+  if (
+    _req->layer >= stratifiedDatabase.size() || _req->layer >= stratifiedCurrentModels.size() ||
+    stratifiedCurrentModels[_req->layer].size() != 3)
   {
     _res->success = false;
     return true;
   }
+  auto candidates = stratifiedCurrentModels[_req->layer];
   if (
-    stratifiedCurrentModels[_req->layer][0].SetMean(_req->velocity) &&
-    stratifiedCurrentModels[_req->layer][1].SetMean(_req->horizontal_angle) &&
-    stratifiedCurrentModels[_req->layer][2].SetMean(_req->vertical_angle))
+    candidates[0].SetMean(_req->velocity) && candidates[1].SetMean(_req->horizontal_angle) &&
+    candidates[2].SetMean(_req->vertical_angle))
   {
+    stratifiedCurrentModels[_req->layer] = std::move(candidates);
     // Update the database values as well
     stratifiedDatabase[_req->layer].X() = cos(_req->horizontal_angle) * _req->velocity;
     stratifiedDatabase[_req->layer].Y() = sin(_req->horizontal_angle) * _req->velocity;
@@ -514,15 +576,12 @@ bool OceanCurrentPlugin::UpdateCurrentVelocityModel(
   auto & currentVelModel = worldPlugin->sharedDataPtr->currentVelModel;
   auto & stratifiedCurrentModels = worldPlugin->sharedDataPtr->stratifiedCurrentModels;
 
-  _res->success = currentVelModel.SetModel(
-    std::max(0.0, _req->mean), std::min(0.0, _req->min), std::max(0.0, _req->max), _req->mu,
-    _req->noise);
-
-  for (int i = 0; i < stratifiedCurrentModels.size(); i++)
+  _res->success = UpdateModelWithLayers(
+    currentVelModel, stratifiedCurrentModels, 0, *_req, 0.0,
+    std::numeric_limits<double>::infinity());
+  if (!_res->success)
   {
-    posim_gz_world_plugins::GaussMarkovProcess & model = stratifiedCurrentModels[i][0];  //(updated)
-    model.SetModel(
-      model.mean, std::max(0.0, _req->min), std::max(0.0, _req->max), _req->mu, _req->noise);
+    return true;
   }
 
   gzmsg << "Current velocity model updated" << std::endl
@@ -546,13 +605,10 @@ bool OceanCurrentPlugin::UpdateCurrentHorzAngleModel(
   auto & horzModel = worldPlugin->sharedDataPtr->currentHorzAngleModel;
   auto & stratifiedCurrentModels = worldPlugin->sharedDataPtr->stratifiedCurrentModels;
 
-  _res->success = horzModel.SetModel(_req->mean, _req->min, _req->max, _req->mu, _req->noise);
-
-  for (int i = 0; i < stratifiedCurrentModels.size(); i++)
+  _res->success = UpdateModelWithLayers(horzModel, stratifiedCurrentModels, 1, *_req, -M_PI, M_PI);
+  if (!_res->success)
   {
-    posim_gz_world_plugins::GaussMarkovProcess & model = stratifiedCurrentModels[i][1];
-    model.SetModel(
-      model.mean, std::max(-M_PI, _req->min), std::min(M_PI, _req->max), _req->mu, _req->noise);
+    return true;
   }
 
   gzmsg << "Horizontal angle model updated" << std::endl
@@ -575,8 +631,13 @@ bool OceanCurrentPlugin::UpdateCurrentVertAngleModel(
 
   auto & currentVertAngleModel = worldPlugin->sharedDataPtr->currentVertAngleModel;
 
-  _res->success =
-    currentVertAngleModel.SetModel(_req->mean, _req->min, _req->max, _req->mu, _req->noise);
+  _res->success = UpdateModelWithLayers(
+    currentVertAngleModel, worldPlugin->sharedDataPtr->stratifiedCurrentModels, 2, *_req,
+    -M_PI / 2.0, M_PI / 2.0);
+  if (!_res->success)
+  {
+    return true;
+  }
 
   gzmsg << "Vertical angle model updated" << std::endl
         << "\tWARNING: Current velocity calculated in the ENU frame" << std::endl;
@@ -588,7 +649,7 @@ bool OceanCurrentPlugin::UpdateCurrentVertAngleModel(
 void OceanCurrentPlugin::PostUpdate(
   const gz::sim::UpdateInfo & _info, const gz::sim::EntityComponentManager & _ecm)
 {
-  if (!this->dataPtr->rosNode)
+  if (!this->dataPtr->configured || !this->dataPtr->rosNode)
   {
     return;
   }
@@ -643,7 +704,8 @@ void OceanCurrentPlugin::PostUpdate(
   {
     auto flowVelMsg = geometry_msgs::msg::TwistStamped();
 
-    flowVelMsg.header.stamp = this->dataPtr->rosNode->get_clock()->now();
+    flowVelMsg.header.stamp = rclcpp::Time(
+      std::chrono::duration_cast<std::chrono::nanoseconds>(_info.simTime).count(), RCL_ROS_TIME);
     flowVelMsg.header.frame_id = "world";
 
     flowVelMsg.twist.linear.x = sharedPtr->currentVelocity.X();
@@ -656,7 +718,8 @@ void OceanCurrentPlugin::PostUpdate(
   // Generate and publish stratified current velocity
   auto stratCurrentVelocityMsg = posim_interfaces::msg::StratifiedCurrentVelocity();
 
-  stratCurrentVelocityMsg.header.stamp = this->dataPtr->rosNode->get_clock()->now();
+  stratCurrentVelocityMsg.header.stamp = rclcpp::Time(
+    std::chrono::duration_cast<std::chrono::nanoseconds>(_info.simTime).count(), RCL_ROS_TIME);
   stratCurrentVelocityMsg.header.frame_id = "world";
 
   // Updating for stratified behaviour of Ocean Currents

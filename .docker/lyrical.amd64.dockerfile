@@ -4,6 +4,7 @@ FROM osrf/ros:${ROS_DISTRO}-desktop-full
 ARG ROS_DISTRO="lyrical"
 ENV ROS_DISTRO=${ROS_DISTRO}
 ENV DEBIAN_FRONTEND=noninteractive
+ENV POSIM_MAVROS_OVERLAY=/opt/posim/mavros-router
 
 # The installer expects sudo even when the image build runs as root.
 RUN apt-get update && \
@@ -25,8 +26,12 @@ RUN mkdir -p /opt/QGC && cd /opt/QGC && \
     chmod +x QGroundControl-x86_64.AppImage && \
     ./QGroundControl-x86_64.AppImage --appimage-extract && \
     mv squashfs-root/* /opt/QGC/ && \
-    rm QGroundControl-x86_64.AppImage && \
-    ln -sf /opt/QGC/AppRun /usr/local/bin/qgroundcontrol
+    chmod -R a+rX /opt/QGC && \
+    rm QGroundControl-x86_64.AppImage
+
+COPY .docker/qgroundcontrol.sh /usr/local/bin/qgroundcontrol
+RUN useradd --create-home --user-group --groups dialout --shell /bin/bash posim-qgc && \
+    chmod 0755 /usr/local/bin/qgroundcontrol
 
 # Install Firefox from Mozilla.
 RUN curl -L "https://download.mozilla.org/?product=firefox-latest-ssl&os=linux64&lang=en-US" \
@@ -50,7 +55,13 @@ RUN apt-get update && \
 
 WORKDIR $POSIM_WS
 RUN . "/opt/ros/${ROS_DISTRO}/setup.sh" && \
+    . "$POSIM_MAVROS_OVERLAY/install/setup.sh" && \
     colcon build --merge-install --executor sequential --symlink-install
+
+RUN . "$POSIM_WS/install/setup.sh" && \
+    test "$(ros2 pkg prefix mavros)" = "$POSIM_MAVROS_OVERLAY/install" && \
+    python3 "$POSIM_WS/src/posim/extras/mavros/test_library_selection.py" \
+      "$POSIM_MAVROS_OVERLAY/install"
 
 RUN echo "source /opt/ros/${ROS_DISTRO}/setup.bash" >> /root/.bashrc && \
     echo "source $POSIM_WS/install/setup.bash" >> /root/.bashrc && \
@@ -60,6 +71,10 @@ RUN touch /root/.posim_entrypoint && \
     printf '\033[1;36mPOSIM - Platform for Ocean Simulation\033[0m\n' >> /root/.posim_entrypoint && \
     printf '\033[1;33mROS 2 Lyrical · Gazebo Jetty · ArduSub · MAVROS\033[0m\n\n' >> /root/.posim_entrypoint && \
     echo 'cat /root/.posim_entrypoint' >> /root/.bashrc
+
+# Direct docker exec / entrypoint commands also need the installed autopilot.
+ENV PATH=/opt/ardusub_ws/ardupilot/build/sitl/bin:/opt/ardusub_ws/ardupilot/Tools/autotest:${PATH}
+ENV GEOGRAPHICLIB_GEOID_PATH=/usr/share/GeographicLib/geoids
 
 WORKDIR /root
 

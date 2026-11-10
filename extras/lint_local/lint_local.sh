@@ -1,95 +1,80 @@
-#!/bin/bash
+#!/usr/bin/env bash
+# Check tracked source files with the same commands locally and in CI.
+set -uo pipefail
 
-# To Run this script, you need to have the following system packages installed:
-# sudo apt-get install -y python3 clang-format libxml2-utils shellcheck
-# python3 -m pip install black flake8 cmakelang
+usage() {
+  printf '%s\n' \
+    'Usage: bash extras/lint_local/lint_local.sh [CHECK]' \
+    'CHECK: all (default), black, flake8, clang-format, xml, shellcheck, yamllint, cmake-lint' \
+    'Checks are read-only. Stage new files with git add to include them.'
+}
 
-# Also, need to make this script executable
-# chmod +x lint_local.sh
+if (( $# > 1 )); then
+  usage >&2
+  exit 2
+fi
+selected=${1:-all}
+case "$selected" in
+  -h|--help) usage; exit 0 ;;
+  all|black|flake8|clang-format|xml|shellcheck|yamllint|cmake-lint) ;;
+  *) usage >&2; exit 2 ;;
+esac
 
-# This assumes that you are using LINUX system
+script_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd) || exit 2
+repo_root=$(git -C "$script_dir" rev-parse --show-toplevel) || exit 2
+cd -- "$repo_root" || exit 2
 
-# Function to check system packages
-check_system_package() {
-  dpkg -s "$1" &>/dev/null
-  # shellcheck disable=SC2181
-  if [ $? -ne 0 ]; then
-    echo -e "\033[31mMissing system package: $1\033[0m"
-    echo -e "Please install it using:\033[33m sudo apt-get install -y $1\033[0m"
-    all_dependencies_installed=false
+python_files=() cpp_files=() xml_files=() shell_files=() yaml_files=() cmake_files=()
+while IFS= read -r -d '' file; do
+  # Deleted tracked files are absent from the worktree. Prefix paths so a
+  # filename beginning with '-' cannot become a linter option.
+  [[ -f "$file" ]] || continue
+  case "$file" in
+    tools/code_check/*) ;;
+    *.py) python_files+=("./$file") ;;
+  esac
+  case "$file" in
+    *.c|*.cc|*.cpp|*.cxx|*.h|*.hh|*.hpp|*.hxx|*.m|*.mm) cpp_files+=("./$file") ;;
+    *.urdf|*.sdf|*.xacro|*.xml|*.launch|*.world) xml_files+=("./$file") ;;
+    *.sh) shell_files+=("./$file") ;;
+    *.yaml|*.yml) yaml_files+=("./$file") ;;
+    CMakeLists.txt|*/CMakeLists.txt|*.cmake) cmake_files+=("./$file") ;;
+  esac
+done < <(git ls-files -z)
+
+result=0
+run_check() {
+  local name=$1 count=$2
+  shift 2
+  [[ "$selected" == all || "$selected" == "$name" ]] || return 0
+  printf '\n%s (%s tracked files)\n' "$name" "$count"
+  if (( count == 0 )); then
+    return 0
+  fi
+  if ! command -v "$1" >/dev/null 2>&1; then
+    printf 'Missing tool: %s. See extras/lint_local/README.md.\n' "$1" >&2
+    result=1
+  elif ! "$@"; then
+    result=1
   fi
 }
 
-# Function to check python packages
-check_python_package() {
-  python3 -m pip show "$1" &>/dev/null
-  # shellcheck disable=SC2181
-  if [ $? -ne 0 ]; then
-    echo -e "\033[31mMissing Python package: $1\033[0m"
-    echo -e "Please install it using: \033[33m python3 -m pip install $1\033[0m"
-    all_dependencies_installed=false
-  fi
-}
+run_check black "${#python_files[@]}" \
+  black --check --diff --line-length 99 "${python_files[@]}"
+run_check flake8 "${#python_files[@]}" \
+  flake8 --ignore=E203,W503,E501 "${python_files[@]}"
+run_check clang-format "${#cpp_files[@]}" \
+  clang-format --dry-run --Werror --fallback-style=none "${cpp_files[@]}"
+run_check xml "${#xml_files[@]}" xmllint --nonet --noout "${xml_files[@]}"
+run_check shellcheck "${#shell_files[@]}" shellcheck "${shell_files[@]}"
+run_check yamllint "${#yaml_files[@]}" yamllint \
+  -d '{extends: default, rules: {line-length: {max: 120}, new-line-at-end-of-file: disable}}' \
+  "${yaml_files[@]}"
+run_check cmake-lint "${#cmake_files[@]}" cmake-lint "${cmake_files[@]}"
 
-echo "Checking system dependencies to run lints..."
-all_dependencies_installed=true
-
-# List of system packages to check
-system_packages=("python3" "clang-format" "libxml2-utils" "shellcheck")
-
-for package in "${system_packages[@]}"
-do
-  check_system_package "$package"
-done
-
-# Check if Python 3 is installed before checking Python packages
-if ! command -v python3 &>/dev/null; then
-  echo -e "\033[31mPython is not installed. Install to proceed.\033[0m"
+if (( result == 0 )); then
+  printf '\nAll selected checks passed.\n'
 else
-  echo "Checking Python dependencies to run lints..."
-
-  # List of Python packages to check
-  python_packages=("black" "flake8" "cmakelang")
-
-  for pypackage in "${python_packages[@]}"
-  do
-    check_python_package "$pypackage"
-  done
+  printf '\nOne or more checks failed.\n' >&2
 fi
-
-if [ "$all_dependencies_installed" = true ]; then
-    echo "Checking out the code for code format lint..."
-
-    echo -e "\033[32m[1/6] =========  Running Python Linters   ========\033[0m"
-    black . --check --line-length 100
-    flake8 . --max-line-length 100
-
-    echo -e "\033[32m[2/6] =========  Running C++ Linter    ===========\033[0m"
-    # shellcheck disable=SC2038
-    find . -iname '*.cpp' -o -iname '*.h' | xargs clang-format -i
-
-    echo -e "\033[32m[3/6] =========  Linting XML files     ===========\033[0m"
-    find . \( -iname '*.urdf' -o -iname '*.sdf' -o -iname '*.xacro' \
-      -o -iname '*.xml' -o -iname '*.launch' \) -print0 | xargs -0 xmllint --noout
-
-    echo -e "\033[32m[4/6] =========  Running ShellCheck    ===========\033[0m"
-    # shellcheck disable=SC2038
-    find . -iname '*.sh' | while read -r file; do
-      awk '{ if (length($0) > 100) \
-      printf "\033[31mError in file %s: Line %d is %d characters long \
-      (should be under 100):\n%s\n\033[0m", \
-      FILENAME, NR, length($0), $0 }' "$file"
-    done
-
-    echo -e "\033[32m[5/6] =========  Linting YAML files    ===========\033[0m"
-    find . \( -iname '*.yml' -o -iname '*.yaml' \) -print0 | xargs -0 yamllint
-
-    echo -e "\033[32m[6/6] =========  Linting CMake files   ===========\033[0m"
-    find . \( -iname 'CMakeLists.txt' -o -iname '*.cmake' \) -print0 | xargs -0 cmake-lint
-
-    # shellcheck disable=SC2028
-    echo -e "\033[32mAll linting completed. Awesome! Now, ready to make PR. 🤘🚀 \033[0m"
-else
-    echo -e "\033[31mNot all dependencies are installed. \
-    Please install the missing packages before proceeding.\033[0m"
-fi
+exit "$result"

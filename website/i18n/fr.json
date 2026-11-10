@@ -1,0 +1,155 @@
+{
+  "name": "Français",
+  "sections": [
+    "Découvrir POSIM",
+    "Bien démarrer",
+    "Guides de prise en main",
+    "Piloter les robots",
+    "Guides avancés",
+    "Référence des plugins",
+    "Références et projet"
+  ],
+  "pages": {
+    "index": "Présentation",
+    "features": "Fonctionnalités et exemples",
+    "requirements": "Choisir un environnement",
+    "install": "Ubuntu : installation native",
+    "install-ubuntu-docker": "Linux : installation avec Docker",
+    "install-windows": "Windows : installation dans WSL",
+    "install-windows-docker": "Windows : WSL et Docker",
+    "install-macos": "macOS : Docker et RDP",
+    "docker": "Environnement Docker",
+    "terminals": "Préparer les terminaux",
+    "quickstart": "Première simulation",
+    "visualization": "Visualiser et enregistrer les données des capteurs",
+    "worlds": "Bibliothèque de mondes",
+    "rovs": "ROV et BlueROV2",
+    "gliders": "Planeur Slocum",
+    "objects": "Objets et scénarios de tâches",
+    "ros": "Terminaux et topics ROS",
+    "python-control": "Commander avec Python",
+    "robot-control": "Commande des propulseurs et joystick",
+    "surface": "Robots de surface et vagues",
+    "custom-worlds": "Créer un monde",
+    "custom-robots": "Ajouter un robot",
+    "custom-sensors": "Ajouter et configurer des capteurs",
+    "heightmaps": "Terrain à partir de cartes de hauteur",
+    "sonar-tuning": "Configurer et régler le sonar",
+    "currents": "Courants marins",
+    "underwater-rendering": "Effets de la scène sous-marine",
+    "camera": "Caméra sous-marine",
+    "gnss": "GNSS marin",
+    "pressure": "Pression de l’eau",
+    "dvl": "Loch Doppler",
+    "usbl": "Positionnement USBL",
+    "coordinates": "Coordonnées géographiques",
+    "sonar": "Sonar multifaisceaux",
+    "troubleshooting": "Résolution des problèmes",
+    "contributing": "Contribuer",
+    "citation": "Citation et licences",
+    "qgroundcontrol": "Piloter avec QGroundControl"
+  },
+  "ui": {
+    "documentationLanguage": "Langue de la documentation",
+    "colorTheme": "Thème de couleur",
+    "system": "Système",
+    "light": "Clair",
+    "dark": "Sombre",
+    "skip": "Aller au contenu",
+    "utility": "Liens utiles",
+    "menu": "Menu de la documentation",
+    "search": "Rechercher dans la documentation",
+    "placeholder": "Titres, commandes, sujets",
+    "otherLanguages": "Rechercher dans toutes les langues",
+    "mobileNavigation": "Documentation mobile",
+    "documentation": "Documentation",
+    "product": "Platform for Ocean Simulation · Documentation",
+    "previousNext": "Guides précédent et suivant",
+    "previous": "Précédent",
+    "next": "Suivant",
+    "edit": "Modifier cette page",
+    "references": "Références",
+    "onThisPage": "Sur cette page",
+    "noMatches": "Aucun guide correspondant.",
+    "searchUnavailable": "Choisissez un guide dans le menu de la documentation.",
+    "copy": "Copier",
+    "copyCode": "Copier le code",
+    "copied": "Copié",
+    "textSelected": "Texte sélectionné",
+    "copyShortcut": "Utilisez votre raccourci pour copier.",
+    "videoBuffered": "Vidéo mise en mémoire tampon",
+    "retry": "Réessayer",
+    "openVideo": "Ouvrir le fichier vidéo",
+    "buffering": "Mise en mémoire tampon…",
+    "loading": "Chargement de la vidéo…",
+    "videoFailed": "Impossible de charger la vidéo.",
+    "sourceDirectories": "Répertoires du code source"
+  },
+  "media": {
+    "camera": [
+      "Scène Gazebo avec caméra sous-marine",
+      "Affichage de l’image de la caméra sous-marine",
+      "Image sans atténuation RVB et avec un fond noir",
+      "Eau côtière trouble : atténuation RVB 0.8/0.5/0.2 et fond 85/107/47"
+    ],
+    "currents": [
+      "Courants stratifiés selon la profondeur et réponse du véhicule",
+      "Échanges entre le monde, ROS et les plugins de courant du modèle",
+      "Réponse du véhicule à un courant uniforme",
+      "Réponse du véhicule à un courant stratifié",
+      "Sortie ROS du courant uniforme",
+      "Sortie ROS du courant stratifié",
+      "Sortie de la base de courants stratifiés",
+      "Application du courant à la profondeur du modèle",
+      "Vitesse du courant propre à chaque modèle",
+      "Topic ROS du courant du modèle",
+      "Topic Gazebo du courant du modèle"
+    ],
+    "dvl": [
+      "Faisceaux acoustiques du DVL dirigés vers le fond marin",
+      "Mesures de vitesse du DVL",
+      "Inspection du topic DVL dans Gazebo",
+      "Inspection du topic DVL dans ROS"
+    ],
+    "gliders": [
+      "Déplacement du planeur Slocum sous l’eau"
+    ],
+    "objects": [
+      "Choix d’un modèle dans Resource Spawner de Gazebo",
+      "Envoi d’un modèle vers Fuel",
+      "Fichiers et métadonnées du modèle dans Fuel",
+      "Confirmation de publication dans Fuel"
+    ],
+    "pressure": [
+      "Mesures de pression dans ROS",
+      "Inspection de la pression dans Gazebo",
+      "Profondeur calculée à partir de la pression"
+    ],
+    "rovs": [
+      "Déplacement et attitude du REXROV sous l’eau"
+    ],
+    "sonar-tuning": [
+      "Étapes du traitement sonar sur le GPU"
+    ],
+    "sonar": [
+      "Traitement sonar multifaisceaux par diffusion ponctuelle",
+      "RVB, profondeur, image sonar et nuage de points d’une même scène",
+      "Évolution de l’image dans l’exemple sonar",
+      "Mesures sonar lors des changements de scène",
+      "Mesures sonar depuis le BlueROV2",
+      "Exploration locale d’une scène au sonar"
+    ],
+    "usbl": [
+      "Disposition de l’émetteur-récepteur et des transpondeurs USBL",
+      "Échanges d’interrogation commune et individuelle",
+      "Mesures de position du transpondeur"
+    ],
+    "qgroundcontrol": [
+      "La caméra avant montre les objets du monde de démonstration. Les joysticks virtuels restent accessibles au-dessus de la vidéo."
+    ],
+    "install-macos": [
+      "L’image ARM64 prête à l’emploi affiche Gazebo dans le bureau distant."
+    ]
+  },
+  "overview": "Environnement océanique → robots et dynamique → mesures des capteurs → commande ROS 2. Cliquez sur une image pour ouvrir le guide."
+}
