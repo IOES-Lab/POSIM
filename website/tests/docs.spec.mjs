@@ -51,6 +51,94 @@ test('mobile menu, search and language switching', async ({ page }, info) => {
   await page.screenshot({ path: info.outputPath('mobile-korean-sonar.png') });
 });
 
+test('mobile header keeps the brand and controls on one row in every language', async ({ page }, info) => {
+  for (const { code, directory } of languages) {
+    await page.goto(`/${directory}index.html`);
+    for (const width of [320, 360, 390, 600, 768, 960]) {
+      await page.setViewportSize({ width, height: 844 });
+      for (const theme of ['system', 'light', 'dark']) {
+        await page.locator('[data-theme-select]').selectOption(theme);
+        const layout = await page.locator('.docs-header').evaluate(header => {
+          const bounds = header.getBoundingClientRect();
+          const controls = [...header.querySelectorAll('.docs-brand, .docs-control, nav>a')];
+          const canvas = document.createElement('canvas');
+          const context = canvas.getContext('2d');
+          return {
+            width: bounds.width,
+            height: bounds.height,
+            right: bounds.right,
+            boxes: controls.map(node => {
+              const rect = node.getBoundingClientRect();
+              return { left: rect.left, right: rect.right, height: rect.height, center: rect.y + rect.height / 2 };
+            }),
+            labels: [...header.querySelectorAll('select')].map(node => {
+              const style = getComputedStyle(node);
+              context.font = style.font;
+              return {
+                text: node.selectedOptions[0].textContent,
+                available: node.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight),
+                needed: context.measureText(node.selectedOptions[0].textContent).width,
+              };
+            }),
+          };
+        });
+        const description = `${code}, ${width}px, ${theme}`;
+        expect(layout.boxes, description).toHaveLength(4);
+        expect(layout.height, description).toBe(58);
+        for (const [index, box] of layout.boxes.entries()) {
+          expect(Math.abs(box.center - layout.boxes[0].center), description).toBeLessThanOrEqual(1);
+          expect(box.height, description).toBeGreaterThanOrEqual(24);
+          expect(box.left, description).toBeGreaterThanOrEqual(0);
+          expect(box.right, description).toBeLessThanOrEqual(layout.right);
+          if (index) expect(box.left, description).toBeGreaterThanOrEqual(layout.boxes[index - 1].right);
+        }
+        for (const label of layout.labels) {
+          expect(label.available + 1, `${description}: ${label.text} is clipped`).toBeGreaterThanOrEqual(label.needed);
+        }
+        expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), description).toBe(true);
+        await expect(page.locator('.docs-mobile-menu')).toHaveCSS('top', '58px');
+        if ((code === 'en' && width === 390 && theme !== 'system') ||
+            (code === 'ja' && width === 320 && theme === 'light') ||
+            (code === 'ko' && width === 390 && theme === 'light')) {
+          await page.screenshot({ path: info.outputPath(`header-${code}-${width}-${theme}.png`) });
+        }
+      }
+    }
+  }
+});
+
+test('compact mobile header preserves keyboard order and sticky menu position', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 844 });
+  await page.goto('/ko/index.html');
+  const brand = page.locator('.docs-brand');
+  const language = page.locator('[data-language-select]');
+  const theme = page.locator('[data-theme-select]');
+  const github = page.locator('.docs-header nav>a');
+  await brand.focus();
+  for (const control of [language, theme, github]) {
+    await page.keyboard.press('Tab');
+    await expect(control).toBeFocused();
+    await expect(control).toHaveCSS('outline-style', 'solid');
+  }
+  await expect(language).toHaveAttribute('aria-label', messages.ko.ui.documentationLanguage);
+  await expect(theme).toHaveAttribute('aria-label', messages.ko.ui.colorTheme);
+  await expect(github).toHaveAttribute('href', 'https://github.com/IOES-Lab/POSIM');
+  await theme.selectOption('dark');
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+  await language.selectOption('../ja/index.html');
+  await expect(page.locator('html')).toHaveAttribute('lang', 'ja');
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+  await page.evaluate(() => scrollTo(0, 500));
+  const header = await page.locator('.docs-header').boundingBox();
+  const summary = page.locator('.docs-mobile-menu summary');
+  expect(header.y).toBe(0);
+  expect((await summary.boundingBox()).y).toBe(header.height);
+  await summary.press('Enter');
+  await expect(page.locator('.docs-mobile-menu')).toHaveAttribute('open', '');
+  await summary.press('Enter');
+  await expect(page.locator('.docs-mobile-menu')).not.toHaveAttribute('open', '');
+});
+
 for (const theme of ['light', 'dark']) {
   test(`${theme} navigation blends into the page and keeps native scrolling`, async ({ page }, info) => {
     await page.goto('/');
