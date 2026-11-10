@@ -13,6 +13,8 @@ namespace gz
 namespace sensors
 {
 
+struct AcousticReadout;
+
 struct SonarComputeInput
 {
   const cv::Mat * depthImage{nullptr};
@@ -46,6 +48,13 @@ struct SonarComputeInput
 
   uint64_t frameIndex{0};
   uint64_t seed{0};
+
+  // Explicit physical readout; null retains the historical square-grid API.
+  const AcousticReadout * physicalReadout{nullptr};
+  float receiveGain{1.0f};  // linear pressure gain, independent of preview gain
+  // Physical mode only: nFreq is quadrature length; 0 requests the full
+  // transform for diagnostics. Sensors publish the first nOutputRanges bins.
+  int nOutputRanges{0};
 };
 
 struct SonarComputeOutput
@@ -79,6 +88,9 @@ public:
 };
 
 std::unique_ptr<ComputeBackend> CreateComputeBackend(const std::string & requestedBackend);
+// Select against the real readout so auto never chooses an incompatible model.
+std::unique_ptr<ComputeBackend> CreateComputeBackend(
+  const std::string & requestedBackend, const SonarComputeInput & prototype);
 
 }  // namespace sensors
 }  // namespace gz

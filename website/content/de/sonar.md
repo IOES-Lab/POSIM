@@ -14,6 +14,14 @@ Das Paket `posim_multibeam_sonar_demo` enthält außerdem ein eigenständiges Be
 
 Starte jeweils nur ein Beispiel. Ersetze `wgpu` durch `cpu`, `cuda` oder `auto`, um das Backend zu wechseln. Für ein Sonar am Roboter wählst du `bluerov2_heavy_multibeam_sonar` und eine passende Welt.
 
+## Funktionsweise des Sensors
+
+Gazebo liefert die Szenengeometrie. Das Sonarmodell schätzt Oberflächennormalen, berechnet die akustische Rückstreuung, wendet die Empfangsantwort an und ordnet die Echos Entfernungszellen zu. Akustische Daten und Bild zeigen dieselbe Beobachtung. Nutze Rohdaten für die Analyse und bewahre Verstärkungs- und Anzeigeeinstellungen auf.
+
+Ein positiver Wert für `spec/receiveBeamWidth` aktiviert den physikalischen Modus. Er verwendet die gemessenen XYZ-Koordinaten einer Tiefenkamera, die den gesamten Sonarfächer erfasst. Geometrieabtastung, Empfangsrichtungen und Entfernungsausgaben sind unabhängig. Zellen mit Mittelpunkt im Fächer teilen dessen vollständigen Raumwinkel auf; ihre projizierten Oberflächen und die vorzeichenbehaftete Empfangsantwort bestimmen die Beiträge zu den Strahlen. Ein Hamming-Basisbandpuls mit fester Bandbreite und Spitzenwert eins verwendet ein längeres internes Berechnungsintervall als das veröffentlichte Entfernungsintervall. Der Ausgabeabstand ist `soundSpeed / (2 × bandwidth)`; die Berechnungslänge bestimmt nicht die Pulsverstärkung. Das interne Schutzintervall wird nicht ausgegeben und verändert diesen Abstand nicht.
+
+`ray/scan/horizontal/samples` legt die Geometriespalten fest, `ray/scan/vertical/rays` die Bildzeilen und `beams` die Empfangsrichtungen. Der physikalische Modus benötigt einen symmetrischen Fächer mit weniger als 180° je Achse. Entfernungsgrenzen sind radial; Pixel außerhalb des Fächers oder der Grenzen haben ungültige XYZ-Koordinaten in der organisierten Punktwolke. `spec/receiveBeamWidth` bezeichnet die volle Halbwertsbreite der Leistung in Radiant, `spec/receiveGain` die lineare Druckverstärkung (Standard: 1). Eine fehlende Breite oder der Wert null wählt das Standardraster. Der physikalische Modus unterstützt CPU und WGPU, nicht CUDA. Es gibt keine feste Grenze von 4096 Frequenzabtastwerten; große Raster unterliegen weiterhin den Ressourcenlimits des Backends und darstellbaren Dimensionen. Streukoeffizienten werden pro Bild und Geometriezelle erzeugt. Das Modell beschreibt Basisbandechos, ohne Trägerphasenausbreitung oder Amplitudenkalibrierung der Hardware.
+
 ## Ausgaben prüfen
 
 In Terminal B:
@@ -48,7 +56,7 @@ Das Beispiel fordert 512 horizontale Strahlen über etwa 130°, 300 vertikale Ab
 | `sourceLevel` | Quellpegel, dB | 220 | 220 |
 | `maxDistance` | Verarbeitungsreichweite, m; an die Strahlreichweite anpassen | 60 | 10 |
 | `raySkips` | Vertikale Abtastschrittweite; positive ganze Zahl | 10 | 10 |
-| `sensorGain` | Verstärkung der Echoamplitude auf CPU; von WGPU/CUDA nicht verwendet | 0.02 | 0.02 |
+| `sensorGain` | Verstärkung der Echoamplitude im CPU-Standardraster; im physikalischen Modus und von WGPU/CUDA nicht verwendet | 0.02 | 0.02 |
 | `blazingSonarImage` | Zufallsstartwert aus der tatsächlichen Uhrzeit; bei `false` fest 1234 | false | true |
 | `pointCloudTopicName` | Suffix des Gazebo-Punktwolken-Topics | `point_cloud` | Gleich |
 | `sonarImageRawTopicName` | Suffix des ROS-Topics für Rohdaten | `sonar_image_raw` | Gleich |

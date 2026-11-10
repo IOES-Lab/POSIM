@@ -14,6 +14,14 @@ POSIM 多波束声呐采用点散射模型，生成随距离变化的回波强�
 
 一次只运行一个示例。将 `wgpu` 改为 `cpu`、`cuda` 或 `auto` 即可切换后端。若需搭载声呐的机器人，请选择 `bluerov2_heavy_multibeam_sonar` 和合适的声呐世界。
 
+## 传感器计算流程
+
+Gazebo 提供场景几何。声纳模型估计表面法线，计算声学后向散射，应用接收响应，并将回波压缩到距离单元。声学数据与显示图像对应同一次观测。分析时使用原始数据，并保存增益和显示设置。
+
+将 `spec/receiveBeamWidth` 设为正值可启用物理模式，使用覆盖整个声纳视场的深度相机测得的 XYZ。几何采样、接收方向和距离输出彼此独立。中心位于视场内的单元分担整个视场的立体角，根据投影表面积和保留符号的接收响应计算各波束贡献。模型使用固定带宽、单位峰值的基带 Hamming 脉冲，内部计算区间长于发布的距离区间。输出距离间隔为 `soundSpeed / (2 × bandwidth)`，计算长度不决定脉冲增益。内部保护区间不发布，也不改变输出间隔。
+
+`ray/scan/horizontal/samples` 指定几何列数，`ray/scan/vertical/rays` 指定图像行数，`beams` 指定接收方向数。物理模式要求视场对称，且每个轴的宽度均小于 180°。距离限制按径向距离计算；视场或距离限制之外的像素在有序点云中使用无效 XYZ。`spec/receiveBeamWidth` 以弧度指定功率半高全宽，`spec/receiveGain` 设置线性声压增益（默认 1）。省略宽度或设为 0 时使用默认网格模式。物理模式支持 CPU 和 WGPU，不支持 CUDA。频率采样数没有固定的 4096 上限，但大网格仍受后端资源和可表示维度的限制。散射系数按帧和几何单元生成。模型描述基带回波，不提供载波相位传播或硬件振幅校准。
+
 ## 查看输出
 
 在终端 B 中运行：
@@ -48,7 +56,7 @@ POSIM 多波束声呐采用点散射模型，生成随距离变化的回波强�
 | `sourceLevel` | 声源级，dB | 220 | 220 |
 | `maxDistance` | 处理距离，m；应与声线距离范围一致 | 60 | 10 |
 | `raySkips` | 垂直采样步长，正整数 | 10 | 10 |
-| `sensorGain` | CPU 回波幅值增益；WGPU/CUDA 不使用此参数 | 0.02 | 0.02 |
+| `sensorGain` | 默认 CPU 网格模式的回波幅值增益；物理模式及 WGPU/CUDA 不使用此参数 | 0.02 | 0.02 |
 | `blazingSonarImage` | 根据实际时钟生成随机种子；`false` 时固定为 1234 | false | true |
 | `pointCloudTopicName` | Gazebo 点云话题后缀 | `point_cloud` | 相同 |
 | `sonarImageRawTopicName` | ROS 原始声学数据话题后缀 | `sonar_image_raw` | 相同 |

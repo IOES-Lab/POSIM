@@ -114,7 +114,7 @@ Change one value in a copy of the [sensor SDF](sonar.md#sensor-configuration), r
 
 Range spacing is `soundSpeed / (2 × bandwidth)`. The published grid has `ceil(maxDistance / spacing) + 1` cells. For 1500 m/s, 29.9 kHz and 15 m, this gives 599 cells. The final grid coordinate can slightly exceed `maxDistance`; returns beyond the configured range are excluded. Read the actual ranges and beam count from the raw message or CSV.
 
-WGPU preserves the requested transform length, including non-powers of two, and selects FFT stages automatically. Longer ranges and larger bandwidths increase memory and work. CPU assigns returns to the nearest physical range bin; GPU paths use frequency-domain processing. Treat backend comparisons as separate measurements, including amplitude and range response.
+WGPU preserves the requested transform length, including non-powers of two, and selects FFT stages automatically. Longer ranges and larger bandwidths increase memory and work. In the default grid-based mode, CPU assigns returns to the nearest physical range bin; GPU paths use frequency-domain processing. Treat backend comparisons as separate measurements, including amplitude and range response.
 
 ## Record a repeatable comparison
 

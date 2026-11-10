@@ -84,7 +84,7 @@ Modifica un valore alla volta in una copia del [SDF](sonar.md#sensor-configurati
 
 Il passo in distanza è `soundSpeed / (2 × bandwidth)`; la griglia ha `ceil(maxDistance / passo) + 1` celle. Con 1500 m/s, 29.9 kHz e 15 m sono 599. L'ultima coordinata può superare leggermente `maxDistance`, ma gli echi oltre portata vengono esclusi. Leggi distanze e numero di fasci dal messaggio grezzo o dal CSV.
 
-WGPU conserva la lunghezza richiesta, anche se non è una potenza di due, e sceglie automaticamente gli stadi FFT. Portata e larghezza di banda maggiori aumentano memoria e lavoro. CPU assegna gli echi alla cella di distanza più vicina; GPU elabora nel dominio delle frequenze. Confronta anche ampiezza e risposta in distanza tra backend.
+WGPU conserva la lunghezza richiesta, anche se non è una potenza di due, e sceglie automaticamente gli stadi FFT. Portata e larghezza di banda maggiori aumentano memoria e lavoro. Nella modalità a griglia predefinita, CPU assegna gli echi alla cella di distanza più vicina; GPU elabora nel dominio delle frequenze. Confronta anche ampiezza e risposta in distanza tra backend.
 
 ## Conservare un confronto riproducibile
 

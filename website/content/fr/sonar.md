@@ -14,6 +14,14 @@ Le paquet `posim_multibeam_sonar_demo` propose aussi un exemple autonome :
 
 Lancez un seul exemple à la fois. Remplacez `wgpu` par `cpu`, `cuda` ou `auto` pour changer de moteur de calcul. Pour un sonar embarqué, sélectionnez `bluerov2_heavy_multibeam_sonar` avec un monde adapté.
 
+## Fonctionnement du capteur
+
+Gazebo fournit la géométrie de la scène. Le modèle estime les normales de surface, calcule la rétrodiffusion acoustique, applique la réponse de réception et comprime les échos dans les cellules de distance. Les données acoustiques et l'image représentent la même observation. Utilisez les données brutes pour l'analyse et conservez les réglages de gain et d'affichage.
+
+Une valeur positive de `spec/receiveBeamWidth` active le mode physique, qui utilise les coordonnées XYZ mesurées par une caméra de profondeur couvrant tout le champ du sonar. Les échantillons géométriques, les directions de réception et les sorties en distance sont indépendants. Les cellules dont le centre se trouve dans le champ se répartissent son angle solide complet ; leurs surfaces projetées et la réponse de réception signée déterminent les contributions aux faisceaux. Le modèle utilise une impulsion de Hamming en bande de base, de bande passante fixe et de crête unitaire. L'intervalle de calcul interne dépasse l'intervalle de distance publié. Le pas de sortie vaut `soundSpeed / (2 × bandwidth)` ; la longueur de calcul ne détermine pas le gain de l'impulsion. L'intervalle de garde interne n'est pas publié et ne modifie pas ce pas.
+
+`ray/scan/horizontal/samples` définit les colonnes géométriques, `ray/scan/vertical/rays` les lignes de l'image et `beams` les directions de réception. Le mode physique exige un champ symétrique inférieur à 180° sur chaque axe. Les limites de distance sont radiales ; les pixels hors champ ou hors limites ont des XYZ invalides dans le nuage organisé. `spec/receiveBeamWidth` indique la largeur totale à mi-puissance en radians ; `spec/receiveGain` règle le gain linéaire de pression (1 par défaut). Une largeur absente ou nulle sélectionne le mode de grille par défaut. Le mode physique prend en charge CPU et WGPU, mais pas CUDA. Il n'y a pas de plafond fixe de 4096 échantillons de fréquence ; les grandes grilles restent limitées par les ressources du moteur et les dimensions représentables. Les coefficients de diffusion sont générés par image et cellule géométrique. Le modèle décrit des échos en bande de base, sans propagation de phase porteuse ni étalonnage de l'amplitude du matériel.
+
 ## Examiner les sorties
 
 Dans le terminal B :
@@ -48,7 +56,7 @@ L'exemple demande 512 faisceaux horizontaux sur environ 130°, 300 rayons vertic
 | `sourceLevel` | Niveau de la source, dB | 220 | 220 |
 | `maxDistance` | Portée du traitement, m ; à accorder à celle des rayons | 60 | 10 |
 | `raySkips` | Pas d'échantillonnage vertical ; entier positif | 10 | 10 |
-| `sensorGain` | Gain d’amplitude des échos sur CPU ; inutilisé par WGPU/CUDA | 0.02 | 0.02 |
+| `sensorGain` | Gain d’amplitude des échos dans la grille CPU par défaut ; inutilisé en mode physique et par WGPU/CUDA | 0.02 | 0.02 |
 | `blazingSonarImage` | Graine aléatoire issue de l'horloge réelle ; `false` fixe la graine à 1234 | false | true |
 | `pointCloudTopicName` | Suffixe du topic Gazebo du nuage de points | `point_cloud` | Identique |
 | `sonarImageRawTopicName` | Suffixe du topic ROS des échos bruts | `sonar_image_raw` | Identique |

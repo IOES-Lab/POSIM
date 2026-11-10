@@ -84,7 +84,7 @@ Cambia una variable en una copia del [SDF](sonar.md#sensor-configuration), recom
 
 El paso de distancia es `soundSpeed / (2 × bandwidth)`; hay `ceil(maxDistance / paso) + 1` celdas. Con 1500 m/s, 29.9 kHz y 15 m son 599. La última coordenada puede superar ligeramente `maxDistance`, pero se excluyen los retornos fuera del alcance. Lee distancias y número de haces en el mensaje bruto o CSV.
 
-WGPU conserva la longitud solicitada, aunque no sea potencia de dos, y elige las etapas FFT automáticamente. Más alcance o ancho de banda implica más memoria y cálculo. CPU asigna cada retorno a la celda de distancia más próxima; GPU procesa en frecuencia. Compara también amplitud y respuesta en distancia al cambiar de motor.
+WGPU conserva la longitud solicitada, aunque no sea potencia de dos, y elige las etapas FFT automáticamente. Más alcance o ancho de banda implica más memoria y cálculo. En el modo de cuadrícula predeterminado, CPU asigna cada retorno a la celda de distancia más próxima; GPU procesa en frecuencia. Compara también amplitud y respuesta en distancia al cambiar de motor.
 
 ## Guardar una comparación reproducible
 

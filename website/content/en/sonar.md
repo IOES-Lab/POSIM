@@ -33,6 +33,16 @@ The image publisher uses reliable QoS. Use a reliable subscription when inspecti
 
 The BlueView sensor launch bridges Gazebo simulation time to ROS `/clock`. For consumers using `use_sim_time`, confirm that the world is running and `/clock` advances.
 
+The sonar publishes image and raw acoustic messages directly to ROS 2. The sensor configuration bridges the Gazebo point cloud to ROS 2. Discover custom topic names with `ros2 topic list -t`.
+
+## How the sensor works
+
+Gazebo supplies scene geometry. The sonar model estimates surface normals, computes acoustic backscatter, applies the receive response and compresses returns into range bins. The resulting acoustic data and display image describe the same observation. Use raw data for analysis and retain the gain and display settings with recorded images.
+
+With a positive `spec/receiveBeamWidth`, the physical readout uses measured XYZ from a depth camera covering the complete sonar fan. Geometry samples, receiver directions and range outputs are independent. Cells with centers inside the fan partition its full solid angle; their projected surface areas and signed receive response determine the beam contributions. A fixed-bandwidth, unit-peak baseband Hamming pulse uses a longer internal calculation interval than the published range interval. Range spacing is `soundSpeed / (2 × bandwidth)`; calculation length does not set pulse gain.
+
+Set `ray/scan/horizontal/samples` for geometry columns, `ray/scan/vertical/rays` for image rows and `beams` for receiver directions. The physical mode requires a symmetric fan narrower than 180° on each axis. Range limits are radial; pixels outside the fan or range limits have invalid XYZ in the organized point cloud. `spec/receiveBeamWidth` specifies the full power half-maximum width in radians, and `spec/receiveGain` sets linear pressure gain (default 1). Missing or zero width selects the default grid-based readout. The independent physical mode supports CPU and WGPU; CUDA does not support this mode. There is no fixed 4096-sample frequency cap. Larger grids remain subject to backend resource limits and representable dimensions. The internal guard interval is not published and does not change the output spacing. Scattering coefficients are generated per frame and geometry cell. This model represents baseband returns; carrier-phase propagation and hardware amplitude calibration are not provided.
+
 ## Sensor configuration
 
 Add the systems directly inside `<world>`:
@@ -119,7 +129,7 @@ Actual received rate depends on computation and rendering. Read [the sensor mode
 | `sourceLevel` | Source level, dB | 220 | 220 |
 | `maxDistance` | Processing range, m; match ray range | 60 | 10 |
 | `raySkips` | Elevation sampling stride; use a positive integer | 10 | 10 |
-| `sensorGain` | Echo amplitude gain for CPU; unused by WGPU/CUDA | 0.02 | 0.02 |
+| `sensorGain` | Echo amplitude gain for the default CPU grid mode; unused by physical mode and WGPU/CUDA | 0.02 | 0.02 |
 | `blazingSonarImage` | Use a wall-clock-dependent random seed; false uses seed 1234 | false | true |
 | `pointCloudTopicName` | Gazebo point-cloud suffix | `point_cloud` | Same |
 | `sonarImageRawTopicName` | ROS raw-return suffix | `sonar_image_raw` | Same |
