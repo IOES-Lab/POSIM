@@ -9,7 +9,7 @@ Select a packaged robot description with the `namespace` argument. This argument
 | `rexrov` | ROV with Gazebo thrusters, hydrodynamics and odometry |
 | `bluerov2` | BlueROV2 with ArduSub SITL and MAVROS integration |
 | `bluerov2_heavy` | Heavy configuration |
-| `bluerov2_heavy_multibeam_sonar` | Heavy configuration with CUDA sonar |
+| `bluerov2_heavy_multibeam_sonar` | Heavy configuration with sonar |
 
 Use the [prepared POSIM terminal](terminals.md) for your installation route. For REXROV, use the [first simulation](quickstart.md) example.
 
@@ -22,7 +22,7 @@ ros2 launch posim_demos posim_robot.launch.py \
   open_qgc:=false open_virtual_joystick:=false
 ```
 
-Use `namespace:=bluerov2_heavy` to select the Heavy variant. Inspect the launch output and `/mavros/state` to check autopilot connectivity. The sonar-equipped description needs the [CUDA setup](sonar-tuning.md).
+Use `namespace:=bluerov2_heavy` to select the Heavy variant. Inspect the launch output and `/mavros/state` to check autopilot connectivity. The sonar-equipped description needs the [setup](sonar-tuning.md).
 
 ## Keyboard control
 

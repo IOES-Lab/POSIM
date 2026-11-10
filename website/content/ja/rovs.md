@@ -9,7 +9,7 @@
 | `rexrov` | Gazebo スラスター、流体力学、オドメトリ |
 | `bluerov2` | ArduSub SITL と MAVROS を組み合わせた BlueROV2 |
 | `bluerov2_heavy` | Heavy 構成 |
-| `bluerov2_heavy_multibeam_sonar` | CUDA ソナー付き Heavy 構成 |
+| `bluerov2_heavy_multibeam_sonar` | ソナー付き Heavy 構成 |
 
 インストール方法に合った[準備済みターミナル](terminals.md)を使います。REXROV は[最初のシミュレーション](quickstart.md)から始めてください。
 
@@ -17,7 +17,7 @@
 
 {{CODE:rovs:0}}
 
-Heavy を選ぶには `namespace:=bluerov2_heavy` を指定します。起動出力と `/mavros/state` でオートパイロットの接続を確認します。ソナー付きモデルには [CUDA の準備](sonar-tuning.md)が必要です。
+Heavy を選ぶには `namespace:=bluerov2_heavy` を指定します。起動出力と `/mavros/state` でオートパイロットの接続を確認します。ソナー付きモデルには [の準備](sonar-tuning.md)が必要です。
 
 ## キーボードで操作する
 

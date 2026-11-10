@@ -18,7 +18,7 @@ Windows Subsystem for Linux 2（WSL2）上のUbuntu 26.04にPOSIMをインスト
 
 Intel・AMD・NVIDIA GPUの**Windows用ドライバー**をインストールまたは更新します。NVIDIAの場合も必要です。WSLgはWindows側のドライバーでLinuxのGUIを描画します。[GUIアプリの設定手順](https://learn.microsoft.com/ja-jp/windows/wsl/tutorials/gui-apps)を確認してください。
 
-NVIDIAでは[CUDA on WSL](https://docs.nvidia.com/cuda/wsl-user-guide/index.html)に従い、Windows用ドライバーを導入します。**WSL内にLinux用ディスプレイドライバーをインストールしないでください。** ソナープラグインのビルドには、別途CUDA Toolkitが必要です。
+NVIDIA では [CUDA on WSL](https://docs.nvidia.com/cuda/wsl-user-guide/index.html) に従い、Windows 用ドライバーを導入します。**WSL 内に Linux 用ディスプレイドライバーをインストールしないでください。** CUDA Toolkit が必要なのは、ソナーの CUDA バックエンドをビルドする場合です。
 
 PowerShellでWSLを更新します。
 

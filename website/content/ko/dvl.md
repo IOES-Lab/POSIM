@@ -74,7 +74,7 @@ POSIM 브리지는 센서의 `<model>` 안에 넣습니다. 토픽은 `<link>` �
 | `teledyne_explorer1000` | Teledyne Explorer |
 | `teledyne_explorer4000` | Teledyne Explorer |
 | `teledyne_whn` | Teledyne WHN |
-| `nortek_dvl500_300_with_multibeam_sonar` | DVL과 [CUDA 소나](sonar-tuning.md) |
+| `nortek_dvl500_300_with_multibeam_sonar` | DVL과 [소나](sonar-tuning.md) |
 
 센서 모델의 샘플링과 형상은 SDF에서 확인하세요.
 

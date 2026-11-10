@@ -54,7 +54,7 @@ POSIM ブリッジはセンサーの `<model>` 内に置きます。トピック
 | `sonardyne_syrinx600` | Sonardyne |
 | `teledyne_explorer1000`, `teledyne_explorer4000` | Teledyne Explorer |
 | `teledyne_whn` | Teledyne WHN |
-| `nortek_dvl500_300_with_multibeam_sonar` | DVL と [CUDA ソナー](sonar-tuning.md) |
+| `nortek_dvl500_300_with_multibeam_sonar` | DVL と [ソナー](sonar-tuning.md) |
 
 各 SDF の計測設定とビーム形状を確認してください。
 

@@ -25,11 +25,11 @@ Los efectos ópticos submarinos modifican las superficies PBR y conservan la pro
 | Mediciones DVL y conversión a ROS | DVL de Gazebo; `posim_ros_gz_plugins` | [DVL](dvl.md) |
 | Presión hidrostática y profundidad calculada | `posim_gz_sensor_plugins` | [Presión](pressure.md) |
 | Interrogación acústica y posicionamiento USBL | `posim_gz_sensor_plugins` | [USBL](usbl.md) |
-| Sonar multihaz con CUDA | `gazebo/posim_gz_multibeam_sonar` | [Sonar](sonar.md), [configuración y rendimiento](sonar-tuning.md) |
+| Sonar multihaz con | `gazebo/posim_gz_multibeam_sonar` | [Sonar](sonar.md), [configuración y rendimiento](sonar-tuning.md) |
 | REXROV, variantes de BlueROV2 y planeador Slocum | `models/posim_robot_models` | [ROV](rovs.md), [planeador](gliders.md), [añadir un robot](custom-robots.md) |
 | WAM-V con ArduRover y control ROS | `extras/surface`, configuración de lanzamiento, `posim_interfaces` | [Vehículo de superficie](surface.md), [ROS 2](ros.md) |
 
-Los sensores disponibles dependen de los plugins instalados y del modelo. Los perfiles GNSS describen el montaje: hay que incorporar el eslabón y el receptor. El sonar CUDA requiere GPU y herramientas compatibles. Usa el inicio rápido de cada referencia para comprobar las mediciones durante la simulación.
+Los sensores disponibles dependen de los plugins instalados y del modelo. Los perfiles GNSS describen el montaje: hay que incorporar el eslabón y el receptor. El sonar permite elegir CPU, WGPU o CUDA según el entorno. Usa el inicio rápido de cada referencia para comprobar las mediciones durante la simulación.
 
 ## Directorios del código fuente
 

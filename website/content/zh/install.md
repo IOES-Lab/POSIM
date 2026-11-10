@@ -42,7 +42,7 @@
 
 {{CODE:install:6}}
 
-NVIDIA/CUDA声呐还需要[额外的编译配置](sonar-tuning.md)。
+接下来运行[首次仿真](quickstart.md)。声呐请参阅 [CPU/WGPU/CUDA 编译与配置](sonar-tuning.md)。
 
 ## 5. 运行演示场景
 

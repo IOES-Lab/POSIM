@@ -1,10 +1,10 @@
 # 멀티빔 소나
 
-POSIM 멀티빔 소나는 음선(ray) 기반 점 산란 모델로 강도·거리 데이터와 소나 영상을 생성합니다. 실행 전에 [NVIDIA/CUDA 환경](sonar-tuning.md)을 준비하세요.
+POSIM 멀티빔 소나는 음선(ray) 기반 점 산란 모델로 강도·거리 데이터와 소나 영상을 생성합니다. 하나의 플러그인에서 CPU, WGPU, CUDA 계산을 선택할 수 있습니다. WGPU는 Linux의 Vulkan 또는 macOS 네이티브 환경의 Metal을 통해 여러 제조사의 GPU를 사용합니다. [계산 환경 준비와 선택](sonar-tuning.md)을 참고하세요.
 
 ## 소나 예제 실행
 
-지원되는 NVIDIA/CUDA 환경에서 [POSIM 터미널 A와 B](terminals.md)를 준비하세요. 터미널 A에서 시뮬레이션을 실행하고, 터미널 B에서 출력을 확인합니다.
+[POSIM 터미널 A와 B](terminals.md)를 준비하세요. 소나가 설치되어 있지 않으면 먼저 [소나 패키지를 빌드](sonar-tuning.md#build-the-sonar-packages)합니다. A에서 시뮬레이션을 실행하고 B에서 출력을 확인합니다. 첫 명령은 계산 방식을 자동으로 선택하며, 아래 전용 예제는 WGPU를 지정하고 RViz도 엽니다.
 
 ```bash
 ros2 launch posim_demos posim_sensor.launch.py \
@@ -15,10 +15,11 @@ ros2 launch posim_demos posim_sensor.launch.py \
 `posim_multibeam_sonar_demo` 패키지의 별도 예제도 있습니다.
 
 ```bash
-ros2 launch posim_multibeam_sonar_demo multibeam_sonar_demo.launch.py
+ros2 launch posim_multibeam_sonar_demo multibeam_sonar_demo.launch.py \
+  compute_backend:=wgpu
 ```
 
-Launch는 하나씩 실행합니다. 로봇형 예제는 적절한 소나 월드에서 `bluerov2_heavy_multibeam_sonar`를 선택합니다.
+예제는 하나씩 실행합니다. `wgpu`를 `cpu`, `cuda`, `auto`로 바꾸면 계산 방식을 선택할 수 있습니다. 로봇형 예제는 적절한 소나 월드에서 `bluerov2_heavy_multibeam_sonar`를 선택합니다.
 
 ## 출력 확인
 
@@ -118,7 +119,7 @@ BlueView 센서 Launch는 Gazebo 시뮬레이션 시간을 ROS `/clock`으로 �
 | `sourceLevel` | 음원 준위(dB) | 220 | 220 |
 | `maxDistance` | 처리 거리(m). ray 범위와 맞춤 | 60 | 10 |
 | `raySkips` | 수직 샘플링 간격. 양의 정수 사용 | 10 | 10 |
-| `sensorGain` | 읽고 출력하지만 영상 생성에는 사용하지 않음 | 0.02 | 0.02 |
+| `sensorGain` | CPU 반사 진폭 이득; WGPU·CUDA에서는 사용하지 않음 | 0.02 | 0.02 |
 | `blazingSonarImage` | 실제 시각에 따라 난수 시드 변경. false이면 1234 사용 | false | true |
 | `pointCloudTopicName` | Gazebo 점군 토픽 접미사 | `point_cloud` | 동일 |
 | `sonarImageRawTopicName` | ROS 원시 관측 토픽 접미사 | `sonar_image_raw` | 동일 |
@@ -143,6 +144,17 @@ BlueView 센서 Launch는 Gazebo 시뮬레이션 시간을 ROS `/clock`으로 �
 
 `writeLog`, `writeFrameInterval`, `debugFlag`로 진단 기록과 처리 시간을 확인할 수 있습니다. 기록 자체가 실험 목적이 아니라면 처리율 측정 시 기록을 끄세요. 반복 가능한 조절 순서는 [소나 설정과 실험](sonar-tuning.md), 모델의 연구 출처는 [인용 안내](citation.md)에 있습니다.
 
+### 계산 백엔드 {#compute-backend}
+
+| 선택값 | 동작 |
+| --- | --- |
+| `auto` | CUDA → WGPU → CPU 순으로 사용 가능한 방식을 선택합니다. 기본값입니다. |
+| `wgpu` | 호환 Vulkan·Metal 장치를 사용합니다. 초기화할 수 없으면 센서가 시작되지 않습니다. |
+| `cuda` | NVIDIA GPU와 빌드·설치된 CUDA 백엔드를 사용합니다. 사용할 수 없으면 초기화에 실패합니다. |
+| `cpu` | 음향 반사값을 CPU로 계산합니다. Gazebo 렌더링은 계속 필요합니다. |
+
+전용 예제에서는 `compute_backend`를 지정합니다. 다른 Launch에서는 환경 변수 `POSIM_SONAR_COMPUTE_BACKEND`로 선택합니다. 시작 출력의 `Using sonar compute backend:`에서 실제 선택값을 확인하세요. [소나 설정과 실험](sonar-tuning.md)에서 장치 선택, 운영 환경과 계산 결과의 차이를 설명합니다.
+
 ## 소나 센서와 월드 추가하기
 
 `models/posim_sensor_models/description/blueview_p900/`을 새 센서 이름으로 복사합니다. 같은 이름의 `config/<센서 이름>/sensor_config.py`도 준비하고, SDF의 모델·링크·프레임과 브리지 토픽을 함께 맞춥니다. `<ray>`의 수평·수직 샘플 수와 각도, 거리 범위를 센서 사양에 맞게 설정합니다.
@@ -156,7 +168,7 @@ BlueView 센서 Launch는 Gazebo 시뮬레이션 시간을 ROS `/clock`으로 �
 <plugin filename="libmultibeam_sonar_system" name="custom::MultibeamSonarSystem"/>
 ```
 
-CUDA와 렌더링 환경을 준비한 뒤 작업 공간을 다시 빌드하고 환경을 불러오세요. [센서 launch 인수](quickstart.md)로 새 센서 모델을 선택합니다. ROS 점군 브리지는 `sensor_msgs/msg/PointCloud2`와 Gazebo `gz.msgs.PointCloudPacked`를 연결합니다. `pointCloudTopicName`과 `sensor_config.py`에 지정한 경로를 일치시키세요.
+계산 백엔드와 렌더링 환경을 준비한 뒤 작업 공간을 다시 빌드하고 환경을 불러오세요. [센서 launch 인수](quickstart.md)로 새 센서 모델을 선택합니다. ROS 점군 브리지는 `sensor_msgs/msg/PointCloud2`와 Gazebo `gz.msgs.PointCloudPacked`를 연결합니다. `pointCloudTopicName`과 `sensor_config.py`에 지정한 경로를 일치시키세요.
 
 ## 원시 소나 데이터 기록하기
 

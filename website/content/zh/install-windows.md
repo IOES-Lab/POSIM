@@ -18,7 +18,7 @@
 
 安装或更新 Intel、AMD 或 NVIDIA GPU 的 **Windows 显卡驱动**。NVIDIA 用户同样需要这一步。WSLg 借助 Windows 驱动提供图形加速，具体操作见 [GUI 应用指南](https://learn.microsoft.com/zh-cn/windows/wsl/tutorials/gui-apps)。
 
-NVIDIA 用户请按照 [CUDA on WSL](https://docs.nvidia.com/cuda/wsl-user-guide/index.html) 安装 Windows 驱动，**不要在 WSL 内安装 Linux 显示驱动**。编译声呐插件还需要单独安装 CUDA Toolkit。
+NVIDIA 用户请按照 [CUDA on WSL](https://docs.nvidia.com/cuda/wsl-user-guide/index.html) 安装 Windows 驱动，**不要在 WSL 内安装 Linux 显示驱动**。只有编译声呐的 CUDA 后端时才需要 CUDA 工具包。
 
 在 PowerShell 中更新 WSL：
 

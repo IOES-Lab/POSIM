@@ -18,7 +18,7 @@ Consultez le [guide Microsoft](https://learn.microsoft.com/fr-fr/windows/wsl/ins
 
 Installez ou mettez à jour le **pilote Windows** de votre GPU Intel, AMD ou NVIDIA. Cette étape concerne aussi NVIDIA. WSLg utilise ce pilote pour l’accélération graphique ; suivez le [guide des applications graphiques](https://learn.microsoft.com/fr-fr/windows/wsl/tutorials/gui-apps).
 
-Avec NVIDIA, consultez [CUDA sous WSL](https://docs.nvidia.com/cuda/wsl-user-guide/index.html) : installez le pilote Windows, **pas de pilote d’affichage Linux dans WSL**. La compilation du plugin sonar nécessite aussi le toolkit CUDA.
+Avec NVIDIA, suivez [CUDA sous WSL](https://docs.nvidia.com/cuda/wsl-user-guide/index.html) : installez le pilote Windows, pas de pilote d’affichage Linux dans WSL. Le toolkit CUDA est nécessaire uniquement pour compiler le backend CUDA du sonar.
 
 Mettez WSL à jour depuis PowerShell :
 

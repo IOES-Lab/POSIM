@@ -9,7 +9,7 @@ L'argomento `namespace` seleziona la directory di un modello installato. I topic
 | `rexrov` | Propulsori Gazebo, idrodinamica e odometria |
 | `bluerov2` | BlueROV2 con ArduSub SITL e MAVROS |
 | `bluerov2_heavy` | Configurazione Heavy |
-| `bluerov2_heavy_multibeam_sonar` | Heavy con sonar CUDA |
+| `bluerov2_heavy_multibeam_sonar` | Heavy con sonar |
 
 Usa il [terminale preparato per la tua installazione](terminals.md). Per REXROV, segui la [prima simulazione](quickstart.md).
 
@@ -17,7 +17,7 @@ Usa il [terminale preparato per la tua installazione](terminals.md). Per REXROV,
 
 {{CODE:rovs:0}}
 
-Seleziona la variante Heavy con `namespace:=bluerov2_heavy`. Controlla la connessione dell'autopilota nell'output di avvio e in `/mavros/state`. Il modello con sonar richiede la [configurazione CUDA](sonar-tuning.md).
+Seleziona la variante Heavy con `namespace:=bluerov2_heavy`. Controlla la connessione dell'autopilota nell'output di avvio e in `/mavros/state`. Il modello con sonar richiede la [configurazione ](sonar-tuning.md).
 
 ## Controllare dalla tastiera
 

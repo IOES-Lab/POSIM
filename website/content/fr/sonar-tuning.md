@@ -1,28 +1,79 @@
 # Configurer et régler le sonar
 
-Choisissez couverture, détail et fréquence pour votre expérience. La [référence du sonar multifaisceaux](sonar.md) fournit démarrage rapide, SDF et paramètres ; ce guide explique les comparaisons et la préparation de CUDA.
+Choisissez le moteur de calcul, puis comparez portée, détail et fréquence de mise à jour. La [référence du sonar multifaisceaux](sonar.md) présente le démarrage rapide, le SDF et les paramètres.
 
-## Environnement nécessaire
+## Choisir l'environnement
 
-Utilisez les [terminaux Linux préparés](terminals.md) sous Ubuntu ou WSL 2 compatible avec un GPU NVIDIA, ou dans un conteneur y ayant accès. Modifiez et compilez dans cet environnement ; `POSIM_WS` est son espace de travail. Docker/RDP sur macOS n'expose pas de GPU CUDA : exécutez ce sonar sur un hôte Linux ou WSL 2 équipé de NVIDIA.
+Utilisez les [terminaux POSIM préparés](terminals.md). Modifiez, compilez et exécutez dans la même installation Ubuntu, WSL ou Docker ; `POSIM_WS` désigne son espace de travail. Tous les moteurs de calcul ont besoin des capteurs de rendu de Gazebo.
 
-## Mesurer une référence
+| Environnement | Possibilités |
+| --- | --- |
+| Linux natif | CPU ; WGPU avec adaptateur Vulkan utilisable ; CUDA avec GPU NVIDIA et toolkit compatibles |
+| WSL 2 ou conteneur Linux | CPU ; le calcul GPU exige un adaptateur et un pilote accessibles **dans** cet environnement |
+| Docker/RDP sous macOS | Commencez par CPU. Le conteneur Linux n'expose pas le périphérique Metal du Mac. |
+| macOS natif | WGPU peut utiliser Metal avec une chaîne ROS/Gazebo native préparée séparément ; le [guide macOS](install-macos.md) décrit Docker/RDP. |
 
-Lancez l'[exemple BlueView P900](sonar.md#run-a-sonar-example). Gardez scène, distance de cible et pose du capteur fixes. Vérifiez l'image et les données brutes avant de mesurer. Installez d'abord CUDA si nécessaire.
+`auto` essaie CUDA → WGPU → CPU. Pour une comparaison contrôlée, choisissez explicitement `cpu`, `wgpu` ou `cuda`. Si ce choix est indisponible, le capteur ne s'initialise pas. Voir le [tableau des choix](sonar.md#compute-backend).
 
-Dans un autre terminal préparé, mesurez la fréquence reçue :
+## Compiler les paquets sonar {#build-the-sonar-packages}
+
+Partez d'une [installation depuis les sources](install.md) avec ses dépendances. `wgpu_vendor` compile la bibliothèque Rust, même pour utiliser CPU. Vérifiez Rust et Cargo ; au besoin, suivez leur [installation officielle](https://www.rust-lang.org/tools/install).
 
 {{CODE:sonar-tuning:0}}
 
-Après un échantillon stable, arrêtez avec Ctrl+C. Consultez séparément la vitesse de simulation :
+Dans l'espace de travail dont l'environnement est chargé, compilez la bibliothèque, le capteur, le système du monde et l'exemple :
 
 {{CODE:sonar-tuning:1}}
 
-Le nom interne du monde est `default`. Notez `real_time_factor` : demander 30 Hz simulés ne garantit pas 30 images par seconde réelle. Ctrl+C arrête la lecture.
+CUDA est facultatif. Pour ignorer un toolkit installé et compiler CPU/WGPU, ajoutez `--cmake-args -DCMAKE_DISABLE_FIND_PACKAGE_CUDAToolkit=ON`. `Cargo.lock` fixe les dépendances Rust ; leur premier téléchargement nécessite Internet.
 
-## Comparer une variable
+{{CODE:sonar-tuning:2}}
 
-Modifiez un réglage dans une copie du [descripteur](sonar.md#sensor-configuration), recompilez, chargez l'environnement et redémarrez à la même pose.
+Vérifiez les quatre paquets, puis lancez l'[exemple](sonar.md#run-a-sonar-example) et recevez images et données brutes. La présence d'un paquet ne prouve pas que le capteur se charge. Vérifiez les paquets dans le conteneur ; s'ils manquent, compilez les sources sans supposer qu'une étiquette d'image les inclut.
+
+## Choisir l'adaptateur WGPU
+
+Sous Linux, exécutez `vulkaninfo --summary` dans l'environnement de Gazebo, avec le pilote et les outils Vulkan du système. Un adaptateur logiciel tel que llvmpipe peut exécuter Vulkan sans accélération matérielle. WGPU affiche l'adaptateur retenu au démarrage.
+
+{{CODE:sonar-tuning:3}}
+
+| Variable | Usage |
+| --- | --- |
+| `WGPU_BACKEND` | `vulkan` sous Linux, `metal` dans un processus macOS natif ; omettez-la pour les valeurs par défaut de la plateforme |
+| `WGPU_ADAPTER_NAME` | Premier adaptateur dont le nom contient le texte, sans distinction de casse ; reprenez un nom affiché par le pilote ou au démarrage |
+| `WGPU_POWER_PREF` | `high`, `low` ou `none` ; `high` par défaut si aucun nom n'est donné |
+
+Définissez les variables avant le lancement. Arrêtez puis relancez la simulation après modification : l'initialisation est partagée dans le processus. Le projet [wgpu](https://github.com/gfx-rs/wgpu) décrit les API. En cas d'échec d'initialisation ou de contrôle des ressources, examinez l'adaptateur et ses limites, puis choisissez `cpu` ou réduisez les dimensions du capteur.
+
+## CUDA, en option
+
+Il faut un pilote NVIDIA, le compilateur/runtime CUDA, cuFFT et cuBLAS. Vérifiez l'environnement d'exécution :
+
+{{CODE:sonar-tuning:4}}
+
+Pour les conteneurs Linux, configurez [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html) sur l'hôte. Sous Windows, suivez [CUDA sous WSL](https://docs.nvidia.com/cuda/wsl-user-guide/index.html) et, si nécessaire, la [configuration GPU de Docker Desktop](https://docs.docker.com/desktop/features/gpu/). Installez le pilote d'affichage Windows, pas un pilote Linux dans WSL. Le conteneur doit aussi disposer des bibliothèques CUDA.
+
+Choisissez une architecture compatible. L'exemple utilise SM 75 : remplacez `75` par la valeur de votre GPU. `OFF` réactive la recherche du toolkit après une compilation CPU/WGPU seule.
+
+{{CODE:sonar-tuning:5}}
+
+`nvcc --list-gpu-code` indique les cibles disponibles. Sans choix explicite, le compilateur fournit sa valeur par défaut. Avec plusieurs toolkits, utilisez `-DCUDAToolkit_ROOT=/path/to/cuda` et ajoutez son `bin` au `PATH`. Lancez l'exemple avec `compute_backend:=cuda`.
+
+## Mesurer une référence
+
+Gardez la scène, la distance à la cible et la pose du capteur fixes. Dans le terminal B :
+
+{{CODE:sonar-tuning:6}}
+
+Arrêtez avec Ctrl+C, puis examinez la vitesse de simulation :
+
+{{CODE:sonar-tuning:7}}
+
+L'entité du monde s'appelle `default`. Relevez `real_time_factor` avec la fréquence reçue : demander 30 Hz en temps simulé ne garantit pas 30 images par seconde réelle. Quittez avec Ctrl+C.
+
+## Régler l'échantillonnage et la portée
+
+Modifiez un seul paramètre dans une copie du [SDF](sonar.md#sensor-configuration), recompilez, rechargez l'environnement et relancez avec la même pose.
 
 | Expérience | Comparaison | Observation |
 |---|---|---|
@@ -32,42 +83,18 @@ Modifiez un réglage dans une copie du [descripteur](sonar.md#sensor-configurati
 | Actualisation | 30 contre 10 Hz | Fréquence reçue et facteur de temps réel |
 | Saut de rayons | `raySkips` à 10 puis 5 | Détail vertical et coût de calcul |
 
-Mesurez le résultat de chaque comparaison. Désactivez `writeLog` et `debugFlag` pour le débit ; activez-les séparément pour étudier retours ou chronométrage. Conservez SDF, révision POSIM, versions GPU/CUDA et observations. Le [guide des données de capteurs](visualization.md) explique l'enregistrement des topics.
+Le pas de distance vaut `soundSpeed / (2 × bandwidth)` ; la grille compte `ceil(maxDistance / pas) + 1` cellules. Avec 1500 m/s, 29.9 kHz et 15 m, on obtient 599 cellules. La dernière coordonnée peut dépasser légèrement `maxDistance`, mais les échos hors portée sont exclus. Lisez les distances et le nombre de faisceaux dans le message brut ou le CSV.
 
-## Préparer les outils
+WGPU conserve la longueur demandée, même hors des puissances de deux, et choisit automatiquement les étapes FFT. Portée et bande passante plus grandes augmentent mémoire et calcul. CPU place les échos dans la cellule de distance la plus proche ; GPU travaille dans le domaine fréquentiel. Comparez aussi l'amplitude et la réponse en distance entre moteurs.
 
-Le [plugin](sonar.md) nécessite pilote NVIDIA, compilateur et runtime CUDA, cuFFT, cuBLAS et rendu Gazebo. Dans l'environnement qui exécutera le sonar :
+## Conserver un essai reproductible
 
-{{CODE:sonar-tuning:2}}
+Laissez le rendu se stabiliser. Désactivez `writeLog` et `debugFlag` pour mesurer le débit ; enregistrez séparément en [CSV](sonar.md) ou avec [ROS](visualization.md). `blazingSonarImage=false` fixe la graine à 1234.
 
-Vérifiez séparément GPU et compilateur. Avec Docker Engine sous Linux, configurez [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html) sur l'hôte. Sous Windows, suivez la [configuration GPU Docker Desktop/WSL 2](https://docs.docker.com/desktop/features/gpu/). L'image doit aussi contenir les bibliothèques CUDA.
-
-## Choisir l'architecture CUDA
-
-Réglez `CMAKE_CUDA_ARCHITECTURES` sur une version SM compatible avec le GPU et le toolkit. Cet exemple utilise SM 75 : remplacez `75` par votre architecture, depuis l'espace de travail préparé.
-
-{{CODE:sonar-tuning:3}}
-
-`nvcc --list-gpu-code` liste les cibles prises en charge. Sans réglage explicite, CMake reprend le choix par défaut du compilateur. Avec plusieurs installations CUDA, utilisez `-DCUDAToolkit_ROOT=/path/to/cuda` et ajoutez son répertoire `bin` à `PATH`.
-
-## Vérifier les composants installés
-
-{{CODE:sonar-tuning:4}}
-
-Un paquet peut être enregistré même si ses composants CUDA ont été omis. Vérifiez les bibliothèques :
-
-{{CODE:sonar-tuning:5}}
-
-Chaque commande doit renvoyer le code 0. Examinez les composants omis ou erreurs de chargement, puis recevez les données décrites dans [Sonar multifaisceaux](sonar.md).
-
-## Interpréter les mesures
-
-Laissez le rendu se stabiliser avant de chronométrer. À scène et pose identiques, notez temps par image, fréquence reçue, facteur de temps réel, utilisation CPU/GPU et mémoire. Distinguez physique, rendu, calcul CUDA, publication et journalisation.
-
-`blazingSonarImage` choisit entre une graine aléatoire variable et la graine fixe `1234` ; comparez la répétabilité. Conservez des données de référence lors de changements numériques et comparez intensité et distance, en plus des images. Les [citations](citation.md) donnent les recherches d'origine.
+Conservez SDF, révision POSIM, moteur/adaptateur, versions pilote/toolkit, temps par image, fréquence reçue, facteur de temps réel et mémoire. Comparez les données brutes d'intensité/distance en plus des captures. Voir les [références du modèle](citation.md).
 
 ## Traitement GPU
 
 {{MEDIA:sonar-tuning}}
 
-Le traitement comprend sommation des rayons, fenêtrage/correction et FFT. Lors du profilage, séparez ces étapes des transferts mémoire GPU. Image : wiki Notion POSIM.
+Le traitement comprend somme des rayons, fenêtrage/correction et FFT. Mesurez séparément calcul et transferts mémoire. Figure : POSIM Notion Wiki.

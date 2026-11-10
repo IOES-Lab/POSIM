@@ -9,7 +9,7 @@
 | `rexrov` | Gazebo 추진기, 유체역학과 Odometry를 사용하는 ROV |
 | `bluerov2` | ArduSub SITL·MAVROS가 연결된 BlueROV2 |
 | `bluerov2_heavy` | Heavy 구성 |
-| `bluerov2_heavy_multibeam_sonar` | CUDA 소나를 포함한 Heavy 구성 |
+| `bluerov2_heavy_multibeam_sonar` | 소나를 포함한 Heavy 구성 |
 
 설치 방식에 맞게 [준비한 POSIM 터미널](terminals.md)을 사용합니다. REXROV는 [첫 시뮬레이션](quickstart.md)의 예제로 시작할 수 있습니다.
 
@@ -22,7 +22,7 @@ ros2 launch posim_demos posim_robot.launch.py \
   open_qgc:=false open_virtual_joystick:=false
 ```
 
-Heavy 모델은 `namespace:=bluerov2_heavy`로 선택합니다. Launch 출력과 `/mavros/state`에서 autopilot 연결을 확인하세요. 소나가 포함된 모델에는 [CUDA 설정](sonar-tuning.md)이 필요합니다.
+Heavy 모델은 `namespace:=bluerov2_heavy`로 선택합니다. Launch 출력과 `/mavros/state`에서 autopilot 연결을 확인하세요. 소나가 포함된 모델에는 [설정](sonar-tuning.md)이 필요합니다.
 
 ## 키보드 제어
 
