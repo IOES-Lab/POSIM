@@ -350,7 +350,7 @@ std::complex<double> ReferenceNoise(uint64_t seed, uint64_t frame)
   return radius * std::complex<double>(std::sin(angle), std::cos(angle)) / std::sqrt(2.);
 }
 
-void IndependentFarRanges(ComputeBackend & backend)
+void IndependentRangeEndpoints(ComputeBackend & backend)
 {
   double maximum = 0;
   for (int ranges : {4096, 4097, 8193})
@@ -384,7 +384,10 @@ void IndependentFarRanges(ComputeBackend & backend)
     input.seed = 73;
     input.frameIndex = (uint64_t(1) << 33) + 20;
     input.window = pulse.spectrum.data();
-    for (float range : {4.f, 9.999f, 10.f})
+    // Exercise both ends: half a first-bin interval and the first range cell,
+    // an interior return, and the near/far sides of the last output cell.
+    const float firstRange = input.soundSpeed / (2. * input.bandwidth);
+    for (float range : {.5f * firstRange, firstRange, 4.f, 9.999f, 10.f})
     {
       depth.setTo(range);
       const auto actual = Compute(backend, input);
@@ -419,10 +422,10 @@ void IndependentFarRanges(ComputeBackend & backend)
       }
       const double error = std::sqrt(difference / energy);
       maximum = std::max(maximum, error);
-      Require(error < 3e-4, "independent f64 far-range error " + std::to_string(error));
+      Require(error < 3e-4, "independent f64 endpoint error " + std::to_string(error));
     }
   }
-  std::cout << "Independent f64 physical far ranges: max relative complex error="
+  std::cout << "Independent f64 physical range endpoints: max relative complex error="
             << std::setprecision(9) << maximum << '\n';
 }
 
@@ -485,7 +488,7 @@ int main(int argc, char ** argv)
     PulseControls(*backend);
     WeakReturns(*backend);
     LargeRanges(*backend);
-    IndependentFarRanges(*backend);
+    IndependentRangeEndpoints(*backend);
     std::ofstream arrays;
     if (argc > 3)
     {
