@@ -19,8 +19,8 @@ struct Params {
   h_fov: f32,
   v_fov: f32,
   use_area_weights: u32,
-  _pad1: u32,
-  _pad2: u32,
+  phase_scale_hi: f32,
+  phase_scale_lo: f32,
 };
 
 @group(0) @binding(0) var<uniform> params: Params;
@@ -97,6 +97,28 @@ fn philox_normal4(seed_lo: u32, seed_hi: u32, frame_lo: u32, frame_hi: u32, subs
   return vec4<f32>(r1 * sin(t1), r1 * cos(t1), r2 * sin(t2), r2 * cos(t2));
 }
 
+// Split at 12 significant bits so each partial product is representable in f32.
+// Retain the product residual without relying on fused fma semantics, which
+// WGSL does not require. Inputs here are finite range/frequency-step values.
+fn two_product(a: f32, b: f32) -> vec2<f32> {
+  let a_hi = bitcast<f32>(bitcast<u32>(a) & 0xfffff000u);
+  let b_hi = bitcast<f32>(bitcast<u32>(b) & 0xfffff000u);
+  let a_lo = a - a_hi;
+  let b_lo = b - b_hi;
+  let product = a * b;
+  let residual = ((a_hi * b_hi - product) + a_hi * b_lo + a_lo * b_hi) + a_lo * b_lo;
+  return vec2<f32>(product, residual);
+}
+
+fn delay_phase(distance: f32, frequency_index: f32) -> f32 {
+  let delay = two_product(distance, params.phase_scale_hi);
+  let delay_lo = delay.y + distance * params.phase_scale_lo;
+  let cycles = two_product(delay.x, frequency_index);
+  let cycles_lo = cycles.y + delay_lo * frequency_index;
+  let reduced = (cycles.x - round(cycles.x)) + cycles_lo;
+  return 2.0 * PI * (reduced - round(reduced));
+}
+
 // Physical readout owns one complete (geometry column, frequency) cell per
 // invocation. Sum selected rays in f32 instead of quantizing each contribution
 // before the sum. This needs no floating-point atomic feature or ray-sized scratch.
@@ -111,9 +133,7 @@ fn physical_main(@builtin(global_invocation_id) gid: vec3<u32>) {
     return;
   }
 
-  let delta_f = params.bandwidth / f32(params.n_freq);
-  let freq = delta_f * (f32(f) + 0.5 - 0.5 * f32(params.n_freq));
-  let kw = 2.0 * PI * freq / params.sound_speed;
+  let frequency_index = f32(f) + 0.5 - 0.5 * f32(params.n_freq);
   let source_term = sqrt(pow(10.0, params.source_level / 10.0)) * 1e-6;
   let weight = window_vals[f];
   var sum_re = 0.0;
@@ -131,7 +151,7 @@ fn physical_main(@builtin(global_invocation_id) gid: vec3<u32>) {
     let xi = philox_normal4(params.seed_lo, params.seed_hi, params.frame_lo, params.frame_hi, dr);
     let amp_re = (xi.x / sqrt(2.0)) * amp_scale;
     let amp_im = (xi.y / sqrt(2.0)) * amp_scale;
-    let phase = 2.0 * d * kw;
+    let phase = delay_phase(d, frequency_index);
     let c = cos(phase);
     let s = sin(phase);
     sum_re += (amp_re * c - amp_im * s) * weight;

@@ -364,12 +364,12 @@
       <inertial>
         <mass>0.001</mass>
         <inertia>
-          ixx="0.0005"
-          ixy="0"
-          ixz="0"
-          iyy="0.0005"
-          iyz="0"
-          izz="0.0005"
+          <ixx>0.0005</ixx>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyy>0.0005</iyy>
+          <iyz>0</iyz>
+          <izz>0.0005</izz>
         </inertia>
       </inertial>
       <visual name="prop_mesh_file">
@@ -396,12 +396,12 @@
       <inertial>
         <mass>0.001</mass>
         <inertia>
-          ixx="0.0005"
-          ixy="0"
-          ixz="0"
-          iyy="0.0005"
-          iyz="0"
-          izz="0.0005"
+          <ixx>0.0005</ixx>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyy>0.0005</iyy>
+          <iyz>0</iyz>
+          <izz>0.0005</izz>
         </inertia>
       </inertial>
       <visual name="prop_mesh_file">
@@ -428,12 +428,12 @@
       <inertial>
         <mass>0.001</mass>
         <inertia>
-          ixx="0.0005"
-          ixy="0"
-          ixz="0"
-          iyy="0.0005"
-          iyz="0"
-          izz="0.0005"
+          <ixx>0.0005</ixx>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyy>0.0005</iyy>
+          <iyz>0</iyz>
+          <izz>0.0005</izz>
         </inertia>
       </inertial>
       <visual name="prop_mesh_file">
@@ -460,12 +460,12 @@
       <inertial>
         <mass>0.001</mass>
         <inertia>
-          ixx="0.0005"
-          ixy="0"
-          ixz="0"
-          iyy="0.0005"
-          iyz="0"
-          izz="0.0005"
+          <ixx>0.0005</ixx>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyy>0.0005</iyy>
+          <iyz>0</iyz>
+          <izz>0.0005</izz>
         </inertia>
       </inertial>
       <visual name="prop_mesh_file">
@@ -492,12 +492,12 @@
       <inertial>
         <mass>0.001</mass>
         <inertia>
-          ixx="0.0005"
-          ixy="0"
-          ixz="0"
-          iyy="0.0005"
-          iyz="0"
-          izz="0.0005"
+          <ixx>0.0005</ixx>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyy>0.0005</iyy>
+          <iyz>0</iyz>
+          <izz>0.0005</izz>
         </inertia>
       </inertial>
       <visual name="prop_mesh_file">
@@ -524,12 +524,12 @@
       <inertial>
         <mass>0.001</mass>
         <inertia>
-          ixx="0.0005"
-          ixy="0"
-          ixz="0"
-          iyy="0.0005"
-          iyz="0"
-          izz="0.0005"
+          <ixx>0.0005</ixx>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyy>0.0005</iyy>
+          <iyz>0</iyz>
+          <izz>0.0005</izz>
         </inertia>
       </inertial>
       <visual name="prop_mesh_file">
@@ -556,12 +556,12 @@
       <inertial>
         <mass>0.001</mass>
         <inertia>
-          ixx="0.0005"
-          ixy="0"
-          ixz="0"
-          iyy="0.0005"
-          iyz="0"
-          izz="0.0005"
+          <ixx>0.0005</ixx>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyy>0.0005</iyy>
+          <iyz>0</iyz>
+          <izz>0.0005</izz>
         </inertia>
       </inertial>
       <visual name="prop_mesh_file">
@@ -588,12 +588,12 @@
       <inertial>
         <mass>0.001</mass>
         <inertia>
-          ixx="0.0005"
-          ixy="0"
-          ixz="0"
-          iyy="0.0005"
-          iyz="0"
-          izz="0.0005"
+          <ixx>0.0005</ixx>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyy>0.0005</iyy>
+          <iyz>0</iyz>
+          <izz>0.0005</izz>
         </inertia>
       </inertial>
       <visual name="prop_mesh_file">

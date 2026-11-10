@@ -50,7 +50,10 @@ bool ComputePhysicalSonarCpu(const SonarComputeInput & input, SonarComputeOutput
   {
     return false;
   }
-  const float delta = float(input.bandwidth) / count;
+  // Match the f32 parameters crossing the WGPU ABI, but retain their quotient
+  // and delay product in double. Large unreduced f32 phases lose range precision.
+  const double phaseScale =
+    2. * double(float(input.bandwidth)) / (double(float(input.soundSpeed)) * count);
   for (int column = 0; column < columns; ++column)
   {
     for (int row = 0; row < rows; ++row)
@@ -71,8 +74,8 @@ bool ComputePhysicalSonarCpu(const SonarComputeInput & input, SonarComputeOutput
         ScatterNoise(input.seed, input.frameIndex, uint32_t(i)) / std::sqrt(2.f) * magnitude;
       for (int f = 0; f < count; ++f)
       {
-        const float frequency = delta * (f + .5f - .5f * count);
-        const float phase = 2.f * range * (2.f * float(M_PI) * frequency / float(input.soundSpeed));
+        const double cycles = double(range) * phaseScale * (f + .5 - .5 * count);
+        const double phase = 2. * M_PI * std::remainder(cycles, 1.);
         const auto value = amplitude * std::complex<float>(std::cos(phase), std::sin(phase));
         real.at<float>(column, f) += value.real();
         imag.at<float>(column, f) += value.imag();

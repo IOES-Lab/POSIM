@@ -2,6 +2,7 @@
 #pragma once
 
 #include <cmath>
+#include <limits>
 #include <stdexcept>
 #include <vector>
 
@@ -26,16 +27,21 @@ inline PhysicalPulse MakePhysicalPulse(double maxRange, double soundSpeed, doubl
     throw std::invalid_argument("Invalid physical pulse parameters");
   }
   const double intervals = std::ceil(2. * maxRange * bandwidth / soundSpeed);
-  // The backend supports at most 4096 frequency samples. Keep at least one
-  // complete output interval as guard, including a maximum-range cell.
-  if (!std::isfinite(intervals) || intervals < 1 || intervals > 2047)
+  // Keep a complete output interval as guard, including the far-range cell.
+  // Device-dependent limits are checked by the backend, not a fixed FFT cap.
+  if (
+    !std::isfinite(intervals) || intervals < 1 || intervals >= std::numeric_limits<int>::max() / 2)
   {
-    throw std::invalid_argument("Physical pulse exceeds the 4096-sample transform limit");
+    throw std::invalid_argument("Physical pulse sample count is not representable");
   }
   const int outputCount = static_cast<int>(intervals) + 1;
   int count = 1;
   while (count < 2 * outputCount)
   {
+    if (count > std::numeric_limits<int>::max() / 2)
+    {
+      throw std::invalid_argument("Physical pulse transform size is not representable");
+    }
     count *= 2;
   }
   PhysicalPulse pulse;

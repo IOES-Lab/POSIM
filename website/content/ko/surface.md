@@ -4,16 +4,27 @@ WAM-V 수상 로봇에 Wave Sim의 파도와 ArduRover의 보트 제어를 적�
 
 ## WAM-V 통합 빌드
 
-선택형 수상 로봇 이미지는 ARM64 기본 이미지 구조를 사용합니다. POSIM 소스 디렉터리에서 [Docker 환경](docker.md)에 따라 `posim:dev-arm64-rdp`를 먼저 만든 뒤 실행합니다.
+이 선택형 이미지는 ARM64 데스크톱 구성을 사용합니다. Apple Silicon Mac에서 [Docker와 RDP 클라이언트](install-macos.md)를 준비한 뒤, macOS 터미널의 POSIM 소스 디렉토리에서 실행하세요.
 
 ```bash
+docker pull ioeslab/posim:latest
 docker build -f extras/surface/Dockerfile \
-  --build-arg POSIM_BASE_IMAGE=posim:dev-arm64-rdp -t posim:surface .
-docker run --rm -it --entrypoint bash posim:surface -lc \
-  'source /opt/ros/lyrical/setup.bash; source /home/docker/posim_ws/install/setup.bash; ros2 launch /opt/posim-surface/wamv.launch.py headless:=true'
+  --build-arg POSIM_BASE_IMAGE=ioeslab/posim:latest -t posim:surface .
+docker run -d --name posim-surface --shm-size=1g \
+  -p 127.0.0.1:3390:3389 posim:surface
 ```
 
-이미지에는 ArduSub와 ArduRover가 각각 별도 바이너리로 들어 있습니다. 단일 로봇 예제에서는 ArduRover의 보트 구성(`FRAME_CLASS=2`)을 선택합니다. 여러 로봇을 실행할 때는 컨트롤러 식별자와 통신 포트를 각각 배정해야 합니다.
+RDP 클라이언트에서 **127.0.0.1:3390**에 `docker` 계정으로 접속합니다. 이 Linux 데스크톱 안의 터미널에서 로봇을 실행하세요.
+
+```bash
+source /opt/ros/lyrical/setup.bash
+source /home/docker/posim_ws/install/setup.bash
+ros2 launch /opt/posim-surface/wamv.launch.py headless:=false
+```
+
+이미지에는 ArduSub와 ArduRover가 각각 별도 바이너리로 들어 있습니다. 단일 로봇 예제에서는 ArduRover의 보트 구성(`FRAME_CLASS=2`)을 선택합니다. 한 환경에서 한 인스턴스만 실행하세요. 런처가 차량 이름, 생성 파일 경로와 제어기 포트를 고정해서 사용하므로 `world_name`만 바꿔서는 두 번째 인스턴스가 독립적으로 동작하지 않습니다. 여러 차량에는 파일·이름·제어기 식별자·통신 포트를 분리한 별도 통합 구성이나 격리된 환경이 필요합니다.
+
+차량을 생성하고 IMU 데이터가 발행된 뒤 제어기가 시작됩니다. 차량 생성에 실패하거나 180초가 넘게 걸리는 경우, 또는 생성 후 180초 안에 IMU 샘플이 도착하지 않으면 Launch가 0이 아닌 상태로 종료되고 실패한 단계를 알립니다. 다시 실행하기 전에 Gazebo와 센서 로그를 확인하세요.
 
 ## 모델, 제어기와 위치 정보
 
@@ -21,9 +32,28 @@ docker run --rm -it --entrypoint bash posim:surface -lc \
 
 외부 항법 어댑터는 **Gazebo의 모의 위치·속도**를 MAVROS에 발행합니다. 임무를 실행하기 전에 제어기 상태·항법 유효성·추진 방향을 확인하세요.
 
+[해양 GNSS 시스템](gnss.md)으로 수신기 잡음, 수면 접촉과 재수신을 실험할 수도 있습니다. 안테나·플러그인을 명시적으로 연결하고 적절한 항법 어댑터를 구성합니다. 수상 예제의 외부 위치 어댑터는 별도의 항법 입력입니다.
+
 ## 파도 조절
 
-수상 월드의 파도 제어 토픽은 `/world/wwos_gebco/waves`이며 `gz.msgs.Param` 메시지를 사용합니다. 각 설정값의 자료형은 `double`입니다.
+파도 제어는 `/world/<world_name>/waves` 토픽에서 `gz.msgs.Param` 메시지를 사용합니다. `<world_name>`에는 SDF의 `<world name="...">` 값을 넣습니다. 토픽의 월드 이름은 지형 데이터 공급자가 아니라 실행 중인 월드를 식별합니다. 실행 중인 시뮬레이션의 토픽 목록은 다음 명령으로 확인합니다.
+
+```bash
+gz topic -l
+```
+
+위 [WAM-V 실행 파일](https://github.com/IOES-Lab/POSIM/blob/main/extras/surface/wamv.launch.py)의 기본 월드 이름은 `posim_surface`이므로 파도 토픽은 `/world/posim_surface/waves`입니다. 앱에서 사용하는 Gazebo 네임스페이스에 맞게 `world_name` 실행 인자를 지정할 수 있습니다. 환경 설정을 마친 수상 로봇 컨테이너 안에서 다음과 같이 실행합니다.
+
+```bash
+SURFACE_WORLD=harbour
+ros2 launch /opt/posim-surface/wamv.launch.py headless:=false world_name:="$SURFACE_WORLD"
+```
+
+생성되는 SDF, 로봇 생성 요청, IMU 브리지와 시작 대기 명령이 모두 이 이름을 사용합니다. 위 예제의 파도 토픽은 `/world/harbour/waves`이고, ROS IMU 토픽은 `/model/wamv/imu`로 유지됩니다. 이 인자는 생성할 월드의 이름을 지정하며 지형 파일을 선택하지 않습니다.
+
+이 예제는 z = −10 m의 평평한 해저면을 사용합니다. 직접 지형을 준비하려면 [높이맵 지형](heightmaps.md)을 참고하세요.
+
+각 설정값의 자료형은 `double`입니다.
 
 | 설정 | 단위 | 의미 |
 | --- | --- | --- |

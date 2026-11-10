@@ -279,6 +279,7 @@ private:
 
     // Logging
     std::ofstream writeLog;
+    std::string logDirectory;
     u_int64_t writeCounter{0};
     u_int64_t writeNumber{1};
     u_int64_t writeInterval;

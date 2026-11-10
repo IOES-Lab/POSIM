@@ -51,7 +51,7 @@ async fn check() {
     let mut worst = 0.0f64;
     for n in [
         1u32, 2, 3, 7, 15, 16, 17, 31, 32, 63, 127, 128, 255, 256, 399, 511, 512, 513, 1023, 1024,
-        2047, 2048, 4095, 4096,
+        2047, 2048, 4095, 4096, 4097, 5000, 8192, 8193,
     ] {
         let beams = 2u32;
         let count = (n * beams) as usize;
@@ -88,7 +88,7 @@ async fn check() {
             layout: &radix.get_bind_group_layout(0),
             entries: &entries,
         });
-        let plan = if n.is_power_of_two() {
+        let plan = if !exact_fft::uses_global_stages(n) {
             None
         } else {
             Some(exact.plan(&d, n, beams, &rb, &ib))

@@ -24,7 +24,7 @@
       name="gz::sim::systems::SceneBroadcaster">
     </plugin>
     <plugin
-      filename="multibeam_sonar_system"
+      filename="libmultibeam_sonar_system"
       name="custom::MultibeamSonarSystem">
     </plugin>
 

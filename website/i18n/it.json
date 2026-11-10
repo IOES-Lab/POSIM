@@ -1,0 +1,155 @@
+{
+  "name": "Italiano",
+  "sections": [
+    "Panoramica di POSIM",
+    "Per iniziare",
+    "Guide introduttive",
+    "Controllo dei robot",
+    "Guide avanzate",
+    "Riferimento dei plugin",
+    "Riferimenti e progetto"
+  ],
+  "pages": {
+    "index": "Panoramica",
+    "features": "Funzionalità ed esempi",
+    "requirements": "Scegliere un ambiente",
+    "install": "Ubuntu: installazione nativa",
+    "install-ubuntu-docker": "Linux: installazione con Docker",
+    "install-windows": "Windows: installazione in WSL",
+    "install-windows-docker": "Windows: WSL e Docker",
+    "install-macos": "macOS: Docker e RDP",
+    "docker": "Ambiente Docker",
+    "terminals": "Preparare i terminali",
+    "quickstart": "Prima simulazione",
+    "visualization": "Visualizzare e registrare i dati dei sensori",
+    "worlds": "Libreria dei mondi",
+    "rovs": "ROV e BlueROV2",
+    "gliders": "Glider Slocum",
+    "objects": "Oggetti e scenari operativi",
+    "ros": "Terminali e topic ROS",
+    "python-control": "Controllo con Python",
+    "robot-control": "Controllo dei propulsori e joystick",
+    "surface": "Robot di superficie e onde",
+    "custom-worlds": "Creare un mondo",
+    "custom-robots": "Aggiungere un robot",
+    "custom-sensors": "Aggiungere e configurare sensori",
+    "heightmaps": "Terreno da mappe di altezza",
+    "sonar-tuning": "Configurare e regolare il sonar",
+    "currents": "Correnti marine",
+    "underwater-rendering": "Effetti della scena subacquea",
+    "camera": "Telecamera subacquea",
+    "gnss": "GNSS marino",
+    "pressure": "Pressione dell’acqua",
+    "dvl": "Misuratore di velocità Doppler",
+    "usbl": "Posizionamento USBL",
+    "coordinates": "Coordinate geografiche",
+    "sonar": "Sonar multibeam",
+    "troubleshooting": "Risoluzione dei problemi",
+    "contributing": "Contribuire",
+    "citation": "Citazioni e licenze",
+    "qgroundcontrol": "Controllo con QGroundControl"
+  },
+  "ui": {
+    "documentationLanguage": "Lingua della documentazione",
+    "colorTheme": "Tema colori",
+    "system": "Sistema",
+    "light": "Chiaro",
+    "dark": "Scuro",
+    "skip": "Vai al contenuto",
+    "utility": "Collegamenti utili",
+    "menu": "Menu della documentazione",
+    "search": "Cerca nella documentazione",
+    "placeholder": "Titoli, comandi, argomenti",
+    "otherLanguages": "Cerca in tutte le lingue",
+    "mobileNavigation": "Documentazione mobile",
+    "documentation": "Documentazione",
+    "product": "Platform for Ocean Simulation · Documentazione",
+    "previousNext": "Guide precedente e successiva",
+    "previous": "Precedente",
+    "next": "Successiva",
+    "edit": "Modifica questa pagina",
+    "references": "Riferimenti",
+    "onThisPage": "In questa pagina",
+    "noMatches": "Nessuna guida corrispondente.",
+    "searchUnavailable": "Scegli una guida dal menu della documentazione.",
+    "copy": "Copia",
+    "copyCode": "Copia codice",
+    "copied": "Copiato",
+    "textSelected": "Testo selezionato",
+    "copyShortcut": "Usa la scorciatoia da tastiera per copiare.",
+    "videoBuffered": "Video caricato nel buffer",
+    "retry": "Riprova",
+    "openVideo": "Apri il file video",
+    "buffering": "Caricamento del buffer…",
+    "loading": "Caricamento del video…",
+    "videoFailed": "Impossibile caricare il video.",
+    "sourceDirectories": "Directory del codice sorgente"
+  },
+  "media": {
+    "camera": [
+      "Scena Gazebo con telecamera subacquea",
+      "Visualizzazione dell’immagine subacquea",
+      "Immagine senza attenuazione RGB e con sfondo nero",
+      "Acqua costiera torbida: attenuazione RGB 0.8/0.5/0.2 e sfondo 85/107/47"
+    ],
+    "currents": [
+      "Correnti stratificate in profondità e risposta del veicolo",
+      "Flusso di dati tra mondo, ROS e plugin di corrente del modello",
+      "Risposta del veicolo a una corrente uniforme",
+      "Risposta del veicolo a una corrente stratificata",
+      "Dati ROS della corrente uniforme",
+      "Dati ROS della corrente stratificata",
+      "Dati del database delle correnti stratificate",
+      "Applicazione della corrente alla profondità del modello",
+      "Velocità della corrente per ciascun modello",
+      "Topic ROS della corrente del modello",
+      "Topic Gazebo della corrente del modello"
+    ],
+    "dvl": [
+      "Fasci acustici del DVL rivolti verso il fondale",
+      "Misure di velocità del DVL",
+      "Verifica del topic DVL in Gazebo",
+      "Verifica del topic DVL in ROS"
+    ],
+    "gliders": [
+      "Movimento subacqueo del glider Slocum"
+    ],
+    "objects": [
+      "Scelta di un modello in Resource Spawner di Gazebo",
+      "Caricamento di un modello su Fuel",
+      "File e metadati del modello in Fuel",
+      "Conferma della pubblicazione su Fuel"
+    ],
+    "pressure": [
+      "Misure di pressione in ROS",
+      "Verifica della pressione in Gazebo",
+      "Profondità ricavata dalla pressione"
+    ],
+    "rovs": [
+      "Movimento e assetto del REXROV sott’acqua"
+    ],
+    "sonar-tuning": [
+      "Fasi di elaborazione del sonar sulla GPU"
+    ],
+    "sonar": [
+      "Elaborazione del sonar multibeam con diffusione puntiforme",
+      "RGB, profondità, immagine sonar e nuvola di punti della stessa scena",
+      "Variazione delle immagini nell’esempio sonar",
+      "Misure sonar al variare della scena",
+      "Misure sonar dal BlueROV2",
+      "Esplorazione locale della scena con il sonar"
+    ],
+    "usbl": [
+      "Disposizione di ricetrasmettitore e transponder USBL",
+      "Flusso dei messaggi di interrogazione comune e individuale",
+      "Misure di posizione del transponder"
+    ],
+    "qgroundcontrol": [
+      "La telecamera frontale mostra gli oggetti del mondo di esempio. I joystick virtuali restano disponibili sopra il video."
+    ],
+    "install-macos": [
+      "L’immagine ARM64 pronta all’uso mostra Gazebo nel desktop remoto."
+    ]
+  },
+  "overview": "Ambiente oceanico → robot e dinamica → misure dei sensori → controllo ROS 2. Seleziona un’immagine per aprire la guida."
+}

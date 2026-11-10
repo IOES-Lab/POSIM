@@ -5,6 +5,7 @@ source the ROS environment and your workspace in each new terminal:
 
 ```bash
 source /opt/ros/lyrical/setup.bash
+source "$HOME/.ros_ardusub_env/env"
 source ~/posim_ws/install/setup.bash
 ```
 

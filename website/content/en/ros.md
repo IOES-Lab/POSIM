@@ -1,96 +1,46 @@
-# ROS 2 and control
+# ROS terminals & topics
 
-Use your robot's interfaces to receive sensor data and send control commands. A bridge or ROS-enabled plugin connects Gazebo Transport to ROS 2.
+Keep the simulator running in one terminal and use another terminal for inspection or control. Both terminals must load the same ROS distribution and POSIM workspace.
+
+## Follow the data path
+
+<div class="docs-flow"><div><strong>ROS programs and commands</strong><span>Subscriptions, services and control inputs</span></div><div><strong>ROS interface</strong><span>ros_gz bridge or a plugin's ROS publisher</span></div><div><strong>Gazebo and POSIM plugins</strong><span>Physics, robot state and sensor measurements</span></div></div>
+
+Sensor data travels toward your ROS program; commands travel toward the simulator. A Gazebo topic appears in ROS only when a bridge or ROS-enabled plugin publishes it. The robot launch loads the selected model's bridge configuration.
+
+## Prepare Terminal A and Terminal B
+
+Follow [Prepare your terminals](terminals.md) for your installation route. Keep [First simulation](quickstart.md) running in Terminal A and use Terminal B for the inspection commands below.
 
 ## Inspect the graph
 
-Use a second terminal in the same environment as the simulator:
+The inspection commands use `--no-daemon` to query ROS directly, without depending on a cached CLI daemon.
 
 ```bash
-ros2 topic list -t
-ros2 service list -t
+ros2 topic list --no-daemon -t
+ros2 service list --no-daemon -t
 gz topic -l
-ros2 topic info /model/rexrov/odometry --verbose
+ros2 topic info --no-daemon /model/rexrov/odometry --verbose
 ```
 
-Check types, frame IDs, rates and QoS before connecting your node. Nodes using simulation timestamps should set `use_sim_time:=true` and receive the simulation clock.
+`ros2 topic list` lists ROS topics; `gz topic -l` lists Gazebo Transport topics. Inspect the message type, publisher, subscriber and QoS information before connecting a program.
 
-## REXROV thruster commands
-
-The included REXROV configuration bridges eight `cmd_thrust` topics as `std_msgs/msg/Float64`. The values are thrust commands in newtons. A neutral command for the first thruster is:
+## Watch a changing value
 
 ```bash
-ros2 topic pub --once /model/rexrov/joint/thruster1_joint/cmd_thrust \
-  std_msgs/msg/Float64 '{data: 0.0}'
+ros2 topic echo --no-daemon /model/rexrov/odometry nav_msgs/msg/Odometry --field pose.pose.position
 ```
 
-A controller must allocate forces across the thrusters using their positions and axes. Controlling the vehicle's speed requires coordinating the thrusters. End an experiment by sending neutral values to every commanded thruster.
+Position samples should continue to arrive. A stationary robot can report nearly constant positions while its timestamps advance. Press **Ctrl+C in Terminal B** to stop the viewer; Terminal A keeps the simulation running.
 
-## BlueROV2 and autopilot
+Use `--once` when you want one message. Nodes that use simulation timestamps should set `use_sim_time:=true` and receive `/clock`.
 
-BlueROV2 connects to ArduSub through MAVROS. Inspect state and available command interfaces:
+## Connect another ROS computer
 
-```bash
-ros2 topic echo /mavros/state --once
-ros2 service list -t
-ros2 topic info /mavros/manual_control/send --verbose
-```
+Use compatible ROS/message packages, matching domain settings and a reachable DDS discovery/data path. Install `posim_interfaces` when subscribing to POSIM-specific messages. If publishers exist but no samples arrive, check [Troubleshooting](troubleshooting.md) before changing the controller.
 
-The manual-control adapter maps `/joy` and `/keyboard/joy` to MAVROS commands.
+## Next steps
 
-- Publication rate: **20 Hz**
-- Input timeout: **0.3 seconds**
-
-Use one command source and check arming/navigation status. See [ROVs](rovs.md) for keyboard and WebSocket setup.
-
-## Subscribe from Python
-
-This minimal example prints REXROV's simulated position. Save it as `observe.py` and run `python3 observe.py` in the sourced ROS environment.
-
-```python
-import rclpy
-from nav_msgs.msg import Odometry
-from rclpy.node import Node
-
-class Observer(Node):
-    def __init__(self):
-        super().__init__('posim_observer')
-        self.subscription = self.create_subscription(
-            Odometry, '/model/rexrov/odometry', self.on_pose, 10)
-
-    def on_pose(self, message):
-        p = message.pose.pose.position
-        self.get_logger().info(f'x={p.x:.2f}, y={p.y:.2f}, z={p.z:.2f}')
-
-rclpy.init()
-node = Observer()
-try:
-    rclpy.spin(node)
-except KeyboardInterrupt:
-    pass
-finally:
-    node.destroy_node()
-    rclpy.shutdown()
-```
-
-## Visualization and recording
-
-Choose RViz displays matching the message type.
-
-- Cameras: Image
-- Point clouds: PointCloud2
-- Frames and state: TF/pose displays
-
-POSIM-specific messages are defined in `posim_interfaces`. Install and source these definitions on each separate ROS client.
-
-```bash
-ros2 bag record /model/rexrov/odometry /model/rexrov/imu
-```
-
-A remote ROS client requires:
-
-- Compatible message definitions
-- Reachable DDS discovery and data paths
-- Matching domain and discovery settings
-
-Configure remote gateways in the application hosting the simulator.
+- [Control with Python](python-control.md): read odometry and send a bounded thruster command.
+- [Thrusters & joystick control](robot-control.md): choose the interface for your vehicle.
+- [View & record sensor data](visualization.md): display images and save observations.

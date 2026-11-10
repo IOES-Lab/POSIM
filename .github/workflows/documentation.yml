@@ -7,6 +7,8 @@ on:
   pull_request:
     paths:
       - "website/**"
+      - "gazebo/**"
+      - "extras/**"
       - "models/**"
       - "examples/**"
       - "posim_interfaces/**"
@@ -15,6 +17,8 @@ on:
     branches: [main]
     paths:
       - "website/**"
+      - "gazebo/**"
+      - "extras/**"
       - "models/**"
       - "examples/**"
       - "posim_interfaces/**"
@@ -36,7 +40,7 @@ jobs:
         working-directory: website
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: "24"
       - name: Install pinned dependencies
@@ -56,7 +60,7 @@ jobs:
           node scripts/check.mjs
       - name: Upload public documentation
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
-        uses: actions/upload-pages-artifact@v4
+        uses: actions/upload-pages-artifact@v5
         with:
           path: website/dist
 
@@ -74,4 +78,4 @@ jobs:
     steps:
       - name: Publish GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5

@@ -61,8 +61,12 @@ ament_environment_hooks(
 
 # Testing setup
 if(BUILD_TESTING)
-  find_package(ament_lint_auto REQUIRED)
-  ament_lint_auto_find_test_dependencies()
+  find_package(ament_cmake_gtest REQUIRED)
+  ament_add_gtest(test_model_current test/test_model_current.cc)
+  target_include_directories(test_model_current PRIVATE include)
+  target_link_libraries(test_model_current OceanCurrentModelPlugin)
+  include(../../cmake/PosimLint.cmake)
+  posim_add_lint_tests()
 endif()
 
 ament_package()

@@ -201,6 +201,8 @@ RUN set -e; \
     retry git -c http.version=HTTP/1.1 -c http.lowSpeedLimit=1 -c http.lowSpeedTime=60 \
       fetch --depth 1 --no-tags origin "$ARDUPILOT_GAZEBO_COMMIT"; \
     git checkout --detach "$ARDUPILOT_GAZEBO_COMMIT"; \
+    bash "$POSIM_UNDERLAY/src/posim/extras/ardusub-ubuntu-install.sh" \
+      --patch-gst-camera "$PWD"; \
     chown -R $USER:$USER /home/$USER/ardupilot_gazebo && \
     mkdir -p /home/$USER/ardupilot_gazebo/build && \
     cd /home/$USER/ardupilot_gazebo/build && \

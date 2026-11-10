@@ -3,6 +3,18 @@
 //! on the CPU; every frame's signal, convolution and transform stay on the GPU.
 use wgpu::util::DeviceExt;
 
+/// Keep the existing shared-memory fast path for small powers of two.
+/// Larger transforms use global-memory stages without changing the N-point grid.
+pub fn uses_global_stages(n: u32) -> bool {
+    n > 4096 || !n.is_power_of_two()
+}
+
+pub fn convolution_size(n: u32) -> Option<u32> {
+    n.checked_mul(2)?
+        .checked_sub(1)?
+        .checked_next_power_of_two()
+}
+
 pub struct Pipeline {
     pipeline: wgpu::ComputePipeline,
     layout: wgpu::BindGroupLayout,
@@ -113,8 +125,8 @@ impl Pipeline {
         re: &wgpu::Buffer,
         im: &wgpu::Buffer,
     ) -> Plan {
-        assert!((1..=4096).contains(&n) && !n.is_power_of_two() && beams > 0);
-        let m = (2 * n - 1).next_power_of_two();
+        assert!(n > 0 && beams > 0);
+        let m = convolution_size(n).expect("validated FFT dimensions");
         let scratch = || {
             device.create_buffer(&wgpu::BufferDescriptor {
                 label: Some("bluestein_scratch"),

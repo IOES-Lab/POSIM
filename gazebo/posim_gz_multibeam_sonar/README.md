@@ -14,7 +14,7 @@ on Linux and Metal on native macOS; all backends require Gazebo rendering.
 
 ## 한국어 안내
 
-광선 기반 점 산란 모델로 강도·거리 데이터, 소나 영상과 점군을 생성합니다.
+음선 기반 점 산란 모델로 강도·거리 데이터, 소나 영상과 점군을 생성합니다.
 실행할 때 WGPU·CUDA·CPU 계산 방식을 선택합니다. WGPU는 Linux에서 Vulkan,
 macOS에서 직접 실행할 때 Metal을 사용합니다. 모든 방식에서 Gazebo 렌더링이 필요합니다.
 
