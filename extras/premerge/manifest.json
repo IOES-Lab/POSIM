@@ -1,0 +1,39 @@
+{
+  "schema": 1,
+  "gst": {
+    "path": "src/GstCameraPlugin.cc",
+    "source_commit": "082a0fe231f6e63bc8d1598f1cba461d9e2ea7f5",
+    "upstream_pr": "https://github.com/ArduPilot/ardupilot_gazebo/pull/192",
+    "upstream_head": "b3303144c947ec2c06afe63bcf36a38b8d59d652",
+    "thread_guard_pr": "https://github.com/ArduPilot/ardupilot_gazebo/pull/188",
+    "thread_guard_merge": "ad27a8344c2b57489211a58bcef6644e35f167e3",
+    "steps": [
+      {
+        "patch": "gst-sps.patch",
+        "patch_sha256": "4ec88dcebdf116fe5fb2e889843f82234fa0967550ba6d4e8526b70cb529c682",
+        "before": "4ffdea690e2f3133865269b0f1b7788d135d7dde41e3877af0c6b78058dc4cd3",
+        "after": "29f9e98588462b2fefbd46633255fb540b498a312262c25b13cfee6c62920b92"
+      },
+      {
+        "patch": "gst-camera.patch",
+        "patch_sha256": "67070c81c36c5bbb291d453a3b4d45042c4023871783084a5501e760a2728f90",
+        "before": "29f9e98588462b2fefbd46633255fb540b498a312262c25b13cfee6c62920b92",
+        "after": "b8af452ef92de34b3ea87c62004de7186223e253a4594ac579158f4db78982ca"
+      }
+    ]
+  },
+  "terrain": {
+    "path": "ogre2/media/Hlms/Terra/gz/100.gz_CustomWeights_piece_ps.any",
+    "upstream_pr": "https://github.com/gazebosim/gz-rendering/pull/1419",
+    "upstream_head": "92a22902ecf1bc6a7806727bbd56bddf7b4221e1",
+    "upstream_base": "bf4a5fe02efdc70d5957176469ad51e69ed97b90",
+    "steps": [
+      {
+        "patch": "terra.patch",
+        "patch_sha256": "cf83995a8cae604809339e14fe484283cb8cbefc9b4a421adb65d69a6105d901",
+        "before": "db32d065af19d4ac7953578fb4e17ea4210e5e45409ebd2a052b80eff731715c",
+        "after": "c8c9b75f6f9ee8d210c92a477b24fe791aedee7cf328041095e47618e22e39c1"
+      }
+    ]
+  }
+}
