@@ -84,7 +84,7 @@ Die Weltentität heißt `default`. Erfasse `real_time_factor` zusammen mit der E
 
 Der Entfernungsabstand ist `soundSpeed / (2 × bandwidth)`; das Raster hat `ceil(maxDistance / Abstand) + 1` Zellen. Bei 1500 m/s, 29.9 kHz und 15 m sind es 599. Die letzte Koordinate kann `maxDistance` leicht überschreiten; Echos außerhalb der Reichweite werden ausgeschlossen. Lies Entfernungen und Strahlzahl aus Rohdaten oder CSV.
 
-WGPU erhält die angeforderte Transformationslänge auch bei Nicht-Zweierpotenzen und wählt die FFT-Stufen automatisch. Größere Reichweite und Bandbreite erhöhen Speicherbedarf und Rechenaufwand. CPU ordnet Echos der nächsten Entfernungszelle zu; GPU verarbeitet im Frequenzbereich. Vergleiche beim Backendwechsel auch Amplitude und Entfernungsantwort.
+WGPU erhält die angeforderte Transformationslänge auch bei Nicht-Zweierpotenzen und wählt die FFT-Stufen automatisch. Größere Reichweite und Bandbreite erhöhen Speicherbedarf und Rechenaufwand. Im Standardraster ordnet CPU Echos der nächsten Entfernungszelle zu; GPU verarbeitet im Frequenzbereich. Vergleiche beim Backendwechsel auch Amplitude und Entfernungsantwort.
 
 ## Vergleich reproduzierbar aufzeichnen
 

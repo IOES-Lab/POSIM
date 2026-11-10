@@ -33,6 +33,16 @@ ros2 topic echo /sensor/multibeam_sonar/sonar_image \
 
 BlueView 센서 Launch는 Gazebo 시뮬레이션 시간을 ROS `/clock`으로 전달합니다. `use_sim_time`을 사용하는 도구에서는 월드가 실행 중이고 `/clock`이 증가하는지 확인하세요.
 
+소나는 영상과 원시 음향 메시지를 ROS 2에 직접 발행합니다. 센서 설정의 브리지는 Gazebo 점군을 ROS 2로 전달합니다. 토픽 이름을 바꾼 경우 `ros2 topic list -t`로 확인하세요.
+
+## 센서 계산 흐름
+
+Gazebo는 장면의 기하 정보를 제공합니다. 소나 모델은 표면 법선을 추정하고 음향 후방 산란, 수신 응답과 거리 압축을 계산합니다. 계산된 음향 데이터와 표시 영상은 같은 관측을 나타냅니다. 분석에는 원시 데이터를 사용하고, 영상과 함께 gain·표시 설정을 보관하세요.
+
+`spec/receiveBeamWidth`를 양수로 설정하면 소나 전체 시야를 덮는 깊이 카메라의 실제 XYZ를 사용하는 물리 모드를 선택합니다. 기하 표본, 수신 방향과 거리 출력은 독립적입니다. 중심이 시야 안에 있는 셀들이 전체 입체각을 분담하며, 표면 투영 면적과 부호를 유지하는 수신 응답으로 각 빔의 기여도를 계산합니다. 고정 대역폭의 단위 피크 기저대역 Hamming 펄스를 사용하고, 내부 계산 구간을 출력 거리 구간보다 길게 둡니다. 거리 간격은 `soundSpeed / (2 × bandwidth)`이며 계산 길이가 펄스 이득을 결정하지 않습니다.
+
+`ray/scan/horizontal/samples`는 기하 열 수, `ray/scan/vertical/rays`는 영상 행 수, `beams`는 수신 방향 수입니다. 물리 모드는 각 축의 폭이 180° 미만인 대칭 시야를 사용합니다. 거리 제한은 센서와 표면 사이의 직선거리에 적용하며, 시야나 거리 제한 밖의 픽셀은 격자형 점군에서 유효하지 않은 XYZ로 표시합니다. `spec/receiveBeamWidth`는 전력 반치전폭을 라디안으로 지정하며, `spec/receiveGain`은 선형 압력 이득입니다(기본값 1). 폭을 생략하거나 0으로 지정하면 기본 격자 기반 방식을 사용합니다. 독립 물리 모드는 CPU·WGPU를 지원하며 CUDA에서는 지원하지 않습니다. 주파수 표본 수에 고정된 4096개 상한은 없습니다. 큰 격자는 백엔드 자원 한도와 표현 가능한 차원 범위 안에서 사용해야 합니다. 내부 여유 구간은 출력하지 않으며 출력 거리 간격도 바꾸지 않습니다. 프레임과 기하 셀마다 산란 계수를 생성합니다. 기저대역 반사를 모델링하며, 반송파 위상 전파와 실측 장비의 절대 진폭 보정은 제공하지 않습니다.
+
 ## 센서 구성
 
 다음 시스템을 `<world>` 바로 안에 넣습니다.
@@ -119,7 +129,7 @@ BlueView 센서 Launch는 Gazebo 시뮬레이션 시간을 ROS `/clock`으로 �
 | `sourceLevel` | 음원 준위(dB) | 220 | 220 |
 | `maxDistance` | 처리 거리(m). ray 범위와 맞춤 | 60 | 10 |
 | `raySkips` | 수직 샘플링 간격. 양의 정수 사용 | 10 | 10 |
-| `sensorGain` | CPU 반사 진폭 이득; WGPU·CUDA에서는 사용하지 않음 | 0.02 | 0.02 |
+| `sensorGain` | 기본 CPU 격자 모드의 반사 진폭 이득; 물리 모드와 WGPU·CUDA에서는 사용하지 않음 | 0.02 | 0.02 |
 | `blazingSonarImage` | 실제 시각에 따라 난수 시드 변경. false이면 1234 사용 | false | true |
 | `pointCloudTopicName` | Gazebo 점군 토픽 접미사 | `point_cloud` | 동일 |
 | `sonarImageRawTopicName` | ROS 원시 관측 토픽 접미사 | `sonar_image_raw` | 동일 |

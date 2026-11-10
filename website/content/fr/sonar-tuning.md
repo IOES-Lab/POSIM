@@ -84,7 +84,7 @@ Modifiez un seul paramètre dans une copie du [SDF](sonar.md#sensor-configuratio
 
 Le pas de distance vaut `soundSpeed / (2 × bandwidth)` ; la grille compte `ceil(maxDistance / pas) + 1` cellules. Avec 1500 m/s, 29.9 kHz et 15 m, on obtient 599 cellules. La dernière coordonnée peut dépasser légèrement `maxDistance`, mais les échos hors portée sont exclus. Lisez les distances et le nombre de faisceaux dans le message brut ou le CSV.
 
-WGPU conserve la longueur demandée, même hors des puissances de deux, et choisit automatiquement les étapes FFT. Portée et bande passante plus grandes augmentent mémoire et calcul. CPU place les échos dans la cellule de distance la plus proche ; GPU travaille dans le domaine fréquentiel. Comparez aussi l'amplitude et la réponse en distance entre moteurs.
+WGPU conserve la longueur demandée, même hors des puissances de deux, et choisit automatiquement les étapes FFT. Portée et bande passante plus grandes augmentent mémoire et calcul. Dans le mode de grille par défaut, CPU place les échos dans la cellule de distance la plus proche ; GPU travaille dans le domaine fréquentiel. Comparez aussi l'amplitude et la réponse en distance entre moteurs.
 
 ## Conserver un essai reproductible
 

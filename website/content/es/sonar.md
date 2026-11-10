@@ -14,6 +14,14 @@ El paquete `posim_multibeam_sonar_demo` también ofrece un ejemplo independiente
 
 Ejecuta un solo ejemplo a la vez. Sustituye `wgpu` por `cpu`, `cuda` o `auto` para cambiar el motor de cálculo. Para un sonar a bordo, selecciona `bluerov2_heavy_multibeam_sonar` con un mundo adecuado.
 
+## Cómo funciona el sensor
+
+Gazebo aporta la geometría de la escena. El modelo estima las normales de superficie, calcula la retrodispersión acústica, aplica la respuesta de recepción y comprime los retornos en celdas de distancia. Los datos acústicos y la imagen corresponden a la misma observación. Usa los datos brutos para el análisis y conserva los ajustes de ganancia y visualización.
+
+Un valor positivo de `spec/receiveBeamWidth` activa el modo físico, que usa las coordenadas XYZ medidas por una cámara de profundidad que cubre todo el campo del sonar. Las muestras geométricas, las direcciones receptoras y las salidas de distancia son independientes. Las celdas cuyo centro está dentro del campo reparten su ángulo sólido completo; sus áreas de superficie proyectadas y la respuesta receptora con signo determinan la contribución a cada haz. Se usa un pulso Hamming de banda base, ancho de banda fijo y pico unitario. El intervalo de cálculo interno es mayor que el intervalo de distancia publicado. El paso de salida es `soundSpeed / (2 × bandwidth)`; la longitud de cálculo no determina la ganancia del pulso. El intervalo de guarda interno no se publica ni cambia ese paso.
+
+`ray/scan/horizontal/samples` define las columnas geométricas, `ray/scan/vertical/rays` las filas de imagen y `beams` las direcciones receptoras. El modo físico requiere un campo simétrico de menos de 180° en cada eje. Los límites de distancia son radiales; los píxeles fuera del campo o de esos límites tienen XYZ no válidas en la nube organizada. `spec/receiveBeamWidth` es la anchura total a media potencia, en radianes; `spec/receiveGain` es la ganancia lineal de presión (predeterminada: 1). Omitir la anchura o ponerla a cero selecciona el modo de cuadrícula predeterminado. El modo físico admite CPU y WGPU, pero no CUDA. No hay un límite fijo de 4096 muestras de frecuencia; las cuadrículas grandes siguen sujetas a los recursos del motor y a las dimensiones representables. Los coeficientes de dispersión se generan por imagen y celda geométrica. Se modelan retornos de banda base, sin propagación de fase portadora ni calibración de amplitud del equipo.
+
 ## Consultar los datos
 
 En el terminal B:
@@ -48,7 +56,7 @@ El ejemplo solicita 512 haces horizontales en unos 130°, 300 rayos verticales e
 | `sourceLevel` | Nivel de la fuente, dB | 220 | 220 |
 | `maxDistance` | Distancia de procesamiento, m; debe coincidir con el alcance de los rayos | 60 | 10 |
 | `raySkips` | Paso de muestreo vertical; entero positivo | 10 | 10 |
-| `sensorGain` | Ganancia de amplitud de ecos en CPU; sin uso en WGPU/CUDA | 0.02 | 0.02 |
+| `sensorGain` | Ganancia de amplitud de ecos en la cuadrícula CPU predeterminada; sin uso en modo físico ni en WGPU/CUDA | 0.02 | 0.02 |
 | `blazingSonarImage` | Semilla aleatoria basada en el reloj real; con `false`, semilla fija 1234 | false | true |
 | `pointCloudTopicName` | Sufijo del tópico de nube de puntos de Gazebo | `point_cloud` | Igual |
 | `sonarImageRawTopicName` | Sufijo del tópico ROS de datos acústicos | `sonar_image_raw` | Igual |
