@@ -2,6 +2,9 @@ import { test, expect, devices } from '@playwright/test';
 import { pages } from '../scripts/pages.mjs';
 import { languages, messages } from '../scripts/locales.mjs';
 
+// Scrollbars must remain visible in headless screenshots for navigation review.
+test.use({ launchOptions: { ignoreDefaultArgs: ['--hide-scrollbars'] } });
+
 test('desktop navigation, search, copy, language and shared emblem', async ({ page, context }, info) => {
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
