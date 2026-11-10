@@ -50,7 +50,7 @@ The [receiver profiles](https://github.com/IOES-Lab/POSIM/blob/main/gazebo/posim
 
 Numeric receiver settings must be finite. Latency, acquisition time, dry margin and standard deviations must be nonnegative.
 
-An empty `wave_topic` uses the mean-water plane. A nonempty topic requires fresh local height samples; missing or invalid data produces `surface unavailable`. The protocol uses `gz.msgs.Double_V`: schema `1`, grid count, periodic X/Y size, wind speed/angle, steepness, simulation time and row-major heights. The grid count is an integer from 2 to 256, followed by that count squared height values. Tile sizes must be finite and positive; the finite timestamp must be no more than 0.6 simulation seconds old and cannot be in the future. The receiver consumes this grid; configure a compatible publisher separately. Wind metadata does not control reception.
+An empty `wave_topic` uses the mean-water plane. A nonempty topic requires fresh local height samples; missing or invalid data produces `surface unavailable`. The protocol uses `gz.msgs.Double_V`: schema `1`, grid count, periodic X/Y size, wind speed/angle, steepness, simulation time and row-major heights. The grid count is an integer from 2 to 256, followed by a number of height values equal to the square of that count. Tile sizes must be finite and positive; the finite timestamp must be no more than 0.6 simulation seconds old and cannot be in the future. The receiver consumes this grid; configure a compatible publisher separately. Wind metadata does not control reception.
 
 ## Read measurements and obstruction state
 

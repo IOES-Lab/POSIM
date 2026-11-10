@@ -82,4 +82,4 @@ gz topic -t /model/my_robot/gnss/blocked -m gz.msgs.Boolean -p 'data: true'
 
 정지한 수면 위 안테나, 잠긴 안테나, 차단된 안테나와 수신 회복을 비교합니다. 수신 준비 시간, 지연, 재설정 후 세대 번호와 증가하는 측정 시각을 확인하세요. 데이터를 받는 쪽은 오래되거나 미래인 측정을 거부하고 유효하지 않은 상태를 처리해야 합니다. 이 플러그인은 Gazebo 측정을 발행합니다. ROS `NavSatFix`, autopilot 입력과 항법 추정에는 별도 어댑터가 필요합니다.
 
-수신기는 위치 기반의 단순화된 모델입니다. 위성 배치, 전파 전파, 물리적 다중경로 또는 수중 음향 위치 추정을 계산하지 않습니다. 정확도 설정값은 시뮬레이션 입력이며 제조사 성능 보증이 아닙니다. [수신기 구현](https://github.com/IOES-Lab/POSIM/blob/main/gazebo/posim_gz_gnss/Gnss.cc)과 [패키지 안내](https://github.com/IOES-Lab/POSIM/tree/main/gazebo/posim_gz_gnss)를 참고하세요.
+수신기는 위치 기반의 단순화된 모델입니다. 위성 배치, RF 신호 전파, 물리적 다중경로 또는 수중 음향 위치 추정을 계산하지 않습니다. 정확도 설정값은 시뮬레이션 입력이며 제조사 성능 보증이 아닙니다. [수신기 구현](https://github.com/IOES-Lab/POSIM/blob/main/gazebo/posim_gz_gnss/Gnss.cc)과 [패키지 안내](https://github.com/IOES-Lab/POSIM/tree/main/gazebo/posim_gz_gnss)를 참고하세요.

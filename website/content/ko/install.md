@@ -1,6 +1,6 @@
 # Ubuntu 네이티브 설치
 
-Ubuntu 26.04의 ROS 작업 공간에서 POSIM을 빌드합니다. 독립된 Linux 환경을 사용하려면 [Linux Docker 설치](install-ubuntu-docker.md)을 선택하세요.
+Ubuntu 26.04의 ROS 작업 공간에서 POSIM을 빌드합니다. 독립된 Linux 환경을 사용하려면 [Linux Docker 설치](install-ubuntu-docker.md)를 선택하세요.
 
 ## 1. 소스 내려받기
 

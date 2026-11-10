@@ -75,12 +75,13 @@ L'entité du monde s'appelle `default`. Relevez `real_time_factor` avec la fréq
 
 Modifiez un seul paramètre dans une copie du [SDF](sonar.md#sensor-configuration), recompilez, rechargez l'environnement et relancez avec la même pose.
 
-| Essai | Comparaison | Observation |
-| --- | --- | --- |
-| Détail angulaire | 512 et 256 faisceaux, même champ de vision | Séparation des cibles et fréquence reçue |
-| Échantillonnage vertical | 300 et 150 rayons ; séparément, `raySkips` 10 et 5 | Continuité de la cible et temps de calcul |
-| Couverture | Modifier ensemble portée des rayons et `maxDistance` | Cible la plus éloignée et échelle des distances |
-| Mise à jour | 30 et 10 Hz | Fréquence reçue et facteur de temps réel |
+| Expérience | Comparaison | Observation |
+|---|---|---|
+| Détail angulaire | 512 contre 256 faisceaux horizontaux, champ constant | Séparation des cibles et fréquence |
+| Échantillonnage vertical | 300 contre 150 rayons | Continuité des cibles et temps de calcul |
+| Couverture | Modifier ensemble portée des rayons et `maxDistance` | Cible la plus éloignée et échelle de distance |
+| Actualisation | 30 contre 10 Hz | Fréquence reçue et facteur de temps réel |
+| Saut de rayons | `raySkips` à 10 puis 5 | Détail vertical et coût de calcul |
 
 Le pas de distance vaut `soundSpeed / (2 × bandwidth)` ; la grille compte `ceil(maxDistance / pas) + 1` cellules. Avec 1500 m/s, 29.9 kHz et 15 m, on obtient 599 cellules. La dernière coordonnée peut dépasser légèrement `maxDistance`, mais les échos hors portée sont exclus. Lisez les distances et le nombre de faisceaux dans le message brut ou le CSV.
 

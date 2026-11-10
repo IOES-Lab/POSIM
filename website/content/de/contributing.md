@@ -26,7 +26,7 @@ Bei einer öffentlich nutzbaren Funktion:
 - Beschreiben Sie Installation und Aktivierung, Standardwerte, Einheiten, Ein- und Ausgaben, Geltungsbereich der Einstellungen, ein beobachtbares Beispiel und Modellgrenzen. Berücksichtigen Sie optionale Effekte und Adapter.
 - Tragen Sie neue Seiten in `website/scripts/pages.mjs` und ihre Titel in `website/i18n/<Sprache>.json` ein. Aktualisieren Sie auch die README-Sprachfassungen.
 
-Die Seitenreihenfolge ist gemeinsam; Welt- und Objektkataloge werden aus den Quellen erzeugt. Beschreiben Sie das aktuelle Produkt. Interne Notizen, Pläne und Validierungsberichte bleiben außerhalb des Repositories. Diskutieren Sie Änderungen und Ergebnisse in Issues und Pull Requests.
+Die Seitenreihenfolge gilt für alle Sprachen; Welt- und Objektkataloge werden aus den Quellen erzeugt. Beschreiben Sie das aktuelle Produkt. Interne Notizen, Pläne und Validierungsberichte bleiben außerhalb des Repositories. Diskutieren Sie Änderungen und Ergebnisse in Issues und Pull Requests.
 
 ## Die Website prüfen
 

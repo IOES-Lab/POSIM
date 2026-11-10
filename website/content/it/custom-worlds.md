@@ -37,7 +37,7 @@ I valori attesi sono circa **120 938 Pa** e **2 m**. Il plugin pubblica direttam
 
 ## Cambiare la profondità
 
-1. Ferma il terminale A con Ctrl+C.
+1. Ferma la simulazione nel terminale A con Ctrl+C.
 2. Cambia la posa della stazione da `0 0 -2 0 0 0` a `0 0 -4 0 0 0`.
 3. Valida e riavvia il mondo.
 4. Ripeti le due letture: dovresti ottenere circa **140 551 Pa** e **4 m**.

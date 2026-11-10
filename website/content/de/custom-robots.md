@@ -38,7 +38,7 @@ Behalten Sie die kopierte Mechanik beim ersten Start bei. Prüfen Sie bei Rumpf�
 | `link/visual`, `link/collision` | m, rad | Maßstab und Ausrichtung beider Geometrien |
 | `joint/axis`, Thruster-Einstellungen | pluginspezifisch | Antriebsrichtung und Kraftverteilung |
 
-STL liefert Geometrie. Masse und Dynamik gehören in die SDF; prüfen Sie Mesh-Einheiten und Maßstab. Folgen Sie den installierten Ressourcen-URIs der Beispiele. Vereinfachen Sie die Kollisionsform, wenn visuelle Details den Kontakt unnötig teuer machen.
+STL liefert Geometrie. Masse und Dynamik gehören in die SDF; prüfen Sie Mesh-Einheiten und Maßstab. Folgen Sie den installierten Ressourcen-URIs der Beispiele. Vereinfachen Sie die Kollisionsform, wenn visuelle Details die Kontaktberechnung unnötig aufwendig machen.
 
 ## 3. Systeme und ROS verbinden
 

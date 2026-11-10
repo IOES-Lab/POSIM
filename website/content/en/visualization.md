@@ -34,6 +34,18 @@ POSIM-specific messages are defined in `posim_interfaces`. Install and source th
 
 Find sensor topics and message types in the [camera](camera.md), [pressure](pressure.md), [DVL](dvl.md), [USBL](usbl.md) and [sonar](sonar.md) references. [Ocean currents](currents.md) and [spherical coordinates](coordinates.md) also expose ROS services for changing experiment inputs.
 
+This standalone camera launch does not create a ROS `/clock` publisher. To include simulation time in the recording, prepare Terminal C in the same ROS environment as A and B and keep this one-way bridge running. Do not start a second bridge if `/clock` already has a publisher.
+
+```bash
+ros2 run ros_gz_bridge parameter_bridge '/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock'
+```
+
+Back in Terminal B, confirm that a clock message arrives before recording:
+
+```bash
+ros2 topic echo --no-daemon /clock rosgraph_msgs/msg/Clock --once
+```
+
 ```bash
 ros2 bag record -o camera_run --topics /underwater_camera/simulated_image /clock
 ```
@@ -43,6 +55,8 @@ Press Ctrl+C to finish recording. Choose a new output directory for each run. In
 ```bash
 ros2 bag info camera_run
 ```
+
+After recording, check that the bag contains both the image topic and `/clock`. Stop the bridge in Terminal C with Ctrl+C before replaying the bag.
 
 Stop the simulator before replaying the observations on the same topics:
 

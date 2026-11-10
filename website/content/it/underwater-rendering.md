@@ -64,11 +64,11 @@ Per attivare le particelle all'avvio, aggiungi questo tag nel plugin al posto de
 
 {{CODE:underwater-rendering:4}}
 
-WWW-POSIM usa questo renderer pubblico e aggiunge il proprio pannello di aspetto, gestione delle sessioni e preferenze salvate.
+WWW-POSIM usa questo renderer pubblico e aggiunge un proprio pannello per regolare l'aspetto della scena, la gestione delle sessioni e le preferenze salvate.
 
 ## Limiti del modello e confronto
 
-Il percorso subacqueo usa un piano medio a **z = 0 m**, senza seguire le singole creste. Caustiche e particelle sono approssimazioni visive: non modellano concentrazioni calibrate né rumore ottico del sensore.
+Il calcolo della lunghezza del percorso ottico nell'acqua usa il piano del livello medio del mare a **z = 0 m**, senza seguire le singole creste. Caustiche e particelle sono approssimazioni visive: non modellano concentrazioni calibrate né rumore ottico del sensore.
 
 Le lampade locali mantengono l'illuminazione diretta. I raggi del cielo subiscono attenuazione subacquea; materiali non illuminati e shader propri della superficie marina conservano il loro rendering. Il lato inferiore delle onde dipende quindi dal materiale di superficie.
 

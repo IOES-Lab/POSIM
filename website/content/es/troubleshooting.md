@@ -24,7 +24,7 @@ Para los [efectos de la escena submarina](underwater-rendering.md), comprueba:
 
 ## El GNSS no obtiene una solución
 
-Consulta el [estado de validez del GNSS](gnss.md), la altura mundial de la antena, la altura local del agua y la marca de tiempo de adquisición. Comprueba las coordenadas esféricas del mundo, que la antena esté fuera del agua y sin obstrucciones, y que transcurra suficiente tiempo de simulación para la readquisición y la latencia.
+Consulta el [estado de validez del GNSS](gnss.md), la altura de la antena en el sistema de coordenadas del mundo, la altura local del agua y la marca de tiempo de adquisición. Comprueba las coordenadas esféricas del mundo, que la antena esté fuera del agua y sin obstrucciones, y que transcurra suficiente tiempo de simulación para la readquisición y la latencia.
 
 Si usas un tópico de olas, verifica que entregue muestras locales compatibles y recientes. Instalar el receptor no lo añade al modelo ni proporciona un adaptador ROS o de autopiloto.
 
@@ -79,3 +79,13 @@ Sigue las comprobaciones exactas de SDK y código fuente, compila con el asisten
 ## Preparar un informe reproducible
 
 Incluye el SHA del código o digest de la imagen, versiones de dependencias, comando y argumentos, primer error, resultado esperado, tipos de tópicos pertinentes y un ejemplo mínimo. Distingue entre descubrir un tópico y recibir datos por él.
+
+## MAVROS 2.16.0 termina con SIGSEGV
+
+El instalador de POSIM y las compilaciones oficiales de Docker incluyen la
+[corrección del ciclo de vida del Router](https://github.com/IOES-Lab/POSIM/tree/main/extras/mavros)
+para MAVROS 2.16.0. Tras cargar el entorno de POSIM, `ros2 pkg prefix mavros`
+debe mostrar `/opt/posim/mavros-router/install`. Para una instalación existente,
+sigue las instrucciones de compilación independiente del enlace. Si el fallo
+persiste, adjunta al informe el registro de MAVROS y las rutas de las bibliotecas
+que se han cargado.

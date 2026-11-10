@@ -19,7 +19,7 @@ Ambos mensajes incluyen `transponder_id`, pero sus campos tienen significados di
 | `transponder_location` | Ángulo horizontal, grados | Distancia, m | Elevación, grados |
 | `transponder_location_cartesian` | x relativa, m | y relativa, m | z relativa, m |
 
-Se usa la diferencia de posiciones mundiales. El ángulo horizontal vale 0° hacia +x y 90° hacia +y; la elevación positiva apunta a +z. Ten en cuenta estos ejes al combinar datos en la referencia del vehículo.
+Se usa la diferencia entre las posiciones en el sistema de coordenadas del mundo. El ángulo horizontal vale 0° hacia +x y 90° hacia +y; la elevación positiva apunta a +z. Ten en cuenta estos ejes al combinar datos en la referencia del vehículo.
 
 ## Integración SDF
 
@@ -48,7 +48,7 @@ Coloca este transpondedor en `sphere` y otro en `sphere2` con `transponder_ID` i
 
 Usa modelos existentes, IDs únicos y listas de IDs/modelos de igual longitud. Los IDs son enteros decimales de **0 a 2147483647**, sin signo ni ceros iniciales. Cada plugin necesita un modelo con un enlace. La [definición completa](https://github.com/IOES-Lab/POSIM/blob/main/models/posim_worlds/worlds/usbl_tutorial.world) incluye geometría y posiciones.
 
-Una configuración inválida deja el plugin inactivo. Se ignoran destinos de canal o comando desconocidos; un canal desconocido conserva la selección. El primer transpondedor de la lista es el canal inicial. Los pings programados se detienen con la simulación y se emiten como máximo una vez por actualización.
+Una configuración inválida deja el plugin inactivo. Se ignoran destinos de canal o comando desconocidos; si el canal es desconocido, se conserva la selección actual. El primer transpondedor de la lista es el canal inicial. Los pings programados se detienen con la simulación y se emiten como máximo una vez por actualización.
 
 ## Tiempo de propagación
 

@@ -75,12 +75,13 @@ La entidad del mundo se llama `default`. Registra `real_time_factor` junto con l
 
 Cambia una variable en una copia del [SDF](sonar.md#sensor-configuration), recompila, carga el entorno y arranca con la misma pose.
 
-| Prueba | Comparación | Observación |
-| --- | --- | --- |
-| Detalle angular | 512 y 256 haces, mismo campo de visión | Separación de blancos y frecuencia recibida |
-| Muestreo vertical | 300 y 150 rayos; aparte, `raySkips` 10 y 5 | Continuidad del blanco y tiempo de cálculo |
-| Cobertura | Cambia alcance de rayos y `maxDistance` juntos | Blanco más lejano y escala de distancia |
-| Actualización | 30 y 10 Hz | Frecuencia recibida y factor de tiempo real |
+| Experimento | Comparación | Qué observar |
+|---|---|---|
+| Detalle angular | 512 frente a 256 haces horizontales, mismo campo de visión | Separación de blancos y frecuencia |
+| Muestreo vertical | 300 frente a 150 rayos | Continuidad de blancos y tiempo de cálculo |
+| Cobertura | Cambiar alcance de rayos y `maxDistance` juntos | Blanco más lejano y escala de distancia |
+| Actualización | 30 frente a 10 Hz | Frecuencia recibida y factor de tiempo real |
+| Salto de rayos | `raySkips` de 10 frente a 5 | Detalle vertical y coste de cálculo |
 
 El paso de distancia es `soundSpeed / (2 × bandwidth)`; hay `ceil(maxDistance / paso) + 1` celdas. Con 1500 m/s, 29.9 kHz y 15 m son 599. La última coordenada puede superar ligeramente `maxDistance`, pero se excluyen los retornos fuera del alcance. Lee distancias y número de haces en el mensaje bruto o CSV.
 

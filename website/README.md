@@ -54,6 +54,9 @@ Search reads a local JSON asset and does not need an external search service.
 
 ## Maintain the content
 
+Every documentation change needs the language-aware revision and fidelity review
+described in [AGENTS.md](../AGENTS.md).
+
 - `content/<language>/*.md`: complete guides for `en`, `ko`, `es`, `fr`, `de`,
   `it`, `ja` and `zh`; English is the default.
 - `scripts/pages.mjs`: shared navigation order and reference mapping.

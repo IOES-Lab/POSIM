@@ -42,7 +42,7 @@ Sans `wave_topic`, le récepteur utilise le plan moyen de l'eau. Avec un topic c
 
 Le message `gz.msgs.Double_V` contient, dans l'ordre : schéma `1`, taille de grille, dimensions périodiques X/Y, vitesse et angle du vent, cambrure des vagues, temps simulé et hauteurs rangées par lignes.
 
-- Taille de grille : entier de 2 à 256, puis son carré en valeurs de hauteur.
+- Taille de grille : entier de 2 à 256, suivi d'un nombre de valeurs de hauteur égal au carré de cet entier.
 - Dimensions X/Y : finies et strictement positives.
 - Horodatage : fini, âgé d'au plus **0.6 seconde simulée**, jamais futur.
 
@@ -66,7 +66,7 @@ Chaque message contient 15 nombres en double précision. Les indices commencent 
 
 États : `0 disabled` (désactivé), `1 submerged` (immergé), `2 acquiring` (acquisition), `3 fix` (solution valide), `4 blocked` (bloqué) et `5 surface unavailable` (surface indisponible).
 
-Une mesure invalide contient des coordonnées et vitesses `NaN`. Le contact avec l'eau ou le blocage supprime les solutions en attente. La réacquisition demande un dégagement continu au-dessus de la marge. Une réinitialisation efface temporisation et mesures retardées, puis incrémente l'époque.
+Une mesure invalide contient des coordonnées et vitesses `NaN`. Le contact avec l'eau ou le blocage supprime les solutions en attente. Pour la réacquisition, l'antenne doit rester au-dessus de la marge sans interruption. Une réinitialisation efface temporisation et mesures retardées, puis incrémente l'époque.
 
 Pour bloquer l'antenne ; utilisez `false` pour la libérer :
 

@@ -19,7 +19,7 @@ Read the first missing URI in the log. Check that its package resources were ins
 
 Check graphics drivers and display connections in your [installation guide](requirements.md). Gazebo and image sensors need a working renderer. For sonar, check the [selected backend and installed packages](sonar-tuning.md).
 
-For [underwater scene effects](underwater-rendering.md), check the `/posim/appearance/<session_nonce>/state` service, renderer/shader paths and active camera count. Suspended specks start off; enable them explicitly. Confirm applied revision and readiness after rendering. The camera attenuation example alone does not load the scene-effects system.
+For [underwater scene effects](underwater-rendering.md), check the `/posim/appearance/<session_nonce>/state` service, renderer/shader paths and active camera count. Suspended specks are disabled by default; enable them explicitly. Confirm applied revision and readiness after rendering. The camera attenuation example alone does not load the scene-effects system.
 
 For the documented **macOS arm64 / Ogre-Next 2.3.3** configuration, an [opt-in lifetime overlay helper](https://github.com/IOES-Lab/POSIM/blob/main/extras/ogre/README.md) builds and selects an isolated Ogre core for one process. Follow its exact SDK/source checks and verify loaded-library paths. It is not enabled by the standard installer, and other Ogre versions or platforms require their own matching profile.
 
@@ -93,3 +93,12 @@ For a native arm64 SDK using Ogre-Next 2.3.3, the [isolated Ogre overlay](https:
 ## Make a useful report
 
 Include source SHA or image digest, dependency versions, command/arguments, first error, expected behavior, relevant topic types and a short reproducible case. Note whether the topic only appears in the list or also delivers data.
+
+## MAVROS 2.16.0 exits with SIGSEGV
+
+The POSIM installer and official Docker builds include the
+[Router lifetime correction](https://github.com/IOES-Lab/POSIM/tree/main/extras/mavros)
+for MAVROS 2.16.0. After loading your POSIM environment, `ros2 pkg prefix mavros`
+should print `/opt/posim/mavros-router/install`. Existing installations can use
+the separate build instructions at that link. If a crash persists, include the
+MAVROS process log and the loaded library paths in your issue report.

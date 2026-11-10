@@ -12,7 +12,7 @@ Prepara un entorno de desarrollo Gazebo Jetty/Ogre2 compatible con el servidor. 
 
 CMake necesita los paquetes de desarrollo Gazebo y las entradas pkg-config `OGRE-Next` y `OGRE-Next-Hlms`. El comando incluye la ruta del paquete ROS `gz_ogre_next_vendor` en Ubuntu. Usa bibliotecas, cabeceras y sombreadores de la misma compilación.
 
-Añade a `<world>` y sustituye `/absolute/underwater` por el prefijo de instalación anterior. Carga una sola instancia por proceso Gazebo y asigna un `session_nonce` distinto a cada sesión:
+Añade este plugin a `<world>` y sustituye `/absolute/underwater` por el prefijo de instalación anterior. Carga una sola instancia por proceso Gazebo y asigna un `session_nonce` distinto a cada sesión:
 
 {{CODE:underwater-rendering:1}}
 
@@ -68,7 +68,7 @@ WWW-POSIM utiliza este renderizador público y añade su propio panel de aparien
 
 ## Alcance del modelo y comparación
 
-El recorrido bajo el agua usa un plano medio en **z = 0 m**, sin seguir cada cresta. Cáusticas y partículas son aproximaciones visuales; no modelan concentraciones calibradas ni ruido óptico del sensor.
+El cálculo de la longitud del recorrido óptico bajo el agua usa el plano del nivel medio del mar en **z = 0 m**, sin seguir cada cresta. Cáusticas y partículas son aproximaciones visuales; no modelan concentraciones calibradas ni ruido óptico del sensor.
 
 Las luces locales conservan iluminación directa. Los rayos del cielo reciben atenuación subacuática; los materiales sin iluminación y los sombreadores propios de superficie oceánica mantienen su renderizado. La cara inferior de la ola depende del material de superficie.
 

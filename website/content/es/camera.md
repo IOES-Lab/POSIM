@@ -38,7 +38,7 @@ Para convertir profundidad en distancia, se prioriza una proyección de lente ex
 
 ## Sincronización y valores del ejemplo
 
-Los fotogramas RGB y de profundidad se emparejan por la marca temporal de adquisición, independientemente del orden de llegada. ROS conserva la marca temporal y el identificador del marco de referencia del RGB. Al llenarse el búfer se descartan fotogramas sin pareja; reiniciar el tiempo vacía los pendientes y permite empezar de nuevo.
+Los fotogramas RGB y de profundidad se emparejan por la marca temporal de adquisición, independientemente del orden de llegada. ROS conserva la marca temporal y el identificador del marco de referencia del RGB. Al llenarse el búfer se descartan fotogramas sin pareja; reiniciar el tiempo descarta los fotogramas pendientes y permite que las marcas temporales empiecen de nuevo.
 
 El ejemplo solicita **320 × 240 a 10 Hz**, atenuación RGB **0.8/0.5/0.2** y fondo **85/107/47**. El SDF prevalece sobre los valores del código.
 
@@ -54,7 +54,7 @@ El [renderizador de escena](underwater-rendering.md) aplica efectos comunes a su
 
 El renderizador puede mostrar partículas en el color RGB/RGBD. Están desactivadas inicialmente; actívalas mediante el [servicio de apariencia](underwater-rendering.md#turn-on-marine-snow).
 
-- Comparten posiciones mundiales entre cámaras y se desplazan uniformemente con el tiempo simulado, independientemente de las corrientes.
+- Las partículas ocupan las mismas posiciones en el mundo para todas las cámaras y se desplazan uniformemente con el tiempo simulado, independientemente de las corrientes.
 - Las superficies opacas las ocultan. Se muestran entre **0.05 y 3 m**, limitadas por la escena y el nivel medio del agua.
 - La profundidad numérica y los rayos acústicos conservan sus valores.
 

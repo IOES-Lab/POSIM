@@ -111,7 +111,18 @@ RUN curl --fail --show-error --location --retry 5 --retry-delay 2 \
     apt install -y --no-install-recommends \
       ros-${ROS_DISTRO}-desktop ros-${ROS_DISTRO}-ros-gz \
       ros-${ROS_DISTRO}-image-view \
-      python3-rosdep python3-vcstool python3-colcon-common-extensions
+      ros-${ROS_DISTRO}-mavros ros-${ROS_DISTRO}-mavros-msgs \
+      ros-${ROS_DISTRO}-ament-cmake-google-benchmark \
+      ros-${ROS_DISTRO}-angles ros-${ROS_DISTRO}-ament-cmake-gmock \
+      ros-${ROS_DISTRO}-ament-cmake-pytest ros-${ROS_DISTRO}-ament-lint-auto \
+      ros-${ROS_DISTRO}-ament-lint-common \
+      python3-rosdep python3-vcstool python3-colcon-common-extensions \
+      python3-colcon-override-check
+
+# Build the tested Router backport before POSIM so its setup records this underlay.
+ENV POSIM_MAVROS_OVERLAY=/opt/posim/mavros-router
+COPY extras/mavros /tmp/posim-mavros
+RUN bash /tmp/posim-mavros/build_overlay.sh "$POSIM_MAVROS_OVERLAY"
 
 # --- POSIM workspace ---
 # Build the exact checked-out revision supplied as the Docker build context.
@@ -135,7 +146,13 @@ RUN apt-get update && \
 USER $USER
 WORKDIR $POSIM_UNDERLAY
 RUN . "/opt/ros/${ROS_DISTRO}/setup.sh" && \
+    . "$POSIM_MAVROS_OVERLAY/install/setup.sh" && \
     colcon build --merge-install --executor sequential --symlink-install
+
+RUN . "$POSIM_UNDERLAY/install/setup.sh" && \
+    test "$(ros2 pkg prefix mavros)" = "$POSIM_MAVROS_OVERLAY/install" && \
+    python3 "$POSIM_UNDERLAY/src/posim/extras/mavros/test_library_selection.py" \
+      "$POSIM_MAVROS_OVERLAY/install"
 
 # --- ArduSub SITL (BlueROV2) — Python 3.14 compatibility shims required, see notes/ardusub-sitl-setup.md ---
 # Pinned to the commit used by the verified Ubuntu 26.04 / Python 3.14 build.
@@ -237,8 +254,11 @@ RUN mkdir -p ~/QGC && wget -O ~/QGC/QGroundControl-aarch64-DailyBuild.AppImage \
     cd ~/QGC && chmod +x QGroundControl-aarch64-DailyBuild.AppImage && \
     ./QGroundControl-aarch64-DailyBuild.AppImage --appimage-extract && \
     mv ~/QGC/squashfs-root/* ~/QGC/. && rm ~/QGC/QGroundControl-aarch64-DailyBuild.AppImage && \
-    mkdir -p /home/$USER/.local/bin && \
-    ln -sf /home/$USER/QGC/AppRun /home/$USER/.local/bin/qgroundcontrol
+    mkdir -p /home/$USER/.local/bin
+
+# Isolate the bundled GStreamer from Gazebo's system plugins and shared cache.
+COPY --chown=$USER:$USER .docker/qgroundcontrol-arm64.sh /home/$USER/.local/bin/qgroundcontrol
+RUN chmod 0755 /home/$USER/.local/bin/qgroundcontrol
 
 # Install Firefox from Mozilla's ARM64 archive, matching the previous image.
 RUN curl -L "https://download.mozilla.org/?product=firefox-latest-ssl&os=linux64-aarch64&lang=en-US" \

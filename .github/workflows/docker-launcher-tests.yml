@@ -1,0 +1,31 @@
+---
+name: QGroundControl launcher checks
+
+# yamllint disable-line rule:truthy
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".docker/**"
+      - ".github/workflows/docker-launcher-tests.yml"
+  push:
+    branches: [main]
+    paths:
+      - ".docker/**"
+      - ".github/workflows/docker-launcher-tests.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  launcher-contract:
+    runs-on: ubuntu-26.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Check shell syntax and launcher behavior
+        run: |
+          bash -n .docker/qgroundcontrol-arm64.sh
+          python3 .docker/tests/test_qgroundcontrol_arm64.py

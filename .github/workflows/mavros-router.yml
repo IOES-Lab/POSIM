@@ -1,0 +1,66 @@
+---
+name: MAVROS Router backport
+
+# yamllint disable-line rule:truthy
+on:
+  pull_request:
+    paths:
+      - "extras/mavros/**"
+      - "extras/ros-lyrical-gz-jetty-install.sh"
+      - ".docker/lyrical.*.dockerfile"
+      - ".github/workflows/mavros-router.yml"
+  push:
+    branches: [main]
+    paths:
+      - "extras/mavros/**"
+      - "extras/ros-lyrical-gz-jetty-install.sh"
+      - ".docker/lyrical.*.dockerfile"
+      - ".github/workflows/mavros-router.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  router-tests:
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [ubuntu-26.04, ubuntu-24.04-arm]
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 45
+    container: ros:lyrical-ros-base
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Install the versioned ROS build dependencies
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends \
+            build-essential cmake curl git python3-colcon-common-extensions \
+            python3-colcon-override-check \
+            ros-lyrical-mavros ros-lyrical-mavros-msgs \
+            ros-lyrical-angles ros-lyrical-ament-cmake-google-benchmark \
+            ros-lyrical-ament-cmake-gmock ros-lyrical-ament-cmake-pytest \
+            ros-lyrical-ament-lint-auto ros-lyrical-ament-lint-common
+      - name: Build and test the default MAVROS runtime
+        shell: bash
+        run: |
+          bash extras/mavros/build_overlay.sh /opt/posim/mavros-router
+          source /opt/posim/mavros-router/install/setup.bash
+          test "$(ros2 pkg prefix mavros)" = /opt/posim/mavros-router/install
+      - name: Verify POSIM selects the corrected libraries in a fresh terminal
+        shell: bash
+        run: |
+          source /opt/ros/lyrical/setup.bash
+          source /opt/posim/mavros-router/install/local_setup.bash
+          colcon --log-base /tmp/posim-check/log build \
+            --base-paths examples/posim_demos \
+            --build-base /tmp/posim-check/build \
+            --install-base /tmp/posim-check/install --merge-install \
+            --cmake-args -DBUILD_TESTING=OFF
+          env -i HOME="$HOME" PATH=/usr/bin:/bin bash -c '
+            source /tmp/posim-check/install/setup.bash
+            test "$(ros2 pkg prefix mavros)" = /opt/posim/mavros-router/install
+            python3 extras/mavros/test_library_selection.py /opt/posim/mavros-router/install
+          '

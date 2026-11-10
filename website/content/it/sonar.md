@@ -73,7 +73,7 @@ I suffissi si aggiungono al `<topic>` del sensore, qui `/sensor/multibeam_sonar`
 
 ### Geometria dei raggi
 
-I valori predefiniti di `<ray>` sono 256 fasci orizzontali, 3 raggi verticali, angoli orizzontali ±π/4, verticali ±π/8 e portata 0.1–5 m. Gli angoli sono in radianti, salvo con `degrees="true"`. Il `<reference_frame>` facoltativo in `<gz:multibeam_sonar>` ha posizione e orientamento nulli per impostazione predefinita.
+I valori predefiniti di `<ray>` sono 256 fasci orizzontali, 3 raggi verticali, angoli orizzontali ±π/4, verticali ±π/8 e portata 0.1–5 m. Gli angoli sono in radianti; con `degrees="true"` si usano i gradi. Il `<reference_frame>` facoltativo in `<gz:multibeam_sonar>` ha posizione e orientamento nulli per impostazione predefinita.
 
 Mantieni completi i blocchi `<ray>` e `<spec>`: i valori predefiniti si applicano ai singoli campi. La portata dei raggi e `maxDistance` devono essere coerenti. L'[implementazione](https://github.com/IOES-Lab/POSIM/blob/main/gazebo/posim_gz_multibeam_sonar/multibeam_sonar/MultibeamSonarSensor.cc) definisce la lettura dei parametri e la pubblicazione dei dati.
 

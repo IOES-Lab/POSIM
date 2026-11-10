@@ -27,7 +27,7 @@ En la terminal A, desde el directorio del archivo:
 
 {{CODE:custom-worlds:1}}
 
-La validación debe completarse y abrirse Gazebo. `-r` inicia el tiempo simulado. Selecciona `pressure_station` en el árbol de entidades y centra la vista en ella.
+La validación debe completarse correctamente; después se abre Gazebo. `-r` inicia el tiempo simulado. Selecciona `pressure_station` en el árbol de entidades y centra la vista en ella.
 
 En otra terminal con el mismo entorno cargado:
 
@@ -37,7 +37,7 @@ Espera aproximadamente **120 938 Pa** y **2 m**. El plugin publica directamente 
 
 ## Cambiar la profundidad
 
-1. Detén la terminal A con Ctrl+C.
+1. Detén la simulación en la terminal A con Ctrl+C.
 2. Cambia la pose de la estación de `0 0 -2 0 0 0` a `0 0 -4 0 0 0`.
 3. Valida y vuelve a iniciar el mundo.
 4. Repite las dos consultas. Debes obtener unos **140 551 Pa** y **4 m**.

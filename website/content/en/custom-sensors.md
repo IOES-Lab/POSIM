@@ -14,7 +14,7 @@ Use the Linux terminals prepared in [Prepare your terminals](terminals.md). This
 | [Underwater camera](camera.md) | RGBD sensor and its image-effects plugin | Gazebo Sensors system with a renderer; configured camera topics |
 | [Doppler velocity log](dvl.md) | DVL sensor and beam configuration | DVL system and the supplied acoustic-message bridge |
 | [Sea pressure](pressure.md) | Plugin directly under `model` | Publishes ROS pressure/depth directly |
-| [Marine GNSS](gnss.md) | Receiver plugin on the robot model | The receiver's configured ROS outputs |
+| [Marine GNSS](gnss.md) | Receiver plugin on the robot model | Gazebo `gz.msgs.Double_V` messages; a separate adapter is needed for ROS |
 | [USBL positioning](usbl.md) | Transceiver and transponder plugins | Matching acoustic IDs and configured ROS interfaces |
 | [Multibeam sonar](sonar.md) | Custom sonar sensor under a link | Sensors renderer plus multibeam world system; CPU/WGPU/CUDA backend |
 

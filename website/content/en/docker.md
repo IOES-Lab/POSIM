@@ -58,7 +58,7 @@ Use the local tag in place of `ioeslab/posim:latest` in your OS installation gui
 - [Windows: WSL + Docker](install-windows-docker.md): use WSLg to display Linux windows.
 - [macOS: Docker + RDP](install-macos.md): connect to the image's Linux desktop.
 
-Each guide creates a container named `posim`. [Prepare your terminals](terminals.md) explains where to open commands and load the workspace.
+Each guide creates a container named `posim`. [Prepare your terminals](terminals.md) explains where to open terminals and load the workspace.
 
 ## Workspaces and saved data
 

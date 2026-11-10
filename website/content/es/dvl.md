@@ -28,7 +28,7 @@ El [SDF completo del DVL500-300](https://github.com/IOES-Lab/POSIM/blob/main/mod
 
 ## Parámetros y unidades
 
-`DVLBridge` acepta un único parámetro: `topic`, predeterminado `/dvl/velocity`. Recibe Gazebo y publica ROS en esa ruta. Los demás campos pertenecen al sensor Gazebo; la tabla muestra el ejemplo DVL500-300.
+`DVLBridge` acepta un único parámetro: `topic`, predeterminado `/dvl/velocity`. Recibe mensajes de Gazebo y publica mensajes ROS en esa ruta. Los demás campos pertenecen al sensor Gazebo; la tabla muestra el ejemplo DVL500-300.
 
 | Campo SDF del sensor | Significado | Ejemplo |
 |---|---|---|

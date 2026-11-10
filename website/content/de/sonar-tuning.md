@@ -76,11 +76,12 @@ Die Weltentität heißt `default`. Erfasse `real_time_factor` zusammen mit der E
 Ändere jeweils einen Wert in einer Kopie des [SDF](sonar.md#sensor-configuration), baue neu, lade die Umgebung und starte mit derselben Pose.
 
 | Versuch | Vergleich | Beobachtung |
-| --- | --- | --- |
-| Winkeldetail | 512 und 256 Strahlen, gleiches Sichtfeld | Zieltrennung und Empfangsrate |
-| Vertikale Abtastung | 300 und 150 Rays; separat `raySkips` 10 und 5 | Zielkontinuität und Rechenzeit |
-| Abdeckung | Ray-Reichweite und `maxDistance` gemeinsam ändern | Fernstes Ziel und Entfernungsskala |
-| Aktualisierung | 30 und 10 Hz | Empfangsrate und Echtzeitfaktor |
+|---|---|---|
+| Winkeldetail | 512 gegen 256 horizontale Strahlen bei gleichem Sichtfeld | Zieltrennung und empfangene Rate |
+| Vertikale Abtastung | 300 gegen 150 Strahlen | Zielkontinuität und Rechenzeit |
+| Abdeckung | Strahlreichweite und `maxDistance` gemeinsam ändern | Entferntestes Ziel und Entfernungsachse |
+| Aktualisierung | 30 gegen 10 Hz | Empfangsrate und Echtzeitfaktor |
+| Strahlen überspringen | `raySkips` 10 gegen 5 | Vertikale Details und Rechenaufwand |
 
 Der Entfernungsabstand ist `soundSpeed / (2 × bandwidth)`; das Raster hat `ceil(maxDistance / Abstand) + 1` Zellen. Bei 1500 m/s, 29.9 kHz und 15 m sind es 599. Die letzte Koordinate kann `maxDistance` leicht überschreiten; Echos außerhalb der Reichweite werden ausgeschlossen. Lies Entfernungen und Strahlzahl aus Rohdaten oder CSV.
 

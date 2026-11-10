@@ -28,7 +28,7 @@ Fügen Sie in der Windows App einen PC mit der Adresse **127.0.0.1:3389** hinzu.
 
 {{CODE:install-macos:2}}
 
-POSIM-Befehle gehören in diesen Desktop. Das macOS-Terminal dient zur Verwaltung von Docker. [Terminals vorbereiten](terminals.md) erklärt auch den Pfad zum Arbeitsbereich.
+Führen Sie POSIM-Befehle in einem Terminal dieses Linux-Desktops aus. Das macOS-Terminal dient zur Verwaltung von Docker. [Terminals vorbereiten](terminals.md) erklärt auch den Pfad zum Arbeitsbereich.
 
 ## 4. Stoppen und erneut verbinden
 

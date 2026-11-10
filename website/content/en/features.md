@@ -14,7 +14,7 @@ Use this catalogue to find each public simulation capability, its implementation
 | Geographic origin and coordinate conversion | `posim_ros_gz_plugins` | [Spherical-coordinate services](coordinates.md) |
 | Seabed, objects and task worlds | `models/posim_worlds`, `posim_object_models` | [Worlds](worlds.md), [objects](objects.md), [heightmaps](heightmaps.md) |
 
-Underwater optics shade PBR surfaces and preserve numeric depth. The ocean's custom surface material has its own rendering. Marine snow is a procedural visual approximation and starts off. See the [underwater guide](underwater-rendering.md) for the sea-level assumption and camera behavior.
+Underwater optics shade PBR surfaces and preserve numeric depth. The ocean's custom surface material has its own rendering. Marine snow is a procedural visual approximation and is disabled by default. See the [underwater guide](underwater-rendering.md) for the sea-level assumption and camera behavior.
 
 ## Sensors, robots and control
 

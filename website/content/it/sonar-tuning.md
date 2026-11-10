@@ -75,12 +75,13 @@ L'entità del mondo si chiama `default`. Registra `real_time_factor` insieme all
 
 Modifica un valore alla volta in una copia del [SDF](sonar.md#sensor-configuration), ricompila, carica l'ambiente e avvia con la stessa posa.
 
-| Prova | Confronto | Cosa osservare |
-| --- | --- | --- |
-| Dettaglio angolare | 512 e 256 fasci, stesso campo visivo | Separazione dei bersagli e frequenza ricevuta |
-| Campionamento verticale | 300 e 150 raggi; a parte, `raySkips` 10 e 5 | Continuità del bersaglio e tempo di calcolo |
-| Copertura | Cambia insieme portata dei raggi e `maxDistance` | Bersaglio più lontano e scala delle distanze |
-| Aggiornamento | 30 e 10 Hz | Frequenza ricevuta e fattore di tempo reale |
+| Esperimento | Confronto | Cosa osservare |
+|---|---|---|
+| Dettaglio angolare | 512 contro 256 fasci orizzontali, stesso campo visivo | Separazione dei bersagli e frequenza |
+| Campionamento verticale | 300 contro 150 raggi | Continuità dei bersagli e tempo di calcolo |
+| Copertura | Cambiare insieme portata dei raggi e `maxDistance` | Bersaglio più lontano e scala delle distanze |
+| Aggiornamento | 30 contro 10 Hz | Frequenza ricevuta e fattore di tempo reale |
+| Salto dei raggi | `raySkips` 10 contro 5 | Dettaglio verticale e costo di calcolo |
 
 Il passo in distanza è `soundSpeed / (2 × bandwidth)`; la griglia ha `ceil(maxDistance / passo) + 1` celle. Con 1500 m/s, 29.9 kHz e 15 m sono 599. L'ultima coordinata può superare leggermente `maxDistance`, ma gli echi oltre portata vengono esclusi. Leggi distanze e numero di fasci dal messaggio grezzo o dal CSV.
 

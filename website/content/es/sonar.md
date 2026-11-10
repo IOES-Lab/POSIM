@@ -73,7 +73,7 @@ Los sufijos se añaden al `<topic>` del sensor, aquí `/sensor/multibeam_sonar`.
 
 ### Geometría de los rayos
 
-Los valores predeterminados de `<ray>` son 256 haces horizontales, 3 rayos verticales, ángulos horizontales ±π/4, verticales ±π/8 y alcance 0.1–5 m. Los ángulos se expresan en radianes, salvo con `degrees="true"`. El `<reference_frame>` opcional dentro de `<gz:multibeam_sonar>` parte de una pose nula.
+Los valores predeterminados de `<ray>` son 256 haces horizontales, 3 rayos verticales, ángulos horizontales ±π/4, verticales ±π/8 y alcance 0.1–5 m. Los ángulos se expresan en radianes; con `degrees="true"` se usan grados. El `<reference_frame>` opcional dentro de `<gz:multibeam_sonar>` parte de una pose nula.
 
 Mantén completos los bloques `<ray>` y `<spec>`: los valores predeterminados se aplican a sus campos internos. Ajusta el alcance y `maxDistance` de forma coherente. La [implementación](https://github.com/IOES-Lab/POSIM/blob/main/gazebo/posim_gz_multibeam_sonar/multibeam_sonar/MultibeamSonarSensor.cc) define cómo se interpretan los parámetros y se publican los datos.
 
