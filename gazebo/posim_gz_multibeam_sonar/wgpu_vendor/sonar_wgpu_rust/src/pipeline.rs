@@ -9,9 +9,62 @@ pub type BufferKey = (u32, u32, u32, u32);
 /// Upper bound on cached buffer sets; the cache is cleared when it is full.
 pub const MAX_BUFFER_SETS: usize = 8;
 
+/// Validate every storage allocation and dispatch before reading FFI inputs.
+/// Limits describe the selected device, rather than a fixed frequency count.
+pub fn dimensions_fit(limits: &wgpu::Limits, beams: u32, rays: u32, n: u32) -> bool {
+    dimensions_fit_outputs(limits, beams, rays, n, beams)
+}
+
+/// Physical receivers and geometry columns need not have the same count.
+pub fn dimensions_fit_outputs(
+    limits: &wgpu::Limits,
+    beams: u32,
+    rays: u32,
+    n: u32,
+    outputs: u32,
+) -> bool {
+    if beams == 0 || rays == 0 || n == 0 || outputs == 0 {
+        return false;
+    }
+    let b = u64::from(beams);
+    let r = u64::from(rays);
+    let f = u64::from(n);
+    let o = u64::from(outputs);
+    let buffer_limit = limits
+        .max_buffer_size
+        .min(u64::from(limits.max_storage_buffer_binding_size));
+    let fits = |elements: u64, bytes: u64| {
+        elements <= u64::from(u32::MAX) / bytes
+            && elements <= (isize::MAX as u64) / 8
+            && elements
+                .checked_mul(bytes)
+                .is_some_and(|size| size <= buffer_limit)
+    };
+    if !fits(b * r, 12) || !fits(b * o, 4) || !fits(b * f, 4) || !fits(o * f, 4) || !fits(f, 4) {
+        return false;
+    }
+    let groups = limits.max_compute_workgroups_per_dimension;
+    if beams > groups || outputs > groups || rays.div_ceil(8) > groups || n.div_ceil(8) > groups {
+        return false;
+    }
+    if super::exact_fft::uses_global_stages(n) {
+        let Some(m) = super::exact_fft::convolution_size(n) else {
+            return false;
+        };
+        if m.div_ceil(256) > groups
+            || !fits(o * u64::from(m), 4)
+            || !fits(f + u64::from(m) + u64::from(m / 2), 8)
+        {
+            return false;
+        }
+    }
+    true
+}
+
 /// GPU buffer lifetime: persistent allocation across frames via queue.write_buffer.
 /// One set per sonar dimensions (see `GpuContext::buffers`).
 pub struct SonarBuffers {
+    pub exact_fft: Option<super::exact_fft::Plan>,
     // Input data (written via queue.write_buffer each frame)
     pub depth_buf: wgpu::Buffer,
     pub normal_buf: wgpu::Buffer,
@@ -19,10 +72,10 @@ pub struct SonarBuffers {
     pub area_buf: wgpu::Buffer,
     pub window_buf: wgpu::Buffer,
     pub bc_buf: wgpu::Buffer,
-    // Backscatter atomic i32 accumulators (zeroed via write_buffer each frame)
-    pub out_re_i32: wgpu::Buffer,
-    pub out_im_i32: wgpu::Buffer,
-    // Convert output / matmul input (f32)
+    // Per-ray complex amplitudes (zeroed via write_buffer each frame)
+    pub amp_re: wgpu::Buffer,
+    pub amp_im: wgpu::Buffer,
+    // Synthesized frequency spectrum / matmul input (f32)
     pub mm_re_in: wgpu::Buffer,
     pub mm_im_in: wgpu::Buffer,
     // Matmul output / FFT input
@@ -45,15 +98,16 @@ impl SonarBuffers {
         n_rays: u32,
         n_freq: u32,
         n_outputs: u32,
+        exact: &super::exact_fft::Pipeline,
     ) -> Self {
         let depth_ray = (n_beams as usize) * (n_rays as usize);
         let spectrum = (n_beams as usize) * (n_freq as usize);
         let bc = (n_outputs as usize) * (n_beams as usize);
         let output = (n_outputs as usize) * (n_freq as usize);
         let f32_bytes = |n: usize| (n * std::mem::size_of::<f32>()) as u64;
-        let i32_bytes = |n: usize| (n * std::mem::size_of::<i32>()) as u64;
 
-        SonarBuffers {
+        let mut buffers = SonarBuffers {
+            exact_fft: None,
             depth_buf: device.create_buffer(&wgpu::BufferDescriptor {
                 label: Some("pb_depth"),
                 size: f32_bytes(depth_ray),
@@ -90,15 +144,15 @@ impl SonarBuffers {
                 usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST,
                 mapped_at_creation: false,
             }),
-            out_re_i32: device.create_buffer(&wgpu::BufferDescriptor {
-                label: Some("pb_re_i32"),
-                size: i32_bytes(spectrum),
+            amp_re: device.create_buffer(&wgpu::BufferDescriptor {
+                label: Some("pb_amp_re"),
+                size: f32_bytes(depth_ray),
                 usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST,
                 mapped_at_creation: false,
             }),
-            out_im_i32: device.create_buffer(&wgpu::BufferDescriptor {
-                label: Some("pb_im_i32"),
-                size: i32_bytes(spectrum),
+            amp_im: device.create_buffer(&wgpu::BufferDescriptor {
+                label: Some("pb_amp_im"),
+                size: f32_bytes(depth_ray),
                 usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST,
                 mapped_at_creation: false,
             }),
@@ -154,7 +208,17 @@ impl SonarBuffers {
                 usage: wgpu::BufferUsages::MAP_READ | wgpu::BufferUsages::COPY_DST,
                 mapped_at_creation: false,
             }),
+        };
+        if super::exact_fft::uses_global_stages(n_freq) {
+            buffers.exact_fft = Some(exact.plan(
+                device,
+                n_freq,
+                n_outputs,
+                &buffers.p_re_buf,
+                &buffers.p_im_buf,
+            ));
         }
+        buffers
     }
 }
 
@@ -165,11 +229,11 @@ pub struct GpuContext {
     pub queue: wgpu::Queue,   // the command queue -> used to submit work
 
     // Backscatter kernel: ray-surface interactions with Lambert scatter.
-    pub bs_pipeline: wgpu::ComputePipeline, // legacy fixed-point backscatter
+    pub bs_pipeline: wgpu::ComputePipeline, // legacy per-ray float amplitudes
     pub physical_bs_pipeline: wgpu::ComputePipeline, // physical f32 ray reduction
     pub bs_bgl: wgpu::BindGroupLayout,      // describes bs shader's buffer slots
 
-    // i32→f32 conversion: fixed-point atomic backscatter output to float spectrum.
+    // Legacy frequency synthesis from per-ray floating amplitudes.
     pub convert_pipeline: wgpu::ComputePipeline,
     pub convert_bgl: wgpu::BindGroupLayout,
 
@@ -177,7 +241,8 @@ pub struct GpuContext {
     pub mm_pipeline: wgpu::ComputePipeline,
     pub mm_bgl: wgpu::BindGroupLayout,
 
-    // FFT kernel: power-of-2 only, N≤4096 (4096 is the shared memory limit). CPU fallback via Bluestein for arbitrary N.
+    // Shared-memory radix-2 for small powers of two; global GPU stages otherwise.
+    pub exact_fft: super::exact_fft::Pipeline,
     pub fft_pipeline: wgpu::ComputePipeline,
     pub fft_bgl: wgpu::BindGroupLayout,
 
@@ -226,7 +291,7 @@ fn build_bgls(
     wgpu::BindGroupLayout,
     wgpu::BindGroupLayout,
 ) {
-    // Backscatter kernel params: uniform params, depth, normals, reflectivity, output accumulators, window.
+    // Backscatter: uniform params, geometry and per-ray complex amplitudes.
     let bs_bgl = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
         label: Some("bs_bgl"),
         entries: &[
@@ -262,7 +327,7 @@ fn build_bgls(
         ],
     });
 
-    // Convert kernel params: int32 input (re/im), float32 output (re/im).
+    // Amplitude-to-spectrum: amplitudes, outputs, depth, aperture and params.
     let convert_bgl = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
         label: Some("convert_bgl"),
         entries: &[
@@ -270,6 +335,9 @@ fn build_bgls(
             make_storage_entry(1, true),
             make_storage_entry(2, false),
             make_storage_entry(3, false),
+            make_storage_entry(4, true),
+            make_storage_entry(5, true),
+            make_uniform_entry(6),
         ],
     });
 
@@ -397,7 +465,7 @@ fn try_init_gpu_context(backends: wgpu::Backends, label: &str) -> Option<GpuCont
         let physical_bs_pipeline = compile_pipeline(
             &device,
             "physical_bs_pipeline",
-            include_str!("shaders/backscatter.wgsl"),
+            include_str!("shaders/physical_backscatter.wgsl"),
             "physical_main",
             &bs_bgl,
         );
@@ -427,6 +495,7 @@ fn try_init_gpu_context(backends: wgpu::Backends, label: &str) -> Option<GpuCont
             t0.elapsed().as_millis()
         );
 
+        let exact_fft = super::exact_fft::Pipeline::new(&device);
         Some(GpuContext {
             device,
             queue,
@@ -439,6 +508,7 @@ fn try_init_gpu_context(backends: wgpu::Backends, label: &str) -> Option<GpuCont
             mm_bgl,
             fft_pipeline,
             fft_bgl,
+            exact_fft,
             buffers: std::sync::Mutex::new(HashMap::new()),
         })
     });

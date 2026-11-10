@@ -38,7 +38,7 @@ class SphericalCoords : public gz::sim::System,
 {
 public:
   SphericalCoords();
-  ~SphericalCoords() override = default;
+  ~SphericalCoords() override;
 
   void Configure(
     const gz::sim::Entity & entity, const std::shared_ptr<const sdf::Element> & sdf,

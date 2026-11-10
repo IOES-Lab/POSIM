@@ -20,7 +20,6 @@
  *
  */
 
-// TODO(hidmic): implement SVD in gazebo?
 #include <eigen3/Eigen/Core>
 #include <eigen3/Eigen/SVD>
 #include "PhysicalPulse.hh"
@@ -48,9 +47,11 @@
 #include <gz/sensors/RenderingEvents.hh>
 #include <gz/sensors/SensorTypes.hh>
 #include "MultibeamSonarSensor.hh"
+#include "RangeSampling.hh"
 #include "RaySurfaceNormals.hh"
+#include "SonarLog.hh"
 
-#include <sys/stat.h>
+#include <algorithm>
 #include <cstdlib>
 #include <cstring>
 #include <geometry_msgs/msg/vector3.hpp>
@@ -222,30 +223,78 @@ MultibeamSonarSensor::MultibeamSonarSensor() : dataPtr(new Implementation()) {}
 //////////////////////////////////////////////////
 MultibeamSonarSensor::~MultibeamSonarSensor()
 {
-  // Stop the background compute thread before tearing down sensors.
+  this->dataPtr->sceneChangeConnection.reset();
+  this->dataPtr->Shutdown(this);
+}
+
+//////////////////////////////////////////////////
+void MultibeamSonarSensor::Implementation::Shutdown(MultibeamSonarSensor * _sensor)
+{
+  // Stop receiving frames, then finish the worker before releasing its inputs.
+  this->rayConnection.reset();
   {
-    std::lock_guard<std::mutex> lk(this->dataPtr->computeMutex_);
-    this->dataPtr->stopThread_ = true;
+    std::lock_guard<std::mutex> lk(this->computeMutex_);
+    this->stopThread_ = true;
   }
-  this->dataPtr->computeCV_.notify_one();
-  if (this->dataPtr->computeThread_.joinable())
+  this->computeCV_.notify_one();
+  if (this->computeThread_.joinable())
   {
-    this->dataPtr->computeThread_.join();
+    this->computeThread_.join();
   }
 
-  if (this->dataPtr->ros_executor_ && this->dataPtr->ros_node_)
+  std::lock_guard<std::mutex> rayLock(this->rayMutex);
+  this->initialized = false;
+  this->newFrameReady_ = false;
+  this->publishingPointCloud = false;
+  this->computeBackend.reset();
+  if (this->raySensor && _sensor->Scene() && _sensor->Scene()->IsInitialized())
   {
-    this->dataPtr->ros_executor_->remove_node(this->dataPtr->ros_node_);
+    _sensor->Scene()->DestroySensor(this->raySensor);
   }
-  this->dataPtr->rayConnection.reset();
-  this->dataPtr->sceneChangeConnection.reset();
-  // CSV log write stream close
-  this->dataPtr->writeLog.close();
+  this->raySensor.reset();
+  if (this->depthSensor && _sensor->Scene() && _sensor->Scene()->IsInitialized())
+  {
+    _sensor->Scene()->DestroySensor(this->depthSensor);
+  }
+  this->depthSensor.reset();
+  if (this->ros_executor_ && this->ros_node_)
+  {
+    this->ros_executor_->remove_node(this->ros_node_);
+  }
+  this->sonarImageRawPub.reset();
+  this->sonarImagePub.reset();
+  this->normalImagePub.reset();
+  this->ros_executor_.reset();
+  this->ros_node_.reset();
+  if (this->ros_context_)
+  {
+    this->ros_context_->shutdown("Multibeam sonar sensor stopped");
+    this->ros_context_.reset();
+  }
+  this->writeLog.close();
+}
+
+//////////////////////////////////////////////////
+void MultibeamSonarSensor::Reset()
+{
+  this->dataPtr->Shutdown(this);
+  auto replacement = std::make_unique<Implementation>();
+  // Keep the logical sensor identity and configuration. All renderer, backend,
+  // publisher, calibration and frame-buffer state belongs to one scene only.
+  replacement->sensorSdf = this->dataPtr->sensorSdf;
+  replacement->entityId = this->dataPtr->entityId;
+  replacement->worldState = this->dataPtr->worldState;
+  replacement->frameCounter = this->dataPtr->frameCounter;
+  replacement->sceneChangeConnection = std::move(this->dataPtr->sceneChangeConnection);
+  this->dataPtr.swap(replacement);
 }
 
 //////////////////////////////////////////////////
 bool MultibeamSonarSensor::Load(const sdf::Sensor & _sdf)
 {
+  this->dataPtr->sceneChangeConnection.reset();
+  this->Reset();
+  this->dataPtr->sensorSdf.reset();
   if (!gz::sensors::RenderingSensor::Load(_sdf))
   {
     return false;
@@ -282,22 +331,6 @@ bool MultibeamSonarSensor::Load(const sdf::Sensor & _sdf)
     return false;
   }
   this->dataPtr->sensorSdf = elem->GetElement("gz:multibeam_sonar");
-  // for csv write logs
-  this->dataPtr->writeCounter = 0;
-  this->dataPtr->writeNumber = 1;
-
-  // Initialize the point message.
-  // \todo(anyone) The true value in the following function call forces
-  // the xyz and rgb fields to be aligned to memory boundaries. This is need
-  // by ROS1: https://github.com/ros/common_msgs/pull/77. Ideally, memory
-  // alignment should be configured. This same problem is in the
-  // RgbdCameraSensor.
-  msgs::InitPointCloudPacked(
-    this->dataPtr->pointMsg, this->FrameId(), true,
-    {{"xyz", msgs::PointCloudPacked::Field::FLOAT32},
-     {"intensity", msgs::PointCloudPacked::Field::FLOAT32},
-     {"ring", msgs::PointCloudPacked::Field::UINT16}});
-
   // Setup sensors
   if (this->Scene())
   {
@@ -326,26 +359,28 @@ bool MultibeamSonarSensor::Load(sdf::ElementPtr _sdf)
 //////////////////////////////////////////////////
 bool MultibeamSonarSensor::Implementation::Initialize(MultibeamSonarSensor * _sensor)
 {
+  if (this->initialized)
+  {
+    return true;
+  }
+  if (!_sensor->Scene() || !this->sensorSdf)
+  {
+    return false;
+  }
+  // Align packed point fields to memory boundaries.
+  msgs::InitPointCloudPacked(
+    this->pointMsg, _sensor->FrameId(), true,
+    {{"xyz", msgs::PointCloudPacked::Field::FLOAT32},
+     {"intensity", msgs::PointCloudPacked::Field::FLOAT32},
+     {"ring", msgs::PointCloudPacked::Field::UINT16}});
+
   gzmsg << "Initializing [" << _sensor->Name() << "] sensor." << std::endl;
 
   if (!this->InitializeBeamArrangement(_sensor))
   {
     gzerr << "Failed to initialize beam arrangement for "
           << "[" << _sensor->Name() << "] sensor." << std::endl;
-    // An unconfigured GpuRays left in the scene makes Ogre throw on the next render
-    // and aborts the server, so remove it and fail only this sensor.
-    this->rayConnection.reset();
-    if (this->raySensor)
-    {
-      _sensor->Scene()->DestroySensor(this->raySensor);
-      this->raySensor.reset();
-    }
-    if (this->depthSensor)
-    {
-      _sensor->Scene()->DestroySensor(this->depthSensor);
-      this->depthSensor.reset();
-    }
-    this->computeBackend.reset();
+    this->Shutdown(_sensor);
     return false;
   }
 
@@ -354,6 +389,12 @@ bool MultibeamSonarSensor::Implementation::Initialize(MultibeamSonarSensor * _se
 
   this->referenceFrameRotation = referenceFrameTransform.Rot().Inverse();
 
+  // Each initialization owns a new worker; no pending frame crosses scenes.
+  {
+    std::lock_guard<std::mutex> lk(this->computeMutex_);
+    this->stopThread_ = false;
+    this->newFrameReady_ = false;
+  }
   // Spawn background sonar compute thread now that all setup is complete.
   this->computeThread_ = std::thread(
     [this]()
@@ -474,13 +515,20 @@ bool MultibeamSonarSensor::Implementation::InitializeBeamArrangement(MultibeamSo
 
   // ROS Initialization
 
-  if (!rclcpp::ok())
-  {
-    rclcpp::init(0, nullptr);
-  }
-
-  this->ros_node_ = std::make_shared<rclcpp::Node>("multibeam_sonar_node");
-  this->ros_executor_ = std::make_shared<rclcpp::executors::SingleThreadedExecutor>();
+  // Gazebo owns process signals. Keep this sensor's ROS lifetime independent
+  // from the global context and from other plugins' signal handlers. In
+  // particular, shutdown must not invalidate the context during node creation.
+  this->ros_context_ = std::make_shared<rclcpp::Context>();
+  rclcpp::InitOptions initOptions;
+  initOptions.shutdown_on_signal = false;
+  this->ros_context_->init(0, nullptr, initOptions);
+  rclcpp::NodeOptions nodeOptions;
+  nodeOptions.context(this->ros_context_);
+  this->ros_node_ = std::make_shared<rclcpp::Node>("multibeam_sonar_node", nodeOptions);
+  rclcpp::ExecutorOptions executorOptions;
+  executorOptions.context = this->ros_context_;
+  this->ros_executor_ =
+    std::make_shared<rclcpp::executors::SingleThreadedExecutor>(executorOptions);
   this->ros_executor_->add_node(this->ros_node_);
 
   // Create the point cloud publisher
@@ -510,26 +558,25 @@ bool MultibeamSonarSensor::Implementation::InitializeBeamArrangement(MultibeamSo
 
   if (this->writeLogFlag)
   {
-    this->writeInterval = sensorElement->Get<int>("writeFrameInterval", 10).first;
-
-    RCLCPP_INFO_STREAM(
-      this->ros_node_->get_logger(), "Raw data at " << "/SonarRawData_{numbers}.csv"
-                                                    << " every " << this->writeInterval
-                                                    << " frames");
-    RCLCPP_INFO_STREAM(
-      this->ros_node_->get_logger(), "Beam angles at SonarRawData_beam_angles.csv");
-    RCLCPP_INFO_STREAM(this->ros_node_->get_logger(), "");
-
-    struct stat buffer;
-    std::string logfilename("SonarRawData_000001.csv");
-    std::string logfilename_angles("SonarRawData_beam_angles.csv");
-    if (stat(logfilename.c_str(), &buffer) == 0)
+    const int interval = sensorElement->Get<int>("writeFrameInterval", 10).first;
+    this->writeInterval = std::max(1, interval);
+    if (interval < 1)
     {
-      system("rm SonarRawData*.csv");
+      gzwarn << "writeFrameInterval must be positive; using 1." << std::endl;
     }
-    if (stat(logfilename_angles.c_str(), &buffer) == 0)
+    try
     {
-      system("rm SonarRawData_beam_angles.csv");
+      this->logDirectory =
+        posim::sonar::CreateLogDirectory(std::filesystem::current_path()).string();
+      RCLCPP_INFO_STREAM(
+        this->ros_node_->get_logger(), "Sonar CSV directory: " << this->logDirectory
+                                                               << ", recording every "
+                                                               << this->writeInterval << " frames");
+    }
+    catch (const std::exception & error)
+    {
+      this->writeLogFlag = false;
+      gzerr << "Sonar CSV logging disabled: " << error.what() << std::endl;
     }
   }
 
@@ -692,6 +739,7 @@ bool MultibeamSonarSensor::Implementation::InitializeBeamArrangement(MultibeamSo
       {
         throw std::invalid_argument("renderer cannot create sonar GpuRays");
       }
+      this->raySensor->SetLocalPose(_sensor->Pose());
       this->raySensor->SetNearClipPlane(this->minimumRange);
       this->raySensor->SetFarClipPlane(this->maximumRange);
       this->raySensor->SetClamp(false);
@@ -784,9 +832,7 @@ bool MultibeamSonarSensor::Implementation::InitializeBeamArrangement(MultibeamSo
   }
   else
   {
-    const float max_T = this->maxDistance * 2.0 / this->soundSpeed;
-    const float legacyDelta = 1.0 / max_T;
-    this->nFreq = ceil(this->bandwidth / legacyDelta);
+    this->nFreq = RangeSampleCount(this->maxDistance, this->soundSpeed, this->bandwidth);
     this->spectrumSamples = this->nFreq;
   }
   if (this->nFreq < 2)
@@ -795,7 +841,7 @@ bool MultibeamSonarSensor::Implementation::InitializeBeamArrangement(MultibeamSo
     return false;
   }
   const int nTime = this->nFreq;
-  this->rangeVector = new float[nTime];
+  this->rangeVector.resize(nTime);
   for (int i = 0; i < nTime; i++)
   {
     this->rangeVector[i] =
@@ -833,10 +879,10 @@ bool MultibeamSonarSensor::Implementation::InitializeBeamArrangement(MultibeamSo
 
   // -- Pre calculations for sonar -- //
 
-  this->window = new float[this->spectrumSamples];
+  this->window.resize(this->spectrumSamples);
   if (this->physicalReadout)
   {
-    std::copy(pulse.spectrum.begin(), pulse.spectrum.end(), this->window);
+    std::copy(pulse.spectrum.begin(), pulse.spectrum.end(), this->window.begin());
     gzmsg << "Physical unit-peak Hamming pulse: " << this->nFreq << " output ranges, "
           << this->spectrumSamples << " midpoint frequency samples including guard." << std::endl;
   }
@@ -855,14 +901,16 @@ bool MultibeamSonarSensor::Implementation::InitializeBeamArrangement(MultibeamSo
   }
 
   // Only the legacy model uses the square grid-coupled corrector.
-  this->beamCorrector = nullptr;
+  this->beamCorrector.clear();
+  this->beamCorrectorStorage.clear();
   this->beamCorrectorSum = 0.0;
   if (!this->physicalReadout)
   {
-    this->beamCorrector = new float *[this->nBeams];
+    this->beamCorrectorStorage.resize(static_cast<size_t>(this->nBeams) * this->nBeams);
+    this->beamCorrector.resize(this->nBeams);
     for (int i = 0; i < this->nBeams; i++)
     {
-      this->beamCorrector[i] = new float[this->nBeams];
+      this->beamCorrector[i] = this->beamCorrectorStorage.data() + i * this->nBeams;
     }
   }
 
@@ -893,9 +941,9 @@ bool MultibeamSonarSensor::Implementation::InitializeBeamArrangement(MultibeamSo
   prototype.sensorGain = this->sensorGain;
   prototype.debugFlag = this->debugFlag;
   prototype.blazingFlag = this->blazingFlag;
-  prototype.window = this->window;
-  prototype.rangeVector = this->rangeVector;
-  prototype.beamCorrector = this->beamCorrector;
+  prototype.window = this->window.data();
+  prototype.rangeVector = this->rangeVector.data();
+  prototype.beamCorrector = this->beamCorrector.data();
   prototype.beamCorrectorSum = this->beamCorrectorSum;
   prototype.sourceLevel = this->sourceLevel;
   prototype.bandwidth = this->bandwidth;
@@ -935,6 +983,10 @@ void MultibeamSonarSensor::Implementation::OnNewFrame(
   const float * _scan, unsigned int _width, unsigned int _height, unsigned int _channels,
   const std::string & /*_format*/)
 {
+  if (!this->ros_node_ || !rclcpp::ok(this->ros_node_->get_node_base_interface()->get_context()))
+  {
+    return;
+  }
   // Lock the ray buffer for thread safety
   std::lock_guard<std::mutex> lock(this->rayMutex);
 
@@ -952,19 +1004,19 @@ void MultibeamSonarSensor::Implementation::OnNewFrame(
   unsigned int samples = _width * _height * _channels;
   unsigned int rayBufferSize = samples * sizeof(float);
 
-  this->lastMeasurementTime = this->ros_node_->now().seconds();
+  this->lastMeasurementTime = static_cast<double>(this->renderStamp) * 1e-9;
 
   // Allocate memory for the ray buffer if not already allocated
-  if (!this->rayBuffer)
+  if (this->rayBuffer.size() != samples)
   {
-    this->rayBuffer = new float[samples];
+    this->rayBuffer.resize(samples);
   }
 
   // Copy the incoming scan data into the ray buffer
-  memcpy(this->rayBuffer, _scan, rayBufferSize);
+  memcpy(this->rayBuffer.data(), _scan, rayBufferSize);
 
   // Fill point cloud with the ray buffer
-  this->FillPointCloudMsg(this->rayBuffer);
+  this->FillPointCloudMsg(this->rayBuffer.data());
 
   // Signals the background compute thread to process the new frame
   if (this->pointCloudImage.size().width != 0)
@@ -1031,28 +1083,15 @@ void MultibeamSonarSensor::Implementation::OnNewDepthFrame(
 /////////////////////////////////////////////////
 void MultibeamSonarSensor::SetScene(gz::rendering::ScenePtr _scene)
 {
-  // APIs make it possible for the scene pointer to change
-  if (this->Scene() != _scene)
+  if (this->Scene() == _scene)
   {
-    // TODO(anyone) Remove camera from scene
-    this->dataPtr->rayConnection.reset();
-    this->dataPtr->depthSensor.reset();
-    this->dataPtr->raySensor = nullptr;
-    if (this->dataPtr->rayBuffer)
-    {
-      delete[] this->dataPtr->rayBuffer;
-      this->dataPtr->rayBuffer = nullptr;
-    }
-    RenderingSensor::SetScene(_scene);
-    if (!this->dataPtr->initialized)
-    {
-      if (!this->dataPtr->Initialize(this))
-      {
-        gzerr << "Failed to initialize "
-              << "[" << this->Name() << "]"
-              << " sensor." << std::endl;
-      }
-    }
+    return;
+  }
+  this->Reset();
+  RenderingSensor::SetScene(_scene);
+  if (_scene && this->dataPtr->sensorSdf && !this->dataPtr->Initialize(this))
+  {
+    gzerr << "Failed to initialize [" << this->Name() << "] sensor." << std::endl;
   }
 }
 
@@ -1088,11 +1127,11 @@ bool MultibeamSonarSensor::Update(const std::chrono::steady_clock::duration & _n
     this->dataPtr->publishingPointCloud = true;
   }
 
-  if (this->dataPtr->perspectiveGeometry)
+  // Capture simulation time before the render callback produces this frame.
   {
     std::lock_guard<std::mutex> lock(this->dataPtr->rayMutex);
-    this->dataPtr->physicalRenderStamp =
-      std::chrono::duration_cast<std::chrono::nanoseconds>(_now).count();
+    this->dataPtr->renderStamp = std::chrono::duration_cast<std::chrono::nanoseconds>(_now).count();
+    this->dataPtr->physicalRenderStamp = this->dataPtr->renderStamp;
   }
   // Generate sensor data
   this->Render();
@@ -1220,7 +1259,8 @@ void MultibeamSonarSensor::Implementation::FillPointCloudMsg(const float * _rayB
   this->pointMsg.set_is_dense(isDense);
 
   // After filling pointMsg, compute pointCloudImage as well
-  this->lock_.lock();
+  std::lock_guard<std::mutex> lock(this->lock_);
+  this->snapshotStamp = this->renderStamp;
   this->pointCloudImage.create(height, width, CV_32FC1);
   cv::MatIterator_<float> iter_image = this->pointCloudImage.begin<float>();
 
@@ -1241,7 +1281,6 @@ void MultibeamSonarSensor::Implementation::FillPointCloudMsg(const float * _rayB
       }
     }
   }
-  this->lock_.unlock();
 }
 
 cv::Mat MultibeamSonarSensor::Implementation::ComputeNormalImage(cv::Mat & depth)
@@ -1293,7 +1332,7 @@ void MultibeamSonarSensor::Implementation::ComputeSonarImage()
       return;
     }
     depthSnapshot = this->pointCloudImage.clone();
-    capturedStamp = this->ros_node_->now();
+    capturedStamp = rclcpp::Time(this->snapshotStamp, RCL_ROS_TIME);
     if (this->perspectiveGeometry)
     {
       pointsSnapshot = this->measuredPoints.clone();
@@ -1359,9 +1398,9 @@ void MultibeamSonarSensor::Implementation::ComputeSonarImage()
   input.sensorGain = this->sensorGain;
   input.debugFlag = this->debugFlag;
   input.blazingFlag = this->blazingFlag;
-  input.window = this->window;
-  input.rangeVector = this->rangeVector;
-  input.beamCorrector = this->beamCorrector;
+  input.window = this->window.data();
+  input.rangeVector = this->rangeVector.data();
+  input.beamCorrector = this->beamCorrector.data();
   input.beamCorrectorSum = this->beamCorrectorSum;
   input.sourceLevel = this->sourceLevel;
   input.bandwidth = this->bandwidth;
@@ -1408,10 +1447,10 @@ void MultibeamSonarSensor::Implementation::ComputeSonarImage()
     this->writeCounter = this->writeCounter + 1;
     if (this->writeCounter == 1 || this->writeCounter % this->writeInterval == 0)
     {
-      double time = this->lastMeasurementTime;
+      const double time = capturedStamp.seconds();
       std::stringstream filename;
-      filename << "SonarRawData_" << std::setw(6) << std::setfill('0') << this->writeNumber
-               << ".csv";
+      filename << this->logDirectory << "/SonarRawData_" << std::setw(6) << std::setfill('0')
+               << this->writeNumber << ".csv";
       writeLog.open(filename.str().c_str(), std::ios_base::app);
       filename.clear();
       writeLog << "# Raw Sonar Data Log (Row: beams, Col: time series data)\n";
@@ -1424,14 +1463,8 @@ void MultibeamSonarSensor::Implementation::ComputeSonarImage()
         writeLog << this->rangeVector[i];
         for (size_t b = 0; b < this->nBeams; b++)
         {
-          if (P_Beams[b][i].imag() > 0)
-          {
-            writeLog << "," << P_Beams[b][i].real() << "+" << P_Beams[b][i].imag() << "i";
-          }
-          else
-          {
-            writeLog << "," << P_Beams[b][i].real() << P_Beams[b][i].imag() << "i";
-          }
+          writeLog << ',';
+          posim::sonar::WriteComplexCsvValue(writeLog, P_Beams[b][i]);
         }
         writeLog << "\n";
       }
@@ -1441,7 +1474,7 @@ void MultibeamSonarSensor::Implementation::ComputeSonarImage()
       if (this->writeNumber == 1)
       {
         std::stringstream filename_angle;
-        filename_angle << "SonarRawData_beam_angles.csv";
+        filename_angle << this->logDirectory << "/SonarRawData_beam_angles.csv";
         writeLog.open(filename_angle.str().c_str(), std::ios_base::app);
         filename_angle.clear();
         writeLog << "# Raw Sonar Data Log \n";
@@ -1593,9 +1626,14 @@ void MultibeamSonarSensor::Implementation::ComputeSonarImage()
   float max_dB = 20.0f * log10(max_power + 1e-10f);
   float min_dB = max_dB - 60.0f;
 
-  for (int r = 0; r < ranges.size(); ++r)
+  // With no returns, the per-bin and maximum powers share the epsilon floor.
+  // Normalizing it would draw a false full-white fan. Keep the black image
+  // instead; the raw -inf samples and positive-return rendering are unchanged.
+  for (int r = 0; max_power > 0.0f && r < ranges.size(); ++r)
   {
-    if (ranges[r] > rangeMax)
+    // The last bin center may lie just beyond maxDistance. Render its
+    // overlapping half-cell at the outer edge without relabeling raw ranges.
+    if (ranges[r] - 0.5f * rangeRes > rangeMax)
     {
       continue;
     }
@@ -1609,7 +1647,7 @@ void MultibeamSonarSensor::Implementation::ComputeSonarImage()
         power > 0.0f && std::isfinite(power) ? 20.0f * log10(power + 1e-10f) : min_dB;
       int intensity = static_cast<int>(255.0f * (power_dB - min_dB) / (max_dB - min_dB));
       const float begin = angles[b].begin + ThetaShift, end = angles[b].end + ThetaShift;
-      const float rad = static_cast<float>(radius) * range / rangeMax;
+      const float rad = static_cast<float>(radius) * std::min(range, rangeMax) / rangeMax;
       // Assume angles are in image frame x-right, y-down
       cv::ellipse(
         Intensity_image, origin, cv::Size(rad, rad), 0.0, begin * 180.0 / M_PI, end * 180.0 / M_PI,

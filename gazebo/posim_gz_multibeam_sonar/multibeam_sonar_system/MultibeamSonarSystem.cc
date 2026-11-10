@@ -262,6 +262,12 @@ bool MultibeamSonarSystem::Implementation::RequestCreateSensor(
   const gz::sim::components::ParentEntity * _parent, gz::sim::EntityComponentManager & _ecm)
 {
   using namespace gz::sim;
+  // Configure and the first PreUpdate can see the same new entity. Reserve its
+  // creation only once; DoPostUpdate releases the reservation on removal.
+  if (this->knownSensorEntities.count(_entity))
+  {
+    return true;
+  }
   // Get sensor's scoped name without the world
   std::string sensorScopedName = removeParentScope(scopedName(_entity, _ecm, "::", false), "::");
 
@@ -340,10 +346,7 @@ void MultibeamSonarSystem::Implementation::DoPreUpdate(
     {
       if (_entity == gz::sim::worldEntity(_ecm))
       {
-        // \todo(anyone) Create an EnvironmentalData DOM class
-        // in sdformat and make gz-sensors and gz-sim use this
-        // generic data structure? Currently the data structure is
-        // duplicated in the two libraries.
+        // Convert the world environment data to the sensor data structure.
         auto envData = sensors::EnvironmentalData::MakeShared(
           _env->Data()->frame, _env->Data()->reference,
           static_cast<gz::sensors::EnvironmentalData::ReferenceUnits>(_env->Data()->units),

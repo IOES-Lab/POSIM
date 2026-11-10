@@ -2,6 +2,10 @@
 
 높이맵은 격자마다 고도를 저장하여 지형을 표현합니다. 카메라에 보이는 해저와 접촉 계산에 사용되는 해저가 일치하도록 화면·충돌 형상을 함께 설정합니다.
 
+## 이 문서를 실행할 위치
+
+[터미널 준비](terminals.md)에서 설정한 Linux 터미널을 사용합니다. Ubuntu 네이티브, WSL의 Ubuntu, POSIM 컨테이너에서 같은 순서로 진행할 수 있습니다. macOS는 RDP로 접속한 Linux 데스크톱 안의 터미널을 사용하세요. 파일 수정과 빌드도 그 환경 안에서 수행하며, `POSIM_WS`는 해당 작업 공간의 경로입니다.
+
 ## 예제 지형
 
 지리 장면은 [Santorini](https://github.com/IOES-Lab/POSIM/blob/main/models/posim_worlds/worlds/posim_Santorini.world), 해저 장면은 [graded seabed](https://github.com/IOES-Lab/POSIM/blob/main/models/posim_worlds/worlds/posim_graded_seabed.world)를 참고하세요. Santorini는 Fuel의 `Santorini Scaled` 모델을 사용합니다.
@@ -35,3 +39,7 @@ Visual 또는 collision 안에 들어가는 형상의 기본 구조는 다음과
 ## 빌드와 확인
 
 리소스를 추가한 뒤 다시 빌드하고 환경을 불러옵니다. 소스 디렉터리 밖에서 새 월드를 실행하세요. 특징적인 고도, 화면·충돌 형상의 정렬, 센서 깊이와 작은 접촉 실험을 확인합니다. 항법 실험 전에 해수면 기준과 로봇 시작 높이도 확인하세요.
+
+## Jetty에서 충돌 위치 확인
+
+작은 물체를 떨어뜨리고 카메라나 깊이 센서를 사용해 수직 배치를 확인하세요. Jetty에서는 `<heightmap><pos>`의 영이 아닌 값이 화면 지형과 충돌 지형에 다르게 적용될 수 있습니다. 이동량을 상위 모델 pose로 옮겨도 두 표면이 어긋날 수 있으므로 사용하는 렌더러와 물리 백엔드에서 두 배치를 모두 확인하세요. 계속 일치하지 않으면 항법 실험 전에 화면과 접촉 검사를 통과하는 지형 형상이나 백엔드를 사용하세요.

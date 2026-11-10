@@ -18,7 +18,7 @@ struct Params {
   area_scaler: f32,
   h_fov: f32,
   v_fov: f32,
-  use_area_weights: u32,
+  _pad0: u32,
   _pad1: u32,
   _pad2: u32,
 };
@@ -27,14 +27,10 @@ struct Params {
 @group(0) @binding(1) var<storage, read> depth: array<f32>;
 @group(0) @binding(2) var<storage, read> normals: array<f32>;
 @group(0) @binding(3) var<storage, read> reflectivity: array<f32>;
-@group(0) @binding(4) var<storage, read_write> out_re: array<atomic<i32>>;
-@group(0) @binding(5) var<storage, read_write> out_im: array<atomic<i32>>;
-@group(0) @binding(6) var<storage, read> window_vals: array<f32>;
-@group(0) @binding(7) var<storage, read> angular_areas: array<f32>;
+@group(0) @binding(4) var<storage, read_write> out_re: array<f32>;
+@group(0) @binding(5) var<storage, read_write> out_im: array<f32>;
 
 const PI: f32 = 3.14159265358979323846;
-const SCALE: f32 = 1024.0;
-const LIMIT: i32 = 2147483520i;  // near i32 max
 
 // Philox4x32-10 RNG: WGPU/WGSL port of CUDA curand implementation.
 // Based on Salmon et al., 2011, SC'11: "Random123: A Library of Counter-Based Random Number Generators".
@@ -119,23 +115,29 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
     return;
   }
 
+  let nx = normals[dr * 3u + 0u];
+  let ny = normals[dr * 3u + 1u];
   let nz = normals[dr * 3u + 2u];
   let refl = reflectivity[dr];
 
-  // RaySurfaceNormals supplies ray-local normals: z already is cos(incidence).
-  // Do not take another dot product with a sensor-frame ray direction.
+  // Compute sensor-frame ray unit direction from (beam, actual_ray) pixel indices.
+  // Direction formula (sin(θ_b)cos(θ_r), sin(θ_r), cos(θ_b)cos(θ_r)) is unit-length by construction.
+  let beam_ang = params.h_fov * (f32(beam)       / max(f32(params.n_beams) - 1.0, 1.0) - 0.5);
+  let ray_ang  = params.v_fov * (f32(actual_ray) / max(f32(params.n_rays)  - 1.0, 1.0) - 0.5);
+  let rd_x = sin(beam_ang) * cos(ray_ang);
+  let rd_y = sin(ray_ang);
+  let rd_z = cos(beam_ang) * cos(ray_ang);
+  // let cos_inc = abs(rd_x * nx + rd_y * ny + rd_z * nz);
   let cos_inc = abs(nz);
   let lambert_sqrt = sqrt(max(refl, 0.0)) * cos_inc;
 
   let source_term = sqrt(pow(10.0, params.source_level / 10.0)) * 1e-6;
   let propagation = exp(-2.0 * params.attenuation * d) / (d * d);
-  // Projected angular-cell footprint is r^2 * dtheta * dphi (Choi 2021, Eq. 14).
-  var solid_angle = params.area_scaler;
-  var gain = 1.0;
-  if (params.use_area_weights != 0u) { solid_angle = angular_areas[dr]; gain = params.sensor_gain; }
-  let target_area_sqrt = d * sqrt(solid_angle);
+  // Preserve the projected angular-cell footprint used by the CPU/CUDA model.
+  // The footprint is r^2 * solid_angle; PR34's float summation remains below.
+  let target_area_sqrt = d * sqrt(params.area_scaler);
   // let amp_scale = source_term * propagation * lambert_sqrt * target_area_sqrt * params.sensor_gain;
-  let amp_scale = source_term * propagation * lambert_sqrt * target_area_sqrt * gain;
+  let amp_scale = source_term * propagation * lambert_sqrt * target_area_sqrt;
 
   let subsequence = beam * params.n_rays + actual_ray;
   let xi = philox_normal4(params.seed_lo, params.seed_hi, params.frame_lo, params.frame_hi, subsequence);
@@ -143,84 +145,9 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
   let amp_re = (xi.x / sqrt(2.0)) * amp_scale;
   let amp_im = (xi.y / sqrt(2.0)) * amp_scale;
 
-  let delta_f = params.bandwidth / f32(params.n_freq);
-  let n_freq_f = f32(params.n_freq);
-  let is_even = (params.n_freq % 2u) == 0u;
-
-  // Keep window buffer bound for interface stability.
-  _ = window_vals[0u];
-
-  // Per-frequency phase sweep
-  for (var f: u32 = 0u; f < params.n_freq; f = f + 1u) {
-    var freq: f32;
-    if (params.use_area_weights != 0u) {
-      freq = delta_f * (f32(f) + 0.5 - 0.5 * n_freq_f);
-    } else if (is_even) {
-      freq = delta_f * (-n_freq_f + 2.0 * (f32(f) + 1.0)) / 2.0;
-    } else {
-      freq = delta_f * (-(n_freq_f - 1.0) + 2.0 * (f32(f) + 1.0)) / 2.0;
-    }
-
-    let kw = 2.0 * PI * freq / params.sound_speed;
-    let phase = 2.0 * d * kw;
-    let c = cos(phase);
-    let s = sin(phase);
-
-    // let re_val = clamp((amp_re * c - amp_im * s) * SCALE, -LIMIT, LIMIT);
-    // let im_val = clamp((amp_re * s + amp_im * c) * SCALE, -LIMIT, LIMIT);
-    var weight = 1.0;
-    if (params.use_area_weights != 0u) { weight = window_vals[f]; }
-    let re_val = clamp(i32(round((amp_re * c - amp_im * s) * weight * SCALE)), -LIMIT, LIMIT);
-    let im_val = clamp(i32(round((amp_re * s + amp_im * c) * weight * SCALE)), -LIMIT, LIMIT);
-
-    let idx = beam * params.n_freq + f;
-    atomicAdd(&out_re[idx], i32(re_val));
-    atomicAdd(&out_im[idx], i32(im_val));
-  }
-}
-
-// Physical readout owns one complete (geometry column, frequency) cell per
-// invocation. Sum selected rays in f32 instead of quantizing each contribution
-// to 1/SCALE. This needs no floating-point atomic feature or ray-sized scratch.
-// The shared binding layout is atomic<i32> for the legacy entry point. Here a
-// single atomicStore writes the f32 bit pattern, not a fixed-point integer.
-// The host binds float spectrum buffers and skips the legacy conversion pass.
-@compute @workgroup_size(8, 8, 1)
-fn physical_main(@builtin(global_invocation_id) gid: vec3<u32>) {
-  let beam = gid.x;
-  let f = gid.y;
-  if (beam >= params.n_beams || f >= params.n_freq) {
-    return;
-  }
-
-  let delta_f = params.bandwidth / f32(params.n_freq);
-  let freq = delta_f * (f32(f) + 0.5 - 0.5 * f32(params.n_freq));
-  let kw = 2.0 * PI * freq / params.sound_speed;
-  let source_term = sqrt(pow(10.0, params.source_level / 10.0)) * 1e-6;
-  let weight = window_vals[f];
-  var sum_re = 0.0;
-  var sum_im = 0.0;
-  for (var ray = 0u; ray < params.n_rays; ray += max(1u, params.ray_skips)) {
-    let dr = beam * params.n_rays + ray;
-    let d = depth[dr];
-    if (!(d > 0.0 && d <= params.max_distance)) {
-      continue;
-    }
-    let lambert_sqrt = sqrt(max(reflectivity[dr], 0.0)) * abs(normals[dr * 3u + 2u]);
-    let propagation = exp(-2.0 * params.attenuation * d) / (d * d);
-    let target_area_sqrt = d * sqrt(angular_areas[dr]);
-    let amp_scale = source_term * propagation * lambert_sqrt * target_area_sqrt * params.sensor_gain;
-    let xi = philox_normal4(params.seed_lo, params.seed_hi, params.frame_lo, params.frame_hi, dr);
-    let amp_re = (xi.x / sqrt(2.0)) * amp_scale;
-    let amp_im = (xi.y / sqrt(2.0)) * amp_scale;
-    let phase = 2.0 * d * kw;
-    let c = cos(phase);
-    let s = sin(phase);
-    sum_re += (amp_re * c - amp_im * s) * weight;
-    sum_im += (amp_re * s + amp_im * c) * weight;
-  }
-  let idx = beam * params.n_freq + f;
-  // Always overwrite, including empty rays and zero gain/window, on cache reuse.
-  atomicStore(&out_re[idx], bitcast<i32>(sum_re));
-  atomicStore(&out_im[idx], bitcast<i32>(sum_im));
+  // Preserve the complex scattering amplitude in floating point. Frequency
+  // synthesis is a separate pass, so no fixed-point atomics or rounding floor
+  // is introduced before the range transform.
+  out_re[dr] = amp_re;
+  out_im[dr] = amp_im;
 }

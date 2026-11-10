@@ -18,10 +18,9 @@ inline bool PackPhysicalSonar(const SonarComputeInput & input, PackedPhysicalSon
 {
   if (
     !input.physicalReadout || !input.depthImage || !input.normalImage || !input.reflectivityImage ||
-    !input.window || input.nFreq < 1 || input.nFreq > 4096 || !std::isfinite(input.soundSpeed) ||
-    input.soundSpeed <= 0 || !std::isfinite(input.bandwidth) || input.bandwidth <= 0 ||
-    !std::isfinite(input.maxDistance) || input.maxDistance <= 0 ||
-    !std::isfinite(input.attenuation) || input.attenuation < 0 ||
+    !input.window || input.nFreq < 1 || !std::isfinite(input.soundSpeed) || input.soundSpeed <= 0 ||
+    !std::isfinite(input.bandwidth) || input.bandwidth <= 0 || !std::isfinite(input.maxDistance) ||
+    input.maxDistance <= 0 || !std::isfinite(input.attenuation) || input.attenuation < 0 ||
     !std::isfinite(input.sourceLevel) || !std::isfinite(input.receiveGain) || input.receiveGain < 0)
   {
     return false;
@@ -29,7 +28,7 @@ inline bool PackPhysicalSonar(const SonarComputeInput & input, PackedPhysicalSon
   if (
     input.maxDistance >= double(input.nFreq) * input.soundSpeed / (2. * input.bandwidth) ||
     input.nOutputRanges < 0 || input.nOutputRanges > input.nFreq ||
-    (input.nOutputRanges > 0 && input.nFreq < 2 * input.nOutputRanges))
+    (input.nOutputRanges > 0 && input.nOutputRanges > input.nFreq / 2))
   {
     return false;
   }

@@ -122,6 +122,8 @@ def launch_setup(context, *args, **kwargs):
             "joystick_ws_port": joystick_ws_port,
             "zoom_camera": zoom_camera_value,
             "zoom_camera_delay": zoom_camera_delay,
+            "qgc_video": LaunchConfiguration("qgc_video"),
+            "qgc_video_port": LaunchConfiguration("qgc_video_port"),
             "open_qgc": open_qgc,
             "open_virtual_joystick": open_virtual_joystick,
             "virtual_joystick_url": virtual_joystick_url,
@@ -235,6 +237,17 @@ def generate_launch_description():
             description="Bind port for websocket joystick bridge",
         ),
         DeclareLaunchArgument(
+            "qgc_video",
+            default_value="false",
+            choices=["true", "false"],
+            description="Add an optional H.264 camera stream for QGroundControl",
+        ),
+        DeclareLaunchArgument(
+            "qgc_video_port",
+            default_value="5600",
+            description="Local UDP destination port for the QGroundControl video stream",
+        ),
+        DeclareLaunchArgument(
             "open_qgc",
             default_value="false",
             description="Launch QGroundControl",
@@ -246,7 +259,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             "virtual_joystick_url",
-            default_value=("https://ioes-lab.github.io/posim/extras/virtual_joystick.html"),
+            default_value="http://127.0.0.1:8080/virtual_joystick.html",
             description="URL for the virtual joystick page",
         ),
         DeclareLaunchArgument(

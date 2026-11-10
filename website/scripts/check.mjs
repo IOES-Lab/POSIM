@@ -3,18 +3,19 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
 import { pages } from './pages.mjs';
+import { languages } from './locales.mjs';
+import { readContent } from './content.mjs';
 import { checkPublicWording } from './public-wording.mjs';
 const root = fileURLToPath(new URL('../', import.meta.url));
 const repository = path.resolve(root, '..');
 const output = path.join(root, 'dist');
 const fail = message => { throw new Error(message); };
 const exists = async file => access(file).then(() => true).catch(() => false);
-const htmlFiles = pages.flatMap(page => [page.slug + '.html', 'ko/' + page.slug + '.html']);
+const htmlFiles = languages.flatMap(({ directory }) => pages.map(page => directory + page.slug + '.html'));
+const languageOf = file => file.includes('/') ? file.split('/')[0] : 'en';
 const documents = new Map();
-const sources = JSON.parse(await readFile(path.join(root, 'sources.json'), 'utf8'));
 const catalog = JSON.parse(await readFile(path.join(root, 'catalog.json'), 'utf8'));
 const mediaSources = JSON.parse(await readFile(path.join(root, 'media-sources.json'), 'utf8'));
-if (catalog.sourceRevision !== sources.sourceRevision) fail('Catalog/source revision mismatch');
 let links = 0, commands = 0;
 const haveSource = await exists(path.join(repository, 'models/posim_worlds/worlds'));
 if (haveSource) {
@@ -27,7 +28,7 @@ if (haveSource) {
 for (const file of htmlFiles) {
   const html = await readFile(path.join(output, file), 'utf8');
   documents.set(file, html);
-  const lang = file.startsWith('ko/') ? 'ko' : 'en';
+  const lang = languageOf(file);
   if (!html.includes(`<html lang="${lang}">`)) fail(`${file}: wrong language`);
   if ((html.match(/<h1\b/g) || []).length !== 1) fail(`${file}: expected one h1`);
   if (!html.includes('aria-current="page"')) fail(`${file}: missing active navigation`);
@@ -35,10 +36,11 @@ for (const file of htmlFiles) {
   if (new Set(ids).size !== ids.length) fail(`${file}: duplicate heading/element IDs`);
   if (/notion-file-block:|<mention-page|\{\{[A-Z_]+\}\}/.test(html)) fail(`${file}: unresolved source markup`);
   for (const image of html.matchAll(/<img\b[^>]*>/g)) {
-    if (!/\balt="[^"]+"/.test(image[0])) fail(`${file}: image needs descriptive alt text`);
+    const decorative = /\balt=""/.test(image[0]) && /\baria-hidden="true"/.test(image[0]);
+    if (!/\balt="[^"]+"/.test(image[0]) && !decorative) fail(`${file}: image needs descriptive alt text or explicit decorative treatment`);
   }
   if (/dave_(?:demos|interfaces|robot|sensor|world|gz|ros)|dave_(?:world|robot|sensor)\.launch/.test(html)) fail(`${file}: stale package/launch name`);
-  const markdown = await readFile(path.join(root, 'content', lang, path.basename(file, '.html') + '.md'), 'utf8');
+  const markdown = await readContent(lang, path.basename(file, '.html'));
   checkPublicWording(markdown, `content/${lang}/${path.basename(file, '.html')}.md`);
   if (haveSource) {
     for (const match of markdown.matchAll(/ros2 launch (posim_[a-z_]+) ([a-z_]+\.launch\.py)/g)) {
@@ -65,25 +67,22 @@ for (const media of mediaSources) {
   if (!media.source_page?.startsWith('https://caring-dibble-be5.notion.site/') || !media.block || !media.title) {
     fail('Media registry entry needs its source page, block and original title');
   }
-  if (media.audience === 'engineering') {
-    if (await exists(path.join(output, 'assets/media/notion', path.basename(media.file)))) {
-      fail(`Engineering figure leaked into the public site: ${media.file}`);
-    }
-    continue;
-  }
   if (media.audience !== 'public' || !media.file.startsWith('media/notion/')) fail(`Unknown media audience/path: ${media.file}`);
   const bytes = await readFile(path.join(output, 'assets', media.file));
   if (createHash('sha256').update(bytes).digest('hex') !== media.sha256) fail(`Source media changed: ${media.file}`);
-  for (const lang of ['en', 'ko']) {
-    const prefix = lang === 'ko' ? '../assets/' : 'assets/';
-    if (![...documents].some(([file, html]) => file.startsWith('ko/') === (lang === 'ko') && html.includes(`src="${prefix}${media.file}"`))) {
+  for (const { code: lang } of languages) {
+    const prefix = lang === 'en' ? 'assets/' : '../assets/';
+    if (![...documents].some(([file, html]) => languageOf(file) === lang && html.includes(`src="${prefix}${media.file}"`))) {
       fail(`${lang}: source media missing from guides: ${media.file}`);
     }
   }
 }
 for (const [file, html] of documents) {
-  for (const match of html.matchAll(/\b(?:href|src)="([^"]+)"/g)) {
-    const reference = match[1].replaceAll('&amp;', '&');
+  const references = [...html.matchAll(/\b(?:href|src)="([^"]+)"|<option value="([^"]+\.html)"/g)]
+    .map(match => (match[1] || match[2]).replaceAll('&amp;', '&'));
+  const redirects = html.match(/<script type="application\/json" id="docs-anchor-redirects">([^<]+)<\/script>/);
+  if (redirects) references.push(...Object.values(JSON.parse(redirects[1])));
+  for (const reference of references) {
     if (/^(https?:|mailto:)/.test(reference)) {
       if (haveSource) {
         const source = reference.match(/^https:\/\/github\.com\/IOES-Lab\/POSIM\/(?:blob|tree|edit)\/main\/(.+)$/i);
@@ -102,14 +101,19 @@ for (const [file, html] of documents) {
     links++;
   }
 }
-for (const lang of ['en', 'ko']) {
+for (const { code: lang } of languages) {
   const index = JSON.parse(await readFile(path.join(output, 'assets', `search.${lang}.json`), 'utf8'));
-  if (index.length !== pages.length || new Set(index.map(p => p.url)).size !== pages.length) fail(`${lang}: incomplete search index`);
-  for (const page of index) if (!page.title || !page.description || !page.text || !documents.has((lang === 'ko' ? 'ko/' : '') + page.url)) fail(`${lang}: invalid search entry`);
+  if (new Set(index.map(p => p.url.split('#')[0])).size !== pages.length) fail(`${lang}: incomplete search index`);
+  for (const page of index) {
+    const [file, anchor] = page.url.split('#');
+    const document = documents.get((lang === 'en' ? '' : lang + '/') + file);
+    if (!page.title || !page.heading || !page.description || page.language !== lang || !document) fail(`${lang}: invalid search entry`);
+    if (anchor && !document.includes(`id="${anchor}"`)) fail(`${lang}: invalid search section ${page.url}`);
+  }
 }
 if (haveSource) {
   const worlds = (await readdir(path.join(repository, 'models/posim_worlds/worlds'))).filter(f => f.endsWith('.world')).sort();
   const objects = (await readdir(path.join(repository, 'models/posim_object_models/description'), { withFileTypes: true })).filter(f => f.isDirectory()).map(f => f.name).sort();
   if (JSON.stringify(worlds) !== JSON.stringify(catalog.worlds) || JSON.stringify(objects) !== JSON.stringify(catalog.objects)) fail('Catalog is stale; run pnpm catalog');
 }
-console.log(`Checked ${htmlFiles.length} pages, ${links} local links/anchors, ${mediaSources.filter(m => m.audience === 'public').length} bilingual source media, bilingual search${haveSource ? ` and ${commands} source launch references` : ' (standalone website build)'}.`);
+console.log(`Checked ${htmlFiles.length} pages, ${links} local links/anchors, ${mediaSources.filter(m => m.audience === 'public').length} source media per language, localized search${haveSource ? ` and ${commands} source launch references` : ' (standalone website build)'}.`);

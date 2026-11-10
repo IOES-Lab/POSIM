@@ -28,6 +28,8 @@ The wave build retains its upstream source and modifications separately. Consult
 
 ## Documentation sources
 
+The [original ROS 2 project documentation](https://dave-ros2.notion.site/) is a source for the model, environment and sensor walkthroughs. Execution commands here use POSIM package names and the documented ROS/Gazebo stack.
+
 Reference material is available in the [IOES-Lab POSIM Notion Wiki](https://caring-dibble-be5.notion.site/d24c9419989882cfa6498152ad4c840c?v=b42c941998988252a89588ad58631495&pvs=74) and each page's source links.
 
 Maintainer and laboratory information: [IOES-Lab · KMOU](https://lab.wschoi.com). Source and issues: [IOES-Lab/POSIM](https://github.com/IOES-Lab/POSIM).

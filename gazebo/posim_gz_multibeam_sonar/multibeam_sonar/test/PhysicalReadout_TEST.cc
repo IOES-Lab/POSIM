@@ -3,6 +3,7 @@
 #include "PhysicalPulse.hh"
 #include "PhysicalSonarInput.hh"
 
+#include <array>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
@@ -160,7 +161,8 @@ void PulseControls(ComputeBackend & backend)
       std::accumulate(pulse.spectrum.begin(), pulse.spectrum.end(), 0.) / pulse.spectrum.size() -
       1) < 1e-7,
     "pulse peak depends on transform length");
-  for (double invalid : {0., -1., std::numeric_limits<double>::infinity(), 1000.})
+  for (double invalid :
+       {0., -1., std::numeric_limits<double>::infinity(), std::numeric_limits<double>::max()})
   {
     bool rejected = false;
     try
@@ -279,7 +281,152 @@ void WeakReturns(ComputeBackend & backend)
   }
 }
 
-void Selection(const std::string & name, bool radixOnly)
+void LargeRanges(ComputeBackend & backend)
+{
+  // Physical output includes its far endpoint and a complete guard interval.
+  // These are calculation controls, not scene-level ranging calibration.
+  for (int ranges : {4096, 4097, 8193})
+  {
+    const auto pulse = MakePhysicalPulse(ranges - 1, 1500, 750);
+    Require(pulse.ranges.size() == size_t(ranges), "large physical range grid truncated");
+    Require(pulse.ranges.back() == ranges - 1, "large physical endpoint absent");
+    Require(pulse.spectrum.size() >= 2 * size_t(ranges), "large physical pulse guard absent");
+    Scene scene(5, 3, static_cast<int>(pulse.spectrum.size()), 4);
+    scene.window = pulse.spectrum;
+    scene.input.window = scene.window.data();
+    scene.input.bandwidth = 750;
+    scene.input.maxDistance = ranges - 1;
+    scene.input.nOutputRanges = ranges;
+    scene.depth.setTo(0);
+    scene.depth.at<float>(6, 2) = 20;
+    SonarComputeOutput reference;
+    Require(ComputePhysicalSonarCpu(scene.input, reference), "large physical CPU rejected");
+    const auto actual = Compute(backend, scene.input);
+    double difference = 0;
+    for (size_t i = 0; i < actual.beamSpectrum.size(); ++i)
+    {
+      difference += std::norm(
+        std::complex<double>(actual.beamSpectrum[i]) -
+        std::complex<double>(reference.beamSpectrum[i]));
+    }
+    Require(
+      std::sqrt(difference / Energy(reference)) < 3e-4, "large physical CPU/GPU signal differs");
+  }
+  for (int frequencies : {4097, 8193})
+  {
+    Scene scene(5, 3, frequencies, 4);
+    SonarComputeOutput reference;
+    Require(ComputePhysicalSonarCpu(scene.input, reference), "large odd CPU rejected");
+    const auto actual = Compute(backend, scene.input);
+    double difference = 0;
+    for (size_t i = 0; i < actual.beamSpectrum.size(); ++i)
+    {
+      difference += std::norm(
+        std::complex<double>(actual.beamSpectrum[i]) -
+        std::complex<double>(reference.beamSpectrum[i]));
+    }
+    Require(
+      std::sqrt(difference / Energy(reference)) < 3e-4,
+      "large odd physical CPU/GPU signal differs");
+  }
+}
+
+// Evaluate the physical equation independently in double, not through the CPU
+// implementation: CPU/WGPU agreement alone can hide shared large-phase errors.
+std::complex<double> ReferenceNoise(uint64_t seed, uint64_t frame)
+{
+  std::array<uint32_t, 4> c{uint32_t(frame), uint32_t(frame >> 32), 0, 0};
+  uint32_t k0 = uint32_t(seed), k1 = uint32_t(seed >> 32);
+  for (int round = 0; round < 10; ++round)
+  {
+    const uint64_t a = uint64_t(0xD2511F53u) * c[0];
+    const uint64_t b = uint64_t(0xCD9E8D57u) * c[2];
+    c = {uint32_t(b >> 32) ^ c[1] ^ k0, uint32_t(b), uint32_t(a >> 32) ^ c[3] ^ k1, uint32_t(a)};
+    k0 += 0x9E3779B9u;
+    k1 += 0xBB67AE85u;
+  }
+  const double radius = std::sqrt(-2. * std::log((double(c[0]) + .5) / 4294967296.));
+  const double angle = 2. * M_PI * ((double(c[1]) + .5) / 4294967296.);
+  return radius * std::complex<double>(std::sin(angle), std::cos(angle)) / std::sqrt(2.);
+}
+
+void IndependentFarRanges(ComputeBackend & backend)
+{
+  double maximum = 0;
+  for (int ranges : {4096, 4097, 8193})
+  {
+    const float bandwidth = (ranges - 1) * 75.f;
+    const auto pulse = MakePhysicalPulse(10, 1500, bandwidth);
+    AcousticReadout model;
+    model.geometryColumns = model.geometryRows = 1;
+    model.elevationIndices = {0};
+    model.angularAreas = {.01f};
+    model.receiveAngles = {0, 0, 0};
+    model.pressureResponse = {1, -.5f, .25f};
+    cv::Mat depth(1, 1, CV_32F);
+    cv::Mat normal(1, 1, CV_32FC3, cv::Scalar(0, 0, .8f));
+    cv::Mat material(1, 1, CV_32F, cv::Scalar(.3f));
+    SonarComputeInput input;
+    input.depthImage = &depth;
+    input.normalImage = &normal;
+    input.reflectivityImage = &material;
+    input.physicalReadout = &model;
+    input.nBeams = 3;
+    input.nRays = 1;
+    input.nFreq = static_cast<int>(pulse.spectrum.size());
+    input.nOutputRanges = ranges;
+    input.soundSpeed = 1500;
+    input.maxDistance = 10;
+    input.bandwidth = bandwidth;
+    input.sourceLevel = 220;
+    input.attenuation = .02f;
+    input.receiveGain = 1e-7f;
+    input.seed = 73;
+    input.frameIndex = (uint64_t(1) << 33) + 20;
+    input.window = pulse.spectrum.data();
+    for (float range : {4.f, 9.999f, 10.f})
+    {
+      depth.setTo(range);
+      const auto actual = Compute(backend, input);
+      const auto amplitude =
+        ReferenceNoise(input.seed, input.frameIndex) *
+        (std::pow(10., input.sourceLevel / 20.) * 1e-6 * std::exp(-2. * input.attenuation * range) /
+         range * std::sqrt(double(.3f)) * double(.8f) * std::sqrt(double(.01f)) *
+         input.receiveGain);
+      cv::Mat spectrum(1, input.nFreq, CV_64FC2), transformed;
+      for (int f = 0; f < input.nFreq; ++f)
+      {
+        const double frequency = double(bandwidth) * ((f + .5) / input.nFreq - .5);
+        const auto value =
+          amplitude *
+          std::polar(double(pulse.spectrum[f]), 4. * M_PI * range * frequency / input.soundSpeed);
+        spectrum.at<cv::Vec2d>(0, f) = {value.real(), value.imag()};
+      }
+      cv::dft(spectrum, transformed, cv::DFT_ROWS);
+      double difference = 0, energy = 0;
+      for (int beam = 0; beam < input.nBeams; ++beam)
+      {
+        for (int k = 0; k < ranges; ++k)
+        {
+          const auto value = transformed.at<cv::Vec2d>(0, k);
+          const double sign = k % 2 ? -1. : 1.;
+          const auto expected = std::complex<double>(value[0], value[1]) *
+                                std::polar(1., -M_PI * k / input.nFreq) *
+                                (sign * model.pressureResponse[beam] / input.nFreq);
+          difference += std::norm(std::complex<double>(actual.At(beam, k)) - expected);
+          energy += std::norm(expected);
+        }
+      }
+      const double error = std::sqrt(difference / energy);
+      maximum = std::max(maximum, error);
+      Require(error < 3e-4, "independent f64 far-range error " + std::to_string(error));
+    }
+  }
+  std::cout << "Independent f64 physical far ranges: max relative complex error="
+            << std::setprecision(9) << maximum << '\n';
+}
+
+void Selection(const std::string & name)
 {
   Scene prototype(17, 256, 64, 4);
   Require(bool(CreateComputeBackend("cpu", prototype.input)), "physical CPU selection failed");
@@ -293,10 +440,10 @@ void Selection(const std::string & name, bool radixOnly)
     Require(!CreateComputeBackend("wgpu", bad), "malformed prototype accepted by WGPU selection");
     Scene odd(17, 256, 63, 4);
     auto explicitGpu = CreateComputeBackend("wgpu", odd.input);
-    Require(bool(explicitGpu) != radixOnly, "exact-length capability not reflected at selection");
+    Require(bool(explicitGpu), "exact-length capability not reflected at selection");
     auto automatic = CreateComputeBackend("auto", odd.input);
     Require(
-      automatic && std::string(automatic->Name()) == (radixOnly ? "cpu" : "wgpu"),
+      automatic && std::string(automatic->Name()) == "wgpu",
       "auto selected an incompatible physical model");
     Compute(*automatic, odd.input);
   }
@@ -328,16 +475,17 @@ int main(int argc, char ** argv)
   try
   {
     const std::string name = argc > 1 ? argv[1] : "cpu";
-    const bool radixOnly = argc > 2 && std::string(argv[2]) == "radix2";
     auto backend = CreateComputeBackend(name);
     Require(backend && std::string(backend->Name()) == name, "requested backend unavailable");
     Require(backend->Initialize(SonarComputeInput{}), "initialization failed");
     Geometry();
-    Selection(name, radixOnly);
+    Selection(name);
     PerspectiveInput(*backend);
     Controls(*backend);
     PulseControls(*backend);
     WeakReturns(*backend);
+    LargeRanges(*backend);
+    IndependentFarRanges(*backend);
     std::ofstream arrays;
     if (argc > 3)
     {
@@ -350,10 +498,6 @@ int main(int argc, char ** argv)
     int cases = 0;
     for (int frequencies : {64, 63, 65, 599})
     {
-      if (radixOnly && frequencies != 64)
-      {
-        continue;
-      }
       // Include larger/smaller output dimensions and cache reuse when only output count changes.
       for (int columns : {5, 17})
       {
@@ -387,12 +531,6 @@ int main(int argc, char ** argv)
           }
         }
       }
-    }
-    if (radixOnly)
-    {
-      Scene scene(5, 3, 63, 1);
-      SonarComputeOutput rejected;
-      Require(!backend->Compute(scene.input, rejected), "unqualified radix-2 odd length accepted");
     }
     std::cout << "PASS " << name << " physical readout: " << cases
               << " rectangular cases; max relative complex error=" << std::setprecision(9)

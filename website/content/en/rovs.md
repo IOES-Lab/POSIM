@@ -9,20 +9,20 @@ Select a packaged robot description with the `namespace` argument. This argument
 | `rexrov` | ROV with Gazebo thrusters, hydrodynamics and odometry |
 | `bluerov2` | BlueROV2 with ArduSub SITL and MAVROS integration |
 | `bluerov2_heavy` | Heavy configuration |
-| `bluerov2_heavy_multibeam_sonar` | Heavy configuration with CUDA sonar |
+| `bluerov2_heavy_multibeam_sonar` | Heavy configuration with sonar |
 
-Source your [workspace](install.md) before running commands. For REXROV, use the [first simulation](quickstart.md) example.
+Use the [prepared POSIM terminal](terminals.md) for your installation route. For REXROV, use the [first simulation](quickstart.md) example.
 
 ## Start BlueROV2
 
 ```bash
 ros2 launch posim_demos posim_robot.launch.py \
   namespace:=bluerov2 world_name:=posim_ocean_waves z:=-0.5 paused:=false \
-  gui:=false headless:=true use_teleop:=false use_web_joystick:=false \
+  gui:=true headless:=false use_teleop:=false use_web_joystick:=false \
   open_qgc:=false open_virtual_joystick:=false
 ```
 
-Use `namespace:=bluerov2_heavy` to select the Heavy variant. Inspect the launch output and `/mavros/state` to check autopilot connectivity. The sonar-equipped description needs the [CUDA setup](sonar-tuning.md).
+Use `namespace:=bluerov2_heavy` to select the Heavy variant. Inspect the launch output and `/mavros/state` to check autopilot connectivity. The sonar-equipped description needs the [setup](sonar-tuning.md).
 
 ## Keyboard control
 
@@ -39,11 +39,11 @@ In an interactive desktop terminal, set `gui:=true headless:=false use_teleop:=t
 
 ## Local browser joystick
 
-Serve the included HTML from a separate terminal:
+Serve the installed joystick page from a separate sourced terminal:
 
 ```bash
 python3 -m http.server 8080 --bind 127.0.0.1 \
-  --directory "$HOME/posim_ws/src/posim/extras"
+  --directory "$(ros2 pkg prefix --share posim_robot_models)/web"
 ```
 
 Launch BlueROV2 with teleoperation enabled:
@@ -57,7 +57,7 @@ ros2 launch posim_demos posim_robot.launch.py \
   virtual_joystick_url:='http://127.0.0.1:8080/virtual_joystick.html?host=127.0.0.1&port=8765'
 ```
 
-Keep `use_teleop:=true`: it enables the teleoperation launch containing the WebSocket bridge. If the browser does not open automatically, open the URL on the same machine. QGroundControl is an optional separate application; install its executable before enabling `open_qgc`.
+Keep `use_teleop:=true`: it enables the teleoperation launch containing the WebSocket bridge. If the browser does not open automatically, open the URL on the same Linux desktop. For QGC installation, virtual joysticks and camera video, follow [Control with QGroundControl](qgroundcontrol.md). The POSIM Docker images include QGC.
 
 For programmatic sensor subscriptions and commands, continue to [ROS 2 and control](ros.md).
 

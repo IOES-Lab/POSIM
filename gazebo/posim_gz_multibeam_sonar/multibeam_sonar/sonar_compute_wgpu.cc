@@ -6,10 +6,14 @@
 #include <complex>
 #include <cstdint>
 #include <iostream>
+#include <limits>
 #include <vector>
 
 extern "C"
 {
+  bool sonar_wgpu_dimensions_supported(uint32_t n_beams, uint32_t n_rays, uint32_t n_freq);
+  bool sonar_wgpu_dimensions_supported_v2(
+    uint32_t n_geometry, uint32_t n_selected_rays, uint32_t n_receivers, uint32_t n_freq);
   float * sonar_wgpu_compute_v2(
     const float * depth, const float * normal, const float * reflectivity,
     const float * angular_area, const float * pressure_response, const float * window,
@@ -37,6 +41,24 @@ const char * WgpuComputeBackend::Name() const { return "wgpu"; }
 
 bool WgpuComputeBackend::Initialize(const SonarComputeInput & prototype)
 {
+  // The factory uses nFreq == 0 for its adapter-only probe. A real sensor
+  // prototype needs a valid count. Rust selects the FFT stages automatically.
+  if (prototype.nFreq < 0)
+  {
+    this->initialized = false;
+    std::cerr << "[sonar_wgpu] Frequency count must not be negative." << std::endl;
+    return false;
+  }
+  if (
+    !prototype.physicalReadout && prototype.nFreq > 0 &&
+    (prototype.nBeams <= 0 || prototype.nRays <= 0 ||
+     !sonar_wgpu_dimensions_supported(prototype.nBeams, prototype.nRays, prototype.nFreq)))
+  {
+    this->initialized = false;
+    std::cerr << "[sonar_wgpu] Sensor dimensions exceed GPU buffer or dispatch resources."
+              << std::endl;
+    return false;
+  }
   if (prototype.physicalReadout)
   {
     // Exercise v2 with its actual shape and transform length. An adapter-only
@@ -86,6 +108,16 @@ bool WgpuComputeBackend::Compute(const SonarComputeInput & input, SonarComputeOu
 
   if (input.physicalReadout)
   {
+    const auto & model = *input.physicalReadout;
+    if (
+      model.geometryColumns <= 0 || model.elevationIndices.empty() || input.nBeams <= 0 ||
+      input.nFreq <= 0 || model.elevationIndices.size() > std::numeric_limits<uint32_t>::max() ||
+      !sonar_wgpu_dimensions_supported_v2(
+        model.geometryColumns, static_cast<uint32_t>(model.elevationIndices.size()), input.nBeams,
+        input.nFreq))
+    {
+      return false;
+    }
     const auto start = std::chrono::steady_clock::now();
     PackedPhysicalSonar cells;
     if (!PackPhysicalSonar(input, cells))
@@ -139,6 +171,12 @@ bool WgpuComputeBackend::Compute(const SonarComputeInput & input, SonarComputeOu
 
   if (nBeams <= 0 || nRays <= 0 || nFreq <= 0)
   {
+    return false;
+  }
+  if (!sonar_wgpu_dimensions_supported(nBeams, nRays, nFreq))
+  {
+    std::cerr << "[sonar_wgpu] Sensor dimensions exceed GPU buffer or dispatch resources."
+              << std::endl;
     return false;
   }
 

@@ -305,10 +305,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             "virtual_joystick_url",
-            default_value=(
-                "https://raw.githubusercontent.com/IOES-Lab/POSIM/"
-                "refs/heads/main/extras/virtual_joystick.html"
-            ),
+            default_value="http://127.0.0.1:8080/virtual_joystick.html",
             description="URL for the virtual joystick page",
         ),
         DeclareLaunchArgument(
