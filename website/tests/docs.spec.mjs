@@ -12,7 +12,7 @@ test('desktop navigation, search, copy, language and shared emblem', async ({ pa
   expect(await emblem.evaluate(image => image.complete && image.naturalWidth > 0)).toBe(true);
   const group = page.locator('.docs-sidebar h2').first();
   const style = await group.evaluate(node => ({ size: parseFloat(getComputedStyle(node).fontSize), color: getComputedStyle(node).color }));
-  expect(style.color).toBe('rgb(255, 255, 255)');
+  expect(style.color).toBe(await page.locator('body').evaluate(node => getComputedStyle(node).color));
   expect(style.size).toBeGreaterThan(await page.locator('.docs-sidebar nav a').first().evaluate(node => parseFloat(getComputedStyle(node).fontSize)));
   await expect.poll(() => page.locator('main img').evaluateAll(images => images.every(image => image.complete && image.naturalWidth > 0))).toBe(true);
   await page.locator('main img').evaluateAll(images => Promise.all(images.map(image => image.decode())));
@@ -46,6 +46,96 @@ test('mobile menu, search and language switching', async ({ page }, info) => {
   await page.locator('[data-language-select]').selectOption('ko/sonar.html');
   await expect(page).toHaveURL(/\/ko\/sonar.html$/);
   await page.screenshot({ path: info.outputPath('mobile-korean-sonar.png') });
+});
+
+for (const theme of ['light', 'dark']) {
+  test(`${theme} navigation blends into the page and keeps native scrolling`, async ({ page }, info) => {
+    await page.goto('/');
+    await page.locator('[data-theme-select]').selectOption(theme);
+    const palette = await page.locator('body').evaluate(node => {
+      const style = getComputedStyle(node);
+      return { page: style.backgroundColor, ink: style.color };
+    });
+    const sidebar = page.locator('.docs-sidebar');
+    await expect(sidebar).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+    await expect(sidebar.locator('h2').first()).toHaveCSS('color', palette.ink);
+    await expect(sidebar.locator('input[type=search]')).toHaveCSS('color', palette.ink);
+
+    const checkScrollbar = async scroller => {
+      const style = await scroller.evaluate(node => {
+        const computed = getComputedStyle(node);
+        const webkit = CSS.supports('selector(::-webkit-scrollbar)');
+        return {
+          overflow: node.scrollHeight > node.clientHeight,
+          horizontalOverflow: node.scrollWidth > node.clientWidth,
+          gutter: computed.scrollbarGutter,
+          width: webkit ? getComputedStyle(node, '::-webkit-scrollbar').width : computed.scrollbarWidth,
+          track: webkit ? getComputedStyle(node, '::-webkit-scrollbar-track').backgroundColor : computed.scrollbarColor.split(') ').pop(),
+          radius: webkit ? getComputedStyle(node, '::-webkit-scrollbar-thumb').borderRadius : null,
+          webkit,
+        };
+      });
+      expect(style.overflow).toBe(true);
+      expect(style.horizontalOverflow).toBe(false);
+      expect(style.gutter).toBe('stable');
+      expect(style.width).toBe(style.webkit ? '10px' : 'thin');
+      expect(style.track).toBe('rgba(0, 0, 0, 0)');
+      if (style.webkit) expect(style.radius).toBe('999px');
+    };
+    await checkScrollbar(sidebar);
+    await page.screenshot({ path: info.outputPath(`navigation-desktop-${theme}.png`) });
+    await sidebar.hover();
+    await page.mouse.wheel(0, 500);
+    await expect.poll(() => sidebar.evaluate(node => node.scrollTop)).toBeGreaterThan(0);
+    expect(await page.evaluate(() => scrollY)).toBe(0);
+    const lastDesktopLink = sidebar.locator('nav a').last();
+    await page.keyboard.press('Tab');
+    await lastDesktopLink.focus();
+    await expect(lastDesktopLink).toBeInViewport();
+    await expect(lastDesktopLink).toBeFocused();
+    await expect(lastDesktopLink).toHaveCSS('outline-style', 'solid');
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto('/');
+    const menu = page.locator('.docs-mobile-menu');
+    const summary = menu.locator('summary');
+    await summary.press('Enter');
+    await expect(menu).toHaveAttribute('open', '');
+    await expect(menu).toHaveCSS('background-color', palette.page);
+    await expect(menu.locator('h2').first()).toHaveCSS('color', palette.ink);
+    await checkScrollbar(menu.locator('nav'));
+    await page.screenshot({ path: info.outputPath(`navigation-mobile-${theme}.png`) });
+    const lastMobileLink = menu.locator('nav a').last();
+    await lastMobileLink.focus();
+    await expect(lastMobileLink).toBeFocused();
+    await expect(lastMobileLink).toBeInViewport();
+    await expect(lastMobileLink).toHaveCSS('outline-style', 'solid');
+    await expect.poll(() => menu.locator('nav').evaluate(node => node.scrollTop)).toBeGreaterThan(0);
+    // Repeated keyboard toggles leave navigation available, with no page overflow.
+    await summary.press('Enter');
+    await expect(menu).not.toHaveAttribute('open', '');
+    await summary.press('Enter');
+    await expect(menu).toHaveAttribute('open', '');
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  });
+}
+
+test('forced colors retains native navigation scrollbars and keyboard focus', async ({ page }) => {
+  await page.emulateMedia({ forcedColors: 'active' });
+  await page.goto('/');
+  for (const width of [1440, 390]) {
+    await page.setViewportSize({ width, height: 844 });
+    if (width === 390) await page.locator('.docs-mobile-menu summary').press('Enter');
+    const scroller = page.locator(width === 390 ? '.docs-mobile-menu nav' : '.docs-sidebar');
+    await expect(scroller).toHaveCSS('scrollbar-color', 'auto');
+    await expect(scroller).toHaveCSS('scrollbar-width', 'auto');
+    await expect(scroller).toHaveCSS('scrollbar-gutter', 'auto');
+    const lastLink = scroller.locator('a').last();
+    await page.keyboard.press('Tab');
+    await lastLink.focus();
+    await expect(lastLink).toBeInViewport();
+    await expect(lastLink).toHaveCSS('outline-style', 'solid');
+  }
 });
 
 for (const { code, directory } of languages) {
