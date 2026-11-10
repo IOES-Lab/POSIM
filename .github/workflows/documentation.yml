@@ -34,12 +34,15 @@ concurrency:
 jobs:
   static-site:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     defaults:
       run:
         working-directory: website
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
       - uses: actions/setup-node@v7
         with:
           node-version: "24"
@@ -58,6 +61,19 @@ jobs:
           cd "$RUNNER_TEMP/posim-documentation/website"
           node scripts/build.mjs
           node scripts/check.mjs
+      - name: Install Chromium for browser checks
+        run: node node_modules/@playwright/test/cli.js install --with-deps chromium
+      - name: Check desktop and mobile documentation
+        id: browser-checks
+        run: node node_modules/@playwright/test/cli.js test
+      - name: Upload browser review evidence
+        if: ${{ !cancelled() && steps.browser-checks.outcome != 'skipped' }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: documentation-browser-${{ github.run_attempt }}
+          path: website/.validation/
+          include-hidden-files: true
+          retention-days: 7
       - name: Upload public documentation
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
         uses: actions/upload-pages-artifact@v5
