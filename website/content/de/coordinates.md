@@ -1,6 +1,6 @@
 # Sphärische Koordinaten
 
-Das ROS-Plugin `SphericalCoords` verwaltet den geografischen Weltursprung und rechnet lokale kartesische Positionen in Breiten-/Längengrad und Höhe um sowie zurück.
+Das ROS-Plugin `SphericalCoords` verwaltet den geografischen Weltursprung und rechnet zwischen lokalen kartesischen und geografischen Koordinaten (Breiten-/Längengrad und Höhe) um.
 
 ## Konfigurierte Welt starten
 

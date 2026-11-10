@@ -1,6 +1,6 @@
 # GNSS marino
 
-`posim_gz_gnss` simula un receptor satelital en el enlace de antena del modelo. Convierte su posición mundial en coordenadas geográficas, añade errores gaussianos configurables y publica posición, velocidad, marca temporal y estado en un único mensaje. Incluye pérdida de recepción bajo el agua, bloqueo explícito, readquisición y latencia.
+`posim_gz_gnss` simula un receptor satelital en el enlace de antena del modelo. Convierte su posición en el mundo en coordenadas geográficas, añade errores gaussianos configurables y publica posición, velocidad, marca temporal y estado en un único mensaje. Incluye pérdida de recepción bajo el agua, bloqueo explícito, readquisición y latencia.
 
 ## Compilar y montar el receptor
 
@@ -42,7 +42,7 @@ Sin `wave_topic`, se usa el plano medio del agua. Con un topic configurado, hace
 
 El mensaje `gz.msgs.Double_V` contiene, en orden: esquema `1`, tamaño de cuadrícula, dimensiones periódicas X/Y, velocidad y ángulo del viento, pendiente de ola, tiempo simulado y alturas por filas.
 
-- Tamaño de cuadrícula: entero entre 2 y 256, seguido de ese número al cuadrado de alturas.
+- Tamaño de cuadrícula: entero entre 2 y 256; el número de valores de altura es el cuadrado de ese entero.
 - Dimensiones X/Y: finitas y positivas.
 - Marca temporal: finita, con antigüedad máxima de **0.6 segundos simulados**, nunca futura.
 
@@ -66,7 +66,7 @@ Cada mensaje tiene 15 números de doble precisión. Los índices empiezan en cer
 
 Estados: `0 disabled` (desactivado), `1 submerged` (sumergido), `2 acquiring` (adquiriendo), `3 fix` (solución válida), `4 blocked` (bloqueado) y `5 surface unavailable` (superficie no disponible).
 
-Una medición inválida contiene coordenadas y velocidades `NaN`. El contacto con agua o el bloqueo eliminan las soluciones pendientes. La readquisición exige separación continua sobre el margen. Un reinicio borra temporizador y muestras retrasadas, y aumenta la época.
+Una medición inválida contiene coordenadas y velocidades `NaN`. El contacto con agua o el bloqueo eliminan las soluciones pendientes. La readquisición exige que la antena se mantenga de forma continua por encima del margen requerido. Un reinicio borra temporizador y muestras retrasadas, y aumenta la época.
 
 Para bloquear la antena; usa `false` para liberarla:
 

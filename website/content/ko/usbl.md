@@ -126,7 +126,7 @@ SDF에서 장치와 요청 방식을 설정합니다. 양쪽 장치의 이름과
 - 장치: `namespace`, 이름·ID, 부착 물체
 - 음향: 음속
 - 정기 요청: `enable_ping_scheduler`, `ping_frequency`
-- 튜토리얼 요청 주기: **0.5 Hz**
+- 튜토리얼 요청 빈도: **0.5 Hz**
 
 장치나 주기를 변경할 때 [튜토리얼 SDF](https://github.com/IOES-Lab/POSIM/blob/main/models/posim_worlds/worlds/usbl_tutorial.world)를 참고하세요.
 

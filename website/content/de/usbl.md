@@ -48,7 +48,7 @@ Setzen Sie diesen Transponder in `sphere` und einen zweiten in `sphere2` mit `tr
 
 Verwenden Sie vorhandene Modelle, eindeutige IDs und gleich lange ID-/Modelllisten. IDs sind Dezimalzahlen von **0 bis 2147483647**, ohne Vorzeichen oder führende Nullen. Jedes Plugin benötigt ein Modell mit einem Link. Die [vollständige SDF](https://github.com/IOES-Lab/POSIM/blob/main/models/posim_worlds/worlds/usbl_tutorial.world) enthält Geometrie und Platzierung.
 
-Ungültige Konfiguration lässt das Plugin inaktiv. Unbekannte Kanäle oder Befehlsziele werden ignoriert; ein unbekannter Kanal erhält die Auswahl. Der erste gelistete Transponder ist der Startkanal. Geplante Pings pausieren mit der Simulation und werden höchstens einmal pro Update gesendet.
+Ungültige Konfiguration lässt das Plugin inaktiv. Unbekannte Kanäle oder Befehlsziele werden ignoriert; bei einem unbekannten Kanal bleibt die bisherige Auswahl erhalten. Der erste gelistete Transponder ist der Startkanal. Geplante Pings pausieren mit der Simulation und werden höchstens einmal pro Update gesendet.
 
 ## Schalllaufzeit
 

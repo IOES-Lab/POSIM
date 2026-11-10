@@ -37,7 +37,7 @@ Les valeurs attendues sont environ **120 938 Pa** et **2 m**. Le plugin publie d
 
 ## Modifier la profondeur
 
-1. Arrêtez le terminal A avec Ctrl+C.
+1. Arrêtez la simulation dans le terminal A avec Ctrl+C.
 2. Remplacez la pose `0 0 -2 0 0 0` par `0 0 -4 0 0 0`.
 3. Validez et relancez le monde.
 4. Répétez les deux lectures. Attendez environ **140 551 Pa** et **4 m**.

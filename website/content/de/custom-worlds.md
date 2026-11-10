@@ -37,7 +37,7 @@ Erwartet werden ungefähr **120 938 Pa** und **2 m**. Das Plugin veröffentlicht
 
 ## Tiefe verändern
 
-1. Stoppen Sie Terminal A mit Strg+C.
+1. Stoppen Sie die Simulation in Terminal A mit Strg+C.
 2. Ändern Sie die Stationspose von `0 0 -2 0 0 0` auf `0 0 -4 0 0 0`.
 3. Prüfen und starten Sie die Welt erneut.
 4. Wiederholen Sie beide Abfragen. Erwartet werden etwa **140 551 Pa** und **4 m**.

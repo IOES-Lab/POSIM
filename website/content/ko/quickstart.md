@@ -16,7 +16,7 @@ ros2 launch posim_demos posim_robot.launch.py \
   gui:=true headless:=false use_teleop:=false use_web_joystick:=false
 ```
 
-이 명령은 월드를 시작하고 z = 0보다 5 m 아래에 REXROV를 배치하며 ROS 브리지를 실행합니다. 터미널 A를 계속 실행하세요. 로봇 Launch가 월드도 시작하므로 하나의 시뮬레이션으로 실행합니다.
+이 명령은 월드를 시작하고 z = 0보다 5 m 아래에 REXROV를 배치하며 ROS 브리지를 실행합니다. 터미널 A에서 시뮬레이션을 계속 실행하세요. 로봇 Launch가 월드도 시작하므로 하나의 시뮬레이션으로 실행합니다.
 
 ## 2. 실시간 위치 읽기
 

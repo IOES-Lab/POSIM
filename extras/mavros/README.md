@@ -56,10 +56,10 @@ ros2 pkg prefix mavros
 
 Keep any existing ArduPilot environment settings required by the POSIM
 quickstart. While a vehicle is running, inspect `/proc/<mavros_pid>/maps`:
-`libmavros.so` and `libmavros_plugins.so` must resolve to this overlay. Merely
-building the helper does not select it. Do not overlay unrelated MAVROS or
-libmavconn versions. Rebuild dependent plugins if they use changed Router
-internals.
+`libmavros.so` and `libmavros_plugins.so` must resolve to this overlay. Running
+the build helper alone does not select this runtime. Do not overlay unrelated
+MAVROS or libmavconn versions. Rebuild dependent plugins if they use changed
+Router internals.
 
 ## Version updates
 

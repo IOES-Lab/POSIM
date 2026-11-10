@@ -14,7 +14,7 @@ Usa las [terminales Linux preparadas](terminals.md) en Ubuntu nativo, WSL o Dock
 | [Cámara submarina](camera.md) | Sensor RGBD y plugin de efectos | Sistema Sensors con renderizador y tópicos de cámara |
 | [DVL](dvl.md) | Sensor DVL y configuración de haces | Sistema DVL y puente de mensajes acústicos incluido |
 | [Presión](pressure.md) | Plugin directamente bajo `model` | Publicación ROS directa de presión y profundidad |
-| [GNSS marino](gnss.md) | Plugin del receptor en el modelo | Salidas ROS configuradas del receptor |
+| [GNSS marino](gnss.md) | Plugin del receptor en el modelo | Mensajes Gazebo `gz.msgs.Double_V`; se necesita un adaptador aparte para ROS |
 | [USBL](usbl.md) | Plugins del transceptor y transpondedor | Identificadores acústicos compatibles e interfaces ROS |
 | [Sonar multihaz](sonar.md) | Sensor personalizado bajo un eslabón | Renderizador Sensors, sistema multihaz del mundo y CUDA |
 

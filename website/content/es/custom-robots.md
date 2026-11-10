@@ -38,7 +38,7 @@ Conserva la mecánica copiada para el primer lanzamiento. Al modificar el casco,
 | `link/visual`, `link/collision` | m, rad | Escala y alineación de geometrías |
 | `joint/axis`, ajustes de propulsores | según el plugin | Dirección del actuador y distribución de fuerzas |
 
-STL aporta geometría. Define masa y dinámica en SDF y comprueba unidades y escala de la malla. Sigue las URI instaladas de los ejemplos existentes. Usa una colisión sencilla si el detalle visual encarece innecesariamente el contacto.
+STL aporta geometría. Define masa y dinámica en SDF y comprueba unidades y escala de la malla. Sigue las URI instaladas de los ejemplos existentes. Usa una geometría de colisión sencilla si el detalle visual encarece innecesariamente el cálculo de contactos.
 
 ## 3. Conectar sistemas y ROS
 
@@ -46,7 +46,7 @@ Adapta hidrodinámica, flotabilidad, ejes de propulsión y poses de sensores al 
 
 Consulta [Corrientes](currents.md), [Añadir sensores](custom-sensors.md) y las referencias de cada plugin. Si necesitas latitud y longitud, configura el origen con [Coordenadas esféricas](coordinates.md).
 
-Adapta `config/<namespace>/robot_config.py`: cambia de forma coherente nombres de entidades y articulaciones, tópicos, sistemas de referencia y puertos. El paquete ya instala `description`, `meshes`, `config` y los ajustes de búsqueda de recursos. Edita los fuentes, no los archivos generados en `install/`.
+Adapta `config/<namespace>/robot_config.py`: cambia de forma coherente nombres de entidades y articulaciones, tópicos, sistemas de referencia y puertos. El paquete ya instala `description`, `meshes`, `config` y los ajustes de búsqueda de recursos. Edita los archivos fuente, no los archivos generados en `install/`.
 
 ## 4. Compilar y probar
 
@@ -54,7 +54,7 @@ Desde el espacio de trabajo con su entorno cargado:
 
 {{CODE:custom-robots:3}}
 
-Prueba cada eje con comandos pequeños. Comprueba también el lanzamiento desde fuera del repositorio:
+Prueba cada eje con comandos de pequeña magnitud. Comprueba también el lanzamiento desde fuera del repositorio:
 
 - Rutas de recursos instalados.
 - Masa, inercia y pose de equilibrio.

@@ -24,7 +24,7 @@ Para los [efectos de la escena submarina](underwater-rendering.md), comprueba:
 
 ## El GNSS no obtiene una solución
 
-Consulta el [estado de validez del GNSS](gnss.md), la altura mundial de la antena, la altura local del agua y la marca de tiempo de adquisición. Comprueba las coordenadas esféricas del mundo, que la antena esté fuera del agua y sin obstrucciones, y que transcurra suficiente tiempo de simulación para la readquisición y la latencia.
+Consulta el [estado de validez del GNSS](gnss.md), la altura de la antena en el sistema de coordenadas del mundo, la altura local del agua y la marca de tiempo de adquisición. Comprueba las coordenadas esféricas del mundo, que la antena esté fuera del agua y sin obstrucciones, y que transcurra suficiente tiempo de simulación para la readquisición y la latencia.
 
 Si usas un tópico de olas, verifica que entregue muestras locales compatibles y recientes. Instalar el receptor no lo añade al modelo ni proporciona un adaptador ROS o de autopiloto.
 

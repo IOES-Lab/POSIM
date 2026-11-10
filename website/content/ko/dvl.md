@@ -19,7 +19,7 @@ gz topic -e -t /dvl/velocity
 ros2 topic echo /dvl/velocity posim_interfaces/msg/DVL --once
 ```
 
-Gazebo 확인 도구를 종료한 뒤 ROS 명령을 실행합니다. 새 센서를 만들었다면 모델의 토픽 이름에 맞춥니다.
+새 센서를 만들었다면 모델의 토픽 이름에 맞춥니다.
 
 ## SDF 구성
 
@@ -49,7 +49,7 @@ POSIM 브리지는 센서의 `<model>` 안에 넣습니다. 토픽은 `<link>` �
 
 | 센서 SDF 항목 | 의미 | 예제 값 |
 | --- | --- | --- |
-| `topic`, `update_rate` | 관측 경로와 요청 주기(Hz) | `/dvl/velocity`, 8 |
+| `topic`, `update_rate` | 관측 경로와 요청 갱신 빈도(Hz) | `/dvl/velocity`, 8 |
 | `gz:dvl/type` | 변환기 배치 | `phased_array` |
 | `arrangement` 빔의 `aperture`, `rotation`, `tilt` | 각도. `degrees="true"`이면 도 단위 | 개구각 3°, 회전 −135/135/45/−45°, 기울기 25° |
 | `minimum_range`, `maximum_range` | 음향 관측 범위(m) | 0.3, 200 |

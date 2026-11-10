@@ -28,7 +28,7 @@ Die [vollständige DVL500-300-SDF](https://github.com/IOES-Lab/POSIM/blob/main/m
 
 ## Parameter und Einheiten
 
-`DVLBridge` akzeptiert nur `topic`, standardmäßig `/dvl/velocity`. Dort empfängt sie Gazebo und veröffentlicht ROS. Die übrigen Felder gehören zum Gazebo-Sensor; die Tabelle zeigt DVL500-300-Beispielwerte.
+`DVLBridge` akzeptiert nur `topic`, standardmäßig `/dvl/velocity`. Dort empfängt sie Gazebo-Nachrichten und veröffentlicht ROS-Nachrichten. Die übrigen Felder gehören zum Gazebo-Sensor; die Tabelle zeigt DVL500-300-Beispielwerte.
 
 | Sensor-SDF-Feld | Bedeutung | Beispiel |
 |---|---|---|

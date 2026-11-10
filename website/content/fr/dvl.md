@@ -28,7 +28,7 @@ Le [SDF complet du DVL500-300](https://github.com/IOES-Lab/POSIM/blob/main/model
 
 ## Paramètres et unités
 
-`DVLBridge` accepte un seul paramètre : `topic`, par défaut `/dvl/velocity`. Il reçoit Gazebo et publie ROS sur ce chemin. Les autres champs appartiennent au capteur Gazebo ; le tableau reprend l'exemple DVL500-300.
+`DVLBridge` accepte un seul paramètre : `topic`, par défaut `/dvl/velocity`. Il reçoit les messages Gazebo et publie les messages ROS sur ce chemin. Les autres champs appartiennent au capteur Gazebo ; le tableau reprend l'exemple DVL500-300.
 
 | Champ SDF du capteur | Signification | Exemple |
 |---|---|---|
