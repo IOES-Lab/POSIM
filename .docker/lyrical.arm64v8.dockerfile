@@ -147,7 +147,8 @@ USER $USER
 WORKDIR $POSIM_UNDERLAY
 RUN . "/opt/ros/${ROS_DISTRO}/setup.sh" && \
     . "$POSIM_MAVROS_OVERLAY/install/setup.sh" && \
-    colcon build --merge-install --executor sequential --symlink-install
+    MAKEFLAGS="-j2" CMAKE_BUILD_PARALLEL_LEVEL=2 \
+      colcon build --merge-install --executor sequential --symlink-install
 
 RUN . "$POSIM_UNDERLAY/install/setup.sh" && \
     test "$(ros2 pkg prefix mavros)" = "$POSIM_MAVROS_OVERLAY/install" && \
