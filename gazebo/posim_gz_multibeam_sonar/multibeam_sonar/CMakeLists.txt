@@ -147,7 +147,8 @@ if(BUILD_TESTING)
   enable_testing()
   add_executable(cuda_ray_layout_test test/CudaRayLayout_TEST.cc)
   target_compile_features(cuda_ray_layout_test PRIVATE cxx_std_17)
-  target_include_directories(cuda_ray_layout_test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+  target_include_directories(cuda_ray_layout_test PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR})
   add_test(NAME cuda_ray_layout COMMAND cuda_ray_layout_test)
 
   add_executable(cuda_input_validation_test test/CudaInputValidation_TEST.cc)
