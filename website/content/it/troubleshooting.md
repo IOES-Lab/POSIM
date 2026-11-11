@@ -70,6 +70,8 @@ Ferma i visualizzatori, premi Ctrl+C una volta nel terminale di avvio e attendi 
 
 Su Ubuntu 26.04, RViz 15.2.6 può arrestarsi in modo intermittente quando chiudi la finestra e scegli **Discard**, anche se le viste dei sensori funzionano. Ferma i processi di avvio rimasti con Ctrl+C prima di ripartire. Indica versione di RViz e azione di chiusura nella segnalazione.
 
+Con il rendering software in Docker su ARM64, questa versione di RViz può anche restare in esecuzione dopo che Ctrl+C ne ha chiuso la finestra, finché ROS launch non termina forzatamente il processo. Per eseguire il sonar senza il visualizzatore, aggiungi `rviz:=false` al comando `multibeam_sonar_demo.launch.py`. Le immagini restano disponibili in ROS.
+
 ## Ricreare telecamere di profondità con un SDK macOS nativo
 
 Per **macOS arm64 / Ogre-Next 2.3.3**, l'[ambiente Ogre isolato](https://github.com/IOES-Lab/POSIM/blob/main/extras/ogre/README.md) fornisce la correzione del ciclo di vita dei materiali durante la distruzione e la ricreazione delle telecamere di profondità.

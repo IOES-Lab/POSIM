@@ -86,6 +86,8 @@ Stop data viewers, then press Ctrl+C once in the launch terminal and allow child
 
 On Ubuntu 26.04, RViz 15.2.6 can intermittently crash when you close its window and choose **Discard**, even while its sensor views work. Stop the remaining launch processes with Ctrl+C before starting again. Include the RViz version and the closing action in your issue report.
 
+With software rendering in ARM64 Docker, this RViz version can also remain running after Ctrl+C closes its window, until ROS launch forcibly terminates it. For sonar runs that do not need the viewer, add `rviz:=false` to the `multibeam_sonar_demo.launch.py` command. ROS image output remains available.
+
 ## Depth-camera recreation on macOS
 
 For a native arm64 SDK using Ogre-Next 2.3.3, the [isolated Ogre overlay](https://github.com/IOES-Lab/POSIM/tree/main/extras/ogre) supplies the material-lifetime correction used during depth-camera destruction and recreation. Follow its build helper and pass your Gazebo command to `run_overlay.py`. Building the overlay alone does not select it for a process. Use a matching SDK and retain the validation receipt; the helper does not replace system libraries or configure Linux containers.

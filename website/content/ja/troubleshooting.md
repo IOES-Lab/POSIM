@@ -70,6 +70,8 @@ Gazeboが画像を生成し、ROSがPublisherを検出しているのに受信�
 
 Ubuntu 26.04のRViz 15.2.6では、センサー表示が正常でも、ウィンドウを閉じて**Discard**を選ぶとクラッシュすることがあります。残った起動プロセスをCtrl+Cで止めてから再実行してください。報告にはRVizのバージョンと終了操作を記載します。
 
+ARM64 Dockerでソフトウェアレンダリングを使用すると、このRVizバージョンはCtrl+Cでウィンドウが閉じた後も、ROS launchが強制終了するまで動作し続けることがあります。ビューアーが不要なソナー実行では、`multibeam_sonar_demo.launch.py`コマンドに`rviz:=false`を追加してください。ROSの画像出力は引き続き利用できます。
+
 ## macOSネイティブSDKで深度カメラを再作成する
 
 **macOS arm64 / Ogre-Next 2.3.3**向けの[独立したOgre環境](https://github.com/IOES-Lab/POSIM/blob/main/extras/ogre/README.md)には、深度カメラの破棄・再作成時に必要なマテリアル寿命の修正があります。

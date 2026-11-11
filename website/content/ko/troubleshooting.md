@@ -86,6 +86,8 @@ ros2 daemon stop
 
 Ubuntu 26.04의 RViz 15.2.6은 센서 화면이 정상적으로 표시되어도 창을 닫고 **Discard**를 선택할 때 간헐적으로 비정상 종료될 수 있습니다. 다시 실행하기 전에 Launch 터미널에서 Ctrl+C를 눌러 남은 프로세스를 종료하세요. 문제를 보고할 때 RViz 버전과 창을 닫은 방법도 적어주세요.
 
+ARM64 Docker에서 소프트웨어 렌더링을 사용하면 이 RViz 버전은 Ctrl+C로 창이 닫힌 뒤에도 ROS launch가 강제로 종료할 때까지 실행 중인 상태로 남을 수 있습니다. 뷰어가 필요 없는 소나 실행에서는 `multibeam_sonar_demo.launch.py` 명령에 `rviz:=false`를 추가하세요. ROS 이미지 출력은 계속 사용할 수 있습니다.
+
 ## macOS에서 깊이 카메라 재생성
 
 Ogre-Next 2.3.3을 사용하는 네이티브 arm64 SDK에는 깊이 카메라의 제거·재생성 과정에서 재질 수명을 보장하는 [별도 Ogre 오버레이](https://github.com/IOES-Lab/POSIM/tree/main/extras/ogre)를 사용할 수 있습니다. 안내의 빌드 도구를 실행한 뒤, `run_overlay.py`에 Gazebo 명령을 전달해 실행하세요. 오버레이를 빌드하는 것만으로 실행 중인 프로세스에 적용되지는 않습니다. 호환 SDK를 사용하고 검증 기록을 보관하세요. 이 도구는 시스템 라이브러리를 교체하거나 Linux 컨테이너를 설정하지 않습니다.
