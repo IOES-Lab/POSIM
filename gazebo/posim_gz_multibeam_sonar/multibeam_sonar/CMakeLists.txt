@@ -114,7 +114,15 @@ if(TARGET gz-rendering::ogre2)
   # Installed sonar headers do not expose this dependency.
   find_package(gz_ogre_next_vendor QUIET)
   find_package(GzOGRE2 2.3 REQUIRED)
-  target_link_libraries(${PROJECT_NAME} $<BUILD_INTERFACE:GzOGRE2::GzOGRE2>)
+  # Ogre 2.3 headers use an incomplete vector element type that libc++ rejects
+  # in C++20. Keep them separate from ROS/Gazebo's C++20 interface.
+  add_library(sonar_ogre_cleanup OBJECT OgreCompositorCleanup.cc)
+  set_target_properties(sonar_ogre_cleanup PROPERTIES
+    CXX_STANDARD 17 CXX_STANDARD_REQUIRED ON POSITION_INDEPENDENT_CODE ON)
+  target_link_libraries(sonar_ogre_cleanup PRIVATE GzOGRE2::GzOGRE2)
+  target_link_libraries(${PROJECT_NAME}
+    $<BUILD_INTERFACE:sonar_ogre_cleanup>
+    $<BUILD_INTERFACE:GzOGRE2::GzOGRE2>)
 endif()
 
 if(APPLE)

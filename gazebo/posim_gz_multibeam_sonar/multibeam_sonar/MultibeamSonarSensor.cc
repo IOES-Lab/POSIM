@@ -42,9 +42,7 @@
 #include <gz/rendering/RayQuery.hh>
 #include <gz/rendering/RenderEngine.hh>
 #ifdef WITH_OGRE2
-#include <Compositor/OgreCompositorManager2.h>
-#include <OgreRectangle2D.h>
-#include <OgreRoot.h>
+#include "OgreCompositorCleanup.hh"
 #endif
 
 #include <gz/sensors/GaussianNoiseModel.hh>
@@ -267,9 +265,7 @@ void MultibeamSonarSensor::Implementation::Shutdown(MultibeamSonarSensor * _sens
       // datablock after its workspace is removed. Unlink it on the render
       // thread before DestroySensor releases the depth camera's materials.
       // Each surviving compositor pass restores its own binding on execution.
-      auto * compositor = Ogre::Root::getSingleton().getCompositorManager2();
-      compositor->getSharedFullscreenQuad()->_setNullDatablock();
-      compositor->getSharedFullscreenTriangle()->_setNullDatablock();
+      posim::ClearOgreCompositorDatablocks();
     }
 #endif
     _sensor->Scene()->DestroySensor(this->depthSensor);
