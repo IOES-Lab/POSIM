@@ -10,6 +10,15 @@ Build and source the external package using its
 Use the same ROS distribution as your POSIM workspace. Source POSIM and the
 controller workspace in both terminals below.
 
+On ROS 2 Lyrical, use a controller revision that calls `get_logger().warning()`.
+In checkouts that still call `get_logger().warn()`, replace those calls in
+`path_controller_node.py` before building. The older calls can crash the
+controller when a service such as `stop` logs a warning.
+[Affected controller revision](https://github.com/drwa92/bluerov2_reconciled_path_control_ros2/blob/def5e2f6acb6531865e09c8d45a1cb87b43dcaf0/src/bluerov2_path_control/bluerov2_path_control/path_controller_node.py#L447).
+
+If the ROS nodes in the two terminals cannot discover each other, use the same
+middleware in both and follow the [ROS discovery checks](../../website/content/en/troubleshooting.md#no-messages).
+
 The package provides:
 
 - go-to pose control;
