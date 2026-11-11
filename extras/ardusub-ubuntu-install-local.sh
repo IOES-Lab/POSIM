@@ -45,7 +45,7 @@ Tools/environment_install/install-prereqs-ubuntu.sh -y
 
 # Build ArduSub
 python3 modules/waf/waf-light configure --board sitl
-python3 modules/waf/waf-light build --target bin/ardusub
+python3 modules/waf/waf-light build --target bin/ardusub,bin/ardurover
 
 # Clone ardupilot_gazebo code
 cd "/home/$USER/ardusub_ws" || exit

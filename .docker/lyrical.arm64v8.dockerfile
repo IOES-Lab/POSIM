@@ -196,8 +196,9 @@ RUN chown -R $USER:$USER /home/$USER/ardupilot /home/$USER/imp_shim && \
     su $USER -c "git config --global --add safe.directory /home/$USER/ardupilot" && \
     su $USER -c "cd /home/$USER/ardupilot && Tools/environment_install/install-prereqs-ubuntu.sh -y" && \
     su $USER -c "cd /home/$USER/ardupilot && python3 modules/waf/waf-light configure --board sitl" && \
-    su $USER -c "cd /home/$USER/ardupilot && python3 modules/waf/waf-light build --target bin/ardusub" && \
-    cp /home/$USER/ardupilot/build/sitl/bin/ardusub /usr/local/bin/ardusub
+    su $USER -c "cd /home/$USER/ardupilot && python3 modules/waf/waf-light build --target bin/ardusub,bin/ardurover" && \
+    cp /home/$USER/ardupilot/build/sitl/bin/ardusub /usr/local/bin/ardusub && \
+    cp /home/$USER/ardupilot/build/sitl/bin/ardurover /usr/local/bin/ardurover
 
 # Build the Gazebo Jetty ArduPilot plugin against the ROS vendor packages.
 RUN set -e; \
