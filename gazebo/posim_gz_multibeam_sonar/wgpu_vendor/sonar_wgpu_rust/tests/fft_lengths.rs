@@ -44,7 +44,11 @@ async fn check() {
         layout: None,
         module: &shader,
         entry_point: "main",
-        compilation_options: Default::default(),
+        // Match production: the load pass initializes all FFT scratch in use.
+        compilation_options: wgpu::PipelineCompilationOptions {
+            zero_initialize_workgroup_memory: false,
+            ..Default::default()
+        },
     });
     let exact = exact_fft::Pipeline::new(&d);
     let mut cases = 0;

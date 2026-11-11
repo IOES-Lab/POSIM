@@ -19,13 +19,8 @@ var<workgroup> smem_im: array<f32, 4096>;
 
 // Bit-reversal permutation used by the Cooley-Tukey butterfly.
 fn bit_reverse(v: u32, bits: u32) -> u32 {
-  var x = v;
-  var y: u32 = 0u;
-  for (var i: u32 = 0u; i < bits; i = i + 1u) {
-    y = (y << 1u) | (x & 1u);
-    x = x >> 1u;
-  }
-  return y;
+  // Avoid a per-invocation loop that FXC treats as divergent at the barrier.
+  return select(0u, reverseBits(v) >> (32u - bits), bits > 0u);
 }
 
 // One workgroup per beam. Threads: 256 per workgroup.

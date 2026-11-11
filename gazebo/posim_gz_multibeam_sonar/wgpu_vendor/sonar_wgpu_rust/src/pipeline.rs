@@ -351,6 +351,7 @@ fn compile_pipeline(
     wgsl: &str,
     entry_point: &str,
     bgl: &wgpu::BindGroupLayout,
+    compilation_options: wgpu::PipelineCompilationOptions<'_>,
 ) -> wgpu::ComputePipeline {
     let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
         label: Some(label),
@@ -366,7 +367,7 @@ fn compile_pipeline(
         layout: Some(&layout),
         module: &shader,
         entry_point,
-        compilation_options: wgpu::PipelineCompilationOptions::default(),
+        compilation_options,
     })
 }
 
@@ -461,6 +462,7 @@ fn try_init_gpu_context(backends: wgpu::Backends, label: &str) -> Option<GpuCont
             include_str!("shaders/backscatter.wgsl"),
             "main",
             &bs_bgl,
+            Default::default(),
         );
         let physical_bs_pipeline = compile_pipeline(
             &device,
@@ -468,6 +470,7 @@ fn try_init_gpu_context(backends: wgpu::Backends, label: &str) -> Option<GpuCont
             include_str!("shaders/physical_backscatter.wgsl"),
             "physical_main",
             &bs_bgl,
+            Default::default(),
         );
         let convert_pipeline = compile_pipeline(
             &device,
@@ -475,6 +478,7 @@ fn try_init_gpu_context(backends: wgpu::Backends, label: &str) -> Option<GpuCont
             include_str!("shaders/convert.wgsl"),
             "main",
             &convert_bgl,
+            Default::default(),
         );
         let mm_pipeline = compile_pipeline(
             &device,
@@ -482,6 +486,7 @@ fn try_init_gpu_context(backends: wgpu::Backends, label: &str) -> Option<GpuCont
             include_str!("shaders/matmul.wgsl"),
             "main",
             &mm_bgl,
+            Default::default(),
         );
         let fft_pipeline = compile_pipeline(
             &device,
@@ -489,6 +494,12 @@ fn try_init_gpu_context(backends: wgpu::Backends, label: &str) -> Option<GpuCont
             include_str!("shaders/fft.wgsl"),
             "main",
             &fft_bgl,
+            wgpu::PipelineCompilationOptions {
+                // The FFT loads every used scratch element before its barrier.
+                // FXC expands redundant array zeroing into thousands of stores.
+                zero_initialize_workgroup_memory: false,
+                ..Default::default()
+            },
         );
         eprintln!(
             "[sonar_wgpu] [{label}] GPU pipelines compiled in {:.0} ms -> ready.",
