@@ -38,6 +38,11 @@ if(CUDAToolkit_FOUND)
   endif()
   enable_language(CUDA)
   message(STATUS "CUDA found, enabling CUDA support.")
+  if(CUDAToolkit_VERSION VERSION_GREATER_EQUAL 13)
+    find_package(CCCL CONFIG REQUIRED
+      HINTS "${CUDAToolkit_TARGET_DIR}/lib64/cmake/cccl"
+            "${CUDAToolkit_TARGET_DIR}/lib/cmake/cccl")
+  endif()
 endif()
 
 if(TARGET gz-rendering::ogre)
@@ -71,6 +76,11 @@ if(CUDAToolkit_FOUND)
       CUDA_STANDARD_REQUIRED ON
   )
   target_compile_definitions(${PROJECT_NAME} PRIVATE POSIM_HAS_CUDA_BACKEND=1)
+  if(CUDAToolkit_VERSION VERSION_GREATER_EQUAL 13)
+    # Build-only: no installed header includes CCCL, so keep it out of
+    # the exported link interface used by downstream packages.
+    target_link_libraries(${PROJECT_NAME} $<BUILD_INTERFACE:CCCL::CCCL>)
+  endif()
 endif()
 
 target_include_directories(${PROJECT_NAME} PUBLIC
