@@ -104,9 +104,10 @@ sudo apt update && sudo apt install -y \
 # ardupilot_gazebo build resolves Jetty's vendored CMake packages.
 sudo mkdir -p /opt/ardusub_ws && cd /opt/ardusub_ws || exit
 if [[ -n "${POSIM_EXTRAS_DIR:-}" && -f "${POSIM_EXTRAS_DIR}/ardusub-ubuntu-install.sh" ]]; then
-    sudo bash "${POSIM_EXTRAS_DIR}/ardusub-ubuntu-install.sh"
+    ARDUPILOT_HELPERS="$POSIM_EXTRAS_DIR"
 else
     ARDUPILOT_HELPERS="$(mktemp -d)"
+    trap 'rm -rf -- "$ARDUPILOT_HELPERS"' EXIT
     mkdir -p "$ARDUPILOT_HELPERS/ardupilot_gazebo" "$ARDUPILOT_HELPERS/premerge"
     for ARDUPILOT_HELPER in ardusub-ubuntu-install.sh \
         ardupilot_gazebo/patch_resampling.py ardupilot_gazebo/SensorResampler.hh \
@@ -115,9 +116,8 @@ else
         curl -fsSL "https://raw.githubusercontent.com/IOES-Lab/POSIM/main/extras/$ARDUPILOT_HELPER" \
             -o "$ARDUPILOT_HELPERS/$ARDUPILOT_HELPER"
     done
-    sudo bash "$ARDUPILOT_HELPERS/ardusub-ubuntu-install.sh"
-    rm -rf "$ARDUPILOT_HELPERS"
 fi
+sudo bash "$ARDUPILOT_HELPERS/ardusub-ubuntu-install.sh"
 
 
 # Mavros install
@@ -161,7 +161,7 @@ else
 fi
 
 # Separate rendering resources: never modify files owned by the ROS packages.
-sudo python3 /opt/ardusub_ws/premerge/apply.py terrain \
+sudo python3 "$ARDUPILOT_HELPERS/premerge/apply.py" terrain \
     --source "/opt/ros/${DIST}/opt/gz_rendering_vendor/share/gz/gz-rendering" \
     --output /opt/posim/terra
 
