@@ -3,7 +3,7 @@
 #include "CudaRayLayout.hh"
 #include "sonar_compute_backend.hh"
 
-namespace NpsGazeboSonar
+namespace PosimGazeboSonar
 {
 /// The wrapper copies step * rows bytes. Require tightly packed rows so an
 /// offset ROI cannot make that copy extend past the final row's backing data.
@@ -79,4 +79,4 @@ bool TryCudaCalculation(const gz::sensors::SonarComputeInput & input, Calculate 
     return false;
   }
 }
-}  // namespace NpsGazeboSonar
+}  // namespace PosimGazeboSonar

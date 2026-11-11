@@ -10,7 +10,7 @@
 #define POSIM_CUDA_HOST_DEVICE
 #endif
 
-namespace NpsGazeboSonar
+namespace PosimGazeboSonar
 {
 /// Multiply positive dimensions without overflowing the CUDA backend's int indices.
 inline int CudaCheckedCount(int left, int right)
@@ -69,6 +69,6 @@ struct CudaRayLayout
     return beam * beamStride + selectedRay * frequencies + frequency;
   }
 };
-}  // namespace NpsGazeboSonar
+}  // namespace PosimGazeboSonar
 
 #undef POSIM_CUDA_HOST_DEVICE

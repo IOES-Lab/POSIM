@@ -8,8 +8,8 @@
 namespace
 {
 using gz::sensors::SonarComputeInput;
-using NpsGazeboSonar::CudaImageStorageMatches;
-using NpsGazeboSonar::TryCudaCalculation;
+using PosimGazeboSonar::CudaImageStorageMatches;
+using PosimGazeboSonar::TryCudaCalculation;
 
 void Require(bool condition, const char * message)
 {

@@ -142,7 +142,7 @@ __device__ __host__ float unnormalized_sinc(float t)
 
 __global__ void reduce_beams_kernel(
   const thrust::complex<float> * __restrict__ d_P_Beams, float * d_P_Beams_Cor_real,
-  float * d_P_Beams_Cor_imag, int nBeams, NpsGazeboSonar::CudaRayLayout layout)
+  float * d_P_Beams_Cor_imag, int nBeams, PosimGazeboSonar::CudaRayLayout layout)
 {
   const int beam = blockIdx.y;
   const int f = blockIdx.x;
@@ -199,7 +199,7 @@ __global__ void sonar_calculation(
   float hFOV, float vFOV, float beam_azimuthAngleWidth, float beam_elevationAngleWidth,
   float ray_azimuthAngleWidth, float * ray_elevationAngles, float ray_elevationAngleWidth,
   float soundSpeed, float sourceTerm, int nBeams, int nRays, int raySkips,
-  NpsGazeboSonar::CudaRayLayout layout, float sonarFreq,
+  PosimGazeboSonar::CudaRayLayout layout, float sonarFreq,
   float delta_f, int nFreq, float bandwidth, float maxDistance, float attenuation,
   float area_scaler)
 {
@@ -294,7 +294,7 @@ __global__ void sonar_calculation(
 }
 
 ///////////////////////////////////////////////////////////////////////////
-namespace NpsGazeboSonar
+namespace PosimGazeboSonar
 {
 
 // CUDA Device Checker Wrapper
@@ -731,4 +731,4 @@ CArray2D sonar_calculation_wrapper(
 
   return P_Beams_F;
 }
-}  // namespace NpsGazeboSonar
+}  // namespace PosimGazeboSonar

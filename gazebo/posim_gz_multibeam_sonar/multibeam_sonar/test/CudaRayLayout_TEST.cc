@@ -8,7 +8,7 @@
 
 namespace
 {
-using NpsGazeboSonar::CudaRayLayout;
+using PosimGazeboSonar::CudaRayLayout;
 
 void Require(bool condition, const char * message)
 {
@@ -172,9 +172,9 @@ int main()
     RequireThrows<std::overflow_error>(
       [=] { CudaRayLayout::Make(intMax, intMax, 1, intMax); }, "triple overflow accepted");
     RequireThrows<std::overflow_error>(
-      [] { NpsGazeboSonar::CudaCheckedCount(46341, 46341); }, "correction matrix overflow");
+      [] { PosimGazeboSonar::CudaCheckedCount(46341, 46341); }, "correction matrix overflow");
     Require(
-      NpsGazeboSonar::CudaCheckedCount(46340, 46340) == 2147395600, "correction matrix boundary");
+      PosimGazeboSonar::CudaCheckedCount(46340, 46340) == 2147395600, "correction matrix boundary");
     const auto twoElements = CudaRayLayout::Make(1, 1, 1, 2);
     const auto sizeMax = std::numeric_limits<std::size_t>::max();
     Require(regression.Bytes(8) == 409600, "allocation bytes");
@@ -183,9 +183,9 @@ int main()
       [&] { twoElements.Bytes(sizeMax / 2 + 1); }, "byte size overflow accepted");
     RequireThrows<std::overflow_error>([&] { twoElements.Bytes(0); }, "zero element size accepted");
     RequireThrows<std::overflow_error>(
-      [] { NpsGazeboSonar::CudaCheckedBytes(0, 4); }, "zero element count accepted");
+      [] { PosimGazeboSonar::CudaCheckedBytes(0, 4); }, "zero element count accepted");
     RequireThrows<std::overflow_error>(
-      [] { NpsGazeboSonar::CudaCheckedBytes(-1, 4); }, "negative element count accepted");
+      [] { PosimGazeboSonar::CudaCheckedBytes(-1, 4); }, "negative element count accepted");
     std::cout << "PASS: CUDA production layout, six coverage/reduction cases, " << cases
               << " dimension cases, invalid inputs and overflow boundaries (host only)\n";
   }

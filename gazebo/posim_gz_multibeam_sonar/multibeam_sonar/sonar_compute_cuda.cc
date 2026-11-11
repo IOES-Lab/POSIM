@@ -19,7 +19,7 @@ CudaComputeBackend::~CudaComputeBackend()
 #ifdef POSIM_HAS_CUDA_BACKEND
   if (this->initialized)
   {
-    NpsGazeboSonar::free_cuda_memory();
+    PosimGazeboSonar::free_cuda_memory();
   }
 #endif
 }
@@ -62,15 +62,15 @@ bool CudaComputeBackend::Compute(const SonarComputeInput & input, SonarComputeOu
   }
 
   auto start = std::chrono::high_resolution_clock::now();
-  NpsGazeboSonar::CArray2D beams;
-  if (!NpsGazeboSonar::TryCudaCalculation(
+  PosimGazeboSonar::CArray2D beams;
+  if (!PosimGazeboSonar::TryCudaCalculation(
         input,
         [&]
         {
           const double hPixelSize = input.hFOV / (static_cast<double>(input.nBeams) - 1.0);
           const double vPixelSize = input.vFOV / (static_cast<double>(input.nRays) - 1.0);
 
-          beams = NpsGazeboSonar::sonar_calculation_wrapper(
+          beams = PosimGazeboSonar::sonar_calculation_wrapper(
             *input.depthImage, *input.normalImage, hPixelSize, vPixelSize, input.hFOV, input.vFOV,
             hPixelSize, input.vFOV / 180.0 * M_PI, hPixelSize,
             const_cast<float *>(input.elevation_angles.data()),
