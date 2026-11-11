@@ -22,6 +22,8 @@
 #include <gz/sim/components/ParentEntity.hh>
 #include <gz/sim/components/Pose.hh>
 #include <gz/transport/Node.hh>
+#include <gz/transport/NodeShared.hh>
+#include <gz/transport/TopicUtils.hh>
 #include <limits>
 #include <sdf/Root.hh>
 #include <thread>
@@ -519,4 +521,56 @@ TEST_F(Usbl, LongRangePingDoesNotBlockTheSimulationThread)
   auto start = std::chrono::steady_clock::now();
   transceiver.sendPing();
   EXPECT_LT(std::chrono::steady_clock::now() - start, std::chrono::milliseconds(200));
+}
+
+TEST_F(Usbl, CallbackAcquiredBeforeDestructionIsHarmless)
+{
+  auto transceiver = std::make_unique<UsblTransceiver>();
+  transceiver->Configure(model, Config(), ecm, events);
+  gz::transport::NodeOptions options;
+  std::string topic;
+  ASSERT_TRUE(gz::transport::TopicUtils::FullyQualifiedName(
+    options.Partition(), options.NameSpace(), "/USBL_test/tx_1/global_position", topic));
+  auto transport = gz::transport::NodeShared::Instance();
+  // Transport retains handler references before releasing its subscription lock.
+  const auto handlers = transport->CheckHandlerInfo(topic);
+  ASSERT_TRUE(handlers.haveLocal);
+  transceiver.reset();
+  EXPECT_FALSE(transport->CheckHandlerInfo(topic).haveLocal);
+
+  gz::msgs::Vector3d position;
+  position.set_x(3);
+  gz::transport::MessageInfo info;
+  ASSERT_TRUE(info.SetTopicAndPartition(topic));
+  info.SetType(position.GetTypeName());
+  EXPECT_NO_THROW(transport->TriggerCallbacks(info, position.SerializeAsString(), handlers));
+}
+
+TEST_F(Usbl, TransportTrafficDuringDestruction)
+{
+  gz::transport::Node publisher;
+  auto pub = publisher.Advertise<gz::msgs::Vector3d>("/USBL_test/tx_1/global_position");
+  std::atomic<bool> running{true};
+  std::thread producer(
+    [&]
+    {
+      gz::msgs::Vector3d position;
+      position.set_x(3);
+      while (running.load())
+      {
+        pub.Publish(position);
+        std::this_thread::sleep_for(std::chrono::microseconds(500));
+      }
+    });
+  bool connected = false;
+  for (int cycle = 0; cycle < 30; ++cycle)
+  {
+    UsblTransceiver transceiver;
+    transceiver.Configure(model, Config(), ecm, events);
+    connected = Wait([&] { return pub.HasConnections(); }) || connected;
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+  }
+  running = false;
+  producer.join();
+  EXPECT_TRUE(connected);
 }
