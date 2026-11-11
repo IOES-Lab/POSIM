@@ -16,6 +16,32 @@ int main()
 {
   for (double rate : {200.0, 1000.0})
   {
+    // Follow changing physics steps, including steps that do not divide 1/rate.
+    posim::SensorResampler changing;
+    double stamp = 1;
+    changing.Samples(frame(stamp, 0, 0), rate);
+    for (double step : {.0005, .001, .0025, .007, .01, .02, .03, .05, .1})
+    {
+      const double start = stamp;
+      stamp += step;
+      const auto end = frame(stamp, 1, 0);
+      const auto values = changing.Samples(end, rate);
+      const unsigned count = std::max(1.0, std::ceil(step * rate - 1e-6));
+      assert(values.size() == count && values.back() == end);
+      double previous = start;
+      for (const auto & sample : values)
+      {
+        rapidjson::Document value;
+        value.Parse(sample.c_str());
+        const double time = value["timestamp"].GetDouble();
+        assert(time > previous && time - previous <= 1 / rate + 1e-9);
+        previous = time;
+      }
+      assert(std::abs(previous - stamp) < 1e-9);
+    }
+    const auto oversized = frame(stamp + .100001, 2, 0);
+    assert(changing.Samples(oversized, rate) == std::vector<std::string>{oversized});
+
     posim::SensorResampler resampler;
     const auto first = frame(1, 0, 179);
     const auto last = frame(1.02, 2, -179, 7);
@@ -58,6 +84,7 @@ int main()
   posim::SensorResampler disabled;
   assert(disabled.Samples("unchanged", 0) == std::vector<std::string>{"unchanged"});
   assert(disabled.Samples("still unchanged", 0) == std::vector<std::string>{"still unchanged"});
-  std::cout << "PASS: clock alignment, 200/1000 Hz, vector interpolation, quaternion wrap, exact "
+  std::cout << "PASS: variable timesteps, clock alignment, 200/1000 Hz, vector interpolation, "
+               "quaternion wrap, exact "
                "endpoint, held discrete sensor, reset/gap, disabled\n";
 }

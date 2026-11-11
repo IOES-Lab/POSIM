@@ -82,7 +82,7 @@ public:
       const double end = to["timestamp"].GetDouble();
       const double duration = end - start;
       // A reset or long gap is not evidence for interpolated motion.
-      if (duration > 0 && duration <= 0.1)
+      if (duration > 0 && duration <= 0.1 + 1e-9)
       {
         const unsigned count = std::max(1.0, std::ceil(duration * rate - 1e-6));
         for (unsigned i = 1; i < count; ++i)
