@@ -20,10 +20,11 @@ ENV LD_LIBRARY_PATH=/opt/waves/lib
 ENV GZ_SIM_SYSTEM_PLUGIN_PATH=/opt/waves/lib:/opt/ardusub_ws/ardupilot_gazebo/build
 ENV GZ_SIM_RESOURCE_PATH=/opt/asv_wave_sim/gz-waves-models/models:/opt/asv_wave_sim/gz-waves-models/world_models:/opt/ardusub_ws/ardupilot_gazebo/models:/opt/ardusub_ws/ardupilot_gazebo/worlds
 
-# Install QGroundControl.
+# Install the versioned QGroundControl release and verify its archive.
 RUN mkdir -p /opt/QGC && cd /opt/QGC && \
     wget -O QGroundControl-x86_64.AppImage \
-      "https://d176tv9ibo4jno.cloudfront.net/latest/QGroundControl-x86_64.AppImage" && \
+      "https://github.com/mavlink/qgroundcontrol/releases/download/v5.1.5/QGroundControl-x86_64.AppImage" && \
+    echo "9a47e4cf269d9e4f897f582f6b19aa7ebf1e9e67c9d68a532a45b541354bc344  QGroundControl-x86_64.AppImage" | sha256sum --check --status && \
     chmod +x QGroundControl-x86_64.AppImage && \
     ./QGroundControl-x86_64.AppImage --appimage-extract && \
     mv squashfs-root/* /opt/QGC/ && \

@@ -31,3 +31,4 @@ First stable release of POSIM, the Platform for Ocean Simulation.
   and speed with all arming checks enabled.
 - Scoped MAVROS Router, QGroundControl video and Ogre2 Terra corrections
   for the documented dependency versions.
+- QGroundControl 5.1.5 in both Docker images, with verified archive checksums.

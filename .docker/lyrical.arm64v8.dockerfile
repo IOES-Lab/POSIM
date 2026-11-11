@@ -260,11 +260,14 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 USER $USER
-RUN mkdir -p ~/QGC && wget -O ~/QGC/QGroundControl-aarch64-DailyBuild.AppImage \
-    "https://d176tv9ibo4jno.cloudfront.net/builds/master/QGroundControl-aarch64.AppImage" && \
-    cd ~/QGC && chmod +x QGroundControl-aarch64-DailyBuild.AppImage && \
-    ./QGroundControl-aarch64-DailyBuild.AppImage --appimage-extract && \
-    mv ~/QGC/squashfs-root/* ~/QGC/. && rm ~/QGC/QGroundControl-aarch64-DailyBuild.AppImage && \
+# Use the same stable release as AMD64, with its architecture-specific checksum.
+RUN mkdir -p ~/QGC && wget -O ~/QGC/QGroundControl-aarch64.AppImage \
+    "https://github.com/mavlink/qgroundcontrol/releases/download/v5.1.5/QGroundControl-aarch64.AppImage" && \
+    cd ~/QGC && \
+    echo "ddd92fe3a1cd1c1c21a3028052e9f9b4d4a68cb80689552d3f34727ed2c91e03  QGroundControl-aarch64.AppImage" | sha256sum --check --status && \
+    chmod +x QGroundControl-aarch64.AppImage && \
+    ./QGroundControl-aarch64.AppImage --appimage-extract && \
+    mv ~/QGC/squashfs-root/* ~/QGC/. && rm ~/QGC/QGroundControl-aarch64.AppImage && \
     mkdir -p /home/$USER/.local/bin
 
 # Isolate the bundled GStreamer from Gazebo's system plugins and shared cache.
