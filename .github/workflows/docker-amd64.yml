@@ -112,18 +112,62 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Build and optionally push the architecture image
+      - name: Build and load the architecture image
         uses: docker/build-push-action@v7
         with:
           context: .
           file: ${{ matrix.dockerfile }}
           platforms: linux/${{ matrix.arch }}
           add-hosts: ${{ steps.ubuntu-mirrors.outputs.hosts }}
-          push: ${{ needs.revision.outputs.publish == 'true' }}
+          load: true
           tags: ${{ env.IMAGE_NAME }}:${{ needs.revision.outputs.tag }}-${{ matrix.arch }}
           labels: |
             org.opencontainers.image.source=https://github.com/IOES-Lab/POSIM
             org.opencontainers.image.revision=${{ needs.revision.outputs.sha }}
+      - name: Test the installed image
+        timeout-minutes: 15
+        env:
+          IMAGE_TAG: ${{ needs.revision.outputs.tag }}-${{ matrix.arch }}
+          TEST_CONTAINER: >-
+            posim-test-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.arch }}
+        run: |
+          results="$RUNNER_TEMP/posim-image-tests-${{ matrix.arch }}"
+          mkdir -p "$results"
+          cleanup() {
+            docker rm -f "$TEST_CONTAINER" >/dev/null 2>&1 || true
+            docker run --rm --entrypoint chown \
+              --mount "type=bind,source=$results,target=/tmp/posim-image-tests" \
+              "$IMAGE_NAME:$IMAGE_TAG" -R "$(id -u):$(id -g)" /tmp/posim-image-tests
+          }
+          trap cleanup EXIT
+          docker run --rm --init --interactive --name "$TEST_CONTAINER" --shm-size=1g \
+            --mount "type=bind,source=$results,target=/tmp/posim-image-tests" \
+            --entrypoint bash "$IMAGE_NAME:$IMAGE_TAG" -s < .docker/test-image.sh
+      - name: Preserve image test results
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: image-tests-${{ matrix.arch }}
+          path: ${{ runner.temp }}/posim-image-tests-${{ matrix.arch }}
+          if-no-files-found: ignore
+      - name: Push the tested architecture image
+        if: needs.revision.outputs.publish == 'true'
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: ${{ matrix.dockerfile }}
+          platforms: linux/${{ matrix.arch }}
+          add-hosts: ${{ steps.ubuntu-mirrors.outputs.hosts }}
+          push: true
+          tags: ${{ env.IMAGE_NAME }}:${{ needs.revision.outputs.tag }}-${{ matrix.arch }}
+          labels: |
+            org.opencontainers.image.source=https://github.com/IOES-Lab/POSIM
+            org.opencontainers.image.revision=${{ needs.revision.outputs.sha }}
+      - name: Remove the loaded test image
+        if: always()
+        env:
+          IMAGE_TAG: ${{ needs.revision.outputs.tag }}-${{ matrix.arch }}
+        run: docker image rm "$IMAGE_NAME:$IMAGE_TAG" || true
       - name: Remove unused POSIM images older than two days
         if: always() && matrix.arch == 'amd64'
         run: |
