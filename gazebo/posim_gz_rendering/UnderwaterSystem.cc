@@ -3,6 +3,7 @@
 #include <gz/msgs/empty.pb.h>
 #include <atomic>
 #include <filesystem>
+#include <functional>
 #include <gz/common/Console.hh>
 #include <gz/plugin/Register.hh>
 #include <gz/rendering/RenderEngine.hh>
@@ -11,6 +12,7 @@
 #include <gz/sim/System.hh>
 #include <gz/sim/rendering/Events.hh>
 #include <gz/transport/Node.hh>
+#include <memory>
 #include <mutex>
 #include <sstream>
 #include "Appearance.hh"
@@ -25,6 +27,12 @@ class Underwater final : public gz::sim::System,
                          public gz::sim::ISystemConfigure,
                          public gz::sim::ISystemPostUpdate
 {
+  struct ServiceState
+  {
+    std::mutex mutex;
+    Underwater * owner = nullptr;
+  };
+  std::shared_ptr<ServiceState> serviceState = std::make_shared<ServiceState>();
   std::mutex mutex;
   Appearance requested = Defaults(), applied = Defaults(), staged = Defaults();
   bool stagedReady = false;
@@ -52,8 +60,14 @@ class Underwater final : public gz::sim::System,
   }
 
 public:
+  Underwater() { serviceState->owner = this; }
   ~Underwater() override
   {
+    // Gazebo may retain a service handler after its node stops advertising.
+    {
+      std::lock_guard<std::mutex> lock(serviceState->mutex);
+      serviceState->owner = nullptr;
+    }
     renderConnection.reset();
     postRenderConnection.reset();
     teardownConnection.reset();
@@ -99,8 +113,21 @@ public:
       requested = applied = initial;
     }
     auto service = "/posim/appearance/" + sdf->Get<std::string>("session_nonce");
-    node.Advertise(service + "/set", &Underwater::Set, this);
-    node.Advertise(service + "/state", &Underwater::State, this);
+    const auto state = serviceState;
+    std::function<bool(const gz::msgs::Double_V &, gz::msgs::Double_V &)> set =
+      [state](const auto & request, auto & response)
+    {
+      std::lock_guard<std::mutex> lock(state->mutex);
+      return state->owner && state->owner->Set(request, response);
+    };
+    std::function<bool(const gz::msgs::Empty &, gz::msgs::Double_V &)> get =
+      [state](const auto & request, auto & response)
+    {
+      std::lock_guard<std::mutex> lock(state->mutex);
+      return state->owner && state->owner->State(request, response);
+    };
+    node.Advertise(service + "/set", set);
+    node.Advertise(service + "/state", get);
     renderConnection = events.Connect<gz::sim::events::PreRender>([this] { Render(); });
     postRenderConnection = events.Connect<gz::sim::events::PostRender>(
       [this]

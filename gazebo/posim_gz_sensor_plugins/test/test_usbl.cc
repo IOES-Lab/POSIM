@@ -542,7 +542,7 @@ TEST_F(Usbl, CallbackAcquiredBeforeDestructionIsHarmless)
   position.set_x(3);
   gz::transport::MessageInfo info;
   ASSERT_TRUE(info.SetTopicAndPartition(topic));
-  info.SetType(position.GetTypeName());
+  info.SetType(std::string(position.GetTypeName()));
   EXPECT_NO_THROW(transport->TriggerCallbacks(info, position.SerializeAsString(), handlers));
 }
 

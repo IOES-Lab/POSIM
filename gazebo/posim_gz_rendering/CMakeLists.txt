@@ -35,6 +35,14 @@ if(BUILD_TESTING)
   target_compile_features(underwater-settings-test PRIVATE cxx_std_17)
   target_include_directories(underwater-settings-test PRIVATE .)
   add_test(NAME underwater-settings COMMAND underwater-settings-test)
+  add_executable(underwater-system-lifecycle-test tests/SystemLifecycleTest.cc)
+  target_compile_features(underwater-system-lifecycle-test PRIVATE cxx_std_17)
+  target_link_libraries(
+    underwater-system-lifecycle-test
+    PRIVATE gz-sim::gz-sim gz-plugin::register gz-rendering::gz-rendering
+            ${CMAKE_DL_LIBS})
+  add_test(NAME underwater-system-lifecycle
+           COMMAND underwater-system-lifecycle-test)
   add_executable(underwater-render-test tests/RenderTest.cc)
   target_compile_features(underwater-render-test PRIVATE cxx_std_17)
   target_include_directories(underwater-render-test PRIVATE .)
