@@ -16,6 +16,7 @@
  */
 
 #include "sonar_calculation_cuda.cuh"
+#include "CudaInputValidation.hh"
 
 // #include <math.h>
 #include <assert.h>
@@ -96,9 +97,9 @@ float *d_P_Beams_Cor_F_real = nullptr, *d_P_Beams_Cor_F_imag = nullptr;
 float *beamCorrector_lin_h = nullptr, *d_beamCorrector_lin = nullptr;
 
 int P_Beams_Cor_N;
-int P_Beams_Cor_Bytes;
+std::size_t P_Beams_Cor_Bytes;
 int beamCorrector_lin_N;
-int beamCorrector_lin_Bytes;
+std::size_t beamCorrector_lin_Bytes;
 
 // FFT
 cufftComplex * deviceInputData;
@@ -141,12 +142,12 @@ __device__ __host__ float unnormalized_sinc(float t)
 
 __global__ void reduce_beams_kernel(
   const thrust::complex<float> * __restrict__ d_P_Beams, float * d_P_Beams_Cor_real,
-  float * d_P_Beams_Cor_imag, int nBeams, int nFreq, int nRaysSkipped)
+  float * d_P_Beams_Cor_imag, int nBeams, PosimGazeboSonar::CudaRayLayout layout)
 {
   const int beam = blockIdx.y;
   const int f = blockIdx.x;
 
-  if (beam >= nBeams || f >= nFreq)
+  if (beam >= nBeams || f >= layout.frequencies)
   {
     return;
   }
@@ -157,9 +158,9 @@ __global__ void reduce_beams_kernel(
   float sum_real = 0.0f;
   float sum_imag = 0.0f;
 
-  for (int ray = threadIdx.x; ray < nRaysSkipped; ray += blockDim.x)
+  for (std::size_t ray = threadIdx.x; ray < layout.selectedRays; ray += blockDim.x)
   {
-    int idx = beam * nFreq * nRaysSkipped + ray * nFreq + f;
+    const int idx = layout.Index(beam, static_cast<int>(ray), f);
 
     thrust::complex<float> val = d_P_Beams[idx];
     sum_real += val.real();
@@ -197,7 +198,8 @@ __global__ void sonar_calculation(
   float * reflectivity_image, int reflectivity_image_step, float hPixelSize, float vPixelSize,
   float hFOV, float vFOV, float beam_azimuthAngleWidth, float beam_elevationAngleWidth,
   float ray_azimuthAngleWidth, float * ray_elevationAngles, float ray_elevationAngleWidth,
-  float soundSpeed, float sourceTerm, int nBeams, int nRays, int raySkips, float sonarFreq,
+  float soundSpeed, float sourceTerm, int nBeams, int nRays, int raySkips,
+  PosimGazeboSonar::CudaRayLayout layout, float sonarFreq,
   float delta_f, int nFreq, float bandwidth, float maxDistance, float attenuation,
   float area_scaler)
 {
@@ -286,13 +288,13 @@ __global__ void sonar_calculation(
 
       int ray_index = ray / raySkips;  // Map ray to reduced ray index
 
-      P_Beams[beam * nFreq * (nRays / raySkips) + ray_index * nFreq + f] = kernel;
+      P_Beams[layout.Index(beam, ray_index, static_cast<int>(f))] = kernel;
     }
   }
 }
 
 ///////////////////////////////////////////////////////////////////////////
-namespace NpsGazeboSonar
+namespace PosimGazeboSonar
 {
 
 // CUDA Device Checker Wrapper
@@ -369,6 +371,13 @@ CArray2D sonar_calculation_wrapper(
   const int nFreq = _nFreq;
   const int raySkips = _raySkips;
 
+  // Validate before division, allocation or kernel launch. The kernels receive
+  // byte strides as int and require matching float images for every beam/ray.
+  const CudaRayLayout rayLayout = CudaRayLayout::Make(nBeams, nRays, raySkips, nFreq);
+  const std::size_t P_Beams_Bytes = rayLayout.Bytes(sizeof(thrust::complex<float>));
+  const int beamCorrectorCount = CudaCheckedCount(nBeams, nBeams);
+  ValidateCudaImages(depth_image, normal_image, reflectivity_image, nBeams, nRays);
+
   // #######################################################//
   // ###############    Sonar Calculation   ################//
   // #######################################################//
@@ -384,16 +393,15 @@ CArray2D sonar_calculation_wrapper(
 
   // ---------   Allocate GPU memory for image   --------- //
   // Calculate total number of bytes of input and output image
-  const int depth_image_Bytes = depth_image.step * depth_image.rows;
-  const int normal_image_Bytes = normal_image.step * normal_image.rows;
-  const int reflectivity_image_Bytes = reflectivity_image.step * reflectivity_image.rows;
-  const int ray_elevationAngles_Bytes = sizeof(float) * nRays;
-  const int P_Beams_N = nBeams * (int)(nRays / raySkips) * (nFreq + 1);
+  const std::size_t depth_image_Bytes = depth_image.step * depth_image.rows;
+  const std::size_t normal_image_Bytes = normal_image.step * normal_image.rows;
+  const std::size_t reflectivity_image_Bytes = reflectivity_image.step * reflectivity_image.rows;
+  const std::size_t ray_elevationAngles_Bytes = CudaCheckedBytes(nRays, sizeof(float));
 
   P_Beams_Cor_N = nBeams * nFreq;
-  P_Beams_Cor_Bytes = sizeof(float) * P_Beams_Cor_N;
-  beamCorrector_lin_N = nBeams * nBeams;
-  beamCorrector_lin_Bytes = sizeof(float) * beamCorrector_lin_N;
+  P_Beams_Cor_Bytes = CudaCheckedBytes(P_Beams_Cor_N, sizeof(float));
+  beamCorrector_lin_N = beamCorrectorCount;
+  beamCorrector_lin_Bytes = CudaCheckedBytes(beamCorrector_lin_N, sizeof(float));
 
   // FFT Parameters
   const int DATASIZE = nFreq;
@@ -414,10 +422,10 @@ CArray2D sonar_calculation_wrapper(
     SAFE_CALL(
       cudaMalloc((void **)&d_ray_elevationAngles, sizeof(float) * nRays), "ray elevation malloc");
     SAFE_CALL(
-      cudaMallocHost((void **)&P_Beams, sizeof(thrust::complex<float>) * P_Beams_N),
+      cudaMallocHost((void **)&P_Beams, P_Beams_Bytes),
       "P_Beams malloc host");
     SAFE_CALL(
-      cudaMalloc((void **)&d_P_Beams, sizeof(thrust::complex<float>) * P_Beams_N),
+      cudaMalloc((void **)&d_P_Beams, P_Beams_Bytes),
       "P_Beams malloc device");
     SAFE_CALL(
       cudaMallocHost((void **)&P_Beams_Cor_real_h, P_Beams_Cor_Bytes),
@@ -500,7 +508,7 @@ CArray2D sonar_calculation_wrapper(
     depth_image.step, normal_image.step, seed, d_reflectivity_image, reflectivity_image.step,
     hPixelSize, vPixelSize, hFOV, vFOV, beam_azimuthAngleWidth, beam_elevationAngleWidth,
     ray_azimuthAngleWidth, d_ray_elevationAngles, ray_elevationAngleWidth, soundSpeed, sourceTerm,
-    nBeams, nRays, raySkips, sonarFreq, delta_f, nFreq, bandwidth, max_distance, attenuation,
+    nBeams, nRays, raySkips, rayLayout, sonarFreq, delta_f, nFreq, bandwidth, max_distance, attenuation,
     area_scaler);
 
   // Synchronize to check for any kernel launch errors
@@ -528,7 +536,7 @@ CArray2D sonar_calculation_wrapper(
   dim3 gridDim(nFreq, nBeams);  // one thread block per beam+freq pair
 
   reduce_beams_kernel<<<gridDim, blockDim>>>(
-    d_P_Beams, d_P_Beams_Cor_real, d_P_Beams_Cor_imag, nBeams, nFreq, nRays / raySkips);
+    d_P_Beams, d_P_Beams_Cor_real, d_P_Beams_Cor_imag, nBeams, rayLayout);
   SAFE_CALL(cudaGetLastError(), "reduce_beams_kernel launch failed");
   SAFE_CALL(cudaDeviceSynchronize(), "reduce_beams_kernel execution failed");
 
@@ -723,4 +731,4 @@ CArray2D sonar_calculation_wrapper(
 
   return P_Beams_F;
 }
-}  // namespace NpsGazeboSonar
+}  // namespace PosimGazeboSonar

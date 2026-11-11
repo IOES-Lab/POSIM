@@ -30,7 +30,7 @@
 #include <opencv2/core.hpp>
 #include <opencv2/core/core.hpp>
 
-namespace NpsGazeboSonar
+namespace PosimGazeboSonar
 {
 
 typedef std::complex<float> Complex;
@@ -52,4 +52,4 @@ CArray2D sonar_calculation_wrapper(
   int _raySkips, double _sonarFreq, double _bandwidth, int _nFreq,
   const cv::Mat & reflectivity_image, double _attenuation, float * _window, float ** _beamCorrector,
   float _beamCorrectorSum, bool _debugFlag, bool _blazingFlag);
-}  // namespace NpsGazeboSonar
+}  // namespace PosimGazeboSonar
