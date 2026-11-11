@@ -61,6 +61,6 @@ Vérifiez les modèles dans la réponse, l'avancement de l'horloge et les mesure
 | `x`, `y`, `z` | Position initiale, m | `0.0` chacun |
 | `roll`, `pitch`, `yaw` | Orientation initiale, rad | `0.0` chacun |
 | `debug` / `verbosity_level` | Journal détaillé / niveau | `false` / `1` |
-| `use_ned_frame` | Repère NED | `false` |
+| `use_ned_frame` | Publier la transformation `world_ned` (ENU vers NED) | `false` |
 
 Utilisez `paused:=false` pour produire des données de capteurs. Consultez `--show-args` sur le lancement concerné pour les options des robots et des mondes.

@@ -61,6 +61,6 @@ Comprueba los modelos de la respuesta, el avance del reloj y las mediciones. Si 
 | `x`, `y`, `z` | Posición inicial, m | `0.0` cada uno |
 | `roll`, `pitch`, `yaw` | Orientación inicial, rad | `0.0` cada uno |
 | `debug` / `verbosity_level` | Registro detallado / nivel | `false` / `1` |
-| `use_ned_frame` | Sistema NED | `false` |
+| `use_ned_frame` | Publicar la transformación `world_ned` (ENU a NED) | `false` |
 
 Usa `paused:=false` para que los sensores produzcan datos. Consulta `--show-args` del lanzamiento concreto para ver las opciones de robots y mundos.

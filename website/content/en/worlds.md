@@ -76,6 +76,6 @@ ros2 launch posim_demos posim_sensor.launch.py --show-args
 | `x`, `y`, `z` | Initial position, m | `0.0` each |
 | `roll`, `pitch`, `yaw` | Initial attitude, rad | `0.0` each |
 | `debug` / `verbosity_level` | Verbose logging / log level | `false` / `1` |
-| `use_ned_frame` | Use NED frame | `false` |
+| `use_ned_frame` | Publish the `world_ned` transform (ENU to NED) | `false` |
 
 Use `paused:=false` in sensor examples to produce data. Inspect robot/world launch arguments with that launch's `--show-args`.

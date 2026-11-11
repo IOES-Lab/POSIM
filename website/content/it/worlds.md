@@ -61,6 +61,6 @@ Controlla i modelli attesi nella risposta, l'avanzamento dell'orologio e le misu
 | `x`, `y`, `z` | Posizione iniziale, m | `0.0` ciascuno |
 | `roll`, `pitch`, `yaw` | Orientamento iniziale, rad | `0.0` ciascuno |
 | `debug` / `verbosity_level` | Registro dettagliato / livello | `false` / `1` |
-| `use_ned_frame` | Sistema NED | `false` |
+| `use_ned_frame` | Pubblicare la trasformazione `world_ned` (da ENU a NED) | `false` |
 
 Usa `paused:=false` per ottenere dati dai sensori. Per robot e mondi, consulta `--show-args` del relativo file di avvio.

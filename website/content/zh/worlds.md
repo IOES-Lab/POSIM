@@ -61,6 +61,6 @@
 | `x`, `y`, `z` | 初始位置，m | 各为 `0.0` |
 | `roll`, `pitch`, `yaw` | 初始姿态，rad | 各为 `0.0` |
 | `debug` / `verbosity_level` | 详细日志 / 日志级别 | `false` / `1` |
-| `use_ned_frame` | 使用 NED 坐标系 | `false` |
+| `use_ned_frame` | 发布 `world_ned` 变换（ENU → NED） | `false` |
 
 要让传感器产生数据，请设置 `paused:=false`。机器人和世界启动文件的参数，请分别用 `--show-args` 查询。

@@ -61,6 +61,6 @@ Ubuntu ネイティブ、WSL、Docker、RDP のいずれでも、[インスト�
 | `x`, `y`, `z` | 初期位置、m | 各 `0.0` |
 | `roll`, `pitch`, `yaw` | 初期姿勢、rad | 各 `0.0` |
 | `debug` / `verbosity_level` | 詳細ログ / ログレベル | `false` / `1` |
-| `use_ned_frame` | NED 座標系を使用 | `false` |
+| `use_ned_frame` | `world_ned` 変換を配信（ENU → NED） | `false` |
 
 センサーの出力を得るには `paused:=false` を指定します。ロボットやワールドの引数は、それぞれの起動ファイルで `--show-args` を使って確認してください。

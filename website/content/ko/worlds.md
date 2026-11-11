@@ -75,6 +75,6 @@ ros2 launch posim_demos posim_sensor.launch.py --show-args
 | `x`, `y`, `z` | 초기 위치, m | 각각 `0.0` |
 | `roll`, `pitch`, `yaw` | 초기 자세, rad | 각각 `0.0` |
 | `debug` / `verbosity_level` | 상세 로그 / 로그 수준 | `false` / `1` |
-| `use_ned_frame` | NED 프레임 사용 | `false` |
+| `use_ned_frame` | `world_ned` 변환 발행(ENU → NED) | `false` |
 
 센서 예제에서는 `paused:=false`를 지정해 데이터가 생성되도록 합니다. 로봇·월드 launch의 인수는 해당 launch의 `--show-args`로 확인하세요.

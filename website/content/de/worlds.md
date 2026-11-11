@@ -61,6 +61,6 @@ Prüfen Sie die erwarteten Modelle in der Antwort sowie die Simulationsuhr und S
 | `x`, `y`, `z` | Anfangsposition, m | Jeweils `0.0` |
 | `roll`, `pitch`, `yaw` | Anfangsorientierung, rad | Jeweils `0.0` |
 | `debug` / `verbosity_level` | Ausführliche Protokollierung / Stufe | `false` / `1` |
-| `use_ned_frame` | NED-Koordinatenrahmen | `false` |
+| `use_ned_frame` | `world_ned`-Transformation veröffentlichen (ENU → NED) | `false` |
 
 Mit `paused:=false` erzeugen die Sensoren Daten. Die Argumente für Roboter- und Weltstarts zeigt jeweils deren `--show-args`.
