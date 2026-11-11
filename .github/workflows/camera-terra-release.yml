@@ -1,0 +1,138 @@
+---
+name: Official camera and Terra retirement gate
+
+# yamllint disable-line rule:truthy
+on:
+  pull_request:
+    paths:
+      - "extras/premerge/**"
+      - "extras/ardusub-ubuntu-install.sh"
+      - "extras/ros-lyrical-gz-jetty-install.sh"
+      - ".docker/lyrical.*.dockerfile"
+      - ".github/workflows/camera-terra-release.yml"
+  push:
+    branches: [main]
+    paths:
+      - "extras/ardusub-ubuntu-install.sh"
+      - "extras/ros-lyrical-gz-jetty-install.sh"
+      - ".docker/lyrical.*.dockerfile"
+      - ".github/workflows/camera-terra-release.yml"
+
+permissions:
+  contents: read
+
+env:
+  # Fill these only after merged camera fixes and fixed Lyrical rendering
+  # binaries have been verified. ArduPilot Gazebo is a source dependency.
+  # The sentinels deliberately keep this retirement draft from passing CI.
+  ARDUPILOT_GAZEBO_FIXED_COMMIT: UNRELEASED
+  ARDUPILOT_GAZEBO_FIXED_SOURCE_SHA256: UNRELEASED
+  GZ_RENDERING_FIXED_VERSION: UNRELEASED
+  GZ_RENDERING_VENDOR_FIXED_VERSION: UNRELEASED
+  GZ_RENDERING_FIXED_SHADER_SHA256: UNRELEASED
+
+jobs:
+  release-selection:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Require reviewed release identities and updated camera pins
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+          import re
+
+          names = (
+              "ARDUPILOT_GAZEBO_FIXED_COMMIT",
+              "ARDUPILOT_GAZEBO_FIXED_SOURCE_SHA256",
+              "GZ_RENDERING_FIXED_VERSION",
+              "GZ_RENDERING_VENDOR_FIXED_VERSION",
+              "GZ_RENDERING_FIXED_SHADER_SHA256",
+          )
+          if any(os.environ[name] in ("", "UNRELEASED") for name in names):
+              raise SystemExit("Retirement blocked: fixed official releases are not verified")
+          commit = os.environ["ARDUPILOT_GAZEBO_FIXED_COMMIT"]
+          if not re.fullmatch(r"[0-9a-f]{40}", commit):
+              raise SystemExit("Use the full reviewed merged ArduPilot Gazebo commit")
+          for name in ("ARDUPILOT_GAZEBO_FIXED_SOURCE_SHA256", "GZ_RENDERING_FIXED_SHADER_SHA256"):
+              if not re.fullmatch(r"[0-9a-f]{64}", os.environ[name]):
+                  raise SystemExit(f"Record the reviewed upstream file SHA256: {name}")
+          for path in (
+              "extras/ardusub-ubuntu-install.sh",
+              ".docker/lyrical.arm64v8.dockerfile",
+          ):
+              pins = re.findall(r'ARDUPILOT_GAZEBO_COMMIT[^\n]*?([0-9a-f]{40})', Path(path).read_text())
+              if pins != [commit]:
+                  raise SystemExit(f"{path}: update the default pin to the fixed upstream revision")
+          PY
+
+  camera-upstream:
+    needs: release-selection
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          repository: ArduPilot/ardupilot_gazebo
+          ref: main
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Verify the reviewed camera source is merged into official main
+        shell: bash
+        run: |
+          git merge-base --is-ancestor "$ARDUPILOT_GAZEBO_FIXED_COMMIT" HEAD
+          git show "$ARDUPILOT_GAZEBO_FIXED_COMMIT:src/GstCameraPlugin.cc" > /tmp/GstCameraPlugin.cc
+          printf '%s  %s\n' "$ARDUPILOT_GAZEBO_FIXED_SOURCE_SHA256" /tmp/GstCameraPlugin.cc | sha256sum -c -
+
+  official-terra-resources:
+    needs: release-selection
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-26.04
+            architecture: amd64
+          - runner: ubuntu-24.04-arm
+            architecture: arm64
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 20
+    container: ros:lyrical-ros-base
+    steps:
+      - name: Install the official ROS rendering vendor package
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends ros-lyrical-gz-rendering-vendor
+      - name: Verify released package identity and corrected ROS-owned shader
+        shell: bash
+        env:
+          EXPECTED_ARCHITECTURE: ${{ matrix.architecture }}
+        run: |
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+          import re
+          import xml.etree.ElementTree as ET
+
+          package = Path("/opt/ros/lyrical/share/gz_rendering_vendor/package.xml")
+          metadata = ET.parse(package)
+          actual = metadata.findtext("version")
+          expected = os.environ["GZ_RENDERING_VENDOR_FIXED_VERSION"]
+          if actual != expected:
+              raise SystemExit(f"Awaiting reviewed ROS vendor release: expected {expected}, found {actual}")
+          description = metadata.findtext("description", "")
+          rendering = re.search(r"\bVendor package for:\s*gz-rendering\s+([^\s]+)", description)
+          if not rendering or rendering.group(1) != os.environ["GZ_RENDERING_FIXED_VERSION"]:
+              raise SystemExit("The ROS vendor package must identify the reviewed gz-rendering version")
+          PY
+          test "$(dpkg --print-architecture)" = "$EXPECTED_ARCHITECTURE"
+          dpkg-query -W -f='${Package} ${Version}\n' ros-lyrical-gz-rendering-vendor
+          resource=/opt/ros/lyrical/opt/gz_rendering_vendor/share/gz/gz-rendering
+          shader="$resource/ogre2/media/Hlms/Terra/gz/100.gz_CustomWeights_piece_ps.any"
+          dpkg-query -L ros-lyrical-gz-rendering-vendor | grep -Fx -- "$shader"
+          printf '%s  %s\n' "$GZ_RENDERING_FIXED_SHADER_SHA256" "$shader" | sha256sum -c -
+          test ! -e /opt/posim/terra
