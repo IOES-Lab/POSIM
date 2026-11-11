@@ -33,9 +33,7 @@ def fallback_address(host):
         "https://cloudflare-dns.com/dns-query",
         "https://dns.google/resolve",
     ):
-        request = Request(
-            f"{resolver}?{query}", headers={"Accept": "application/dns-json"}
-        )
+        request = Request(f"{resolver}?{query}", headers={"Accept": "application/dns-json"})
         try:
             with urlopen(request, timeout=8) as response:
                 answers = json.load(response).get("Answer", [])
