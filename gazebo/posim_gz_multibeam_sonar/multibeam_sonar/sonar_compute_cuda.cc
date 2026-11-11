@@ -5,6 +5,7 @@
 
 #ifdef POSIM_HAS_CUDA_BACKEND
 #include <cuda_runtime_api.h>
+#include "CudaInputValidation.hh"
 #include "sonar_calculation_cuda.cuh"
 #endif
 
@@ -60,26 +61,28 @@ bool CudaComputeBackend::Compute(const SonarComputeInput & input, SonarComputeOu
     return false;
   }
 
-  if (
-    !input.depthImage || !input.normalImage || !input.reflectivityImage || !input.window ||
-    !input.beamCorrector || input.elevation_angles.empty())
+  auto start = std::chrono::high_resolution_clock::now();
+  NpsGazeboSonar::CArray2D beams;
+  if (!NpsGazeboSonar::TryCudaCalculation(
+        input,
+        [&]
+        {
+          const double hPixelSize = input.hFOV / (static_cast<double>(input.nBeams) - 1.0);
+          const double vPixelSize = input.vFOV / (static_cast<double>(input.nRays) - 1.0);
+
+          beams = NpsGazeboSonar::sonar_calculation_wrapper(
+            *input.depthImage, *input.normalImage, hPixelSize, vPixelSize, input.hFOV, input.vFOV,
+            hPixelSize, input.vFOV / 180.0 * M_PI, hPixelSize,
+            const_cast<float *>(input.elevation_angles.data()),
+            vPixelSize * (static_cast<double>(input.raySkips) + 1.0), input.soundSpeed,
+            input.maxDistance, input.sourceLevel, input.nBeams, input.nRays, input.raySkips,
+            input.sonarFreq, input.bandwidth, input.nFreq, *input.reflectivityImage,
+            input.attenuation, const_cast<float *>(input.window), input.beamCorrector,
+            input.beamCorrectorSum, input.debugFlag, input.blazingFlag);
+        }))
   {
     return false;
   }
-
-  auto start = std::chrono::high_resolution_clock::now();
-
-  const double hPixelSize = input.hFOV / static_cast<double>(input.nBeams - 1);
-  const double vPixelSize = input.vFOV / static_cast<double>(input.nRays - 1);
-
-  const NpsGazeboSonar::CArray2D beams = NpsGazeboSonar::sonar_calculation_wrapper(
-    *input.depthImage, *input.normalImage, hPixelSize, vPixelSize, input.hFOV, input.vFOV,
-    hPixelSize, input.vFOV / 180.0 * M_PI, hPixelSize,
-    const_cast<float *>(input.elevation_angles.data()), vPixelSize * (input.raySkips + 1),
-    input.soundSpeed, input.maxDistance, input.sourceLevel, input.nBeams, input.nRays,
-    input.raySkips, input.sonarFreq, input.bandwidth, input.nFreq, *input.reflectivityImage,
-    input.attenuation, const_cast<float *>(input.window), input.beamCorrector,
-    input.beamCorrectorSum, input.debugFlag, input.blazingFlag);
 
   output.nBeams = input.nBeams;
   output.nFreq = input.nFreq;
