@@ -262,8 +262,8 @@ bool MultibeamSonarSystem::Implementation::RequestCreateSensor(
   const gz::sim::components::ParentEntity * _parent, gz::sim::EntityComponentManager & _ecm)
 {
   using namespace gz::sim;
-  // Initial world sensors are visible to both Configure and the first
-  // PreUpdate. Queue each entity once, before the rendering thread creates it.
+  // Configure and the first PreUpdate can see the same new entity. Reserve its
+  // creation only once; DoPostUpdate releases the reservation on removal.
   if (this->knownSensorEntities.count(_entity))
   {
     return true;
@@ -469,6 +469,19 @@ void MultibeamSonarSystem::Implementation::Handle(requests::CreateSensor _reques
   // Set the scene so it can create the rendering sensor
   sensor->SetScene(this->scene);
   sensor->SetManualSceneUpdate(true);
+
+  // SetScene() initializes the sensor; on failure it has no rendering sensor to attach.
+  if (sensor->RenderingSensors().empty())
+  {
+    gzerr << "Sensor [" << _request.sdf.Name() << "] failed to initialize and was "
+          << "removed. Other sensors and the simulation keep running." << std::endl;
+    if (!this->sensorManager.Remove(sensor->Id()))
+    {
+      gzerr << "Internal error, missing sensor "
+            << "[" << _request.sdf.Name() << "]" << std::endl;
+    }
+    return;
+  }
 
   if (this->latestWorldState)
   {

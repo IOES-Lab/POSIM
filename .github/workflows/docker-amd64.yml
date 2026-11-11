@@ -85,7 +85,7 @@ jobs:
             runner: [self-hosted, Linux, X64]
             dockerfile: .docker/lyrical.amd64.dockerfile
           - arch: arm64
-            runner: ubuntu-24.04-arm
+            runner: ubuntu-26.04-arm
             dockerfile: .docker/lyrical.arm64v8.dockerfile
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 1440

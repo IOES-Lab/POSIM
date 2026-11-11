@@ -42,7 +42,7 @@ ROS 2 Lyrical、Gazebo Jetty、ArduSub、MAVROS、波のライブラリをイン
 
 {{CODE:install:6}}
 
-NVIDIA/CUDAソナーには[追加のビルド設定](sonar-tuning.md)が必要です。
+続いて[最初のシミュレーション](quickstart.md)へ進みます。ソナーは [CPU/WGPU/CUDA のビルドと設定](sonar-tuning.md)を参照してください。
 
 ## 5. デモワールドを実行する
 

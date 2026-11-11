@@ -9,7 +9,7 @@
 | `rexrov` | Propulsores Gazebo, hidrodinámica y odometría |
 | `bluerov2` | BlueROV2 con ArduSub SITL y MAVROS |
 | `bluerov2_heavy` | Configuración Heavy |
-| `bluerov2_heavy_multibeam_sonar` | Heavy con sonar CUDA |
+| `bluerov2_heavy_multibeam_sonar` | Heavy con sonar |
 
 Utiliza la [terminal preparada para tu instalación](terminals.md). Para REXROV, sigue la [primera simulación](quickstart.md).
 
@@ -17,7 +17,7 @@ Utiliza la [terminal preparada para tu instalación](terminals.md). Para REXROV,
 
 {{CODE:rovs:0}}
 
-Selecciona la variante Heavy con `namespace:=bluerov2_heavy`. Comprueba la conexión del autopiloto en la salida de inicio y `/mavros/state`. La variante con sonar necesita la [configuración CUDA](sonar-tuning.md).
+Selecciona la variante Heavy con `namespace:=bluerov2_heavy`. Comprueba la conexión del autopiloto en la salida de inicio y `/mavros/state`. La variante con sonar necesita la [configuración ](sonar-tuning.md).
 
 ## Controlar con el teclado
 

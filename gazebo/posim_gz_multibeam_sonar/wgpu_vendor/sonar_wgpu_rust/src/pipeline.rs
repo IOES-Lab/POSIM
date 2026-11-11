@@ -1,0 +1,556 @@
+/// Adapters, device, queue setups + BUFFERS SETUP + PIPELINE SETUPS + PIPELINE COMPILE + GPU CONTEXT INIT all in pipeline.rs
+/// + Shaders compiled
+use std::collections::HashMap;
+use std::sync::OnceLock;
+
+/// Buffer-set key: (geometry columns, selected rays, frequencies, receivers).
+pub type BufferKey = (u32, u32, u32, u32);
+
+/// Upper bound on cached buffer sets; the cache is cleared when it is full.
+pub const MAX_BUFFER_SETS: usize = 8;
+
+/// Validate every storage allocation and dispatch before reading FFI inputs.
+/// Limits describe the selected device, rather than a fixed frequency count.
+pub fn dimensions_fit(limits: &wgpu::Limits, beams: u32, rays: u32, n: u32) -> bool {
+    dimensions_fit_outputs(limits, beams, rays, n, beams)
+}
+
+/// Physical receivers and geometry columns need not have the same count.
+pub fn dimensions_fit_outputs(
+    limits: &wgpu::Limits,
+    beams: u32,
+    rays: u32,
+    n: u32,
+    outputs: u32,
+) -> bool {
+    if beams == 0 || rays == 0 || n == 0 || outputs == 0 {
+        return false;
+    }
+    let b = u64::from(beams);
+    let r = u64::from(rays);
+    let f = u64::from(n);
+    let o = u64::from(outputs);
+    let buffer_limit = limits
+        .max_buffer_size
+        .min(u64::from(limits.max_storage_buffer_binding_size));
+    let fits = |elements: u64, bytes: u64| {
+        elements <= u64::from(u32::MAX) / bytes
+            && elements <= (isize::MAX as u64) / 8
+            && elements
+                .checked_mul(bytes)
+                .is_some_and(|size| size <= buffer_limit)
+    };
+    if !fits(b * r, 12) || !fits(b * o, 4) || !fits(b * f, 4) || !fits(o * f, 4) || !fits(f, 4) {
+        return false;
+    }
+    let groups = limits.max_compute_workgroups_per_dimension;
+    if beams > groups || outputs > groups || rays.div_ceil(8) > groups || n.div_ceil(8) > groups {
+        return false;
+    }
+    if super::exact_fft::uses_global_stages(n) {
+        let Some(m) = super::exact_fft::convolution_size(n) else {
+            return false;
+        };
+        if m.div_ceil(256) > groups
+            || !fits(o * u64::from(m), 4)
+            || !fits(f + u64::from(m) + u64::from(m / 2), 8)
+        {
+            return false;
+        }
+    }
+    true
+}
+
+/// GPU buffer lifetime: persistent allocation across frames via queue.write_buffer.
+/// One set per sonar dimensions (see `GpuContext::buffers`).
+pub struct SonarBuffers {
+    pub exact_fft: Option<super::exact_fft::Plan>,
+    // Input data (written via queue.write_buffer each frame)
+    pub depth_buf: wgpu::Buffer,
+    pub normal_buf: wgpu::Buffer,
+    pub refl_buf: wgpu::Buffer,
+    pub area_buf: wgpu::Buffer,
+    pub window_buf: wgpu::Buffer,
+    pub bc_buf: wgpu::Buffer,
+    // Per-ray complex amplitudes (zeroed via write_buffer each frame)
+    pub amp_re: wgpu::Buffer,
+    pub amp_im: wgpu::Buffer,
+    // Synthesized frequency spectrum / matmul input (f32)
+    pub mm_re_in: wgpu::Buffer,
+    pub mm_im_in: wgpu::Buffer,
+    // Matmul output / FFT input
+    pub mm_re_out: wgpu::Buffer,
+    pub mm_im_out: wgpu::Buffer,
+    // FFT in-place buffers
+    pub p_re_buf: wgpu::Buffer,
+    pub p_im_buf: wgpu::Buffer,
+    // Host-visible staging buffers for final readback
+    pub stg_re: wgpu::Buffer,
+    pub stg_im: wgpu::Buffer,
+}
+
+impl SonarBuffers {
+    /// Buffer allocation for 4 pipeline stages: backscatter, convert, matmul, FFT.
+    /// Chain: backscatter→convert→matmul→FFT→readback.
+    pub fn new(
+        device: &wgpu::Device,
+        n_beams: u32,
+        n_rays: u32,
+        n_freq: u32,
+        n_outputs: u32,
+        exact: &super::exact_fft::Pipeline,
+    ) -> Self {
+        let depth_ray = (n_beams as usize) * (n_rays as usize);
+        let spectrum = (n_beams as usize) * (n_freq as usize);
+        let bc = (n_outputs as usize) * (n_beams as usize);
+        let output = (n_outputs as usize) * (n_freq as usize);
+        let f32_bytes = |n: usize| (n * std::mem::size_of::<f32>()) as u64;
+
+        let mut buffers = SonarBuffers {
+            exact_fft: None,
+            depth_buf: device.create_buffer(&wgpu::BufferDescriptor {
+                label: Some("pb_depth"),
+                size: f32_bytes(depth_ray),
+                usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST,
+                mapped_at_creation: false,
+            }),
+            normal_buf: device.create_buffer(&wgpu::BufferDescriptor {
+                label: Some("pb_normal"),
+                size: f32_bytes(depth_ray * 3),
+                usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST,
+                mapped_at_creation: false,
+            }),
+            refl_buf: device.create_buffer(&wgpu::BufferDescriptor {
+                label: Some("pb_refl"),
+                size: f32_bytes(depth_ray),
+                usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST,
+                mapped_at_creation: false,
+            }),
+            area_buf: device.create_buffer(&wgpu::BufferDescriptor {
+                label: Some("pb_area"),
+                size: f32_bytes(depth_ray),
+                usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST,
+                mapped_at_creation: false,
+            }),
+            window_buf: device.create_buffer(&wgpu::BufferDescriptor {
+                label: Some("pb_window"),
+                size: f32_bytes(n_freq as usize),
+                usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST,
+                mapped_at_creation: false,
+            }),
+            bc_buf: device.create_buffer(&wgpu::BufferDescriptor {
+                label: Some("pb_bc"),
+                size: f32_bytes(bc),
+                usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST,
+                mapped_at_creation: false,
+            }),
+            amp_re: device.create_buffer(&wgpu::BufferDescriptor {
+                label: Some("pb_amp_re"),
+                size: f32_bytes(depth_ray),
+                usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST,
+                mapped_at_creation: false,
+            }),
+            amp_im: device.create_buffer(&wgpu::BufferDescriptor {
+                label: Some("pb_amp_im"),
+                size: f32_bytes(depth_ray),
+                usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST,
+                mapped_at_creation: false,
+            }),
+            mm_re_in: device.create_buffer(&wgpu::BufferDescriptor {
+                label: Some("pb_mm_re_in"),
+                size: f32_bytes(spectrum),
+                usage: wgpu::BufferUsages::STORAGE,
+                mapped_at_creation: false,
+            }),
+            mm_im_in: device.create_buffer(&wgpu::BufferDescriptor {
+                label: Some("pb_mm_im_in"),
+                size: f32_bytes(spectrum),
+                usage: wgpu::BufferUsages::STORAGE,
+                mapped_at_creation: false,
+            }),
+            mm_re_out: device.create_buffer(&wgpu::BufferDescriptor {
+                label: Some("pb_mm_re_out"),
+                size: f32_bytes(output),
+                usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
+                mapped_at_creation: false,
+            }),
+            mm_im_out: device.create_buffer(&wgpu::BufferDescriptor {
+                label: Some("pb_mm_im_out"),
+                size: f32_bytes(output),
+                usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
+                mapped_at_creation: false,
+            }),
+            p_re_buf: device.create_buffer(&wgpu::BufferDescriptor {
+                label: Some("pb_p_re"),
+                size: f32_bytes(output),
+                usage: wgpu::BufferUsages::STORAGE
+                    | wgpu::BufferUsages::COPY_SRC
+                    | wgpu::BufferUsages::COPY_DST,
+                mapped_at_creation: false,
+            }),
+            p_im_buf: device.create_buffer(&wgpu::BufferDescriptor {
+                label: Some("pb_p_im"),
+                size: f32_bytes(output),
+                usage: wgpu::BufferUsages::STORAGE
+                    | wgpu::BufferUsages::COPY_SRC
+                    | wgpu::BufferUsages::COPY_DST,
+                mapped_at_creation: false,
+            }),
+            stg_re: device.create_buffer(&wgpu::BufferDescriptor {
+                label: Some("pb_stg_re"),
+                size: f32_bytes(output),
+                usage: wgpu::BufferUsages::MAP_READ | wgpu::BufferUsages::COPY_DST,
+                mapped_at_creation: false,
+            }),
+            stg_im: device.create_buffer(&wgpu::BufferDescriptor {
+                label: Some("pb_stg_im"),
+                size: f32_bytes(output),
+                usage: wgpu::BufferUsages::MAP_READ | wgpu::BufferUsages::COPY_DST,
+                mapped_at_creation: false,
+            }),
+        };
+        if super::exact_fft::uses_global_stages(n_freq) {
+            buffers.exact_fft = Some(exact.plan(
+                device,
+                n_freq,
+                n_outputs,
+                &buffers.p_re_buf,
+                &buffers.p_im_buf,
+            ));
+        }
+        buffers
+    }
+}
+
+/// GPU compute context: device handle + compiled shader pipelines.
+/// Pipelines compiled once: legacy/physical backscatter, convert, matmul, FFT.
+pub struct GpuContext {
+    pub device: wgpu::Device, // the GPU -> used to create everything
+    pub queue: wgpu::Queue,   // the command queue -> used to submit work
+
+    // Backscatter kernel: ray-surface interactions with Lambert scatter.
+    pub bs_pipeline: wgpu::ComputePipeline, // legacy per-ray float amplitudes
+    pub physical_bs_pipeline: wgpu::ComputePipeline, // physical f32 ray reduction
+    pub bs_bgl: wgpu::BindGroupLayout,      // describes bs shader's buffer slots
+
+    // Legacy frequency synthesis from per-ray floating amplitudes.
+    pub convert_pipeline: wgpu::ComputePipeline,
+    pub convert_bgl: wgpu::BindGroupLayout,
+
+    // Beam correction GEMM: tiled matrix multiply for spectrum.
+    pub mm_pipeline: wgpu::ComputePipeline,
+    pub mm_bgl: wgpu::BindGroupLayout,
+
+    // Shared-memory radix-2 for small powers of two; global GPU stages otherwise.
+    pub exact_fft: super::exact_fft::Pipeline,
+    pub fft_pipeline: wgpu::ComputePipeline,
+    pub fft_bgl: wgpu::BindGroupLayout,
+
+    // Persistent GPU buffers across frames, one set per (n_beams, n_rays, n_freq), allocated on the
+    // first compute call with those dimensions. Keying by dimensions lets several sonars of
+    // different sizes share the context without reallocating every frame.
+    pub buffers: std::sync::Mutex<HashMap<BufferKey, SonarBuffers>>,
+}
+
+static GPU_CONTEXT: OnceLock<Option<GpuContext>> = OnceLock::new();
+
+/// Bind group layout entry: storage buffer descriptor.
+fn make_storage_entry(binding: u32, read_only: bool) -> wgpu::BindGroupLayoutEntry {
+    wgpu::BindGroupLayoutEntry {
+        binding,
+        visibility: wgpu::ShaderStages::COMPUTE,
+        ty: wgpu::BindingType::Buffer {
+            ty: wgpu::BufferBindingType::Storage { read_only },
+            has_dynamic_offset: false,
+            min_binding_size: None,
+        },
+        count: None,
+    }
+}
+
+/// Uniform entry: shader parameter buffer.
+fn make_uniform_entry(binding: u32) -> wgpu::BindGroupLayoutEntry {
+    wgpu::BindGroupLayoutEntry {
+        binding,
+        visibility: wgpu::ShaderStages::COMPUTE,
+        ty: wgpu::BindingType::Buffer {
+            ty: wgpu::BufferBindingType::Uniform,
+            has_dynamic_offset: false,
+            min_binding_size: None,
+        },
+        count: None,
+    }
+}
+
+/// Bind group layout builder: defines buffer bindings for each shader.
+fn build_bgls(
+    device: &wgpu::Device,
+) -> (
+    wgpu::BindGroupLayout,
+    wgpu::BindGroupLayout,
+    wgpu::BindGroupLayout,
+    wgpu::BindGroupLayout,
+) {
+    // Backscatter: uniform params, geometry and per-ray complex amplitudes.
+    let bs_bgl = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+        label: Some("bs_bgl"),
+        entries: &[
+            make_uniform_entry(0),        // (params)
+            make_storage_entry(1, true),  // (depth)          true = read_only
+            make_storage_entry(2, true),  // (normal)
+            make_storage_entry(3, true),  // (reflectivity)
+            make_storage_entry(4, false), // (out_re_i32)     false = read_write
+            make_storage_entry(5, false), // (out_im_i32)
+            make_storage_entry(6, true),  // (window)
+            make_storage_entry(7, true),  // represented cell solid angles
+        ],
+    });
+
+    // Matmul (GEMM) kernel params: uniform params, beam_corrector, spectrum_in, spectrum_out.
+    let mm_bgl = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+        label: Some("mm_bgl"),
+        entries: &[
+            make_uniform_entry(0),
+            make_storage_entry(1, true),
+            make_storage_entry(2, true),
+            make_storage_entry(3, false),
+        ],
+    });
+
+    // FFT kernel params: uniform params, spectrum_re, spectrum_im (in-place).
+    let fft_bgl = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+        label: Some("fft_bgl"),
+        entries: &[
+            make_uniform_entry(0),
+            make_storage_entry(1, false),
+            make_storage_entry(2, false),
+        ],
+    });
+
+    // Amplitude-to-spectrum: amplitudes, outputs, depth, aperture and params.
+    let convert_bgl = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+        label: Some("convert_bgl"),
+        entries: &[
+            make_storage_entry(0, true),
+            make_storage_entry(1, true),
+            make_storage_entry(2, false),
+            make_storage_entry(3, false),
+            make_storage_entry(4, true),
+            make_storage_entry(5, true),
+            make_uniform_entry(6),
+        ],
+    });
+
+    (bs_bgl, mm_bgl, fft_bgl, convert_bgl)
+}
+
+/// Pipeline compilation: shader module compilation + pipeline layout binding (one-time init).
+fn compile_pipeline(
+    device: &wgpu::Device,
+    label: &str,
+    wgsl: &str,
+    entry_point: &str,
+    bgl: &wgpu::BindGroupLayout,
+    compilation_options: wgpu::PipelineCompilationOptions<'_>,
+) -> wgpu::ComputePipeline {
+    let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+        label: Some(label),
+        source: wgpu::ShaderSource::Wgsl(wgsl.into()),
+    });
+    let layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+        label: Some(label),
+        bind_group_layouts: &[bgl],
+        push_constant_ranges: &[],
+    });
+    device.create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
+        label: Some(label),
+        layout: Some(&layout),
+        module: &shader,
+        entry_point,
+        compilation_options,
+    })
+}
+
+// Default backend sets, tried in order. WGPU_BACKEND replaces them with a single set.
+// Linux tries Vulkan only: the GL backend's EGL setup panics inside Gazebo.
+#[cfg(target_os = "linux")]
+const BACKEND_ATTEMPTS: &[(wgpu::Backends, &str)] = &[(wgpu::Backends::VULKAN, "vulkan")];
+
+#[cfg(target_os = "windows")]
+const BACKEND_ATTEMPTS: &[(wgpu::Backends, &str)] = &[
+    (wgpu::Backends::DX12, "dx12"),
+    (wgpu::Backends::all(), "all"),
+];
+
+#[cfg(target_os = "macos")]
+const BACKEND_ATTEMPTS: &[(wgpu::Backends, &str)] = &[
+    (wgpu::Backends::METAL, "metal"),
+    (wgpu::Backends::all(), "all"),
+];
+
+#[cfg(not(any(target_os = "linux", target_os = "windows", target_os = "macos")))]
+const BACKEND_ATTEMPTS: &[(wgpu::Backends, &str)] = &[(wgpu::Backends::all(), "all")];
+
+/// Pick an adapter. WGPU_ADAPTER_NAME selects the first adapter whose name contains it
+/// (case-insensitive); otherwise wgpu chooses by WGPU_POWER_PREF (default: high performance).
+fn select_adapter(
+    instance: &wgpu::Instance,
+    backends: wgpu::Backends,
+    label: &str,
+) -> Option<wgpu::Adapter> {
+    if let Ok(wanted) = std::env::var("WGPU_ADAPTER_NAME") {
+        let wanted = wanted.to_lowercase();
+        let adapters = instance.enumerate_adapters(backends);
+        let names: Vec<String> = adapters.iter().map(|a| a.get_info().name).collect();
+        let found = adapters
+            .into_iter()
+            .find(|a| a.get_info().name.to_lowercase().contains(&wanted));
+        if found.is_none() {
+            eprintln!(
+                "[sonar_wgpu] [{label}] no adapter matches WGPU_ADAPTER_NAME='{wanted}'; available: {names:?}"
+            );
+        }
+        return found;
+    }
+
+    pollster::block_on(
+        instance.request_adapter(&wgpu::RequestAdapterOptions {
+            power_preference: wgpu::util::power_preference_from_env()
+                .unwrap_or(wgpu::PowerPreference::HighPerformance),
+            compatible_surface: None,
+            force_fallback_adapter: false,
+        }),
+    )
+}
+
+fn try_init_gpu_context(backends: wgpu::Backends, label: &str) -> Option<GpuContext> {
+    eprintln!("[sonar_wgpu] Trying backend set: {label}");
+
+    // Catch panic to prevent GPU init failure from crashing Gazebo.Whtat
+    let result = std::panic::catch_unwind(|| {
+        let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
+            backends,
+            ..Default::default()
+        });
+
+        let adapter = select_adapter(&instance, backends, label)?;
+
+        eprintln!(
+            "[sonar_wgpu] [{label}] selected adapter: {}",
+            adapter.get_info().name
+        );
+        let (device, queue) = pollster::block_on(adapter.request_device(
+            &wgpu::DeviceDescriptor {
+                label: Some("sonar_wgpu_device"),
+                required_features: wgpu::Features::empty(),
+                required_limits: wgpu::Limits::default(),
+            },
+            None,
+        ))
+        .map_err(|e| {
+            eprintln!("[sonar_wgpu] [{label}] request_device failed: {e}");
+            e
+        })
+        .ok()?;
+
+        // One-time shader compilation.
+        let t0 = std::time::Instant::now();
+        let (bs_bgl, mm_bgl, fft_bgl, convert_bgl) = build_bgls(&device);
+        let bs_pipeline = compile_pipeline(
+            &device,
+            "bs_pipeline",
+            include_str!("shaders/backscatter.wgsl"),
+            "main",
+            &bs_bgl,
+            Default::default(),
+        );
+        let physical_bs_pipeline = compile_pipeline(
+            &device,
+            "physical_bs_pipeline",
+            include_str!("shaders/physical_backscatter.wgsl"),
+            "physical_main",
+            &bs_bgl,
+            Default::default(),
+        );
+        let convert_pipeline = compile_pipeline(
+            &device,
+            "convert_pipeline",
+            include_str!("shaders/convert.wgsl"),
+            "main",
+            &convert_bgl,
+            Default::default(),
+        );
+        let mm_pipeline = compile_pipeline(
+            &device,
+            "mm_pipeline",
+            include_str!("shaders/matmul.wgsl"),
+            "main",
+            &mm_bgl,
+            Default::default(),
+        );
+        let fft_pipeline = compile_pipeline(
+            &device,
+            "fft_pipeline",
+            include_str!("shaders/fft.wgsl"),
+            "main",
+            &fft_bgl,
+            wgpu::PipelineCompilationOptions {
+                // The FFT loads every used scratch element before its barrier.
+                // FXC expands redundant array zeroing into thousands of stores.
+                zero_initialize_workgroup_memory: false,
+                ..Default::default()
+            },
+        );
+        eprintln!(
+            "[sonar_wgpu] [{label}] GPU pipelines compiled in {:.0} ms -> ready.",
+            t0.elapsed().as_millis()
+        );
+
+        let exact_fft = super::exact_fft::Pipeline::new(&device);
+        Some(GpuContext {
+            device,
+            queue,
+            bs_pipeline,
+            physical_bs_pipeline,
+            bs_bgl,
+            convert_pipeline,
+            convert_bgl,
+            mm_pipeline,
+            mm_bgl,
+            fft_pipeline,
+            fft_bgl,
+            exact_fft,
+            buffers: std::sync::Mutex::new(HashMap::new()),
+        })
+    });
+
+    match result {
+        Ok(ctx) => ctx,
+        Err(_) => {
+            eprintln!("[sonar_wgpu] [{label}] GPU init panicked");
+            None
+        }
+    }
+}
+
+/// GPU context initialization: adapter enumeration, device request.
+fn init_gpu_context() -> Option<GpuContext> {
+    if let Some(backends) = wgpu::util::backend_bits_from_env() {
+        eprintln!("[sonar_wgpu] WGPU_BACKEND set; using only {backends:?}");
+        return try_init_gpu_context(backends, "WGPU_BACKEND");
+    }
+    for (backends, label) in BACKEND_ATTEMPTS {
+        if let Some(ctx) = try_init_gpu_context(*backends, label) {
+            return Some(ctx);
+        }
+    }
+
+    eprintln!("[sonar_wgpu] GPU init failed for all backend sets");
+    None
+}
+
+/// Global singleton: lazily initializes GPU context on first access.
+/// Returns None if no usable GPU adapter was found.
+pub fn get_or_init() -> Option<&'static GpuContext> {
+    GPU_CONTEXT.get_or_init(init_gpu_context).as_ref()
+}

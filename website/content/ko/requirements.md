@@ -20,7 +20,7 @@ Docker 이미지는 자체 Ubuntu 환경을 포함하므로 Linux 호스트와 �
 
 ## 그래픽과 센서
 
-Gazebo 창과 카메라·깊이 센서를 사용하려면 렌더러가 정상 작동해야 합니다. 먼저 로봇 한 대와 기본 센서로 시작하세요. CUDA 멀티빔 소나에는 호환 NVIDIA GPU, CUDA 도구와 소나 라이브러리가 추가로 필요합니다. [소나 설정과 실험](sonar-tuning.md)을 참고하세요. macOS의 Docker는 Apple Metal을 Linux의 NVIDIA·CUDA 장치로 제공하지 않습니다.
+Gazebo 창과 카메라·깊이 센서에는 정상 작동하는 렌더러가 필요합니다. 먼저 로봇 한 대와 기본 센서로 시작하세요. 멀티빔 소나는 CPU·WGPU·CUDA 계산을 제공하며 [계산 방식을 선택하고 준비](sonar-tuning.md)할 수 있습니다. WGPU는 Linux의 Vulkan 장치 또는 macOS 네이티브의 Metal을 사용합니다. macOS Docker·RDP는 Metal에 접근하지 못하는 Linux 환경이므로 CPU로 시작하세요.
 
 ## 자원과 다운로드
 

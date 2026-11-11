@@ -22,7 +22,7 @@ See [Microsoft's WSL installation guide](https://learn.microsoft.com/en-us/windo
 
 Install or update the **Windows graphics driver** for your Intel, AMD or NVIDIA GPU. NVIDIA users need this step too. WSLg uses the Windows driver to display accelerated Linux graphics; follow [Microsoft's GUI application setup](https://learn.microsoft.com/en-us/windows/wsl/tutorials/gui-apps).
 
-For NVIDIA, follow [CUDA on WSL](https://docs.nvidia.com/cuda/wsl-user-guide/index.html): install the Windows driver, not a Linux display driver inside WSL. A CUDA toolkit is a separate requirement when building the sonar plugin.
+For NVIDIA, follow [CUDA on WSL](https://docs.nvidia.com/cuda/wsl-user-guide/index.html): install the Windows driver, not a Linux display driver inside WSL. The CUDA toolkit is needed only when building the CUDA sonar backend.
 
 Update WSL from PowerShell:
 

@@ -18,7 +18,7 @@ L’immagine fornisce il proprio ambiente Ubuntu. L’host Linux può quindi usa
 
 Tutti i percorsi utilizzano **ROS 2 Lyrical** e **Gazebo Sim — Gazebo Jetty**. L’installazione nativa li prepara in Ubuntu; le immagini li contengono già. Installa il driver grafico sull’host come indicato nella guida scelta.
 
-Gazebo e le telecamere RGB e di profondità richiedono un renderer funzionante. Inizia con un robot e i sensori predefiniti. Il [sonar multibeam CUDA](sonar-tuning.md) richiede anche una GPU NVIDIA compatibile, gli strumenti CUDA e le librerie del sonar. Docker su macOS non espone Apple Metal come dispositivo NVIDIA/CUDA Linux.
+Gazebo e le telecamere a colori/profondità richiedono un renderer funzionante. Inizia con un robot e i sensori predefiniti. Il sonar multibeam offre CPU, WGPU e CUDA: [scegli e prepara il backend](sonar-tuning.md). WGPU richiede Vulkan utilizzabile su Linux o Metal su macOS nativo. Docker/RDP su macOS esegue Linux senza accesso a Metal; inizia con CPU.
 
 ## Risorse e download
 

@@ -51,7 +51,7 @@ docker stop posim
 docker start posim
 ```
 
-컨테이너를 다시 켠 뒤 Windows App으로 재접속합니다. 이 이미지의 Linux GUI는 소프트웨어로 렌더링하므로 복잡한 장면은 느릴 수 있습니다. CUDA 멀티빔 소나는 지원되는 NVIDIA CUDA 환경이 필요하며, 이 ARM64 이미지에는 포함되지 않습니다. 먼저 [카메라와 압력 센서 예제](features.md)를 실행해 보세요.
+컨테이너를 시작한 뒤 Windows App으로 다시 연결하세요. Linux GUI는 소프트웨어 렌더링을 사용하므로 복잡한 장면은 느릴 수 있습니다. 소나는 [패키지를 빌드하고 확인](sonar-tuning.md#build-the-sonar-packages)한 뒤 CPU로 시작하세요. Metal은 macOS 네이티브 프로세스에서 사용할 수 있으며 이 Linux 컨테이너에는 제공되지 않습니다. 처음에는 [카메라·수압 센서 예제](features.md)로 동작을 확인할 수 있습니다.
 
 ## 5. 데모 월드 실행
 

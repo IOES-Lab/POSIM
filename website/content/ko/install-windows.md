@@ -22,7 +22,7 @@ WSL이 이미 설치되어 있거나 설치가 실패하면 [Microsoft WSL 설�
 
 사용하는 Intel·AMD·NVIDIA GPU에 맞는 **Windows용 그래픽 드라이버**를 설치하거나 업데이트합니다. NVIDIA GPU도 이 단계가 필요합니다. WSLg는 Windows 드라이버를 통해 Linux 그래픽을 가속합니다. [Microsoft GUI 앱 설정](https://learn.microsoft.com/en-us/windows/wsl/tutorials/gui-apps)을 따르세요.
 
-NVIDIA는 [CUDA on WSL 안내](https://docs.nvidia.com/cuda/wsl-user-guide/index.html)에 따라 Windows 드라이버를 설치합니다. WSL 안에 Linux 디스플레이 드라이버를 설치하지 마세요. 소나 플러그인을 빌드할 때 필요한 CUDA 툴킷은 별도로 준비합니다.
+NVIDIA는 [CUDA on WSL 안내](https://docs.nvidia.com/cuda/wsl-user-guide/index.html)에 따라 Windows 드라이버를 설치합니다. WSL 안에 Linux 디스플레이 드라이버를 설치하지 마세요. CUDA 툴킷은 소나의 CUDA 백엔드를 빌드할 때만 필요합니다.
 
 PowerShell에서 WSL을 업데이트합니다.
 

@@ -25,11 +25,11 @@ Underwater optics shade PBR surfaces and preserve numeric depth. The ocean's cus
 | DVL measurements and ROS conversion | Gazebo DVL and `posim_ros_gz_plugins` | [Beam settings and output](dvl.md) |
 | Hydrostatic pressure and derived depth | `posim_gz_sensor_plugins` | [Pressure configuration and units](pressure.md) |
 | USBL acoustic interrogation and positioning | `posim_gz_sensor_plugins` | [Transceiver/transponder example](usbl.md) |
-| CUDA multibeam sonar | `gazebo/posim_gz_multibeam_sonar` | [Sonar model](sonar.md), [build and tuning](sonar-tuning.md) |
+| Multibeam sonar | `gazebo/posim_gz_multibeam_sonar` | [Sonar model](sonar.md), [build and tuning](sonar-tuning.md) |
 | REXROV, BlueROV2 variants and Slocum glider | `models/posim_robot_models` | [ROVs](rovs.md), [glider](gliders.md), [custom robots](custom-robots.md) |
 | ArduRover WAM-V integration and ROS control | `extras/surface`, model launch configurations, `posim_interfaces` | [Surface vehicle](surface.md), [ROS 2](ros.md) |
 
-Sensor availability depends on installed plugins and model configuration. GNSS profiles describe mounts; attach the link and receiver when integrating one. CUDA sonar requires its supported GPU and toolchain. Use each sensor reference's quickstart to confirm live measurements.
+Sensor availability depends on installed plugins and model configuration. GNSS profiles describe mounts; attach the link and receiver when integrating one. Sonar can use CPU, WGPU or CUDA; choose the backend for your environment. Use each sensor reference's quickstart to confirm live measurements.
 
 ## Source directories
 

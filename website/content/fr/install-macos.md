@@ -36,7 +36,7 @@ Fermer RDP n’arrête pas la simulation. Appuyez d’abord sur **Ctrl+C** dans 
 
 {{CODE:install-macos:3}}
 
-Reconnectez-vous avec Windows App. Le rendu est logiciel ; les scènes complexes peuvent être lentes. Le sonar multifaisceaux CUDA nécessite un GPU NVIDIA compatible et n’est pas inclus dans cette image ARM64. Commencez par les [exemples de caméra et de pression](features.md).
+Reconnectez-vous avec Windows App après le démarrage du conteneur. Le rendu Linux est logiciel ; les scènes complexes peuvent être lentes. Pour le sonar, commencez par CPU après avoir [compilé et vérifié les paquets](sonar-tuning.md#build-the-sonar-packages). Metal est accessible aux processus macOS natifs, pas à ce conteneur Linux. Les [caméras et le capteur de pression](features.md) permettent une première vérification.
 
 ## 5. Vérifier l’installation
 

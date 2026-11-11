@@ -1,10 +1,10 @@
 # Sonar multifaisceaux
 
-Le sonar de POSIM utilise un modèle de diffuseurs ponctuels pour produire des données d'intensité en fonction de la distance et des images acoustiques. Préparez d'abord l'[environnement NVIDIA/CUDA](sonar-tuning.md).
+Le sonar multifaisceaux de POSIM utilise un modèle de diffuseurs ponctuels pour produire des données d'intensité en fonction de la distance et des images acoustiques. Le même plugin propose le calcul sur CPU, WGPU ou CUDA. WGPU s'appuie sur Vulkan sous Linux ou Metal dans un environnement macOS natif pour utiliser des GPU de différents fabricants. Consultez la [configuration du calcul](sonar-tuning.md).
 
 ## Lancer un exemple {#run-a-sonar-example}
 
-Préparez les [terminaux A et B](terminals.md) dans une installation compatible avec NVIDIA/CUDA. Lancez la simulation dans A et consultez les données dans B.
+Préparez les [terminaux A et B](terminals.md) et [compilez les paquets sonar](sonar-tuning.md#build-the-sonar-packages) s'ils ne sont pas installés. Lancez la simulation dans A et consultez les données dans B. La première commande choisit automatiquement le moteur de calcul ; l'exemple dédié choisit WGPU et ouvre aussi RViz.
 
 {{CODE:sonar:0}}
 
@@ -12,7 +12,15 @@ Le paquet `posim_multibeam_sonar_demo` propose aussi un exemple autonome :
 
 {{CODE:sonar:1}}
 
-Ne lancez qu'un exemple à la fois. Pour un sonar embarqué, sélectionnez `bluerov2_heavy_multibeam_sonar` avec un monde adapté.
+Lancez un seul exemple à la fois. Remplacez `wgpu` par `cpu`, `cuda` ou `auto` pour changer de moteur de calcul. Pour un sonar embarqué, sélectionnez `bluerov2_heavy_multibeam_sonar` avec un monde adapté.
+
+## Fonctionnement du capteur
+
+Gazebo fournit la géométrie de la scène. Le modèle estime les normales de surface, calcule la rétrodiffusion acoustique, applique la réponse de réception et comprime les échos dans les cellules de distance. Les données acoustiques et l'image représentent la même observation. Utilisez les données brutes pour l'analyse et conservez les réglages de gain et d'affichage.
+
+Une valeur positive de `spec/receiveBeamWidth` active le mode physique, qui utilise les coordonnées XYZ mesurées par une caméra de profondeur couvrant tout le champ du sonar. Les échantillons géométriques, les directions de réception et les sorties en distance sont indépendants. Les cellules dont le centre se trouve dans le champ se répartissent son angle solide complet ; leurs surfaces projetées et la réponse de réception signée déterminent les contributions aux faisceaux. Le modèle utilise une impulsion de Hamming en bande de base, de bande passante fixe et de crête unitaire. L'intervalle de calcul interne dépasse l'intervalle de distance publié. Le pas de sortie vaut `soundSpeed / (2 × bandwidth)` ; la longueur de calcul ne détermine pas le gain de l'impulsion. L'intervalle de garde interne n'est pas publié et ne modifie pas ce pas.
+
+`ray/scan/horizontal/samples` définit les colonnes géométriques, `ray/scan/vertical/rays` les lignes de l'image et `beams` les directions de réception. Le mode physique exige un champ symétrique inférieur à 180° sur chaque axe. Les limites de distance sont radiales ; les pixels hors champ ou hors limites ont des XYZ invalides dans le nuage organisé. `spec/receiveBeamWidth` indique la largeur totale à mi-puissance en radians ; `spec/receiveGain` règle le gain linéaire de pression (1 par défaut). Une largeur absente ou nulle sélectionne le mode de grille par défaut. Le mode physique prend en charge CPU et WGPU, mais pas CUDA. Il n'y a pas de plafond fixe de 4096 échantillons de fréquence ; les grandes grilles restent limitées par les ressources du moteur et les dimensions représentables. Les coefficients de diffusion sont générés par image et cellule géométrique. Le modèle décrit des échos en bande de base, sans propagation de phase porteuse ni étalonnage de l'amplitude du matériel.
 
 ## Examiner les sorties
 
@@ -48,7 +56,7 @@ L'exemple demande 512 faisceaux horizontaux sur environ 130°, 300 rayons vertic
 | `sourceLevel` | Niveau de la source, dB | 220 | 220 |
 | `maxDistance` | Portée du traitement, m ; à accorder à celle des rayons | 60 | 10 |
 | `raySkips` | Pas d'échantillonnage vertical ; entier positif | 10 | 10 |
-| `sensorGain` | Lu et affiché, mais sans effet sur la génération de l'image | 0.02 | 0.02 |
+| `sensorGain` | Gain d’amplitude des échos dans la grille CPU par défaut ; inutilisé en mode physique et par WGPU/CUDA | 0.02 | 0.02 |
 | `blazingSonarImage` | Graine aléatoire issue de l'horloge réelle ; `false` fixe la graine à 1234 | false | true |
 | `pointCloudTopicName` | Suffixe du topic Gazebo du nuage de points | `point_cloud` | Identique |
 | `sonarImageRawTopicName` | Suffixe du topic ROS des échos bruts | `sonar_image_raw` | Identique |
@@ -73,12 +81,23 @@ Conservez les blocs `<ray>` et `<spec>` complets : les valeurs par défaut conce
 
 Désactivez l'enregistrement pour mesurer le débit, sauf s'il fait partie de l'expérience. Consultez le guide [Configurer et régler le sonar](sonar-tuning.md). Conservez les paramètres acoustiques et la valeur de `blazingSonarImage` pour comparer les essais.
 
+### Moteur de calcul {#compute-backend}
+
+| Choix | Comportement |
+| --- | --- |
+| `auto` | Essaie CUDA, puis WGPU, puis CPU ; choix par défaut |
+| `wgpu` | Utilise un adaptateur Vulkan/Metal compatible ; son absence empêche l'initialisation du capteur |
+| `cuda` | Requiert un GPU NVIDIA et le backend CUDA compilé et installé ; échoue s'ils sont indisponibles |
+| `cpu` | Calcule les échos sur le CPU ; le rendu Gazebo reste nécessaire |
+
+Le lancement dédié accepte `compute_backend`. Les autres lancements lisent `POSIM_SONAR_COMPUTE_BACKEND`. Vérifiez la ligne `Using sonar compute backend:` au démarrage. Le guide [Configurer et régler le sonar](sonar-tuning.md) détaille le choix de l'adaptateur, les prérequis et les différences numériques.
+
 ## Ajouter un capteur
 
 1. Copiez `models/posim_sensor_models/description/blueview_p900/` sous un nouvel identifiant.
 2. Préparez le `config/<identifiant>/sensor_config.py` correspondant. Accordez les noms de modèle, de liens, de repères et les topics du pont.
 3. Réglez les échantillons, les angles et la portée. Chargez dans le monde les deux systèmes présentés plus haut ; consultez le [SDF du monde sonar](https://github.com/IOES-Lab/POSIM/blob/main/models/posim_worlds/worlds/posim_multibeam_sonar.world).
-4. Préparez CUDA et le rendu, recompilez l'espace de travail et chargez son environnement. Sélectionnez le capteur avec les [arguments de lancement](quickstart.md).
+4. Préparez le moteur de calcul et le rendu, recompilez l'espace de travail et chargez son environnement. Sélectionnez le capteur avec les [arguments de lancement](quickstart.md).
 
 ## Enregistrer et tracer les données brutes
 

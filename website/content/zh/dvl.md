@@ -54,7 +54,7 @@ POSIM 桥接插件放在传感器的 `<model>` 中，其话题须与 `<link>` �
 | `sonardyne_syrinx600` | Sonardyne |
 | `teledyne_explorer1000`, `teledyne_explorer4000` | Teledyne Explorer |
 | `teledyne_whn` | Teledyne WHN |
-| `nortek_dvl500_300_with_multibeam_sonar` | DVL 加 [CUDA 声纳](sonar-tuning.md) |
+| `nortek_dvl500_300_with_multibeam_sonar` | DVL 加 [声纳](sonar-tuning.md) |
 
 请检查各模型 SDF 中的采样设置和波束几何参数。
 

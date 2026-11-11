@@ -14,7 +14,7 @@ Busca la primera URI que no se puede resolver. Comprueba que se hayan instalado 
 
 ## No hay imagen o falla el renderizado
 
-Revisa los controladores gráficos y la conexión de pantalla de tu [guía de instalación](requirements.md). Tanto la interfaz de Gazebo como las cámaras necesitan un renderizador operativo. El sonar también requiere las [bibliotecas CUDA](sonar-tuning.md).
+Revisa controladores y conexión de pantalla en la [guía de instalación](requirements.md). Gazebo y las cámaras necesitan renderizado. Para el sonar, comprueba el [motor elegido y los paquetes instalados](sonar-tuning.md).
 
 Para los [efectos de la escena submarina](underwater-rendering.md), comprueba:
 

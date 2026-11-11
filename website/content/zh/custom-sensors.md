@@ -16,7 +16,7 @@
 | [压力](pressure.md) | `model` 下的直接子插件 | 直接发布 ROS 压力与深度消息 |
 | [海洋 GNSS](gnss.md) | 机器人模型上的接收机插件 | Gazebo `gz.msgs.Double_V` 测量消息；接入 ROS 需要单独的适配器 |
 | [USBL](usbl.md) | 收发机与应答器插件 | 匹配的声学标识及 ROS 接口 |
-| [多波束声纳](sonar.md) | 连杆下的自定义传感器 | Sensors 渲染器、世界多波束系统及 CUDA |
+| [多波束声纳](sonar.md) | 连杆下的自定义传感器 | Sensors 渲染器、世界多波束系统及 CPU/WGPU/CUDA |
 
 参考各页的 SDF 和参数表，并遵守插件位置要求：世界系统放在世界中，模型插件放在其作用的模型中。
 

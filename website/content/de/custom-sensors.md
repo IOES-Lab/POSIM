@@ -16,7 +16,7 @@ Nutzen Sie die [vorbereiteten Linux-Terminals](terminals.md) unter nativem Ubunt
 | [Druck](pressure.md) | Plugin direkt unter `model` | Direkte ROS-Ausgabe von Druck und Tiefe |
 | [Marine-GNSS](gnss.md) | Empfänger-Plugin am Modell | Gazebo-Nachrichten vom Typ `gz.msgs.Double_V`; für ROS ist ein separater Adapter erforderlich |
 | [USBL](usbl.md) | Transceiver- und Transponder-Plugins | Passende akustische IDs und ROS-Schnittstellen |
-| [Multibeam-Sonar](sonar.md) | Benutzerdefinierter Sensor unter einem Link | Sensors-Renderer, Multibeam-Weltsystem und CUDA |
+| [Multibeam-Sonar](sonar.md) | Benutzerdefinierter Sensor unter einem Link | Sensors-Renderer, Multibeam-Weltsystem und CPU/WGPU/CUDA |
 
 Verwenden Sie SDF-Beispiel und Parametertabelle der jeweiligen Referenz. Die Platzierung ist entscheidend: Weltsysteme gehören in die Welt; Modell-Plugins benötigen ihre zugehörige Modellentität.
 

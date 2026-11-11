@@ -16,7 +16,7 @@ Utilisez les [terminaux Linux préparés](terminals.md) sous Ubuntu natif, WSL o
 | [Pression](pressure.md) | Plugin directement sous `model` | Publication ROS directe de pression et profondeur |
 | [GNSS marin](gnss.md) | Plugin du récepteur sur le modèle | Messages Gazebo `gz.msgs.Double_V` ; un adaptateur distinct est nécessaire pour ROS |
 | [USBL](usbl.md) | Plugins du transcepteur et du transpondeur | Identifiants acoustiques concordants et interfaces ROS |
-| [Sonar multifaisceaux](sonar.md) | Capteur personnalisé sous un lien | Rendu Sensors, système multifaisceaux du monde et CUDA |
+| [Sonar multifaisceaux](sonar.md) | Capteur personnalisé sous un lien | Rendu Sensors, système multifaisceaux du monde et CPU/WGPU/CUDA |
 
 Consultez le SDF et les paramètres de chaque référence. Respectez leur emplacement : les systèmes du monde appartiennent au monde, tandis que les plugins de modèle nécessitent l'entité sur laquelle ils agissent.
 

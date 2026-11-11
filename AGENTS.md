@@ -4,6 +4,20 @@ Read the instructions and checks for the files you change. State uncertain
 assumptions before editing, keep changes focused on the request, and verify the
 result. Do not mix unrelated refactoring with documentation work.
 
+## Public product documentation
+
+POSIM is public product source. Keep dated experiment reports, comparison results,
+V&V captures, investigation scripts and development history in a separate
+development archive. Retain product implementation, reusable automated tests and
+current user/contributor documentation here. Describe how a feature works;
+preserve investigation and repair history in the private record.
+
+POSIM is the simulation engine. WWW-POSIM is the application package that uses it.
+For public README files, website guides and generated pages, follow
+[website/README.md](website/README.md) and the revision process below. Keep all
+eight supported language editions aligned, regenerate the website and run its
+documentation checks.
+
 ## Documentation revision is required
 
 Every new or changed document must receive a language-aware revision pass before

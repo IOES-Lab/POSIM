@@ -36,7 +36,7 @@ Das Schließen der RDP-Verbindung beendet die Simulation nicht. Drücken Sie zue
 
 {{CODE:install-macos:3}}
 
-Verbinden Sie sich danach wieder über die Windows App. Das Image verwendet Software-Rendering; aufwendige Szenen können langsam laufen. CUDA-Mehrstrahlsonar benötigt eine unterstützte NVIDIA-GPU und ist in diesem ARM64-Image nicht enthalten. Beginnen Sie mit den [Kamera- und Drucksensorbeispielen](features.md).
+Verbinden Sie sich nach dem Containerstart wieder über die Windows App. Linux verwendet Software-Rendering; aufwendige Szenen können langsam sein. Beginnen Sie beim Sonar mit CPU, nachdem Sie die [Pakete gebaut und geprüft](sonar-tuning.md#build-the-sonar-packages) haben. Metal steht nativen macOS-Prozessen zur Verfügung, nicht diesem Linux-Container. Die [Kamera- und Drucksensorbeispiele](features.md) eignen sich für erste Prüfungen.
 
 ## 5. Installation prüfen
 
