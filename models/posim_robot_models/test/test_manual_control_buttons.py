@@ -161,6 +161,42 @@ def test_axis_release_does_not_wait_for_timeout(control):
     node._publish_manual.assert_called_with(0.0, 0.0, 500.0, 0.0)
 
 
+@pytest.mark.parametrize("source", ["joystick", "keyboard"])
+def test_clock_rewind_discards_future_input_permanently(control, source):
+    node, clock = control
+    clock.seconds = 10.0
+    node._update_input_state(source, joy(axes=[0.0, -0.8, 0.0, 0.0, 0.0, 0.0]))
+    node.tick()
+    assert node._publish_manual.call_args.args[0] == pytest.approx(400.0)
+
+    for seconds in (0.0, 10.1):
+        clock.seconds = seconds
+        node.tick()
+        node._publish_manual.assert_called_with(0.0, 0.0, 500.0, 0.0)
+
+
+def test_fresh_input_wins_after_clock_rewind(control):
+    node, clock = control
+    clock.seconds = 10.0
+    node.cb_joy(joy(axes=[0.0, -0.8, 0.0, 0.0, 0.0, 0.0]))
+    clock.seconds = 0.0
+    node.cb_keyboard_joy(joy(axes=[0.0, 0.8, 0.0, 0.0, 0.0, 0.0]))
+    node.tick()
+    assert node._publish_manual.call_args.args[0] == pytest.approx(-400.0)
+
+
+def test_expired_input_does_not_return_after_clock_rewind(control):
+    node, clock = control
+    clock.seconds = 10.0
+    node.cb_joy(joy(axes=[0.0, -0.8, 0.0, 0.0, 0.0, 0.0]))
+    clock.seconds = 10.5
+    node.tick()
+    node._publish_manual.assert_called_with(0.0, 0.0, 500.0, 0.0)
+    clock.seconds = 10.1
+    node.tick()
+    node._publish_manual.assert_called_with(0.0, 0.0, 500.0, 0.0)
+
+
 def test_held_disarm_blocks_a_new_arm_edge(control):
     node, _ = control
     node.cb_joy(joy([manual.BTN_ARM_OFF]))

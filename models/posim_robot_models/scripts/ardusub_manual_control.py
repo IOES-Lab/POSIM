@@ -193,7 +193,9 @@ class ArduSubManualControl(Node):
                 continue
 
             age = (now - activity_time).nanoseconds * 1e-9
-            if age > TIMEOUT_SEC:
+            if age < 0.0 or age > TIMEOUT_SEC:
+                # A clock rewind must not revive future-dated or expired input.
+                state["activity_time"] = None
                 continue
 
             if activity_time.nanoseconds > active_time_ns:
