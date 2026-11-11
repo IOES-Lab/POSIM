@@ -24,6 +24,8 @@
 /* Navigation groups carry more visual weight than the individual guide links. */
 .docs-brand{display:flex;align-items:center;gap:9px;flex-shrink:0}
 .docs-brand img{display:block;width:28px;height:28px}
+.docs-wordmark{display:flex;align-items:baseline;gap:6px}
+.docs-version{font-size:11px;font-weight:500;letter-spacing:0;color:var(--muted);white-space:nowrap}
 .docs-sidebar{border-right:0;padding:28px 20px 32px}
 .docs-sidebar h2,.docs-mobile-menu h2{font-size:18px;line-height:1.35;letter-spacing:0;text-transform:none;font-weight:750;color:var(--ink);margin-bottom:12px}
 .docs-sidebar nav section{margin:30px 0}
@@ -78,6 +80,7 @@
   .docs-header{gap:6px;padding-inline:8px}
   .docs-brand{gap:4px;font-size:16px}
   .docs-brand img{width:22px;height:22px}
+  .docs-wordmark{display:grid;gap:1px;line-height:1.1}
   .docs-header nav{gap:4px}
   .docs-control{padding-inline:6px 20px}
   .docs-control-wrap::after{right:7px}

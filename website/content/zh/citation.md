@@ -32,4 +32,8 @@ Choi 等，*Physics-Based Modelling and Simulation of Multibeam Echosounder Perc
 
 更多参考资料见 [IOES-Lab POSIM Notion Wiki](https://caring-dibble-be5.notion.site/d24c9419989882cfa6498152ad4c840c?v=b42c941998988252a89588ad58631495&pvs=74)和各页面的来源链接。
 
-实验室与维护信息：[IOES-Lab · KMOU](https://lab.wschoi.com)。源码与问题反馈：[IOES-Lab/POSIM](https://github.com/IOES-Lab/POSIM)。
+## 维护与联系
+
+韩国海洋大学（KMOU）的 [IOES Lab.](https://lab.wschoi.com) 负责维护 POSIM。
+
+联系实验室请发送邮件至 [wschoi@kmou.ac.kr](mailto:wschoi@kmou.ac.kr)。请在 [GitHub Issues](https://github.com/IOES-Lab/POSIM/issues) 报告软件问题。

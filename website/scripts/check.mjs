@@ -14,6 +14,7 @@ const exists = async file => access(file).then(() => true).catch(() => false);
 const htmlFiles = languages.flatMap(({ directory }) => pages.map(page => directory + page.slug + '.html'));
 const languageOf = file => file.includes('/') ? file.split('/')[0] : 'en';
 const documents = new Map();
+const { version } = JSON.parse(await readFile(path.join(root, 'package.json'), 'utf8'));
 const catalog = JSON.parse(await readFile(path.join(root, 'catalog.json'), 'utf8'));
 const mediaSources = JSON.parse(await readFile(path.join(root, 'media-sources.json'), 'utf8'));
 let links = 0, commands = 0;
@@ -30,6 +31,8 @@ for (const file of htmlFiles) {
   documents.set(file, html);
   const lang = languageOf(file);
   if (!html.includes(`<html lang="${lang}">`)) fail(`${file}: wrong language`);
+  if (!html.includes(`<small class="docs-version">v${version}</small>`)) fail(`${file}: missing release version`);
+  if (!html.includes('<a class="docs-lab" href="https://lab.wschoi.com">')) fail(`${file}: missing maintainer link`);
   if ((html.match(/<h1\b/g) || []).length !== 1) fail(`${file}: expected one h1`);
   if (!html.includes('aria-current="page"')) fail(`${file}: missing active navigation`);
   const ids = [...html.matchAll(/\bid="([^"]+)"/g)].map(match => match[1]);

@@ -14,7 +14,7 @@ Ubuntu 26.04でPOSIMをビルドします。Ubuntuのターミナルを開き、
 
 {{CODE:install:1}}
 
-ROS 2 Lyrical、Gazebo Jetty、ArduSub、MAVROS、波のライブラリをインストールします。Wave Simは固定したリビジョンを取得してビルドする外部依存です。POSIMを再帰的にクローンする必要はありません。
+ROS 2 Lyrical、Gazebo Jetty、ArduSub、ArduRover、MAVROS、波のライブラリをインストールします。Wave Simは固定したリビジョンを取得してビルドする外部依存です。POSIMを再帰的にクローンする必要はありません。
 
 ## 3. ワークスペースの依存関係を準備する
 

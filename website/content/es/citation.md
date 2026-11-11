@@ -32,4 +32,8 @@ La [documentación original del proyecto ROS 2](https://dave-ros2.notion.site/) 
 
 Puedes consultar también la [POSIM Notion Wiki de IOES-Lab](https://caring-dibble-be5.notion.site/d24c9419989882cfa6498152ad4c840c?v=b42c941998988252a89588ad58631495&pvs=74) y los enlaces de origen de cada página.
 
-Laboratorio y mantenimiento: [IOES-Lab · KMOU](https://lab.wschoi.com). Código e incidencias: [IOES-Lab/POSIM](https://github.com/IOES-Lab/POSIM).
+## Mantenimiento y contacto
+
+[IOES Lab.](https://lab.wschoi.com) mantiene POSIM en la Universidad Marítima y Oceánica de Corea (KMOU).
+
+Para consultas al laboratorio, escribe a [wschoi@kmou.ac.kr](mailto:wschoi@kmou.ac.kr). Usa [GitHub Issues](https://github.com/IOES-Lab/POSIM/issues) para informar de errores de software.

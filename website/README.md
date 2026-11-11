@@ -54,6 +54,9 @@ Search reads a local JSON asset and does not need an external search service.
 
 ## Maintain the content
 
+The header reads the POSIM release version from `package.json`. Update that
+version when preparing a release and use the matching `v<version>` Git tag.
+
 Every documentation change needs the language-aware revision and fidelity review
 described in [AGENTS.md](../AGENTS.md).
 

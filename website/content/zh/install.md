@@ -14,7 +14,7 @@
 
 {{CODE:install:1}}
 
-脚本安装ROS 2 Lyrical、Gazebo Jetty、ArduSub、MAVROS和波浪库。Wave Sim作为外部依赖，按固定版本获取并编译，不需要递归克隆POSIM。
+脚本安装ROS 2 Lyrical、Gazebo Jetty、ArduSub、ArduRover、MAVROS和波浪库。Wave Sim作为外部依赖，按固定版本获取并编译，不需要递归克隆POSIM。
 
 ## 3. 准备工作空间依赖
 

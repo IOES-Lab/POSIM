@@ -16,7 +16,7 @@ cd ~/posim_ws
 
 ## 2. 기본 환경 설치
 
-설치 도우미는 ROS 2 Lyrical·Gazebo Jetty·ArduSub·MAVROS·파도 라이브러리를 설치합니다. 실행 전에 `src/posim/extras/ros-lyrical-gz-jetty-install.sh`를 확인하세요.
+설치 도우미는 ROS 2 Lyrical·Gazebo Jetty·ArduSub·ArduRover·MAVROS·파도 라이브러리를 설치합니다. 실행 전에 `src/posim/extras/ros-lyrical-gz-jetty-install.sh`를 확인하세요.
 
 - 시스템 패키지 저장소 설정
 - `sudo` 사용

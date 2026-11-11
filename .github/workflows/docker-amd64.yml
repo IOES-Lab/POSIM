@@ -58,22 +58,30 @@ jobs:
           PUBLISH_IMAGES: ${{ vars.POSIM_PUBLISH_IMAGES }}
         run: |
           source_sha="$(git rev-parse HEAD)"
-          echo "sha=$source_sha" >> "$GITHUB_OUTPUT"
-          echo "tag=sha-${source_sha:0:12}" >> "$GITHUB_OUTPUT"
           publish=false
           latest=false
           version=''
+          if [[ "$GITHUB_EVENT_NAME" == push && "$GITHUB_REF" == refs/tags/v* ]]; then
+            version="${GITHUB_REF_NAME#v}"
+            expected_version="$(python3 -c 'import json; print(json.load(open("website/package.json"))["version"])')"
+            if [[ "$version" != "$expected_version" ]]; then
+              echo "Tag $GITHUB_REF_NAME does not match the documentation version $expected_version" >&2
+              exit 1
+            fi
+          fi
           if [[ "$GITHUB_EVENT_NAME" != pull_request && "$PUBLISH_IMAGES" == true ]]; then
             publish=true
             if [[ "$GITHUB_EVENT_NAME" == workflow_dispatch || "$GITHUB_REF" == refs/heads/main ]]; then
               latest=true
-            elif [[ "$GITHUB_REF" == refs/tags/v* ]]; then
-              version="${GITHUB_REF_NAME#v}"
             fi
           fi
-          echo "publish=$publish" >> "$GITHUB_OUTPUT"
-          echo "latest=$latest" >> "$GITHUB_OUTPUT"
-          echo "version=$version" >> "$GITHUB_OUTPUT"
+          {
+            echo "sha=$source_sha"
+            echo "tag=sha-${source_sha:0:12}"
+            echo "publish=$publish"
+            echo "latest=$latest"
+            echo "version=$version"
+          } >> "$GITHUB_OUTPUT"
 
   build:
     needs: revision

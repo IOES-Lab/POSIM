@@ -1,6 +1,6 @@
 # Docker 环境
 
-POSIM 镜像包含 Ubuntu、ROS 2 Lyrical、Gazebo Jetty、POSIM、ArduSub、MAVROS 和 QGroundControl。请先在[选择运行环境](requirements.md)中找到对应的安装指南，再配置显示和驱动程序。
+POSIM 镜像包含 Ubuntu、ROS 2 Lyrical、Gazebo Jetty、POSIM、ArduSub、ArduRover、MAVROS 和 QGroundControl。请先在[选择运行环境](requirements.md)中找到对应的安装指南，再配置显示和驱动程序。
 
 ## 下载已发布的镜像
 

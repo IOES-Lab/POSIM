@@ -4,12 +4,14 @@
 
 [![POSIM-Docker-Images erstellen und veröffentlichen](https://github.com/IOES-Lab/POSIM/actions/workflows/docker-amd64.yml/badge.svg)](https://github.com/IOES-Lab/POSIM/actions/workflows/docker-amd64.yml)
 
-POSIM ist eine Open-Source-Bibliothek für Simulationen in der maritimen Robotik und wird von IOES-Lab gepflegt.
+POSIM ist eine Open-Source-Bibliothek für Simulationen in der maritimen Robotik. Das [IOES Lab. an der Korea Maritime & Ocean University (KMOU)](https://lab.wschoi.com) betreut die Bibliothek.
 Sie verbindet Meeresumgebungen, Unterwasser- und Oberflächenroboter, simulierte Sensoren und ROS-2-Steuerschnittstellen in Gazebo Sim.
 
 ## Dokumentation und Einstieg
 
 **[Deutsche Dokumentation lesen](https://ioes-lab.github.io/POSIM/de/)**
+
+[Änderungsprotokoll](CHANGELOG.md)
 
 POSIM verwendet ROS 2 Lyrical und Gazebo Sim Jetty. Wählen Sie den passenden Installationsweg für Ihr Betriebssystem:
 

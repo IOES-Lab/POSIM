@@ -1,6 +1,6 @@
 # Entorno Docker
 
-Las imágenes de POSIM incluyen Ubuntu, ROS 2 Lyrical, Gazebo Jetty, POSIM, ArduSub, MAVROS y QGroundControl. Elige primero la [guía de tu sistema operativo](requirements.md) para configurar la pantalla y los controladores.
+Las imágenes de POSIM incluyen Ubuntu, ROS 2 Lyrical, Gazebo Jetty, POSIM, ArduSub, ArduRover, MAVROS y QGroundControl. Elige primero la [guía de tu sistema operativo](requirements.md) para configurar la pantalla y los controladores.
 
 ## Descargar una imagen publicada
 

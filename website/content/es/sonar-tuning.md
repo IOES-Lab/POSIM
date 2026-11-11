@@ -99,6 +99,8 @@ Conserva SDF, revisión POSIM, motor/adaptador, versiones de controlador/toolkit
 
 Incluye suma de rayos, ventana/corrección y FFT. Mide por separado cálculo y transferencias de memoria. Figura: POSIM Notion Wiki.
 
+Con el SDK de Gazebo Sim 10.5 probado en macOS, los mundos con sonar como único sensor pueden fallar al inicializar Ogre2. Si usas ese SDK, añade al mundo una cámara integrada pequeña.
+
 ## Transporte ROS en macOS nativo {#native-macos-ros-transport}
 
 Con Fast DDS en macOS nativo, usa el perfil local instalado si no llegan los mensajes grandes de sonar con QoS best-effort. Configura un segmento de memoria compartida de 16 MiB y búferes de mensajes de transporte de 1 MiB. UDP en localhost usa datagramas de 8192 bytes y búferes de socket de envío y recepción de 2 MiB cada uno. Define la variable en cada terminal del simulador, del puente y del suscriptor antes de iniciar esos procesos:

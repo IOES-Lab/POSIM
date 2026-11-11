@@ -128,6 +128,8 @@ Save the SDF, POSIM revision, selected backend/adapter, driver/toolkit versions,
 
 GPU processing includes ray summation, window/correction and FFT stages. Profile computation and memory transfers separately. Figure: POSIM Notion Wiki.
 
+Sonar-only worlds can crash during Ogre2 initialization with the tested Gazebo Sim 10.5 macOS SDK. Include a small built-in camera in the world when using that SDK.
+
 ## Native macOS ROS transport {#native-macos-ros-transport}
 
 With Fast DDS on native macOS, use the installed local profile if large best-effort sonar messages are missing. It provides a 16 MiB shared-memory segment and 1 MiB transport message buffers, plus localhost UDP with 8192-byte datagrams and 2 MiB send/receive socket buffers. Set it in every simulator, bridge and subscriber terminal before starting those processes:

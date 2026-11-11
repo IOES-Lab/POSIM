@@ -4,12 +4,14 @@
 
 [![构建并发布POSIM Docker镜像](https://github.com/IOES-Lab/POSIM/actions/workflows/docker-amd64.yml/badge.svg)](https://github.com/IOES-Lab/POSIM/actions/workflows/docker-amd64.yml)
 
-POSIM是由IOES-Lab维护的开源海洋机器人仿真库。
+POSIM 是由[韩国海洋大学（KMOU）的 IOES Lab.](https://lab.wschoi.com)维护的开源海洋机器人仿真库。
 通过Gazebo Sim，可以搭建海洋环境，运行水下和水面机器人，并使用仿真传感器和ROS 2控制接口。
 
 ## 文档与入门
 
 **[阅读中文文档](https://ioes-lab.github.io/POSIM/zh/)**
+
+[更新日志](CHANGELOG.md)
 
 POSIM使用ROS 2 Lyrical和Gazebo Sim Jetty。请根据操作系统选择安装方式：
 

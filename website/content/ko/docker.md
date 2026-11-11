@@ -1,6 +1,6 @@
 # Docker 환경
 
-POSIM 이미지는 Ubuntu, ROS 2 Lyrical, Gazebo Jetty, POSIM, ArduSub, MAVROS와 QGroundControl을 포함합니다. 화면 연결과 드라이버 설정은 [실행 환경 선택](requirements.md)에서 운영 체제별 설치 가이드를 고르세요.
+POSIM 이미지는 Ubuntu, ROS 2 Lyrical, Gazebo Jetty, POSIM, ArduSub, ArduRover, MAVROS와 QGroundControl을 포함합니다. 화면 연결과 드라이버 설정은 [실행 환경 선택](requirements.md)에서 운영 체제별 설치 가이드를 고르세요.
 
 ## 공개 이미지 내려받기
 

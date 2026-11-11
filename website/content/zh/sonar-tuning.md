@@ -99,6 +99,8 @@ WGPU 保留请求的变换长度，包括非 2 的幂长度，并自动选择 FF
 
 处理包括射线求和、加窗与校正、FFT 等阶段。请分别测量计算与内存传输耗时。图片来源：POSIM Notion Wiki。
 
+使用经过测试的 Gazebo Sim 10.5 macOS SDK 时，仅有声呐的世界可能在初始化 Ogre2 时崩溃。使用该 SDK 时，请在世界中加入一个小型内置摄像头。
+
 ## 原生 macOS 的 ROS 传输设置 {#native-macos-ros-transport}
 
 在原生 macOS 上使用 Fast DDS 时，如果大型 best-effort 声呐消息丢失，可使用已安装的本地配置文件。该配置使用 16 MiB 共享内存段和 1 MiB 传输消息缓冲区；localhost UDP 使用 8192 字节数据报及 2 MiB 发送和接收套接字缓冲区。启动仿真器、桥接程序和订阅者之前，请在各自的终端中设置：
