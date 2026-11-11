@@ -1,0 +1,19 @@
+---
+name: Resolve Ubuntu package mirrors
+description: Resolve Ubuntu mirror addresses for runner APT or Docker builds.
+inputs:
+  configure-hosts:
+    description: Add fallback addresses to the current CI environment's hosts file.
+    default: 'false'
+outputs:
+  hosts:
+    description: BuildKit host mappings for the Ubuntu package mirrors.
+    value: ${{ steps.resolve.outputs.hosts }}
+runs:
+  using: composite
+  steps:
+    - id: resolve
+      shell: bash
+      env:
+        CONFIGURE_HOSTS: ${{ inputs.configure-hosts }}
+      run: python3 "$GITHUB_ACTION_PATH/resolve.py"
