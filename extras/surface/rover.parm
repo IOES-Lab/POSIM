@@ -21,7 +21,8 @@ WP_PIVOT_RATE 30
 ATC_STR_RAT_MAX 45
 ATC_ACCEL_MAX 0.5
 ATC_DECEL_MAX 0.5
-ARMING_CHECK 1
+# Keep every arming check enabled.
+ARMING_SKIPCHK 0
 AHRS_EKF_TYPE 3
 EK3_ENABLE 1
 # External navigation supplies position; disable the first GPS receiver.

@@ -109,7 +109,7 @@ RUN export ROS_APT_SOURCE_VERSION=$(curl -s https://api.github.com/repos/ros-inf
     apt install -y --no-install-recommends \
       ros-${ROS_DISTRO}-desktop ros-${ROS_DISTRO}-ros-gz \
       ros-${ROS_DISTRO}-image-view \
-      ros-${ROS_DISTRO}-mavros ros-${ROS_DISTRO}-mavros-msgs \
+      ros-${ROS_DISTRO}-mavros ros-${ROS_DISTRO}-mavros-extras ros-${ROS_DISTRO}-mavros-msgs \
       ros-${ROS_DISTRO}-ament-cmake-google-benchmark \
       ros-${ROS_DISTRO}-angles ros-${ROS_DISTRO}-ament-cmake-gmock \
       ros-${ROS_DISTRO}-ament-cmake-pytest ros-${ROS_DISTRO}-ament-lint-auto \

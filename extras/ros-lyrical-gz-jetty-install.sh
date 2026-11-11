@@ -116,7 +116,7 @@ else
 fi
 
 # Mavros install
-sudo apt-get -y install "ros-${DIST}-mavros" "ros-${DIST}-mavros-msgs" \
+sudo apt-get -y install "ros-${DIST}-mavros" "ros-${DIST}-mavros-extras" "ros-${DIST}-mavros-msgs" \
     "ros-${DIST}-ament-cmake-google-benchmark" "ros-${DIST}-angles" \
     "ros-${DIST}-ament-cmake-gmock" "ros-${DIST}-ament-cmake-pytest" \
     "ros-${DIST}-ament-lint-auto" "ros-${DIST}-ament-lint-common"
