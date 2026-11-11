@@ -71,6 +71,8 @@ Gazebo 提供场景几何。声纳模型估计表面法线，计算声学后向�
 
 各后缀会追加到传感器的 `<topic>` 后面，本例为 `/sensor/multibeam_sonar`。Gazebo 点云类型为 `gz.msgs.PointCloudPacked`，需要使用随附的 ROS 桥接配置转换为 `sensor_msgs/msg/PointCloud2`。将 `pointCloudTopicName` 与 `sensor_config.py` 中的路径对应，并在 `frameName` 中指定声呐的光学坐标系。
 
+BlueView P900 和 BlueROV2 声呐的 launch 文件会发布从 `world` 到声呐坐标系的恒等变换，供 RViz 显示使用。点云坐标仍以传感器为基准。此静态变换不会跟随载体运动，也不包含声呐的安装位姿。若要在世界坐标系中建图，请将其替换为同时包含载体位姿和声呐安装位姿的变换链。
+
 ### 声线的几何范围
 
 `<ray>` 的默认值为 256 个水平波束、3 条垂直声线、水平角 ±π/4、垂直角 ±π/8，以及 0.1–5 m 的距离范围。角度默认使用弧度；设置 `degrees="true"` 后使用度。`<gz:multibeam_sonar>` 中的可选项 `<reference_frame>` 默认为位置与旋转均为零的位姿。

@@ -50,7 +50,7 @@ jobs:
           node-version: "24"
       - name: Install pinned dependencies
         run: npx --yes pnpm@10.11.0 install --frozen-lockfile --ignore-scripts
-      - name: Build and check both languages against source
+      - name: Build and check all eight languages against source
         env:
           SITE_URL: https://ioes-lab.github.io/POSIM
         run: |

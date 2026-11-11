@@ -71,6 +71,8 @@ El ejemplo solicita 512 haces horizontales en unos 130°, 300 rayos verticales e
 
 Los sufijos se añaden al `<topic>` del sensor, aquí `/sensor/multibeam_sonar`. La nube de puntos se publica como `gz.msgs.PointCloudPacked` y necesita el puente ROS incluido para obtener `sensor_msgs/msg/PointCloud2`. Haz coincidir `pointCloudTopicName` con `sensor_config.py` y usa el sistema de referencia óptico correcto en `frameName`.
 
+Los archivos de lanzamiento del BlueView P900 y del sonar BlueROV2 publican una transformación identidad de `world` al sistema de referencia del sonar para la visualización en RViz. Las coordenadas de la nube de puntos siguen siendo relativas al sensor. Esta transformación estática no sigue el movimiento del vehículo ni incorpora la posición y orientación de montaje del sonar. Para crear mapas en coordenadas del mundo, sustitúyela por una cadena de transformaciones que incluya ambas poses.
+
 ### Geometría de los rayos
 
 Los valores predeterminados de `<ray>` son 256 haces horizontales, 3 rayos verticales, ángulos horizontales ±π/4, verticales ±π/8 y alcance 0.1–5 m. Los ángulos se expresan en radianes; con `degrees="true"` se usan grados. El `<reference_frame>` opcional dentro de `<gz:multibeam_sonar>` parte de una pose nula.

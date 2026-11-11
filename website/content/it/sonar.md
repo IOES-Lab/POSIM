@@ -71,6 +71,8 @@ L'esempio richiede 512 fasci orizzontali su circa 130°, 300 raggi verticali su 
 
 I suffissi si aggiungono al `<topic>` del sensore, qui `/sensor/multibeam_sonar`. La nuvola di punti Gazebo usa `gz.msgs.PointCloudPacked`; il bridge ROS incluso la rende disponibile come `sensor_msgs/msg/PointCloud2`. Allinea `pointCloudTopicName` a `sensor_config.py` e imposta il riferimento ottico del sonar in `frameName`.
 
+I file di avvio del BlueView P900 e del sonar BlueROV2 pubblicano una trasformazione identità da `world` al sistema di riferimento del sonar per la visualizzazione in RViz. Le coordinate della nuvola di punti restano relative al sensore. Questa trasformazione statica non segue il movimento del veicolo e non tiene conto della posizione e dell'orientamento di montaggio del sonar. Per creare mappe in coordinate globali, sostituiscila con una catena di trasformazioni che includa entrambe le pose.
+
 ### Geometria dei raggi
 
 I valori predefiniti di `<ray>` sono 256 fasci orizzontali, 3 raggi verticali, angoli orizzontali ±π/4, verticali ±π/8 e portata 0.1–5 m. Gli angoli sono in radianti; con `degrees="true"` si usano i gradi. Il `<reference_frame>` facoltativo in `<gz:multibeam_sonar>` ha posizione e orientamento nulli per impostazione predefinita.

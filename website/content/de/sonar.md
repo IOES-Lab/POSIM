@@ -71,6 +71,8 @@ Das Beispiel fordert 512 horizontale Strahlen über etwa 130°, 300 vertikale Ab
 
 Die Suffixe werden an `<topic>` angehängt, hier `/sensor/multibeam_sonar`. Gazebo veröffentlicht die Punktwolke als `gz.msgs.PointCloudPacked`; die mitgelieferte ROS-Bridge überträgt sie als `sensor_msgs/msg/PointCloud2`. Stimmen Sie `pointCloudTopicName` mit `sensor_config.py` ab und setzen Sie `frameName` auf das optische Koordinatensystem des Sonars.
 
+Die Launch-Dateien für BlueView P900 und das BlueROV2-Sonar veröffentlichen für die RViz-Anzeige eine Identitätstransformation von `world` zum Sonarkoordinatensystem. Die Punktwolkenkoordinaten bleiben auf den Sensor bezogen. Diese statische Transformation berücksichtigt weder die Fahrzeugbewegung noch die Montageposition und -orientierung des Sonars. Für die Kartierung in Weltkoordinaten ersetzen Sie sie durch eine Transformationskette, die beide Posen berücksichtigt.
+
 ### Strahlgeometrie
 
 Die Standardwerte in `<ray>` sind 256 horizontale Strahlen, 3 vertikale Abtaststrahlen, horizontale Winkel ±π/4, vertikale Winkel ±π/8 und 0.1–5 m Reichweite. Winkel sind im Bogenmaß angegeben; `degrees="true"` schaltet auf Grad um. Das optionale `<reference_frame>` in `<gz:multibeam_sonar>` verwendet standardmäßig die Nullpose.

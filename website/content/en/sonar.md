@@ -144,6 +144,8 @@ The actual received rate depends on computation and rendering. Read [the sensor 
 
 Topic suffixes are appended to the sensor's `<topic>`, here `/sensor/multibeam_sonar`. Raw observations use `marine_acoustic_msgs/msg/ProjectedSonarImage`. Point clouds use Gazebo `gz.msgs.PointCloudPacked` and need the included ROS bridge. Match `pointCloudTopicName` to `sensor_config.py` and set `frameName` to the sonar's optical frame.
 
+The BlueView P900 and BlueROV2 sonar launch files publish an identity transform from `world` to the sonar frame for RViz viewing. Point-cloud coordinates remain relative to the sensor. This static transform does not track the vehicle or account for the sonar's mounting pose. For mapping in world coordinates, replace it with a transform chain that uses both poses.
+
 ### Ray geometry
 
 The `<ray>` block defaults to 256 horizontal beams, 3 vertical rays, horizontal angles ±π/4, vertical angles ±π/8 and range 0.1–5 m. Set `degrees="true"` to specify scan angles in degrees; otherwise use radians. The optional `<reference_frame>` inside `<gz:multibeam_sonar>` defaults to the zero pose. Keep the complete `<ray>` and `<spec>` blocks; values above are defaults for fields within them. The [implementation](https://github.com/IOES-Lab/POSIM/blob/main/gazebo/posim_gz_multibeam_sonar/multibeam_sonar/MultibeamSonarSensor.cc) is the authority for parsing and publication.

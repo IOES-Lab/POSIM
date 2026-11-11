@@ -71,6 +71,8 @@ L'exemple demande 512 faisceaux horizontaux sur environ 130°, 300 rayons vertic
 
 Les suffixes s'ajoutent au `<topic>` du capteur, ici `/sensor/multibeam_sonar`. Le nuage de points Gazebo est de type `gz.msgs.PointCloudPacked` ; le pont ROS fourni le transmet en `sensor_msgs/msg/PointCloud2`. Faites correspondre `pointCloudTopicName` à `sensor_config.py` et renseignez le repère optique dans `frameName`.
 
+Les fichiers de lancement du BlueView P900 et du sonar BlueROV2 publient une transformation identité de `world` vers le repère du sonar pour l'affichage dans RViz. Les coordonnées du nuage de points restent relatives au capteur. Cette transformation statique ne suit pas le véhicule et ne tient pas compte de la position ni de l'orientation du montage du sonar. Pour cartographier dans le repère monde, remplacez-la par une chaîne de transformations qui prend en compte la pose du véhicule et celle du montage du sonar.
+
 ### Géométrie des rayons
 
 Par défaut, `<ray>` définit 256 faisceaux horizontaux, 3 rayons verticaux, des angles horizontaux de ±π/4, verticaux de ±π/8 et une portée de 0.1 à 5 m. Les angles sont en radians, sauf avec `degrees="true"`. Le `<reference_frame>` facultatif dans `<gz:multibeam_sonar>` utilise une pose nulle par défaut.
