@@ -28,10 +28,14 @@ ament_environment_hooks(
 
 if(BUILD_TESTING)
   find_package(ament_cmake_pytest REQUIRED)
+  # These callback tests use mocked services and need no external ROS peers.
+  # Keep their short-lived nodes out of concurrent tests' DDS discovery.
   ament_add_pytest_test(
-    test_manual_control_buttons test/test_manual_control_buttons.py)
+    test_manual_control_buttons test/test_manual_control_buttons.py
+    ENV ROS_AUTOMATIC_DISCOVERY_RANGE=OFF)
   ament_add_pytest_test(
-    test_manual_control_services test/test_manual_control_services.py)
+    test_manual_control_services test/test_manual_control_services.py
+    ENV ROS_AUTOMATIC_DISCOVERY_RANGE=OFF)
   ament_add_pytest_test(test_ws_lifecycle test/test_ws_lifecycle.py)
   ament_add_pytest_test(test_sim_clock_configs test/test_sim_clock_configs.py)
   ament_add_pytest_test(test_rexrov_inertias test/test_rexrov_inertias.py)
