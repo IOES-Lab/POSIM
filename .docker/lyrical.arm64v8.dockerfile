@@ -190,7 +190,7 @@ ENV PIP_BREAK_SYSTEM_PACKAGES=1
 # operate across ownership boundaries ("detected dubious ownership") since CVE-2022-24765
 RUN chown -R $USER:$USER /home/$USER/ardupilot /home/$USER/imp_shim && \
     cd /home/$USER/ardupilot && \
-    sed -i "s/ python-argparse//g" Tools/environment_install/install-prereqs-ubuntu.sh && \
+    sed -i -E '/SITL_PKGS.*argparse/s/python3?-argparse/libpython3-stdlib/g' Tools/environment_install/install-prereqs-ubuntu.sh && \
     sed -i 's/-U pip setuptools wheel/-U pip "setuptools<80" wheel/' \
       Tools/environment_install/install-prereqs-ubuntu.sh && \
     su $USER -c "git config --global --add safe.directory /home/$USER/ardupilot" && \
@@ -218,6 +218,7 @@ RUN set -e; \
     git checkout --detach "$ARDUPILOT_GAZEBO_COMMIT"; \
     bash "$POSIM_UNDERLAY/src/posim/extras/ardusub-ubuntu-install.sh" \
       --patch-gst-camera "$PWD"; \
+    python3 "$POSIM_UNDERLAY/src/posim/extras/ardupilot_gazebo/patch_resampling.py" "$PWD"; \
     chown -R $USER:$USER /home/$USER/ardupilot_gazebo && \
     mkdir -p /home/$USER/ardupilot_gazebo/build && \
     cd /home/$USER/ardupilot_gazebo/build && \

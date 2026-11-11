@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+POSIM_INSTALL_EXTRAS=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 
 # Source Ros and Gazebo
 ROS_DISTRO="${ROS_DISTRO:-lyrical}"
@@ -35,7 +36,9 @@ export SKIP_AP_EXT_ENV=1 SKIP_AP_GRAPHIC_ENV=1 SKIP_AP_COV_ENV=1 SKIP_AP_GIT_CHE
 export DO_AP_STM_ENV=0
 # Do not activate the Ardupilot venv by default
 export DO_PYTHON_VENV_ENV=0
-sed -i 's/ python-argparse//g' Tools/environment_install/install-prereqs-ubuntu.sh
+# argparse is included in Python 3; keep upstream package discovery intact.
+sed -i -E '/SITL_PKGS.*argparse/s/python3?-argparse/libpython3-stdlib/g' \
+  Tools/environment_install/install-prereqs-ubuntu.sh
 sed -i 's/-U pip setuptools wheel/-U pip "setuptools<80" wheel/' \
   Tools/environment_install/install-prereqs-ubuntu.sh
 Tools/environment_install/install-prereqs-ubuntu.sh -y
@@ -49,6 +52,7 @@ cd "/home/$USER/ardusub_ws" || exit
 git clone https://github.com/ArduPilot/ardupilot_gazebo.git
 cd "/home/$USER/ardusub_ws/ardupilot_gazebo" || exit
 git checkout --detach "$ARDUPILOT_GAZEBO_COMMIT"
+python3 "$POSIM_INSTALL_EXTRAS/ardupilot_gazebo/patch_resampling.py" "$PWD"
 
 # Install ardupilot_gazebo plugin
 # Check if the directory creation was successful

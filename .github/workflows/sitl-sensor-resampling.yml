@@ -1,0 +1,40 @@
+---
+name: SITL sensor resampling
+
+# yamllint disable-line rule:truthy
+on:
+  pull_request:
+    paths:
+      - "extras/ardupilot_gazebo/**"
+      - ".github/workflows/sitl-sensor-resampling.yml"
+  push:
+    branches: [main]
+    paths:
+      - "extras/ardupilot_gazebo/**"
+      - ".github/workflows/sitl-sensor-resampling.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  sensor-interpolation:
+    strategy:
+      matrix:
+        runner: [ubuntu-26.04, ubuntu-24.04-arm]
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Install the C++ test dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y g++ rapidjson-dev
+      - name: Check clock alignment and interpolated sensor states
+        run: |
+          c++ -std=c++17 -Wall -Wextra -Werror \
+            -Iextras/ardupilot_gazebo \
+            extras/ardupilot_gazebo/test_resampling.cc \
+            -o /tmp/test_sensor_resampling
+          /tmp/test_sensor_resampling
