@@ -10,6 +10,7 @@ on:
       - ".docker/**"
       - ".dockerignore"
       - ".github/workflows/docker-*.yml"
+      - ".github/actions/ubuntu-mirrors/**"
       - "posim_interfaces/**"
       - "examples/**"
       - "extras/**"
@@ -103,34 +104,7 @@ jobs:
           ref: ${{ needs.revision.outputs.sha }}
       - name: Resolve Ubuntu package mirrors for BuildKit
         id: ubuntu-mirrors
-        shell: bash
-        env:
-          ARCH: ${{ matrix.arch }}
-        run: |
-          mirrors=(archive.ubuntu.com security.ubuntu.com)
-          if [[ "$ARCH" == arm64 ]]; then
-            mirrors=(ports.ubuntu.com)
-          fi
-          hosts=()
-          for mirror in "${mirrors[@]}"; do
-            if ! read -r ip _ < <(getent ahostsv4 "$mirror"); then
-              # The runner's resolver can fail for Ubuntu mirrors during CI.
-              ip="$(curl -fsS --retry 2 --max-time 10 "https://dns.google/resolve?name=$mirror&type=A" |
-                python3 -c 'import json, sys
-          answers = json.load(sys.stdin).get("Answer", [])
-          print(next((a["data"] for a in answers if a["type"] == 1), ""))')" || ip=''
-            fi
-            if [[ -z "$ip" ]]; then
-              echo "::error::Could not resolve $mirror on the Docker build runner"
-              exit 1
-            fi
-            hosts+=("$mirror:$ip")
-          done
-          {
-            echo 'hosts<<EOF'
-            printf '%s\n' "${hosts[@]}"
-            echo EOF
-          } >> "$GITHUB_OUTPUT"
+        uses: ./.github/actions/ubuntu-mirrors
       - uses: docker/setup-buildx-action@v4
       - name: Log in to Docker Hub
         if: needs.revision.outputs.publish == 'true'
