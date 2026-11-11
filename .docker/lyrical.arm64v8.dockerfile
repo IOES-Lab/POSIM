@@ -18,13 +18,15 @@ ARG X11Forwarding=true
 
 # --- RDP / XFCE desktop setup ---
 # hadolint ignore=DL3008,DL3015,DL3009
-RUN DEBIAN_FRONTEND=noninteractive apt-get update && \
-        apt-get install -y --no-install-recommends \
-          dbus dbus-x11 xrdp xorgxrdp \
-          xfce4 xfce4-goodies xfce4-terminal xterm \
-          sudo openssl; \
-    [ $X11Forwarding = 'true' ] && apt-get install -y openssh-server; \
-    apt-get autoremove --purge; \
+RUN set -e; \
+    export DEBIAN_FRONTEND=noninteractive; \
+    apt-get -o Acquire::Retries=3 --error-on=any update; \
+    apt-get install -y --no-install-recommends \
+      dbus dbus-x11 xrdp xorgxrdp \
+      xfce4 xfce4-goodies xfce4-terminal xterm \
+      sudo openssl; \
+    if [ "$X11Forwarding" = true ]; then apt-get install -y openssh-server; fi; \
+    apt-get autoremove --purge -y; \
     apt-get clean; \
     rm -f /run/reboot-required*
 
