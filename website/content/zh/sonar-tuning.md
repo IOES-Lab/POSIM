@@ -18,7 +18,7 @@
 
 {{CODE:sonar-tuning:1}}
 
-世界内部名称为 `default`。同时记录 `real_time_factor`：请求 30 Hz 仿真频率，并不保证每个实际秒接收 30 帧。按 Ctrl+C 停止查看。
+世界内部名称为 `default`。同时记录 `real_time_factor`：请求以仿真时间计的 30 Hz 图像更新频率，并不保证按实际时间每秒接收 30 帧。按 Ctrl+C 停止查看。
 
 ## 每次对比一个变量
 

@@ -105,7 +105,7 @@ The descriptor uses `type="custom" gz:type="multibeam_sonar"`. The world loads `
 | Sound speed | 1500 m/s |
 | Sensor update rate | 30 Hz requested |
 
-Actual received rate depends on computation and rendering. Read [the sensor model](https://github.com/IOES-Lab/POSIM/blob/main/models/posim_sensor_models/description/blueview_p900/model.sdf) for all values.
+The actual received rate depends on computation and rendering. Read [the sensor model](https://github.com/IOES-Lab/POSIM/blob/main/models/posim_sensor_models/description/blueview_p900/model.sdf) for all values.
 
 ## Parameters to customize
 

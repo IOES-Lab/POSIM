@@ -1,6 +1,6 @@
 # Effets de scène sous-marine
 
-`posim_gz_rendering` applique voile sous-marin, absorption RVB, lumière solaire dépendant de la profondeur, caustiques et particules en suspension aux surfaces PBR d'Ogre2. Les particules évoquent la neige marine et sont **désactivées** au départ.
+`posim_gz_rendering` applique voile sous-marin, absorption RVB, lumière solaire dépendant de la profondeur, caustiques et particules en suspension aux surfaces PBR d'Ogre2. Les particules évoquent la neige marine et sont **désactivées** par défaut.
 
 Scène Gazebo, caméras RGB et couleur RGBD partagent ces effets. La profondeur numérique et les collisions restent inchangées. Le filtre indépendant fondé sur la profondeur est décrit dans [Caméra sous-marine](camera.md).
 
@@ -68,7 +68,7 @@ WWW-POSIM utilise ce moteur public et ajoute son panneau d'apparence, sa gestion
 
 ## Limites du modèle et comparaison
 
-Le trajet sous-marin utilise un plan moyen à **z = 0 m**, sans suivre chaque crête. Caustiques et particules sont des approximations visuelles ; elles ne simulent pas de concentrations étalonnées ni le bruit optique du capteur.
+Le calcul du trajet optique sous-marin utilise un plan moyen à **z = 0 m**, sans suivre chaque crête. Caustiques et particules sont des approximations visuelles ; elles ne simulent pas de concentrations étalonnées ni le bruit optique du capteur.
 
 Les lampes locales conservent leur éclairage direct. Les rayons du ciel subissent l'atténuation sous-marine ; les matériaux non éclairés et les shaders propres à la surface océanique gardent leur rendu. Le dessous des vagues dépend donc du matériau de surface.
 

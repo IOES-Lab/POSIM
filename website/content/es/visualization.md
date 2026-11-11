@@ -36,7 +36,7 @@ Pulsa Ctrl+C para terminar. Usa una carpeta de salida nueva para cada grabación
 
 {{CODE:visualization:5}}
 
-Después de grabar, comprueba que el bag contenga tanto el tema de imagen como `/clock`. Detén el puente de la Terminal C con Ctrl+C antes de reproducir el bag.
+Después de grabar, comprueba que el bag contenga tanto el tópico de imagen como `/clock`. Detén el puente de la Terminal C con Ctrl+C antes de reproducir el bag.
 
 Detén el simulador antes de reproducir los datos sobre los mismos tópicos:
 

@@ -14,7 +14,7 @@ Usa i [terminali Linux preparati](terminals.md) su Ubuntu nativo, WSL o Docker. 
 | [Telecamera subacquea](camera.md) | Sensore RGBD e plugin degli effetti | Sistema Sensors con renderer e topic della telecamera |
 | [DVL](dvl.md) | Sensore DVL e configurazione dei fasci | Sistema DVL e bridge dei messaggi acustici incluso |
 | [Pressione](pressure.md) | Plugin direttamente sotto `model` | Pubblicazione ROS diretta di pressione e profondità |
-| [GNSS marino](gnss.md) | Plugin del ricevitore sul modello | Uscite ROS configurate del ricevitore |
+| [GNSS marino](gnss.md) | Plugin del ricevitore sul modello | Messaggi Gazebo `gz.msgs.Double_V`; per ROS serve un adattatore separato |
 | [USBL](usbl.md) | Plugin di ricetrasmettitore e transponder | Identificativi acustici corrispondenti e interfacce ROS |
 | [Sonar multibeam](sonar.md) | Sensore personalizzato sotto un link | Renderer Sensors, sistema multibeam del mondo e CUDA |
 

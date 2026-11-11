@@ -19,7 +19,7 @@ gz topic -e -t /dvl/velocity
 ros2 topic echo /dvl/velocity posim_interfaces/msg/DVL --once
 ```
 
-Stop the Gazebo viewer before the ROS command. Match the topic to your descriptor if you create a new sensor.
+Match the topic to your descriptor if you create a new sensor.
 
 ## SDF integration
 
@@ -49,7 +49,7 @@ The [complete DVL500-300 SDF](https://github.com/IOES-Lab/POSIM/blob/main/models
 
 | Sensor SDF field | Meaning | Example value |
 | --- | --- | --- |
-| `topic`, `update_rate` | Observation path and requested Hz | `/dvl/velocity`, 8 |
+| `topic`, `update_rate` | Observation path and requested update rate (Hz) | `/dvl/velocity`, 8 |
 | `gz:dvl/type` | Transducer arrangement | `phased_array` |
 | `arrangement` beam `aperture`, `rotation`, `tilt` | Angles; `degrees="true"` selects degrees | Aperture 3°, rotations −135/135/45/−45°, tilt 25° |
 | `minimum_range`, `maximum_range` | Acoustic range, m | 0.3, 200 |

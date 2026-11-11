@@ -66,7 +66,7 @@ Ogni messaggio contiene 15 numeri in doppia precisione. Gli indici partono da ze
 
 Stati: `0 disabled` (disabilitato), `1 submerged` (sommerso), `2 acquiring` (acquisizione), `3 fix` (posizione valida), `4 blocked` (bloccato), `5 surface unavailable` (superficie non disponibile).
 
-Una misura non valida contiene coordinate e velocità `NaN`. Contatto con l'acqua o blocco eliminano le misure in attesa. La riacquisizione richiede distanza continua sopra il margine. Il reset cancella timer e campioni ritardati e incrementa l'epoca.
+Una misura non valida contiene coordinate e velocità `NaN`. Contatto con l'acqua o blocco eliminano le misure in attesa. La riacquisizione richiede che l'antenna rimanga continuamente al di sopra del margine richiesto. Il reset cancella timer e campioni ritardati e incrementa l'epoca.
 
 Per bloccare l'antenna; usa `false` per liberarla:
 

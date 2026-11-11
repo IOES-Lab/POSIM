@@ -14,7 +14,7 @@ Conecta por RDP a **127.0.0.1:3390** con la cuenta `docker`. Abre una terminal d
 
 La imagen incluye binarios separados de ArduSub y ArduRover. El ejemplo selecciona ArduRover con `FRAME_CLASS=2`. Ejecuta **una instancia por entorno**: nombre del vehículo, archivos generados y puertos del controlador son fijos. Para varios vehículos, separa archivos, nombres, identidades y puertos, o utiliza entornos aislados.
 
-El controlador espera a que aparezca el vehículo y publique su IMU. Si la creación falla o supera 180 s, o no llega una medida IMU durante los 180 s siguientes, el lanzamiento termina con error e indica la etapa. Revisa los mensajes Gazebo y del sensor antes de repetirlo.
+El controlador espera a que aparezca el vehículo y publique los datos de su IMU. Si la creación falla o supera 180 s, o no llega una medida IMU durante los 180 s siguientes, el lanzamiento termina con error e indica la etapa. Revisa los mensajes Gazebo y del sensor antes de repetirlo.
 
 ## Modelo, control y navegación
 

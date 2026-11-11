@@ -17,7 +17,7 @@ Ajoutez un affichage Image dans RViz. Si le topic apparaît mais que les images 
 
 ## Configurer le plugin
 
-Placez ce capteur RGBD dans un `<link>`. Le monde doit charger `gz-sim-sensors-system` avec `<render_engine>ogre2</render_engine>`, comme le [monde de caméra](https://github.com/IOES-Lab/POSIM/blob/main/models/posim_worlds/worlds/camera_tutorial.world). Le plugin lit couleur/profondeur Gazebo et publie directement le topic ROS `/underwater_camera/simulated_image`.
+Placez ce capteur RGBD dans un `<link>`. Le monde doit charger `gz-sim-sensors-system` avec `<render_engine>ogre2</render_engine>`, comme le [monde de caméra](https://github.com/IOES-Lab/POSIM/blob/main/models/posim_worlds/worlds/camera_tutorial.world). Le plugin lit les images couleur et profondeur de Gazebo et publie directement le topic ROS `/underwater_camera/simulated_image`.
 
 {{CODE:camera:2}}
 
@@ -34,11 +34,11 @@ Placez ce capteur RGBD dans un `<link>`. Le monde doit charger `gz-sim-sensors-s
 
 `<topic>` doit produire un nom ROS valide. Sans cette balise, le plugin utilise le chemin Gazebo `/world/<world>/model/<model>/link/<link>/sensor/<sensor>`, auquel il ajoute `/simulated_image` pour ROS. Les modèles imbriqués ajoutent les noms de leurs modèles parents.
 
-La conversion profondeur-distance privilégie une projection de lentille explicite, puis les paramètres intrinsèques explicites, enfin la taille de l'image et le champ de vision horizontal. Les coordonnées du point principal peuvent être nulles. Les focales doivent être positives, les valeurs de lentille finies et les plans de coupe respecter `0 < near < far`, en mètres. Une configuration invalide produit une erreur et désactive la sortie.
+La conversion profondeur-distance privilégie une projection de lentille explicite, puis les paramètres intrinsèques explicites, enfin la taille de l'image et le champ de vision horizontal. Les coordonnées du point principal peuvent être nulles. Les focales doivent être positives, les valeurs de lentille doivent être finies et les plans de coupe doivent respecter `0 < near < far`, en mètres. Une configuration invalide produit une erreur et désactive la sortie.
 
 ## Synchronisation et valeurs d'exemple
 
-Couleur et profondeur sont associées par leur horodatage d'acquisition, quel que soit l'ordre d'arrivée. ROS conserve l'horodatage et l'identifiant de repère de l'image couleur. Un tampon plein élimine les images sans correspondance ; la remise à zéro du temps vide les images en attente et autorise un nouveau départ.
+Couleur et profondeur sont associées par leur horodatage d'acquisition, quel que soit l'ordre d'arrivée. ROS conserve l'horodatage et l'identifiant de repère de l'image couleur. Un tampon plein élimine les images sans correspondance ; la remise à zéro du temps supprime les images en attente et permet aux horodatages de repartir du temps réinitialisé.
 
 L'exemple demande **320 × 240 à 10 Hz**, une atténuation RVB **0.8/0.5/0.2** et un fond **85/107/47**. Le SDF remplace les valeurs par défaut du code.
 
@@ -52,7 +52,7 @@ Le [moteur de scène](underwater-rendering.md) applique des effets communs aux s
 
 ## Particules en suspension
 
-Le moteur peut afficher des particules dans la couleur RGB/RGBD. Désactivées au départ, elles s'activent par le [service d'apparence](underwater-rendering.md#turn-on-marine-snow).
+Le moteur peut afficher des particules dans les images couleur RGB/RGBD. Désactivées au départ, elles s'activent par le [service d'apparence](underwater-rendering.md#turn-on-marine-snow).
 
 - Leur position dans le monde est commune aux caméras. Elles dérivent uniformément avec le temps simulé, indépendamment des courants.
 - Les surfaces opaques les masquent. Elles sont visibles de **0.05 à 3 m**, dans les limites de la scène et du niveau moyen de l'eau.

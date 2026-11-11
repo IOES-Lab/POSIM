@@ -19,7 +19,7 @@ Read the first missing URI in the log. Check that its package resources were ins
 
 Check the graphics-driver and display-connection steps in your [installation guide](requirements.md). The Gazebo GUI and image sensors both need a working renderer. For CUDA sonar, also check the [CUDA libraries](sonar-tuning.md).
 
-For [underwater scene effects](underwater-rendering.md), check the `/posim/appearance/<session_nonce>/state` service, renderer/shader paths and active camera count. Suspended specks start off; enable them explicitly. Confirm applied revision and readiness after rendering. The camera attenuation example alone does not load the scene-effects system.
+For [underwater scene effects](underwater-rendering.md), check the `/posim/appearance/<session_nonce>/state` service, renderer/shader paths and active camera count. Suspended specks are disabled by default; enable them explicitly. Confirm applied revision and readiness after rendering. The camera attenuation example alone does not load the scene-effects system.
 
 For the documented **macOS arm64 / Ogre-Next 2.3.3** configuration, an [opt-in lifetime overlay helper](https://github.com/IOES-Lab/POSIM/blob/main/extras/ogre/README.md) builds and selects an isolated Ogre core for one process. Follow its exact SDK/source checks and verify loaded-library paths. It is not enabled by the standard installer, and other Ogre versions or platforms require their own matching profile.
 

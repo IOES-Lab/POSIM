@@ -99,7 +99,7 @@ Expect about **120,938 Pa** and **2 m** depth. The [Sea pressure](pressure.md) p
 
 ## Edit and observe the change
 
-1. Stop Terminal A with Ctrl+C.
+1. Stop the simulation in Terminal A with Ctrl+C.
 2. Change the station's pose from `0 0 -2 0 0 0` to `0 0 -4 0 0 0`.
 3. Validate and start the file again.
 4. Repeat the two topic commands. Expect about **140,551 Pa** and **4 m** depth.

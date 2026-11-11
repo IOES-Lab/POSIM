@@ -14,7 +14,7 @@
 | [水下相机](camera.md) | RGBD 传感器与图像效果插件 | 带渲染器的 Sensors 系统及相机话题 |
 | [DVL](dvl.md) | DVL 传感器与波束配置 | DVL 系统及随附的声学消息桥接 |
 | [压力](pressure.md) | `model` 下的直接子插件 | 直接发布 ROS 压力与深度消息 |
-| [海洋 GNSS](gnss.md) | 机器人模型上的接收机插件 | 接收机配置的 ROS 输出 |
+| [海洋 GNSS](gnss.md) | 机器人模型上的接收机插件 | Gazebo `gz.msgs.Double_V` 测量消息；接入 ROS 需要单独的适配器 |
 | [USBL](usbl.md) | 收发机与应答器插件 | 匹配的声学标识及 ROS 接口 |
 | [多波束声纳](sonar.md) | 连杆下的自定义传感器 | Sensors 渲染器、世界多波束系统及 CUDA |
 

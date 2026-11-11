@@ -38,7 +38,7 @@ Die Umrechnung von Tiefe in Entfernung entlang des Kamerastrahls nutzt zuerst ei
 
 ## Zeitstempel und Beispielwerte
 
-Farb- und Tiefenbilder werden unabhängig von der Ankunftsreihenfolge anhand ihres Aufnahmezeitstempels gepaart. ROS behält Zeitstempel und Frame-ID des Farbbilds bei. Ist der Puffer voll, werden Bilder ohne Partner verworfen. Ein Zurücksetzen der Simulationszeit leert wartende Bilder und erlaubt einen Zeitneustart.
+Farb- und Tiefenbilder werden unabhängig von der Ankunftsreihenfolge anhand ihres Aufnahmezeitstempels gepaart. ROS behält Zeitstempel und Frame-ID des Farbbilds bei. Ist der Puffer voll, werden Bilder ohne Partner verworfen. Ein Zurücksetzen der Simulationszeit verwirft wartende Bilder und erlaubt einen Neustart der Zeitstempel.
 
 Das Beispiel fordert **320 × 240 bei 10 Hz**, RGB-Dämpfung **0.8/0.5/0.2** und Hintergrund **85/107/47** an. SDF-Werte überschreiben die Standardwerte des Codes.
 

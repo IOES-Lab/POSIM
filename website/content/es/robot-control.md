@@ -26,7 +26,7 @@ La durabilidad `volatile` selecciona muestras nuevas; el filtro espera a `connec
 
 El adaptador convierte `/joy` y `/keyboard/joy` en órdenes MAVROS:
 
-- Publicación: **20 Hz**.
+- Frecuencia de publicación: **20 Hz**.
 - Tiempo de espera de la entrada: **0,3 s**.
 
 Utiliza una sola fuente de órdenes y comprueba el estado de armado y navegación. [ROV y BlueROV2](rovs.md) explica el teclado y el puente WebSocket.

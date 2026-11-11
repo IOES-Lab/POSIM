@@ -102,21 +102,21 @@ sudo apt update && sudo apt install -y \
 # ardupilot_gazebo build resolves Jetty's vendored CMake packages.
 sudo mkdir -p /opt/ardusub_ws && cd /opt/ardusub_ws || exit
 if [[ -n "${POSIM_EXTRAS_DIR:-}" && -f "${POSIM_EXTRAS_DIR}/ardusub-ubuntu-install.sh" ]]; then
-    sudo cp "${POSIM_EXTRAS_DIR}/ardusub-ubuntu-install.sh" ./ardusub-ubuntu-install.sh
+    sudo bash "${POSIM_EXTRAS_DIR}/ardusub-ubuntu-install.sh"
 else
-    sudo wget https://raw.githubusercontent.com/IOES-Lab/POSIM/main/extras/ardusub-ubuntu-install.sh
+    ARDUPILOT_HELPERS="$(mktemp -d)"
+    mkdir -p "$ARDUPILOT_HELPERS/ardupilot_gazebo" "$ARDUPILOT_HELPERS/premerge"
+    for ARDUPILOT_HELPER in ardusub-ubuntu-install.sh \
+        ardupilot_gazebo/patch_resampling.py ardupilot_gazebo/SensorResampler.hh \
+        premerge/apply.py premerge/manifest.json premerge/gst-sps.patch \
+        premerge/gst-camera.patch premerge/terra.patch; do
+        curl -fsSL "https://raw.githubusercontent.com/IOES-Lab/POSIM/main/extras/$ARDUPILOT_HELPER" \
+            -o "$ARDUPILOT_HELPERS/$ARDUPILOT_HELPER"
+    done
+    sudo bash "$ARDUPILOT_HELPERS/ardusub-ubuntu-install.sh"
+    rm -rf "$ARDUPILOT_HELPERS"
 fi
-# The standalone installer needs the same reviewed bundle as Docker's COPY extras.
-sudo mkdir -p /opt/ardusub_ws/premerge
-for BACKPORT_FILE in apply.py manifest.json gst-sps.patch gst-camera.patch terra.patch; do
-    if [[ -f "${POSIM_EXTRAS_DIR}/premerge/$BACKPORT_FILE" ]]; then
-        sudo cp "${POSIM_EXTRAS_DIR}/premerge/$BACKPORT_FILE" /opt/ardusub_ws/premerge/
-    else
-        curl -fsSL "https://raw.githubusercontent.com/IOES-Lab/POSIM/main/extras/premerge/$BACKPORT_FILE" \
-            | sudo tee "/opt/ardusub_ws/premerge/$BACKPORT_FILE" >/dev/null
-    fi
-done
-sudo chmod +x ardusub-ubuntu-install.sh && sudo bash ./ardusub-ubuntu-install.sh
+
 
 # Mavros install
 sudo apt-get -y install "ros-${DIST}-mavros" "ros-${DIST}-mavros-msgs" \

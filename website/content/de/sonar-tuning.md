@@ -18,7 +18,7 @@ Beenden Sie nach einer stabilen Messung mit Strg+C. Prüfen Sie die Simulationsg
 
 {{CODE:sonar-tuning:1}}
 
-Der interne Weltname ist `default`. Notieren Sie `real_time_factor`: Angeforderte 30 Hz Simulationszeit garantieren keine 30 Bilder je realer Sekunde. Strg+C beendet die Anzeige.
+Der interne Weltname ist `default`. Notieren Sie `real_time_factor`: Eine angeforderte Bildrate von 30 Hz bezogen auf die Simulationszeit garantiert keine 30 Bilder je realer Sekunde. Strg+C beendet die Anzeige.
 
 ## Eine Einstellung vergleichen
 

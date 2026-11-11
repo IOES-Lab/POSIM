@@ -489,6 +489,7 @@
       <fdm_port_in>9002</fdm_port_in>
       <connectionTimeoutMaxCount>5</connectionTimeoutMaxCount>
       <lock_step>1</lock_step>
+      <sitl_sensor_rate>1000</sitl_sensor_rate>
 
       <!-- Transform from the Gazebo body frame (x-forward, y-left, z-up)
            to the ArduPilot body frame (x-forward, y-right, z-down) -->

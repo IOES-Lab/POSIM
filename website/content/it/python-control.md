@@ -12,7 +12,7 @@ La posizione compare circa una volta al secondo. Ctrl+C arresta l'osservatore la
 
 ## Inviare un comando limitato
 
-Salva il programma seguente come `pulse_thruster.py` ed esegui `python3 pulse_thruster.py`. Attende un subscriber, applica **5 N al propulsore 1** per circa due secondi misurati sul computer ospite, poi invia zero. L'asse di montaggio determina forza e momento risultanti.
+Salva il programma seguente come `pulse_thruster.py` ed esegui `python3 pulse_thruster.py`. Attende un subscriber, applica **5 N al propulsore 1** per circa due secondi misurati sul computer host, poi invia zero. L'asse di montaggio determina forza e momento risultanti.
 
 {{CODE:python-control:1}}
 
