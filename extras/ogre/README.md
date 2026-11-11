@@ -1,8 +1,8 @@
-# Pre-merge Ogre lifetime overlay (macOS arm64)
+# Ogre lifetime overlay (macOS arm64)
 
-This **opt-in** helper applies the material/datablock lifetime correction proposed
-in [Ogre-Next #598](https://github.com/OGRECave/ogre-next/pull/598) before upstream
-merges it. It builds a separate Ogre core and selects it for one child process.
+This **opt-in** helper backports the material/datablock lifetime correction merged
+in [Ogre-Next #598](https://github.com/OGRECave/ogre-next/pull/598) to the pinned
+Ogre 2.3.3 source. It builds a separate Ogre core and selects it for one child process.
 It does not overwrite a Homebrew library, conda package, desktop engine, shell
 profile, or dependency manifest, and it never runs a global install command.
 
@@ -79,7 +79,7 @@ engine**, while selecting the patched Ogre first. Empty path entries are
 removed and `DYLD_INSERT_LIBRARIES` is not used. It does not source shell
 profiles or start a background service. Exiting the process removes the effect.
 
-For combined pre-merge validation, independently build the bridge, Wave Sim and
+For combined overlay validation, independently build the bridge, Wave Sim and
 sonar into a fresh prefix. Put their library paths in `DYLD_LIBRARY_PATH` and
 plugin paths in `GZ_SIM_SYSTEM_PLUGIN_PATH` / `GZ_RENDERING_PLUGIN_PATH` before
 using the wrapper. Verify **every relevant loaded library path** in the dyld
@@ -107,13 +107,12 @@ installed `.pc` or header file was edited.
 Before relying on the overlay, check depth-camera recreation, live data after
 sonar/wave recreation, matched raw/image timestamps, and normal server/bridge
 shutdown, with the loaded-library trace retained. A failed check remains a
-failure. This does not validate sonar distance accuracy or eliminate the
-separate strongest-peak criterion issue.
+failure. This does not validate sonar distance accuracy.
 
 The retained integration is a bounded Mac/Metal fixture (CPU and WGPU), not a
 full desktop/web/ArduPilot acceptance run, a long-duration qualification, or
-Linux/Windows support. Upstream merge, packaging approval and automatic adoption
-in POSIM's standard installers remain separate decisions.
+Linux/Windows support. Packaging approval and automatic adoption in POSIM's
+standard installers remain separate decisions.
 
 To stop using the overlay, run the original engine without this wrapper. Keep
 working source and research data; the helper provides no automatic cleanup.
