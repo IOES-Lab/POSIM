@@ -38,7 +38,7 @@ Ambos necesitan el mismo `namespace`, no vacío. Incluye los bloques `constant_c
 
 ## Preparar un perfil de profundidad
 
-El [CSV de ejemplo](https://github.com/IOES-Lab/POSIM/blob/main/models/posim_worlds/worlds/transientOceanCurrentDatabase.csv) contiene velocidad hacia el norte (m/s), velocidad hacia el este (m/s) y profundidad (m), en ese orden.
+El [CSV de ejemplo](https://github.com/IOES-Lab/POSIM/blob/main/models/posim_worlds/worlds/transientOceanCurrentDatabase.csv) contiene velocidad en el eje X del mundo (m/s), velocidad en el eje Y del mundo (m/s) y profundidad (m), en ese orden. Los nombres heredados `velocity_north`, `velocity_east` y `velocity_down` corresponden directamente a los ejes X, Y y Z del mundo.
 
 - Conserva las tres primeras filas descriptivas y de cabecera.
 - Incluye al menos dos capas, con tres números finitos por fila.
@@ -122,6 +122,8 @@ Lee el modelo, cambia sus límites y ajusta la primera capa:
 ## Incorporar datos de marea
 
 Configura `<tidal_oscillation>` con un CSV o componentes armónicas, como M2/S2/N2, las direcciones de flujo y reflujo y una hora inicial GMT. Las unidades de los ejemplos armónicos son metros para la amplitud, grados para la fase y grados/hora para la velocidad angular. No las confundas con los ángulos en radianes de los servicios.
+
+En el modo de mareas, la señal armónica calculada, o la velocidad del CSV dividida entre 100, se multiplica por la primera columna del perfil de profundidad. Las amplitudes de altura del ejemplo se usan como factores numéricos; el modelo no convierte la altura de marea en velocidad de corriente. Calibra conjuntamente la señal y el perfil para obtener la velocidad prevista.
 
 El CSV de mareas tiene una cabecera y filas `YYYY-MM-DD HH:MM,event,speed`:
 

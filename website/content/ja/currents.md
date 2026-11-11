@@ -38,7 +38,7 @@ BでGazebo、ROSの順に確認します。最初の表示をCtrl+Cで止めて�
 
 ## 深度別の流速プロファイルを用意する
 
-[サンプルCSV](https://github.com/IOES-Lab/POSIM/blob/main/models/posim_worlds/worlds/transientOceanCurrentDatabase.csv)の列は、北向き速度（m/s）、東向き速度（m/s）、深さ（m）の順です。
+[サンプルCSV](https://github.com/IOES-Lab/POSIM/blob/main/models/posim_worlds/worlds/transientOceanCurrentDatabase.csv)の列は、ワールドX軸の速度（m/s）、ワールドY軸の速度（m/s）、深さ（m）の順です。従来のキー`velocity_north`、`velocity_east`、`velocity_down`は、それぞれワールドX、Y、Z軸に直接対応します。
 
 - 先頭3行の説明・見出しを残します。
 - 少なくとも2層を用意し、各データ行に有限の数値を3つ指定します。
@@ -122,6 +122,8 @@ Bでサービスを調べ、水平な0.3 m/sの流れを設定します。
 ## 潮流データを使う
 
 `<tidal_oscillation>`にCSV、またはM2/S2/N2などの分潮、上げ潮・下げ潮の流向、開始時刻（GMT）を設定します。分潮の例では、振幅はm、位相は度、角速度は度/時です。海流サービスの角度はラジアンなので区別してください。
+
+潮流モードでは、計算した分潮信号、またはCSVの速度を100で割った値に、水深プロファイルの第1列を掛けます。例の高さ振幅は数値係数として使われ、潮位を流速に変換するモデルではありません。目的の流速に合わせて信号とプロファイルの組み合わせを校正してください。
 
 潮流CSVは見出し1行と`YYYY-MM-DD HH:MM,event,speed`形式のデータ行で構成します。
 

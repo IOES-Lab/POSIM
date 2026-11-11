@@ -153,7 +153,7 @@
         <databasefileName>transientOceanCurrentDatabase.csv</databasefileName>
       </transient_current>
 
-      <!-- transient current database CSV file (North direction value) is used as a depth variation -->
+      <!-- In tidal mode, the first depth-profile column scales the evaluated tidal signal. -->
       <tidal_oscillation>
         <!-- Method 1: database file
         https://tidesandcurrents.noaa.gov/noaacurrents/Annual?id=ACT1951_1 -->
@@ -166,6 +166,8 @@
         https://tidesandcurrents.noaa.gov/harcon.html?unit=0&timezone=0&id=8447685&name=Chappaquoit+Point&state=MA -->
         <!-- Harmonic Constituents calculated in meters and GMT -->
         <!-- default unit for speed is deg/hour, phase is in degrees, amplitude in meters -->
+        <!-- These example height coefficients are used as numeric factors; the model does
+        not convert tidal height to current speed. Calibrate the combined profile and signal. -->
         <!-- M2: Principal Lunar semidiurnal constituent -->
         <!-- S2: Principal solar semidurnal constituent -->
         <!-- N2: Larger lunar elliptic semidurnal constituent -->

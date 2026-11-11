@@ -698,7 +698,7 @@ void OceanCurrentWorldPlugin::Update(
   // Update current horizontal direction around z axis of flow frame
   double vertAngle = this->sharedDataPtr->currentVertAngleModel.Update(time);
 
-  // Generating the current velocity vector as in the North-East-Down frame
+  // Generate the current velocity vector in the world (ENU) frame.
   this->sharedDataPtr->currentVelocity = gz::math::Vector3d(
     currentVelMag * cos(horzAngle) * cos(vertAngle),
     currentVelMag * sin(horzAngle) * cos(vertAngle), currentVelMag * sin(vertAngle));

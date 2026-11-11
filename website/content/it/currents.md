@@ -38,7 +38,7 @@ Usa lo stesso `namespace`, non vuoto, nei due plugin. Sono necessari entrambi i 
 
 ## Preparare un profilo di profondità
 
-Il [CSV di esempio](https://github.com/IOES-Lab/POSIM/blob/main/models/posim_worlds/worlds/transientOceanCurrentDatabase.csv) contiene, nell'ordine, velocità verso nord (m/s), velocità verso est (m/s) e profondità (m).
+Il [CSV di esempio](https://github.com/IOES-Lab/POSIM/blob/main/models/posim_worlds/worlds/transientOceanCurrentDatabase.csv) contiene, nell'ordine, la velocità lungo l'asse X del mondo (m/s), la velocità lungo l'asse Y del mondo (m/s) e la profondità (m). I nomi storici `velocity_north`, `velocity_east` e `velocity_down` corrispondono direttamente agli assi X, Y e Z del mondo.
 
 - Conserva le prime tre righe descrittive e di intestazione.
 - Inserisci almeno due strati, con esattamente tre numeri finiti per riga.
@@ -122,6 +122,8 @@ Leggi il modello, modifica i suoi limiti e regola il primo strato:
 ## Usare dati di marea
 
 Configura `<tidal_oscillation>` con un CSV o componenti armoniche, come M2/S2/N2, le direzioni di flusso e riflusso e un istante iniziale GMT. Negli esempi armonici, l'ampiezza è in metri, la fase in gradi e la velocità angolare in gradi/ora. Queste unità sono diverse dai radianti dei servizi della corrente.
+
+In modalità marea, il segnale armonico calcolato, oppure la velocità del CSV divisa per 100, viene moltiplicato per la prima colonna del profilo di profondità. Le ampiezze di altezza dell'esempio sono usate come fattori numerici; il modello non converte l'altezza della marea in velocità della corrente. Calibra insieme il segnale e il profilo per ottenere la velocità desiderata.
 
 Il CSV contiene una riga di intestazione, poi righe `YYYY-MM-DD HH:MM,event,speed`:
 

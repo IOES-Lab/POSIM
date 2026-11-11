@@ -63,7 +63,7 @@ Place both plugins directly inside `<world>`, following the [example world SDF](
 </plugin>
 ```
 
-The [stratified-current CSV](https://github.com/IOES-Lab/POSIM/blob/main/models/posim_worlds/worlds/transientOceanCurrentDatabase.csv) contains northward speed (m/s), eastward speed (m/s) and depth (m), in that order. Preserve its first three description/header rows. Supply at least two layers, with exactly three finite numbers per row and strictly increasing, nonnegative depths. A missing or malformed profile disables current publication and logs an error.
+The [stratified-current CSV](https://github.com/IOES-Lab/POSIM/blob/main/models/posim_worlds/worlds/transientOceanCurrentDatabase.csv) contains world X velocity (m/s), world Y velocity (m/s) and depth (m), in that order. The legacy keys `velocity_north`, `velocity_east` and `velocity_down` map directly to world X, Y and Z. Preserve the first three description/header rows. Supply at least two layers, with exactly three finite numbers per row and strictly increasing, nonnegative depths. A missing or malformed profile disables current publication and logs an error.
 
 The world ROS plugin relays the full database; the model-current plugin computes flow at vehicle depth. Match the model `<namespace>` to the hydrodynamics subscription `/model/<namespace>/ocean_current`. Flow relative to vehicle velocity affects its hydrodynamic response.
 
@@ -173,6 +173,8 @@ The world plugin loads a configured depth database and uses stochastic current m
 Preserve the database units, interpolation range, world origin and time reference when changing a profile. Compare received current and vehicle response with the same initial pose before interpreting a navigation result.
 
 For tides, configure `<tidal_oscillation>` with CSV input or harmonic constituents such as M2/S2/N2, ebb/flood directions and a GMT start time. Example harmonic units are amplitude in m, phase in degrees and angular speed in degrees/hour. Distinguish tidal direction settings from the radian angles used by current services.
+
+In tidal mode, the evaluated harmonic signal, or CSV speed divided by 100, is multiplied by the first depth-profile column. The example's height amplitudes are used as numeric factors; the model does not convert tidal height to current speed. Calibrate the combined signal and profile for the intended current velocity.
 
 Tidal CSV files have one header row followed by `YYYY-MM-DD HH:MM,event,speed` rows. Events are `flood`, `ebb` or `slack`; speed is finite cm/s, with `-` permitted for skipped slack rows. Dates must be valid and strictly increasing. The loader retains alternating positive/negative peaks and requires at least two. Interpolation holds the first or last peak outside the time range. Missing files, incomplete settings or malformed data disable the world-current plugin with an error.
 
