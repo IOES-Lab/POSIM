@@ -227,6 +227,12 @@ RUN set -e; \
     cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo && \
     make -j2
 
+# Pre-merge Terra shader resources; ROS-managed files remain unchanged.
+RUN python3 "$POSIM_UNDERLAY/src/posim/extras/premerge/apply.py" terrain \
+      --source "/opt/ros/${ROS_DISTRO}/opt/gz_rendering_vendor/share/gz/gz-rendering" \
+      --output /opt/posim/terra
+ENV GZ_RENDERING_RESOURCE_PATH=/opt/posim/terra
+
 # Waves are built during the normal POSIM image build. The upstream checkout
 # and GPL notices stay separate from POSIM under /opt/asv_wave_sim.
 RUN bash $POSIM_UNDERLAY/src/posim/extras/install-waves.sh

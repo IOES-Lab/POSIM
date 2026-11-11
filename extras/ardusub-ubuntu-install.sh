@@ -2,22 +2,11 @@
 set -euo pipefail
 POSIM_INSTALL_EXTRAS=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 
-# Repeat H.264 parameter sets at keyframes so receivers can join a running stream.
-# The same compatibility fix is used by the native and ARM64 image installers.
+# Keep the existing SPS/PPS fix and apply only reviewed camera backports.
+# Resolve before changing working directory during the full installer.
+POSIM_PREMERGE_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/premerge"
 patch_gst_camera() {
-    python3 - "$1" <<'PY'
-from pathlib import Path
-import sys
-
-source = Path(sys.argv[1]) / "src/GstCameraPlugin.cc"
-text = source.read_text()
-setting = 'g_object_set(G_OBJECT(payloader), "config-interval", -1, nullptr);'
-if setting not in text:
-    anchor = '    GstElement *payloader = gst_element_factory_make("rtph264pay", nullptr);'
-    if text.count(anchor) != 1:
-        raise SystemExit("Unsupported GstCameraPlugin source: review the H.264 keyframe setting")
-    source.write_text(text.replace(anchor, anchor + "\n    " + setting))
-PY
+    python3 "$POSIM_PREMERGE_DIR/apply.py" gst --source "$1"
 }
 
 if [[ "${1:-}" == "--patch-gst-camera" ]]; then

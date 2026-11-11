@@ -105,15 +105,18 @@ if [[ -n "${POSIM_EXTRAS_DIR:-}" && -f "${POSIM_EXTRAS_DIR}/ardusub-ubuntu-insta
     sudo bash "${POSIM_EXTRAS_DIR}/ardusub-ubuntu-install.sh"
 else
     ARDUPILOT_HELPERS="$(mktemp -d)"
-    mkdir -p "$ARDUPILOT_HELPERS/ardupilot_gazebo"
+    mkdir -p "$ARDUPILOT_HELPERS/ardupilot_gazebo" "$ARDUPILOT_HELPERS/premerge"
     for ARDUPILOT_HELPER in ardusub-ubuntu-install.sh \
-        ardupilot_gazebo/patch_resampling.py ardupilot_gazebo/SensorResampler.hh; do
+        ardupilot_gazebo/patch_resampling.py ardupilot_gazebo/SensorResampler.hh \
+        premerge/apply.py premerge/manifest.json premerge/gst-sps.patch \
+        premerge/gst-camera.patch premerge/terra.patch; do
         curl -fsSL "https://raw.githubusercontent.com/IOES-Lab/POSIM/main/extras/$ARDUPILOT_HELPER" \
             -o "$ARDUPILOT_HELPERS/$ARDUPILOT_HELPER"
     done
     sudo bash "$ARDUPILOT_HELPERS/ardusub-ubuntu-install.sh"
     rm -rf "$ARDUPILOT_HELPERS"
 fi
+
 
 # Mavros install
 sudo apt-get -y install "ros-${DIST}-mavros" "ros-${DIST}-mavros-msgs" \
@@ -155,6 +158,11 @@ else
     rm -rf "$WAVE_HELPERS"
 fi
 
+# Separate rendering resources: never modify files owned by the ROS packages.
+sudo python3 /opt/ardusub_ws/premerge/apply.py terrain \
+    --source "/opt/ros/${DIST}/opt/gz_rendering_vendor/share/gz/gz-rendering" \
+    --output /opt/posim/terra
+
 # Environment variables setup (write to ~/.posim/env and source from shell rc)
 TARGET_USER="${SUDO_USER:-${USER:-}}"
 if [[ -z "$TARGET_USER" ]]; then
@@ -184,6 +192,7 @@ export PATH=/opt/ardusub_ws/ardupilot/Tools/autotest:\$PATH
 export PATH=/opt/ardusub_ws/ardupilot/build/sitl/bin:\$PATH
 export GEOGRAPHICLIB_GEOID_PATH=/usr/share/GeographicLib/geoids
 export GZ_VERSION=jetty
+export GZ_RENDERING_RESOURCE_PATH=/opt/posim/terra:\${GZ_RENDERING_RESOURCE_PATH:-}
 export LD_LIBRARY_PATH=/opt/waves/lib:\${LD_LIBRARY_PATH:-}
 export GZ_SIM_SYSTEM_PLUGIN_PATH=/opt/waves/lib:/opt/ardusub_ws/ardupilot_gazebo/build:\${GZ_SIM_SYSTEM_PLUGIN_PATH:-}
 export GZ_SIM_RESOURCE_PATH=/opt/asv_wave_sim/gz-waves-models/models:/opt/asv_wave_sim/gz-waves-models/world_models:/opt/ardusub_ws/ardupilot_gazebo/models:/opt/ardusub_ws/ardupilot_gazebo/worlds:\${GZ_SIM_RESOURCE_PATH:-}
