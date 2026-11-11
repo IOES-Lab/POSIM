@@ -553,7 +553,7 @@ CArray2D sonar_calculation_wrapper(
   }
 
   // ########################################################//
-  // #########   Summation, Culling and windowing   #########//
+  // #########   Summation and beam correction     #########//
   // ########################################################//
 
   dim3 blockDim(BLOCK_SIZE);
@@ -653,8 +653,8 @@ CArray2D sonar_calculation_wrapper(
 
     long long dcount = duration.count();
 
-    printf("GPU Window & Correction %lld/100 [s]\n", dcount / 10000);
-    printf("GPU Window & Correction: %.3f ms\n", static_cast<float>(dcount) / 1000.0f);
+    printf("GPU Beam Correction %lld/100 [s]\n", dcount / 10000);
+    printf("GPU Beam Correction: %.3f ms\n", static_cast<float>(dcount) / 1000.0f);
 
     start = std::chrono::high_resolution_clock::now();
   }

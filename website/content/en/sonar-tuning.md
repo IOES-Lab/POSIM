@@ -126,7 +126,7 @@ Save the SDF, POSIM revision, selected backend/adapter, driver/toolkit versions,
 
 <figure><a href="{{ASSET_PREFIX}}media/notion/sonar-optimization-a26c9419.png"><img width="1049" height="554" src="{{ASSET_PREFIX}}media/notion/sonar-optimization-a26c9419.png" alt="GPU stages in sonar processing" loading="lazy" decoding="async"></a><figcaption>GPU stages in sonar processing</figcaption></figure>
 
-GPU processing includes ray summation, window/correction and FFT stages. Profile computation and memory transfers separately. Figure: POSIM Notion Wiki.
+GPU processing includes ray summation, beam correction and FFT stages. WGPU also applies the supplied frequency window; the CUDA path does not apply that window. Profile computation and memory transfers separately. Figure: POSIM Notion Wiki.
 
 Sonar-only worlds can crash during Ogre2 initialization with the tested Gazebo Sim 10.5 macOS SDK. Include a small built-in camera in the world when using that SDK.
 
