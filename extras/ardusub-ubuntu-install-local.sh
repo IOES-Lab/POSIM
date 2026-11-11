@@ -12,7 +12,8 @@ export GZ_VERSION="${GZ_VERSION:-jetty}"
 USER_NAME=$(logname 2>/dev/null || echo "${SUDO_USER:-$USER}")
 export USER="$USER_NAME"
 
-ARDUPILOT_COMMIT="${ARDUPILOT_COMMIT:-30257f01185471ab4c1ac544e47d1b4437e44c98}"
+# ArduPilot 4.7.2 stable for ArduSub and ArduRover.
+ARDUPILOT_COMMIT="${ARDUPILOT_COMMIT:-fb773567896014da007bca58358704d4a0d8516f}"
 ARDUPILOT_GAZEBO_COMMIT="${ARDUPILOT_GAZEBO_COMMIT:-082a0fe231f6e63bc8d1598f1cba461d9e2ea7f5}"
 mkdir -p "/home/$USER/ardusub_ws" && cd "/home/$USER/ardusub_ws" || exit
 git clone https://github.com/ArduPilot/ardupilot.git --recurse-submodules

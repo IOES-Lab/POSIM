@@ -36,8 +36,8 @@ source "/opt/ros/${ROS_DISTRO}/setup.bash"
 set -u
 export GZ_VERSION="${GZ_VERSION:-jetty}"
 
-# Commit used by the verified Lyrical / Python 3.14 build.
-ARDUPILOT_COMMIT="${ARDUPILOT_COMMIT:-30257f01185471ab4c1ac544e47d1b4437e44c98}"
+# ArduPilot 4.7.2 stable for ArduSub and ArduRover.
+ARDUPILOT_COMMIT="${ARDUPILOT_COMMIT:-fb773567896014da007bca58358704d4a0d8516f}"
 ARDUPILOT_GAZEBO_COMMIT="${ARDUPILOT_GAZEBO_COMMIT:-082a0fe231f6e63bc8d1598f1cba461d9e2ea7f5}"
 # Fetch pinned revisions over HTTP/1.1 and retry interrupted GitHub transfers.
 retry() {

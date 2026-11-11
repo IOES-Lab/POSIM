@@ -153,9 +153,9 @@ RUN . "$POSIM_UNDERLAY/install/setup.sh" && \
       "$POSIM_MAVROS_OVERLAY/install"
 
 # --- ArduSub SITL (BlueROV2) — Python 3.14 compatibility shims required, see notes/ardusub-sitl-setup.md ---
-# Pinned to the commit used by the verified Ubuntu 26.04 / Python 3.14 build.
+# ArduPilot 4.7.2 stable for ArduSub and ArduRover.
 USER root
-ARG ARDUSUB_COMMIT="30257f01185471ab4c1ac544e47d1b4437e44c98"
+ARG ARDUSUB_COMMIT="fb773567896014da007bca58358704d4a0d8516f"
 ARG ARDUPILOT_GAZEBO_COMMIT="082a0fe231f6e63bc8d1598f1cba461d9e2ea7f5"
 WORKDIR /home/$USER
 # Fetch only the pinned revision before downloading its submodules. Use HTTP/1.1
