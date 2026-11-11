@@ -96,11 +96,7 @@ def launch_setup(context, *args, **kwargs):
         "fi; "
         f"sleep {ui_launch_delay}; "
         "while true; do "
-        'if [ "$(id -u)" -eq 0 ]; then '
-        "sudo -u ubuntu qgroundcontrol; "
-        "else "
         "qgroundcontrol; "
-        "fi; "
         "sleep 3; "
         "done"
     )
@@ -121,11 +117,7 @@ def launch_setup(context, *args, **kwargs):
         "exit 0; "
         "fi; "
         f"sleep {ui_launch_delay}; "
-        'if [ "$(id -u)" -eq 0 ]; then '
-        f"sudo -u ubuntu firefox --new-window '{virtual_joystick_url}'; "
-        "else "
         f"firefox --new-window '{virtual_joystick_url}'; "
-        "fi"
     )
     joystick_process = ExecuteProcess(
         cmd=[

@@ -35,6 +35,7 @@ if(BUILD_TESTING)
   ament_add_pytest_test(test_ws_lifecycle test/test_ws_lifecycle.py)
   ament_add_pytest_test(test_sim_clock_configs test/test_sim_clock_configs.py)
   ament_add_pytest_test(test_rexrov_inertias test/test_rexrov_inertias.py)
+  ament_add_pytest_test(test_desktop_launch test/test_desktop_launch.py)
 endif()
 
 ament_package()

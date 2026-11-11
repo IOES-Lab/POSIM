@@ -1,5 +1,5 @@
 ---
-name: QGroundControl launcher checks
+name: Desktop launcher checks
 
 # yamllint disable-line rule:truthy
 on:
@@ -7,11 +7,15 @@ on:
     branches: [main]
     paths:
       - ".docker/**"
+      - "models/posim_robot_models/config/**"
+      - "models/posim_robot_models/test/test_desktop_launch.py"
       - ".github/workflows/docker-launcher-tests.yml"
   push:
     branches: [main]
     paths:
       - ".docker/**"
+      - "models/posim_robot_models/config/**"
+      - "models/posim_robot_models/test/test_desktop_launch.py"
       - ".github/workflows/docker-launcher-tests.yml"
 
 permissions:
@@ -28,4 +32,8 @@ jobs:
       - name: Check shell syntax and launcher behavior
         run: |
           bash -n .docker/qgroundcontrol-arm64.sh
+          bash -n .docker/qgroundcontrol.sh
+          bash -n .docker/firefox.sh
+          bash -n .docker/desktop-app.sh
           python3 .docker/tests/test_qgroundcontrol_arm64.py
+          python3 models/posim_robot_models/test/test_desktop_launch.py

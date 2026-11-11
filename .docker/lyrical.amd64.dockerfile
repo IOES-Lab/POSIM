@@ -32,14 +32,15 @@ RUN mkdir -p /opt/QGC && cd /opt/QGC && \
     rm QGroundControl-x86_64.AppImage
 
 COPY .docker/qgroundcontrol.sh /usr/local/bin/qgroundcontrol
+COPY .docker/firefox.sh /usr/local/bin/firefox
+COPY .docker/desktop-app.sh /usr/local/bin/posim-desktop-app
 RUN useradd --create-home --user-group --groups dialout --shell /bin/bash posim-qgc && \
-    chmod 0755 /usr/local/bin/qgroundcontrol
+    chmod 0755 /usr/local/bin/qgroundcontrol /usr/local/bin/firefox /usr/local/bin/posim-desktop-app
 
 # Install Firefox from Mozilla.
 RUN curl -L "https://download.mozilla.org/?product=firefox-latest-ssl&os=linux64&lang=en-US" \
       -o /tmp/firefox.tar.xz && \
     tar -xJf /tmp/firefox.tar.xz -C /opt && \
-    ln -sf /opt/firefox/firefox /usr/local/bin/firefox && \
     rm -f /tmp/firefox.tar.xz
 
 # Build the exact POSIM revision supplied as the Docker build context. Import the
