@@ -1,8 +1,16 @@
+import os
+import shlex
+
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, OpaqueFunction
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.substitutions import FindPackageShare
+
+
+def _quote_path(path):
+    # Keep Windows shell handling unchanged; shlex.quote is POSIX-only.
+    return shlex.quote(path) if os.name == "posix" else path
 
 
 def launch_setup(context, *args, **kwargs):
@@ -28,9 +36,9 @@ def launch_setup(context, *args, **kwargs):
         world_filepath = PathJoinSubstitution(
             [FindPackageShare("posim_worlds"), "worlds", world_filename]
         )
-        gz_args = [world_filepath]
+        gz_args = [_quote_path(world_filepath.perform(context))]
     else:
-        gz_args = [world_name]
+        gz_args = [_quote_path(world_name.perform(context))]
 
     run_server_only = (
         headless.perform(context).lower() == "true" or gui.perform(context).lower() == "false"
