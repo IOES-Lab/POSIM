@@ -212,13 +212,22 @@ if(BUILD_TESTING)
   target_link_libraries(physical_readout_test PRIVATE
     ${PROJECT_NAME} ${OpenCV_LIBS})
   add_test(NAME physical_readout_cpu COMMAND physical_readout_test cpu)
+  add_executable(backend_input_test test/BackendInput_TEST.cc)
+  target_compile_features(backend_input_test PRIVATE cxx_std_17)
+  target_include_directories(backend_input_test PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR} ${OpenCV_INCLUDE_DIRS})
+  target_link_libraries(backend_input_test PRIVATE
+    ${PROJECT_NAME} ${OpenCV_LIBS})
+  add_test(NAME backend_input_cpu COMMAND backend_input_test cpu)
 
   option(POSIM_SONAR_GPU_TESTS
     "Run sonar numerical tests requiring WGPU or CUDA devices" OFF)
   if(POSIM_SONAR_GPU_TESTS)
     add_test(NAME scattering_range_wgpu COMMAND scattering_range_test wgpu)
     add_test(NAME physical_readout_wgpu COMMAND physical_readout_test wgpu)
-    set_tests_properties(scattering_range_wgpu physical_readout_wgpu PROPERTIES
+    add_test(NAME backend_input_wgpu COMMAND backend_input_test wgpu)
+    set_tests_properties(
+      scattering_range_wgpu physical_readout_wgpu backend_input_wgpu PROPERTIES
       RUN_SERIAL TRUE TIMEOUT 60)
     if(CUDAToolkit_FOUND)
       add_executable(cuda_backend_test test/CudaBackend_TEST.cc)

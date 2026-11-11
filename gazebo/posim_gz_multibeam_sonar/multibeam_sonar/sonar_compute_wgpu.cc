@@ -160,7 +160,10 @@ bool WgpuComputeBackend::Compute(const SonarComputeInput & input, SonarComputeOu
   const cv::Mat & normal = *input.normalImage;
   const cv::Mat & reflectivity = *input.reflectivityImage;
 
-  if (depth.empty() || normal.empty() || reflectivity.empty())
+  if (
+    depth.empty() || depth.dims != 2 || depth.type() != CV_32FC1 || normal.dims != 2 ||
+    normal.type() != CV_32FC3 || normal.size() != depth.size() || reflectivity.dims != 2 ||
+    reflectivity.type() != CV_32FC1 || reflectivity.size() != depth.size())
   {
     return false;
   }
@@ -220,6 +223,10 @@ bool WgpuComputeBackend::Compute(const SonarComputeInput & input, SonarComputeOu
   {
     for (int r = 0; r < nBeams; ++r)
     {
+      if (!input.beamCorrector[r])
+      {
+        return false;
+      }
       for (int c = 0; c < nBeams; ++c)
       {
         beamCorrectorFlat[static_cast<size_t>(r) * nBeams + c] = input.beamCorrector[r][c];

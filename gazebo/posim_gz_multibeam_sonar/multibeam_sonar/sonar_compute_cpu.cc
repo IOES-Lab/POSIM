@@ -59,7 +59,16 @@ public:
     const cv::Mat & depth = *input.depthImage;
     const cv::Mat & normal = *input.normalImage;
 
-    if (depth.empty() || depth.type() != CV_32FC1 || normal.empty() || normal.type() != CV_32FC3)
+    if (
+      depth.empty() || depth.dims != 2 || depth.type() != CV_32FC1 || normal.dims != 2 ||
+      normal.type() != CV_32FC3 || normal.size() != depth.size())
+    {
+      return false;
+    }
+    if (
+      input.reflectivityImage && !input.reflectivityImage->empty() &&
+      (input.reflectivityImage->dims != 2 || input.reflectivityImage->type() != CV_32FC1 ||
+       input.reflectivityImage->size() != depth.size()))
     {
       return false;
     }
@@ -144,6 +153,10 @@ public:
       const float norm = input.beamCorrectorSum;
       for (int b = 0; b < input.nBeams; ++b)
       {
+        if (!input.beamCorrector[b])
+        {
+          return false;
+        }
         for (int f = 0; f < input.nFreq; ++f)
         {
           std::complex<float> accum{0.0f, 0.0f};
