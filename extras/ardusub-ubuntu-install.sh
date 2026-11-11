@@ -82,7 +82,7 @@ export DO_PYTHON_VENV_ENV=0
 sed -i -E '/SITL_PKGS.*argparse/s/python3?-argparse/libpython3-stdlib/g' \
   Tools/environment_install/install-prereqs-ubuntu.sh
 # Keep the ROS 2 Lyrical colcon requirement (setuptools < 80) intact.
-sed -i 's/-U pip setuptools wheel/-U pip "setuptools<80" wheel/' \
+sed -i 's/^SETUPTOOLS="setuptools"$/SETUPTOOLS="setuptools<80"/' \
   Tools/environment_install/install-prereqs-ubuntu.sh
 # This system-wide helper is invoked by the root-owned Docker build. The pinned
 # ArduPilot prerequisite script rejects EUID 0 before using sudo for the same

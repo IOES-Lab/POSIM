@@ -39,7 +39,7 @@ export DO_PYTHON_VENV_ENV=0
 # argparse is included in Python 3; keep upstream package discovery intact.
 sed -i -E '/SITL_PKGS.*argparse/s/python3?-argparse/libpython3-stdlib/g' \
   Tools/environment_install/install-prereqs-ubuntu.sh
-sed -i 's/-U pip setuptools wheel/-U pip "setuptools<80" wheel/' \
+sed -i 's/^SETUPTOOLS="setuptools"$/SETUPTOOLS="setuptools<80"/' \
   Tools/environment_install/install-prereqs-ubuntu.sh
 Tools/environment_install/install-prereqs-ubuntu.sh -y
 

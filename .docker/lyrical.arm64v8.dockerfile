@@ -191,7 +191,7 @@ ENV PIP_BREAK_SYSTEM_PACKAGES=1
 RUN chown -R $USER:$USER /home/$USER/ardupilot /home/$USER/imp_shim && \
     cd /home/$USER/ardupilot && \
     sed -i -E '/SITL_PKGS.*argparse/s/python3?-argparse/libpython3-stdlib/g' Tools/environment_install/install-prereqs-ubuntu.sh && \
-    sed -i 's/-U pip setuptools wheel/-U pip "setuptools<80" wheel/' \
+    sed -i 's/^SETUPTOOLS="setuptools"$/SETUPTOOLS="setuptools<80"/' \
       Tools/environment_install/install-prereqs-ubuntu.sh && \
     su $USER -c "git config --global --add safe.directory /home/$USER/ardupilot" && \
     su $USER -c "cd /home/$USER/ardupilot && Tools/environment_install/install-prereqs-ubuntu.sh -y" && \
