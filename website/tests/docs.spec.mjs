@@ -418,6 +418,24 @@ test('moved tutorial bookmarks open the corresponding English and Korean section
   }
 });
 
+test('invalid and unmapped bookmarks leave documentation controls usable', async ({ page }) => {
+  const errors = [];
+  page.on('pageerror', error => errors.push(error.message));
+  for (const directory of ['', 'ko/']) {
+    for (const fragment of ['%', '%E0%A4%A', 'constructor', '__proto__']) {
+      const target = `/${directory}quickstart.html#${fragment}`;
+      await page.goto(target);
+      expect(errors).toEqual([]);
+      await expect(page.locator('.docs-code-copy').first()).toBeVisible();
+      expect(new URL(page.url()).pathname + new URL(page.url()).hash).toBe(target);
+      await page.locator('[data-language-select]').selectOption(
+        directory ? '../quickstart.html' : 'ko/quickstart.html');
+      await expect(page.locator('html')).toHaveAttribute('lang', directory ? 'en' : 'ko');
+    }
+  }
+  expect(errors).toEqual([]);
+});
+
 for (const lang of ['en', 'ko']) {
   test(`${lang} video delayed load, playback, pause, seek and retry`, async ({ page }, info) => {
     if (lang === 'ko') await page.setViewportSize({ width: 390, height: 844 });
