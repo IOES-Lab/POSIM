@@ -169,8 +169,45 @@ int main(int argc, char ** argv)
           }
         });
     }
-    auto sensor = std::make_unique<gz::sensors::MultibeamSonarSensor>();
     gz::sensors::WorldState state;
+    // Keep another camera alive while the main sensor changes scenes. Its
+    // compositor must still render after the main camera's materials disappear.
+    auto peerConfig = config;
+    peerConfig.SetName(config.Name() + "_peer");
+    peerConfig.SetTopic(config.Topic() + "_peer");
+    auto peer = std::make_unique<gz::sensors::MultibeamSonarSensor>();
+    if (!peer->Load(peerConfig))
+    {
+      return 12;
+    }
+    peer->SetEntity(2);
+    peer->SetWorldState(state);
+    peer->SetScene(a);
+    for (auto camera : peer->RenderingSensors())
+    {
+      a->RootVisual()->AddChild(camera);
+    }
+    std::set<int64_t> peerStamps;
+    bool peerFiniteReturn = false;
+    auto peerSub = observer->create_subscription<marine_acoustic_msgs::msg::ProjectedSonarImage>(
+      peerConfig.Topic() + "/sonar_image_raw", rclcpp::SensorDataQoS(),
+      [&](marine_acoustic_msgs::msg::ProjectedSonarImage::ConstSharedPtr msg)
+      {
+        const int64_t stamp =
+          int64_t(msg->header.stamp.sec) * 1000000000 + msg->header.stamp.nanosec;
+        if (stamp > minimumStamp)
+        {
+          peerStamps.insert(stamp);
+          for (size_t offset = 0; offset + sizeof(float) <= msg->image.data.size();
+               offset += sizeof(float))
+          {
+            float value;
+            std::memcpy(&value, msg->image.data.data() + offset, sizeof(value));
+            peerFiniteReturn |= std::isfinite(value);
+          }
+        }
+      });
+    auto sensor = std::make_unique<gz::sensors::MultibeamSonarSensor>();
     if (!sensor->Load(config))
     {
       return 5;
@@ -190,6 +227,8 @@ int main(int argc, char ** argv)
     {
       stamps.clear();
       imageStamps.clear();
+      peerStamps.clear();
+      peerFiniteReturn = false;
       finiteReturn = false;
       minimumStamp = sim;
       auto paired = [&]()
@@ -203,10 +242,17 @@ int main(int argc, char ** argv)
       };
       bool updated = true;
       const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(8);
-      while ((stamps.size() < 3 || (physical && paired() < 3)) &&
+      while ((stamps.size() < 3 || peerStamps.size() < 3 || (physical && paired() < 3)) &&
              std::chrono::steady_clock::now() < deadline)
       {
         sim += 500000000;
+        if (!static_cast<gz::sensors::Sensor *>(peer.get())
+               ->Update(std::chrono::nanoseconds(sim), false))
+        {
+          updated = false;
+          break;
+        }
+        peer->PostUpdate(std::chrono::nanoseconds(sim));
         updated = static_cast<gz::sensors::Sensor *>(sensor.get())
                     ->Update(std::chrono::nanoseconds(sim), false);
         if (!updated)
@@ -219,11 +265,12 @@ int main(int argc, char ** argv)
       }
       std::cout << "RESULT {\"phase\":\"" << phase << "\",\"updated\":" << updated
                 << ",\"raw_stamps\":" << stamps.size() << ",\"valid\":" << valid
+                << ",\"peer_stamps\":" << peerStamps.size()
                 << ",\"has_connections\":" << sensor->HasConnections()
                 << ",\"a_sensors\":" << a->SensorCount() << ",\"b_sensors\":" << b->SensorCount()
                 << "}" << std::endl;
-      return updated && stamps.size() >= 3 && valid &&
-             (!physical || (paired() >= 3 && finiteReturn));
+      return updated && stamps.size() >= 3 && peerStamps.size() >= 3 && valid &&
+             (!physical || (paired() >= 3 && finiteReturn && peerFiniteReturn));
     };
     sensor->SetScene(a);
     attach(a);
@@ -251,11 +298,14 @@ int main(int argc, char ** argv)
     attach(a);
     passed = collect("restored_raw_only") && stopped && passed;
     sensor.reset();
+    passed &= a->SensorCount() == 1 && b->SensorCount() == 0;
+    peer.reset();
     std::cout << "RESULT {\"phase\":\"destroyed\",\"a_sensors\":" << a->SensorCount()
               << ",\"b_sensors\":" << b->SensorCount() << "}" << std::endl;
     passed &= a->SensorCount() == 0 && b->SensorCount() == 0;
     executor.remove_node(observer);
     sub.reset();
+    peerSub.reset();
     imageSub.reset();
     observer.reset();
     context->shutdown("control complete");

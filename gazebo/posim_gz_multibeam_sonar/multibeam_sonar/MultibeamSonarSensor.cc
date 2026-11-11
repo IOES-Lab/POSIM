@@ -40,6 +40,12 @@
 #include <gz/rendering/DepthCamera.hh>
 #include <gz/rendering/GpuRays.hh>
 #include <gz/rendering/RayQuery.hh>
+#include <gz/rendering/RenderEngine.hh>
+#ifdef WITH_OGRE2
+#include <Compositor/OgreCompositorManager2.h>
+#include <OgreRectangle2D.h>
+#include <OgreRoot.h>
+#endif
 
 #include <gz/sensors/GaussianNoiseModel.hh>
 #include <gz/sensors/Manager.hh>
@@ -254,6 +260,18 @@ void MultibeamSonarSensor::Implementation::Shutdown(MultibeamSonarSensor * _sens
   this->raySensor.reset();
   if (this->depthSensor && _sensor->Scene() && _sensor->Scene()->IsInitialized())
   {
+#ifdef WITH_OGRE2
+    if (_sensor->Scene()->Engine()->Name() == "ogre2")
+    {
+      // Ogre 2.3's shared fullscreen objects retain the last compositor pass's
+      // datablock after its workspace is removed. Unlink it on the render
+      // thread before DestroySensor releases the depth camera's materials.
+      // Each surviving compositor pass restores its own binding on execution.
+      auto * compositor = Ogre::Root::getSingleton().getCompositorManager2();
+      compositor->getSharedFullscreenQuad()->_setNullDatablock();
+      compositor->getSharedFullscreenTriangle()->_setNullDatablock();
+    }
+#endif
     _sensor->Scene()->DestroySensor(this->depthSensor);
   }
   this->depthSensor.reset();

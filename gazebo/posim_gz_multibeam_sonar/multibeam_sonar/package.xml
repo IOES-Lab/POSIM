@@ -9,6 +9,8 @@
   <maintainer email="kys50728@g.kmou.ac.kr">Ye-Seol Kwon</maintainer>
   <license>Apache 2.0</license>
   <buildtool_depend>ament_cmake</buildtool_depend>
+  <build_depend>gz_ogre_next_vendor</build_depend>
+  <exec_depend>gz_ogre_next_vendor</exec_depend>
   <depend>rclcpp</depend>
   <depend>sensor_msgs</depend>
   <depend>geometry_msgs</depend>

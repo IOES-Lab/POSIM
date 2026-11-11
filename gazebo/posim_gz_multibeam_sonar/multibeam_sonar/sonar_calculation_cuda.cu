@@ -39,8 +39,10 @@
 #include <cublas_v2.h>
 #include <cuda_runtime.h>
 #include <math_constants.h>
+#include <array>
 #include <chrono>
 #include <ctime>
+#include <mutex>
 
 #define BLOCK_SIZE 32
 
@@ -89,6 +91,10 @@ static float * d_ray_elevationAngles = nullptr;
 static thrust::complex<float> * d_P_Beams = nullptr;
 static thrust::complex<float> * P_Beams = nullptr;
 static bool memory_initialized = false;
+// The legacy wrapper shares one allocation across sensor workers. Serialize
+// calculations and teardown, and recreate it when any input dimension changes.
+static std::mutex cudaMemoryMutex;
+static std::array<int, 4> allocatedShape{};
 float * ray_elevationAngles = nullptr;
 
 float *P_Beams_Cor_real_h = nullptr, *P_Beams_Cor_imag_h = nullptr;
@@ -310,8 +316,12 @@ void check_cuda_init_wrapper(void)
   }
 }
 
-void free_cuda_memory()
+static void FreeCudaMemory()
 {
+  if (!memory_initialized)
+  {
+    return;
+  }
   SAFE_CALL(cudaFree(d_depth_image), "cudaFree failed for d_depth_image");
   SAFE_CALL(cudaFree(d_normal_image), "cudaFree failed for d_normal_image");
   SAFE_CALL(cudaFree(d_reflectivity_image), "cudaFree failed for d_reflectivity_image");
@@ -328,7 +338,14 @@ void free_cuda_memory()
   SAFE_CALL(cudaFreeHost(P_Beams_Cor_real_h), "cudaFreeHost failed for P_Beams_Cor_real_h");
   SAFE_CALL(cudaFreeHost(P_Beams_Cor_imag_h), "cudaFreeHost failed for P_Beams_Cor_imag_h");
   SAFE_CALL(cudaFreeHost(beamCorrector_lin_h), "cudaFreeHost failed for beamCorrector_lin_h");
+  SAFE_CALL(cudaFreeHost(ray_elevationAngles), "cudaFreeHost failed for ray_elevationAngles");
   memory_initialized = false;
+}
+
+void free_cuda_memory()
+{
+  std::lock_guard<std::mutex> lock(cudaMemoryMutex);
+  FreeCudaMemory();
 }
 
 // Sonar Claculation Function Wrapper
@@ -341,6 +358,7 @@ CArray2D sonar_calculation_wrapper(
   const cv::Mat & reflectivity_image, double _attenuation, float * window, float ** beamCorrector,
   float beamCorrectorSum, bool debugFlag, bool blazingFlag)
 {
+  std::lock_guard<std::mutex> lock(cudaMemoryMutex);
   // Start the timer for the entire function
   auto total_start_time = std::chrono::high_resolution_clock::now();
 
@@ -407,6 +425,11 @@ CArray2D sonar_calculation_wrapper(
   const int DATASIZE = nFreq;
   const int BATCH = nBeams;
 
+  const std::array<int, 4> shape{nBeams, nRays, nFreq, raySkips};
+  if (memory_initialized && allocatedShape != shape)
+  {
+    FreeCudaMemory();
+  }
   if (!memory_initialized)
   {
     SAFE_CALL(
@@ -458,6 +481,7 @@ CArray2D sonar_calculation_wrapper(
       cudaMalloc((void **)&deviceOutputData, DATASIZE * BATCH * sizeof(cufftComplex)),
       "FFT CUDA Malloc Failed");
 
+    allocatedShape = shape;
     memory_initialized = true;
   }
 

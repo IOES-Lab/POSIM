@@ -109,6 +109,14 @@ target_link_libraries(${PROJECT_NAME}
   cv_bridge::cv_bridge
 )
 
+if(TARGET gz-rendering::ogre2)
+  # Renderer teardown uses Ogre's shared compositor objects internally.
+  # Installed sonar headers do not expose this dependency.
+  find_package(gz_ogre_next_vendor QUIET)
+  find_package(GzOGRE2 2.3 REQUIRED)
+  target_link_libraries(${PROJECT_NAME} $<BUILD_INTERFACE:GzOGRE2::GzOGRE2>)
+endif()
+
 if(APPLE)
   target_link_libraries(${PROJECT_NAME}
     "-framework Metal"
@@ -198,12 +206,19 @@ if(BUILD_TESTING)
   add_test(NAME physical_readout_cpu COMMAND physical_readout_test cpu)
 
   option(POSIM_SONAR_GPU_TESTS
-    "Run sonar numerical tests requiring a WGPU adapter" OFF)
+    "Run sonar numerical tests requiring WGPU or CUDA devices" OFF)
   if(POSIM_SONAR_GPU_TESTS)
     add_test(NAME scattering_range_wgpu COMMAND scattering_range_test wgpu)
     add_test(NAME physical_readout_wgpu COMMAND physical_readout_test wgpu)
     set_tests_properties(scattering_range_wgpu physical_readout_wgpu PROPERTIES
       RUN_SERIAL TRUE TIMEOUT 60)
+    if(CUDAToolkit_FOUND)
+      add_executable(cuda_backend_test test/CudaBackend_TEST.cc)
+      target_compile_features(cuda_backend_test PRIVATE cxx_std_17)
+      target_link_libraries(cuda_backend_test PRIVATE ${PROJECT_NAME})
+      add_test(NAME cuda_backend COMMAND cuda_backend_test)
+      set_tests_properties(cuda_backend PROPERTIES RUN_SERIAL TRUE TIMEOUT 120)
+    endif()
   endif()
 
 endif()
@@ -271,6 +286,14 @@ if(BUILD_TESTING)
         ENVIRONMENT "POSIM_SONAR_COMPUTE_BACKEND=${sonar_backend}"
         RUN_SERIAL TRUE TIMEOUT 60)
     endforeach()
+    if(CUDAToolkit_FOUND AND POSIM_SONAR_GPU_TESTS)
+      add_test(NAME sonar_scene_lifecycle_cuda
+        COMMAND test_sensor_lifecycle
+          ${CMAKE_CURRENT_SOURCE_DIR}/test/lifecycle_sonar.sdf)
+      set_tests_properties(sonar_scene_lifecycle_cuda PROPERTIES
+        ENVIRONMENT "POSIM_SONAR_COMPUTE_BACKEND=cuda"
+        RUN_SERIAL TRUE TIMEOUT 60)
+    endif()
     add_executable(test_wgpu_range_sampling test/WgpuRangeSampling_TEST.cc)
     target_compile_features(test_wgpu_range_sampling PRIVATE cxx_std_17)
     target_include_directories(test_wgpu_range_sampling PRIVATE
