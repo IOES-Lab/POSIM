@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package format="3">
-  <name>posim_gz_gnss</name><version>0.1.0</version>
+  <name>posim_gz_gnss</name><version>1.0.0</version>
   <description>Common marine satellite GNSS sensor with antenna immersion gating.</description>
-  <maintainer email="contact@ioes.kr">IOES Lab</maintainer>
+  <maintainer email="wschoi@kmou.ac.kr">IOES Lab. at KMOU</maintainer>
   <license>Apache-2.0</license>
   <buildtool_depend>ament_cmake</buildtool_depend>
   <depend>gz_sim_vendor</depend><depend>gz_plugin_vendor</depend>
