@@ -4,7 +4,7 @@ Wave Sim is a pinned external build dependency. The standard Docker recipes and 
 
 - Dependency source: `/opt/asv_wave_sim`
 - Installed libraries: `/opt/waves`
-- Optional surface overlay: ArduRover and WAM-V
+- Optional surface overlay: WAM-V model and launch
 - World setup: include the wave and buoyancy systems in the selected SDF
 
 ## Build and run
@@ -12,8 +12,8 @@ Wave Sim is a pinned external build dependency. The standard Docker recipes and 
 This optional Dockerfile targets the ARM64 desktop layout. Follow the
 [WAM-V guide](../../website/content/en/surface.md#build-the-wam-v-integration)
 to build from `ioeslab/posim:latest`, connect through RDP and launch the GUI.
-Wave Sim is included in the base image. The overlay adds ArduRover and the
-WAM-V launch, reusing the wave installation when its recipe matches.
+Wave Sim and ArduRover are included in the base image. The overlay installs the
+WAM-V launch and reuses the wave installation when its recipe matches.
 
 The image contains separate ArduSub and ArduRover binaries. Run one instance of this example per environment: it uses fixed generated-file paths, vehicle names and controller ports. Changing `world_name` alone does not isolate another instance. Multiple vehicles need a custom integration with separate files, names, controller identities and ports, or separate isolated environments.
 
