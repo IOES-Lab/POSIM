@@ -153,9 +153,9 @@ RUN . "$POSIM_UNDERLAY/install/setup.sh" && \
       "$POSIM_MAVROS_OVERLAY/install"
 
 # --- ArduSub SITL (BlueROV2) — Python 3.14 compatibility shims required, see notes/ardusub-sitl-setup.md ---
-# Pinned to the commit used by the verified Ubuntu 26.04 / Python 3.14 build.
+# ArduPilot 4.7.2 stable for ArduSub and ArduRover.
 USER root
-ARG ARDUSUB_COMMIT="30257f01185471ab4c1ac544e47d1b4437e44c98"
+ARG ARDUSUB_COMMIT="fb773567896014da007bca58358704d4a0d8516f"
 ARG ARDUPILOT_GAZEBO_COMMIT="082a0fe231f6e63bc8d1598f1cba461d9e2ea7f5"
 WORKDIR /home/$USER
 # Fetch only the pinned revision before downloading its submodules. Use HTTP/1.1
@@ -190,14 +190,15 @@ ENV PIP_BREAK_SYSTEM_PACKAGES=1
 # operate across ownership boundaries ("detected dubious ownership") since CVE-2022-24765
 RUN chown -R $USER:$USER /home/$USER/ardupilot /home/$USER/imp_shim && \
     cd /home/$USER/ardupilot && \
-    sed -i "s/ python-argparse//g" Tools/environment_install/install-prereqs-ubuntu.sh && \
-    sed -i 's/-U pip setuptools wheel/-U pip "setuptools<80" wheel/' \
+    sed -i -E '/SITL_PKGS.*argparse/s/python3?-argparse/libpython3-stdlib/g' Tools/environment_install/install-prereqs-ubuntu.sh && \
+    sed -i 's/^SETUPTOOLS="setuptools"$/SETUPTOOLS="setuptools<80"/' \
       Tools/environment_install/install-prereqs-ubuntu.sh && \
     su $USER -c "git config --global --add safe.directory /home/$USER/ardupilot" && \
     su $USER -c "cd /home/$USER/ardupilot && Tools/environment_install/install-prereqs-ubuntu.sh -y" && \
     su $USER -c "cd /home/$USER/ardupilot && python3 modules/waf/waf-light configure --board sitl" && \
-    su $USER -c "cd /home/$USER/ardupilot && python3 modules/waf/waf-light build --target bin/ardusub" && \
-    cp /home/$USER/ardupilot/build/sitl/bin/ardusub /usr/local/bin/ardusub
+    su $USER -c "cd /home/$USER/ardupilot && python3 modules/waf/waf-light build --target bin/ardusub,bin/ardurover" && \
+    cp /home/$USER/ardupilot/build/sitl/bin/ardusub /usr/local/bin/ardusub && \
+    cp /home/$USER/ardupilot/build/sitl/bin/ardurover /usr/local/bin/ardurover
 
 # Build the Gazebo Jetty ArduPilot plugin against the ROS vendor packages.
 RUN set -e; \
@@ -218,6 +219,7 @@ RUN set -e; \
     git checkout --detach "$ARDUPILOT_GAZEBO_COMMIT"; \
     bash "$POSIM_UNDERLAY/src/posim/extras/ardusub-ubuntu-install.sh" \
       --patch-gst-camera "$PWD"; \
+    python3 "$POSIM_UNDERLAY/src/posim/extras/ardupilot_gazebo/patch_resampling.py" "$PWD"; \
     chown -R $USER:$USER /home/$USER/ardupilot_gazebo && \
     mkdir -p /home/$USER/ardupilot_gazebo/build && \
     cd /home/$USER/ardupilot_gazebo/build && \

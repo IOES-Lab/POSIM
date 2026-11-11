@@ -43,6 +43,7 @@ def make_model(out, namespace="wamv", root=None):
         ("fdm_port_in", "9002"),
         ("connectionTimeoutMaxCount", "5"),
         ("lock_step", "1"),
+        ("sitl_sensor_rate", "200"),
         ("modelXYZToAirplaneXForwardZDown", "0 0 0 3.14159265359 0 0"),
         ("gazeboXYZToNED", "0 0 0 3.14159265359 0 1.57079632679"),
         ("imuName", "imu_sensor"),

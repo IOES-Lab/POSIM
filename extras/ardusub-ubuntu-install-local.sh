@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+POSIM_INSTALL_EXTRAS=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 
 # Source Ros and Gazebo
 ROS_DISTRO="${ROS_DISTRO:-lyrical}"
@@ -12,7 +13,8 @@ export GZ_VERSION="${GZ_VERSION:-jetty}"
 USER_NAME=$(logname 2>/dev/null || echo "${SUDO_USER:-$USER}")
 export USER="$USER_NAME"
 
-ARDUPILOT_COMMIT="${ARDUPILOT_COMMIT:-30257f01185471ab4c1ac544e47d1b4437e44c98}"
+# ArduPilot 4.7.2 stable for ArduSub and ArduRover.
+ARDUPILOT_COMMIT="${ARDUPILOT_COMMIT:-fb773567896014da007bca58358704d4a0d8516f}"
 ARDUPILOT_GAZEBO_COMMIT="${ARDUPILOT_GAZEBO_COMMIT:-082a0fe231f6e63bc8d1598f1cba461d9e2ea7f5}"
 mkdir -p "/home/$USER/ardusub_ws" && cd "/home/$USER/ardusub_ws" || exit
 git clone https://github.com/ArduPilot/ardupilot.git --recurse-submodules
@@ -34,20 +36,23 @@ export SKIP_AP_EXT_ENV=1 SKIP_AP_GRAPHIC_ENV=1 SKIP_AP_COV_ENV=1 SKIP_AP_GIT_CHE
 export DO_AP_STM_ENV=0
 # Do not activate the Ardupilot venv by default
 export DO_PYTHON_VENV_ENV=0
-sed -i 's/ python-argparse//g' Tools/environment_install/install-prereqs-ubuntu.sh
-sed -i 's/-U pip setuptools wheel/-U pip "setuptools<80" wheel/' \
+# argparse is included in Python 3; keep upstream package discovery intact.
+sed -i -E '/SITL_PKGS.*argparse/s/python3?-argparse/libpython3-stdlib/g' \
+  Tools/environment_install/install-prereqs-ubuntu.sh
+sed -i 's/^SETUPTOOLS="setuptools"$/SETUPTOOLS="setuptools<80"/' \
   Tools/environment_install/install-prereqs-ubuntu.sh
 Tools/environment_install/install-prereqs-ubuntu.sh -y
 
 # Build ArduSub
 python3 modules/waf/waf-light configure --board sitl
-python3 modules/waf/waf-light build --target bin/ardusub
+python3 modules/waf/waf-light build --target bin/ardusub,bin/ardurover
 
 # Clone ardupilot_gazebo code
 cd "/home/$USER/ardusub_ws" || exit
 git clone https://github.com/ArduPilot/ardupilot_gazebo.git
 cd "/home/$USER/ardusub_ws/ardupilot_gazebo" || exit
 git checkout --detach "$ARDUPILOT_GAZEBO_COMMIT"
+python3 "$POSIM_INSTALL_EXTRAS/ardupilot_gazebo/patch_resampling.py" "$PWD"
 
 # Install ardupilot_gazebo plugin
 # Check if the directory creation was successful
