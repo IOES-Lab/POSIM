@@ -11,11 +11,8 @@ assignees: ''
 A clear and concise description of what the bug is.
 
 **To Reproduce**
-Steps to reproduce the behavior:
-1. Go to '...'
-2. Click on '....'
-3. Scroll down to '....'
-4. See error
+Include the launch command, world and robot settings, and the steps that trigger
+the problem. Attach relevant terminal output and say what happens after Ctrl+C.
 
 **Expected behavior**
 A clear and concise description of what you expected to happen.
@@ -24,9 +21,12 @@ A clear and concise description of what you expected to happen.
 If applicable, add screenshots to help explain your problem.
 
 **Environment (please complete the following information):**
- - Machine [e.g. Mac VMWare, Linux Ubuntu]
- - OS Version: [e.g. Ubuntu 26.04]
-- Anything that may be unusual about your environment
+- POSIM release version or source commit:
+- Docker image tag and digest, if used:
+- Host OS/version and CPU architecture:
+- Installation method: native Ubuntu, WSL 2, Linux Docker or Apple Silicon Docker/RDP:
+- ROS 2 and Gazebo versions:
+- GPU, driver and rendering/sonar backend, if relevant:
 
 **Additional context**
 Add any other context about the problem here, especially include any modifications to the project that relate to this issue.
