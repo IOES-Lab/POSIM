@@ -36,4 +36,4 @@ Choiほか、*Physics-Based Modelling and Simulation of Multibeam Echosounder Pe
 
 韓国海洋大学校（KMOU）の[IOES Lab.](https://lab.wschoi.com)がPOSIMを保守しています。
 
-研究室へのお問い合わせは[wschoi@kmou.ac.kr](mailto:wschoi@kmou.ac.kr)へ、ソフトウェアの不具合報告は[GitHub Issues](https://github.com/IOES-Lab/POSIM/issues)へお送りください。
+研究室へのお問い合わせは[woensug.choi@gmail.com](mailto:woensug.choi@gmail.com)へ、ソフトウェアの不具合報告は[GitHub Issues](https://github.com/IOES-Lab/POSIM/issues)へお送りください。

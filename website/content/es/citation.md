@@ -36,4 +36,4 @@ Puedes consultar también la [POSIM Notion Wiki de IOES-Lab](https://caring-dibb
 
 [IOES Lab.](https://lab.wschoi.com) mantiene POSIM en la Universidad Marítima y Oceánica de Corea (KMOU).
 
-Para consultas al laboratorio, escribe a [wschoi@kmou.ac.kr](mailto:wschoi@kmou.ac.kr). Usa [GitHub Issues](https://github.com/IOES-Lab/POSIM/issues) para informar de errores de software.
+Para consultas al laboratorio, escribe a [woensug.choi@gmail.com](mailto:woensug.choi@gmail.com). Usa [GitHub Issues](https://github.com/IOES-Lab/POSIM/issues) para informar de errores de software.

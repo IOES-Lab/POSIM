@@ -3,7 +3,7 @@
   <name>wgpu_vendor</name>
   <version>1.0.0</version>
   <description>Vendor package exposing wgpu CMake target for the POSIM sonar backend.</description>
-  <maintainer email="wschoi@kmou.ac.kr">IOES Lab. at KMOU</maintainer>
+  <maintainer email="woensug.choi@gmail.com">IOES Lab. at KMOU</maintainer>
   <license>Apache-2.0</license>
   <buildtool_depend>ament_cmake</buildtool_depend>
   <buildtool_depend>cargo</buildtool_depend>

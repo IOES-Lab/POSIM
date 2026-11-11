@@ -36,4 +36,4 @@ Choi 외, *Physics-Based Modelling and Simulation of Multibeam Echosounder Perce
 
 한국해양대학교(KMOU)의 [IOES Lab.](https://lab.wschoi.com)에서 POSIM을 관리합니다.
 
-연구실 문의는 [wschoi@kmou.ac.kr](mailto:wschoi@kmou.ac.kr)로 보내세요. 소프트웨어 문제는 [GitHub Issues](https://github.com/IOES-Lab/POSIM/issues)에 등록하세요.
+연구실 문의는 [woensug.choi@gmail.com](mailto:woensug.choi@gmail.com)로 보내세요. 소프트웨어 문제는 [GitHub Issues](https://github.com/IOES-Lab/POSIM/issues)에 등록하세요.
