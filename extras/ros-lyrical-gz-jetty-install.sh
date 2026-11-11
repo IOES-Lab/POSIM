@@ -103,8 +103,9 @@ sudo apt update && sudo apt install -y \
 # Install ArduSub. The helper sources the Lyrical environment so the
 # ardupilot_gazebo build resolves Jetty's vendored CMake packages.
 sudo mkdir -p /opt/ardusub_ws && cd /opt/ardusub_ws || exit
-ARDUPILOT_HELPERS="$POSIM_EXTRAS_DIR"
-if [[ ! -f "$ARDUPILOT_HELPERS/ardusub-ubuntu-install.sh" ]]; then
+if [[ -n "${POSIM_EXTRAS_DIR:-}" && -f "${POSIM_EXTRAS_DIR}/ardusub-ubuntu-install.sh" ]]; then
+    ARDUPILOT_HELPERS="$POSIM_EXTRAS_DIR"
+else
     ARDUPILOT_HELPERS="$(mktemp -d)"
     trap 'rm -rf -- "$ARDUPILOT_HELPERS"' EXIT
     mkdir -p "$ARDUPILOT_HELPERS/ardupilot_gazebo" "$ARDUPILOT_HELPERS/premerge"
@@ -120,7 +121,7 @@ sudo bash "$ARDUPILOT_HELPERS/ardusub-ubuntu-install.sh"
 
 
 # Mavros install
-sudo apt-get -y install "ros-${DIST}-mavros" "ros-${DIST}-mavros-extras" "ros-${DIST}-mavros-msgs" \
+sudo apt-get -y install "ros-${DIST}-mavros" "ros-${DIST}-mavros-msgs" \
     "ros-${DIST}-ament-cmake-google-benchmark" "ros-${DIST}-angles" \
     "ros-${DIST}-ament-cmake-gmock" "ros-${DIST}-ament-cmake-pytest" \
     "ros-${DIST}-ament-lint-auto" "ros-${DIST}-ament-lint-common"
