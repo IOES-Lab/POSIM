@@ -7,7 +7,7 @@ use std::sync::mpsc;
 use wgpu::util::DeviceExt;
 
 #[test]
-#[ignore = "requires a WGPU compute adapter with 32 KiB workgroup storage"]
+#[ignore = "requires a WGPU compute adapter"]
 fn original_length_dft_matches_reference() {
     pollster::block_on(check());
 }
@@ -22,8 +22,8 @@ async fn check() {
         .await
         .expect("GPU adapter required");
     eprintln!("adapter: {:?}", adapter.get_info());
-    let mut limits = wgpu::Limits::default();
-    limits.max_compute_workgroup_storage_size = 32768;
+    // Request the same limits as the production pipeline on every backend.
+    let limits = wgpu::Limits::default();
     let (d, q) = adapter
         .request_device(
             &wgpu::DeviceDescriptor {
