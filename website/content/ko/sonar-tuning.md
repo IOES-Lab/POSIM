@@ -98,3 +98,11 @@ SDF, POSIM 커밋, 백엔드·장치, 드라이버·툴킷 버전, 프레임 시
 <figure><a href="{{ASSET_PREFIX}}media/notion/sonar-optimization-a26c9419.png"><img width="1049" height="554" src="{{ASSET_PREFIX}}media/notion/sonar-optimization-a26c9419.png" alt="소나 계산의 GPU 처리 단계" loading="lazy" decoding="async"></a><figcaption>소나 계산의 GPU 처리 단계</figcaption></figure>
 
 GPU 처리는 음선 합산, 창 함수·보정, FFT 단계로 구성됩니다. 계산 시간과 메모리 전송 시간을 구분해서 측정하세요. 그림 출처: POSIM Notion Wiki.
+
+## 네이티브 macOS의 ROS 전송 설정 {#native-macos-ros-transport}
+
+네이티브 macOS에서 Fast DDS를 사용할 때 큰 best-effort 소나 메시지가 누락된다면 설치된 로컬 프로파일을 사용하세요. 공유 메모리 세그먼트는 16 MiB, 전송 메시지 버퍼는 1 MiB로 설정됩니다. localhost UDP는 8192바이트 데이터그램과 2 MiB 송수신 소켓 버퍼를 사용합니다. 시뮬레이터, 브리지, 구독자를 시작하기 전에 각 터미널에서 설정하세요.
+
+{{CODE:sonar-tuning:8}}
+
+이 프로파일은 선택 사항이며 같은 Mac의 프로세스 간 통신에만 사용합니다. 다른 컴퓨터와 통신하려면 해당 네트워크에 맞는 프로파일을 사용하세요. `FASTDDS_DEFAULT_PROFILES_FILE`이 이미 설정되어 있다면 공유 메모리 설정을 기존 프로파일에 반영하세요. 이 ROS 전송 설정은 CPU와 WGPU 소나에 모두 적용됩니다.

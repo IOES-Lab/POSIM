@@ -98,3 +98,11 @@ WGPU 保留请求的变换长度，包括非 2 的幂长度，并自动选择 FF
 {{MEDIA:sonar-tuning}}
 
 处理包括射线求和、加窗与校正、FFT 等阶段。请分别测量计算与内存传输耗时。图片来源：POSIM Notion Wiki。
+
+## 原生 macOS 的 ROS 传输设置 {#native-macos-ros-transport}
+
+在原生 macOS 上使用 Fast DDS 时，如果大型 best-effort 声呐消息丢失，可使用已安装的本地配置文件。该配置使用 16 MiB 共享内存段和 1 MiB 传输消息缓冲区；localhost UDP 使用 8192 字节数据报及 2 MiB 发送和接收套接字缓冲区。启动仿真器、桥接程序和订阅者之前，请在各自的终端中设置：
+
+{{CODE:sonar-tuning:8}}
+
+此配置为可选项，仅用于同一台 Mac 上的进程间通信。与其他计算机通信时，请使用适合该网络的配置文件。如果已设置 `FASTDDS_DEFAULT_PROFILES_FILE`，请将共享内存设置合并到现有配置中。这些 ROS 传输设置同时适用于 CPU 和 WGPU 声呐。

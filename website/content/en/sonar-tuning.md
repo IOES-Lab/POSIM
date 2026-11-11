@@ -127,3 +127,13 @@ Save the SDF, POSIM revision, selected backend/adapter, driver/toolkit versions,
 <figure><a href="{{ASSET_PREFIX}}media/notion/sonar-optimization-a26c9419.png"><img width="1049" height="554" src="{{ASSET_PREFIX}}media/notion/sonar-optimization-a26c9419.png" alt="GPU stages in sonar processing" loading="lazy" decoding="async"></a><figcaption>GPU stages in sonar processing</figcaption></figure>
 
 GPU processing includes ray summation, window/correction and FFT stages. Profile computation and memory transfers separately. Figure: POSIM Notion Wiki.
+
+## Native macOS ROS transport {#native-macos-ros-transport}
+
+With Fast DDS on native macOS, use the installed local profile if large best-effort sonar messages are missing. It provides a 16 MiB shared-memory segment and 1 MiB transport message buffers, plus localhost UDP with 8192-byte datagrams and 2 MiB send/receive socket buffers. Set it in every simulator, bridge and subscriber terminal before starting those processes:
+
+```bash
+export FASTDDS_DEFAULT_PROFILES_FILE="$(ros2 pkg prefix multibeam_sonar)/share/multibeam_sonar/config/fastdds_macos_local.xml"
+```
+
+The profile is optional and limited to processes on the same Mac. For communication with other computers, use a suitable network profile. If `FASTDDS_DEFAULT_PROFILES_FILE` is already set, merge the shared-memory settings into that profile. These ROS transport settings apply to both CPU and WGPU sonar.

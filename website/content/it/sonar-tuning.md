@@ -98,3 +98,11 @@ Salva SDF, revisione POSIM, backend/adattatore, versioni driver/toolkit, tempo p
 {{MEDIA:sonar-tuning}}
 
 Le fasi comprendono somma dei raggi, finestratura/correzione e FFT. Misura separatamente calcolo e trasferimenti di memoria. Figura: POSIM Notion Wiki.
+
+## Trasporto ROS su macOS nativo {#native-macos-ros-transport}
+
+Con Fast DDS su macOS nativo, usa il profilo locale installato se non arrivano i messaggi sonar di grandi dimensioni con QoS best-effort. Il profilo prevede un segmento di memoria condivisa da 16 MiB e buffer dei messaggi di trasporto da 1 MiB. UDP su localhost usa datagrammi da 8192 byte e buffer dei socket di invio e ricezione da 2 MiB ciascuno. Imposta la variabile in ogni terminale del simulatore, del bridge e del sottoscrittore prima di avviare i processi:
+
+{{CODE:sonar-tuning:8}}
+
+Il profilo è facoltativo ed è limitato ai processi sullo stesso Mac. Per comunicare con altri computer, usa un profilo di rete adeguato. Se `FASTDDS_DEFAULT_PROFILES_FILE` è già impostata, integra le impostazioni della memoria condivisa in quel profilo. Queste impostazioni di trasporto ROS si applicano sia al sonar CPU sia al sonar WGPU.

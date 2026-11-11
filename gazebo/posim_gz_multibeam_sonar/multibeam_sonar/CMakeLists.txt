@@ -240,6 +240,8 @@ install(FILES MultibeamSonarSensor.hh AcousticBeam.hh AxisAlignedPatch2.hh
   AcousticReadout.hh PerspectiveSonarGeometry.hh
   DESTINATION include/${PROJECT_NAME}
 )
+install(FILES config/fastdds_macos_local.xml
+  DESTINATION share/${PROJECT_NAME}/config)
 ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
 ament_export_dependencies(
   gz-sim gz-sensors gz-msgs gz-transport gz-rendering

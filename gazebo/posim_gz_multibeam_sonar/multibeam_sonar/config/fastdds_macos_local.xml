@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dds xmlns="http://www.eprosima.com">
+  <profiles>
+    <transport_descriptors>
+      <transport_descriptor>
+        <transport_id>posim_local_shm</transport_id>
+        <type>SHM</type>
+        <segment_size>16777216</segment_size>
+        <maxMessageSize>1048576</maxMessageSize>
+      </transport_descriptor>
+      <transport_descriptor>
+        <transport_id>posim_local_udp</transport_id>
+        <type>UDPv4</type>
+        <maxMessageSize>8192</maxMessageSize>
+        <sendBufferSize>2097152</sendBufferSize>
+        <receiveBufferSize>2097152</receiveBufferSize>
+        <interfaceWhiteList>
+          <address>127.0.0.1</address>
+        </interfaceWhiteList>
+      </transport_descriptor>
+    </transport_descriptors>
+    <participant profile_name="posim_macos_local" is_default_profile="true">
+      <rtps>
+        <userTransports>
+          <transport_id>posim_local_shm</transport_id>
+          <transport_id>posim_local_udp</transport_id>
+        </userTransports>
+        <useBuiltinTransports>false</useBuiltinTransports>
+      </rtps>
+    </participant>
+  </profiles>
+</dds>
