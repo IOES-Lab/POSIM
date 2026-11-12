@@ -13,6 +13,7 @@ on:
       - "examples/**"
       - "posim_interfaces/**"
       - ".github/workflows/documentation.yml"
+      - ".github/actions/ubuntu-mirrors/**"
   push:
     branches: [main]
     paths:
@@ -23,6 +24,7 @@ on:
       - "examples/**"
       - "posim_interfaces/**"
       - ".github/workflows/documentation.yml"
+      - ".github/actions/ubuntu-mirrors/**"
 
 permissions:
   contents: read
@@ -48,7 +50,7 @@ jobs:
           node-version: "24"
       - name: Install pinned dependencies
         run: npx --yes pnpm@10.11.0 install --frozen-lockfile --ignore-scripts
-      - name: Build and check both languages against source
+      - name: Build and check all eight languages against source
         env:
           SITE_URL: https://ioes-lab.github.io/POSIM
         run: |
@@ -61,6 +63,9 @@ jobs:
           cd "$RUNNER_TEMP/posim-documentation/website"
           node scripts/build.mjs
           node scripts/check.mjs
+      - uses: ./.github/actions/ubuntu-mirrors
+        with:
+          configure-hosts: 'true'
       - name: Install Chromium for browser checks
         run: node node_modules/@playwright/test/cli.js install --with-deps chromium
       - name: Check desktop and mobile documentation

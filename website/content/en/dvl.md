@@ -12,6 +12,8 @@ ros2 launch posim_demos posim_sensor.launch.py \
   paused:=false gui:=true headless:=false
 ```
 
+<figure><a href="{{ASSET_PREFIX}}media/guides/dvl-beams.png"><img width="1440" height="1000" src="{{ASSET_PREFIX}}media/guides/dvl-beams.png" alt="DVL beams intersecting the seabed in Gazebo." loading="lazy" decoding="async"></a><figcaption>DVL beams intersecting the seabed in Gazebo.</figcaption></figure>
+
 In the prepared terminal B, inspect Gazebo, stop the viewer with **Ctrl+C**, then inspect ROS data:
 
 ```bash

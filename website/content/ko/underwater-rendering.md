@@ -4,6 +4,8 @@ POSIM의 `posim_gz_rendering`은 Ogre2 PBR 표면에 빛의 수중 이동 거리
 
 Gazebo 장면, RGB 카메라와 RGBD 색 영상에 같은 렌더링 경로를 사용합니다. 수치 깊이와 충돌 형상은 유지됩니다. 깊이 기반 영상 감쇠 플러그인은 [수중 카메라](camera.md)를 참고하세요.
 
+설치된 시스템은 같은 위치의 렌더링 보조 라이브러리와 `share/posim/underwater` 셰이더를 자동으로 찾습니다. `renderer_library`와 `shader_directory`로 경로를 별도 지정할 수도 있습니다. 해양 예제 Launch는 카메라 통과 플래그를 자동으로 설정합니다. 두 시스템을 함께 쓰는 사용자 지정 Launch에서는 직접 설정하세요.
+
 ## 시스템 빌드와 연결
 
 서버와 일치하는 Gazebo Jetty/Ogre2 개발 환경을 준비합니다. [설치 방식에 맞게 준비한 터미널 A](terminals.md)에서 POSIM 소스 폴더로 이동해 시스템과 렌더링 보조 라이브러리를 함께 빌드합니다. macOS에서는 RDP로 접속한 Linux 데스크톱의 터미널을 사용합니다.
@@ -24,8 +26,6 @@ SDF의 `<world>` 안에 다음 플러그인을 넣습니다. `/absolute/underwat
 ```xml
 <plugin filename="/absolute/underwater/lib/posim_underwater.so"
         name="posim::Underwater">
-  <renderer_library>/absolute/underwater/lib/posim_underwater_render.so</renderer_library>
-  <shader_directory>/absolute/underwater/share/posim/underwater</shader_directory>
   <session_nonce>appearance_example</session_nonce>
 </plugin>
 ```

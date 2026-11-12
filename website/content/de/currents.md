@@ -38,7 +38,7 @@ Verwenden Sie in beiden Plugins denselben, nicht leeren `namespace`. Die Blöcke
 
 ## Ein Tiefenprofil vorbereiten
 
-Die [Beispiel-CSV](https://github.com/IOES-Lab/POSIM/blob/main/models/posim_worlds/worlds/transientOceanCurrentDatabase.csv) enthält in dieser Reihenfolge die Nordkomponente der Geschwindigkeit (m/s), die Ostkomponente (m/s) und die Tiefe (m).
+Die [Beispiel-CSV](https://github.com/IOES-Lab/POSIM/blob/main/models/posim_worlds/worlds/transientOceanCurrentDatabase.csv) enthält in dieser Reihenfolge die Geschwindigkeit entlang der Welt-X-Achse (m/s), der Welt-Y-Achse (m/s) und die Tiefe (m). Die bisherigen Schlüssel `velocity_north`, `velocity_east` und `velocity_down` entsprechen direkt den Weltachsen X, Y und Z.
 
 - Behalten Sie die ersten drei Beschreibungs- und Kopfzeilen bei.
 - Geben Sie mindestens zwei Schichten mit genau drei endlichen Zahlen je Zeile an.
@@ -122,6 +122,8 @@ Lesen Sie das Modell, ändern Sie seine Grenzen und stellen Sie die erste Schich
 ## Gezeitendaten einbinden
 
 Konfigurieren Sie `<tidal_oscillation>` mit einer CSV-Datei oder harmonischen Bestandteilen wie M2/S2/N2, Flut- und Ebbstromrichtung sowie einer GMT-Startzeit. Die harmonischen Beispiele verwenden Meter für die Amplitude, Grad für die Phase und Grad/Stunde für die Winkelgeschwindigkeit. Die Winkel der Strömungsdienste bleiben dagegen in Radiant.
+
+Im Gezeitenmodus wird das berechnete harmonische Signal oder die durch 100 geteilte CSV-Geschwindigkeit mit der ersten Spalte des Tiefenprofils multipliziert. Die Höhenamplituden des Beispiels dienen als Zahlenfaktoren; das Modell rechnet Gezeitenhöhe nicht in Strömungsgeschwindigkeit um. Kalibrieren Sie Signal und Profil gemeinsam für die gewünschte Strömungsgeschwindigkeit.
 
 Die Gezeiten-CSV hat eine Kopfzeile, gefolgt von `YYYY-MM-DD HH:MM,event,speed`:
 

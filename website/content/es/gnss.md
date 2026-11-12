@@ -14,7 +14,9 @@ El modelo necesita un enlace físico de antena, normalmente `gnss_link`, colocad
 
 Ajusta enlace y topic a tu robot. La guía para [crear un robot](custom-robots.md) explica cómo preparar y ejecutar el modelo.
 
-Los [perfiles](https://github.com/IOES-Lab/POSIM/blob/main/gazebo/posim_gz_gnss/config/profiles.json) dan posiciones respecto a `base_link`: WAM-V z = 1.8 m, BlueROV2 0.3 m y REXROV 0.8 m. WAM-V activa el receptor; los perfiles sumergibles lo desactivan inicialmente. Los perfiles son datos de montaje: debes incorporar enlace y plugin al modelo. WAM-V también necesita el [modelo externo Wave Sim](surface.md).
+Los [perfiles](https://github.com/IOES-Lab/POSIM/blob/main/gazebo/posim_gz_gnss/config/profiles.json) dan posiciones respecto a `base_link`: WAM-V z = 1.8 m, BlueROV2 0.3 m y REXROV 0.8 m. WAM-V y los tres perfiles BlueROV2 activan el receptor; REXROV lo desactiva por defecto. Los perfiles son datos de montaje: debes incorporar enlace y plugin al modelo. WAM-V también necesita el [modelo externo Wave Sim](surface.md).
+
+BlueROV2, BlueROV2 Heavy y la variante sonar incluyen el receptor y el adaptador `marine_gnss_input`. Con ArduSub, los mensajes MAVROS `GPSINPUT` sustituyen al GPS sintético de SITL. El adaptador convierte velocidad ENU a NED y altura elipsoidal WGS 84 a altitud EGM96 sobre el nivel medio del mar mediante los datos GeographicLib instalados. Las mediciones sumergidas, bloqueadas, inválidas, futuras o de más de 1 s indican ausencia de posición. El número de satélites es desconocido (`255`) incluso con posición válida; no se calculan geometría satelital ni DOP. El receptor del ejemplo usa el nivel medio z = 0, independientemente de las olas visibles.
 
 ## Parámetros
 
@@ -74,6 +76,8 @@ Para bloquear la antena; usa `false` para liberarla:
 
 ## Interpretar y comprobar
 
-Compara antena quieta fuera del agua, sumergida, bloqueada y recuperada. Comprueba adquisición, retardo, época tras reinicio y marcas temporales crecientes. El receptor de los datos debe rechazar soluciones antiguas o futuras y gestionar estados inválidos. La salida es Gazebo; para usarla en ROS `NavSatFix`, un autopiloto o un estimador de navegación, conviértela mediante un adaptador al formato esperado.
+Compara antena quieta fuera del agua, sumergida, bloqueada y recuperada. Comprueba adquisición, retardo, época tras reinicio y marcas temporales crecientes. El receptor de los datos debe rechazar soluciones antiguas o futuras y gestionar estados inválidos.
+
+El adaptador BlueROV2 incluido alimenta ArduSub; otros consumidores ROS `NavSatFix` y autopilotos personalizados siguen necesitando un adaptador.
 
 El modelo se basa en la posición de la antena. No calcula geometría de satélites, propagación RF, multitrayecto físico ni posicionamiento acústico. La precisión configurada es una entrada de simulación, no una garantía del fabricante. Consulta la [implementación](https://github.com/IOES-Lab/POSIM/blob/main/gazebo/posim_gz_gnss/Gnss.cc) y la [guía del paquete](https://github.com/IOES-Lab/POSIM/tree/main/gazebo/posim_gz_gnss).

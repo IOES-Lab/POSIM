@@ -57,6 +57,12 @@ namespace posim_gz_sensor_plugins
 
 struct UsblTransceiver::PrivateData
 {
+  struct CallbackState
+  {
+    std::mutex mutex;
+    UsblTransceiver * owner = nullptr;
+  };
+  std::shared_ptr<CallbackState> callbackState = std::make_shared<CallbackState>();
   std::atomic<bool> configured{false};
   std::mutex positionMutex;
   std::unordered_map<std::string, gz::msgs::Vector3d> pendingPositions;
@@ -112,6 +118,7 @@ const int GO_TO = 2;
 
 UsblTransceiver::UsblTransceiver() : dataPtr(std::make_unique<PrivateData>())
 {
+  this->dataPtr->callbackState->owner = this;
   dataPtr->m_channel = "1";
   dataPtr->m_temperature = 10.0;
   dataPtr->setGlobalMode = false;
@@ -119,6 +126,12 @@ UsblTransceiver::UsblTransceiver() : dataPtr(std::make_unique<PrivateData>())
 
 UsblTransceiver::~UsblTransceiver()
 {
+  // Finish active transport callbacks and retire any already-acquired ones.
+  // Release the guard before calling transport APIs.
+  {
+    std::lock_guard<std::mutex> lock(this->dataPtr->callbackState->mutex);
+    this->dataPtr->callbackState->owner = nullptr;
+  }
   this->dataPtr->configured = false;
   for (const auto & entry : this->dataPtr->transponderCallbacks)
   {
@@ -334,11 +347,16 @@ void UsblTransceiver::Configure(
 
     gzmsg << "Transponder topic" << transponder_position << std::endl;
 
-    // Created lambda function to get the transponder ID in the created callback
-
+    const auto state = this->dataPtr->callbackState;
     std::function<void(const gz::msgs::Vector3d &)> callback =
-      [this, transponder](const gz::msgs::Vector3d & msg)
-    { this->receiveGazeboCallback(transponder, msg); };
+      [state, transponder](const gz::msgs::Vector3d & msg)
+    {
+      std::lock_guard<std::mutex> lock(state->mutex);
+      if (state->owner)
+      {
+        state->owner->receiveGazeboCallback(transponder, msg);
+      }
+    };
 
     this->dataPtr->transponderCallbacks[transponder] = callback;
     this->dataPtr->m_gzNode.Subscribe(transponder_position, callback);

@@ -73,10 +73,10 @@ class WorldNameTests(unittest.TestCase):
                 )
 
     def test_default_and_application_names_keep_world_spawn_and_imu_connected(self):
-        for override, expected in (
-            (None, "posim_surface"),
-            ("harbour", "harbour"),
-            ("wwos_gebco", "wwos_gebco"),
+        for override, expected, headless in (
+            (None, "posim_surface", True),
+            ("harbour", "harbour", True),
+            ("wwos_gebco", "wwos_gebco", False),
         ):
             with self.subTest(world=expected), tempfile.TemporaryDirectory() as temporary:
                 root = Path(temporary)
@@ -105,11 +105,15 @@ class WorldNameTests(unittest.TestCase):
                 context = LaunchContext()
                 if override is not None:
                     context.launch_configurations["world_name"] = override
+                if not headless:
+                    context.launch_configurations["headless"] = "false"
                 with patch.dict(os.environ, {"ASV_WAVE_SIM_ROOT": str(root)}), patch.object(
                     surface_launch, "Path", side_effect=isolated_path
                 ), patch.object(surface_launch, "Node", wraps=Node) as nodes, patch.object(
                     surface_launch, "ExecuteProcess", wraps=ExecuteProcess
-                ) as processes:
+                ) as processes, patch.object(
+                    surface_launch, "get_package_prefix", return_value="/opt/ros/lyrical"
+                ):
                     for action in surface_launch.generate_launch_description().entities:
                         self.assertIsInstance(action, (DeclareLaunchArgument, OpaqueFunction))
                         action.execute(context)
@@ -133,9 +137,13 @@ class WorldNameTests(unittest.TestCase):
                 self.assertEqual(bridge["remappings"], [(imu, "/model/wamv/imu")])
 
                 commands = [call.kwargs["cmd"] for call in processes.call_args_list]
-                server = next(cmd for cmd in commands if cmd[0] == "gz")
+                gazebo = [cmd for cmd in commands if cmd[0] == "gz"]
+                server = gazebo[0]
                 self.assertIn(str(output / "world-waves.sdf"), server)
-                self.assertIn("--headless-rendering", server)
+                self.assertIn("-s", server)
+                self.assertEqual("--headless-rendering" in server, headless)
+                gui = "/opt/ros/lyrical/opt/gz_sim_vendor/libexec/gz/sim10/gz-sim-gui-client"
+                self.assertEqual(commands.count([gui]), int(not headless))
                 wait = next(cmd for cmd in commands if cmd[:2] == ["bash", "-c"])
                 tokens = shlex.split(wait[2])
                 self.assertEqual(tokens[tokens.index("-t") + 1], imu)

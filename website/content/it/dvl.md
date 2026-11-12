@@ -8,6 +8,8 @@ Nel [terminale A preparato per la tua installazione](terminals.md):
 
 {{CODE:dvl:0}}
 
+{{MEDIA:dvl:0}}
+
 Nel terminale B preparato, leggi prima Gazebo, interrompi la lettura con **Ctrl+C**, poi leggi ROS:
 
 {{CODE:dvl:1}}
@@ -70,6 +72,9 @@ Consulta `ros2 interface show posim_interfaces/msg/DVL`. Verifica velocità, rif
 
 ## Fasci e uscita DVL
 
-{{MEDIA:dvl}}
+{{MEDIA:dvl:1}}
+{{MEDIA:dvl:2}}
+{{MEDIA:dvl:3}}
+{{MEDIA:dvl:4}}
 
 Immagini: wiki Notion POSIM; attribuzione DAVE in [Citazioni e licenze](citation.md). Usa i comandi e i topic di questa pagina.

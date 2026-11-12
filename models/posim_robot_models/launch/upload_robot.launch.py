@@ -48,13 +48,16 @@ def launch_setup(context, *args, **kwargs):
             "model.sdf",
         ]
     )
+    model_file = LaunchConfiguration("model_file").perform(context)
+    if model_file:
+        description_file = model_file
 
     cleanup_handlers = []
     if LaunchConfiguration("qgc_video").perform(context) == "true":
         port = int(LaunchConfiguration("qgc_video_port").perform(context))
         if not 1 <= port <= 65535:
             raise ValueError("qgc_video_port must be between 1 and 65535")
-        tree = ET.parse(description_file.perform(context))
+        tree = ET.parse(model_file or description_file.perform(context))
         camera = tree.find(".//sensor[@type='camera']")
         if camera is None:
             raise ValueError("qgc_video requires a robot with a camera sensor")
@@ -68,6 +71,7 @@ def launch_setup(context, *args, **kwargs):
             ("udp_port", str(port)),
             ("use_basic_pipeline", "true"),
             ("use_cuda", "false"),
+            ("keyframe_interval", "1"),
         ):
             ET.SubElement(plugin, name).text = value
         with tempfile.NamedTemporaryFile(
@@ -98,12 +102,12 @@ def launch_setup(context, *args, **kwargs):
         name="world_to_world_ned",
         arguments=[
             "--roll",
-            "1.57",
+            "3.141592653589793",
             "--yaw",
-            "3.14",
-            "--frame_id",
+            "1.5707963267948966",
+            "--frame-id",
             "world",
-            "--child_frame_id",
+            "--child-frame-id",
             "world_ned",
         ],
         output="both",
@@ -182,6 +186,9 @@ def launch_setup(context, *args, **kwargs):
 
 def generate_launch_description():
     args = [
+        DeclareLaunchArgument(
+            "model_file", default_value="", description="Optional SDF override for this robot"
+        ),
         DeclareLaunchArgument(
             "gui",
             default_value="true",

@@ -10,6 +10,7 @@ on:
       - ".docker/**"
       - ".dockerignore"
       - ".github/workflows/docker-*.yml"
+      - ".github/actions/ubuntu-mirrors/**"
       - "posim_interfaces/**"
       - "examples/**"
       - "extras/**"
@@ -58,22 +59,30 @@ jobs:
           PUBLISH_IMAGES: ${{ vars.POSIM_PUBLISH_IMAGES }}
         run: |
           source_sha="$(git rev-parse HEAD)"
-          echo "sha=$source_sha" >> "$GITHUB_OUTPUT"
-          echo "tag=sha-${source_sha:0:12}" >> "$GITHUB_OUTPUT"
           publish=false
           latest=false
           version=''
+          if [[ "$GITHUB_EVENT_NAME" == push && "$GITHUB_REF" == refs/tags/v* ]]; then
+            version="${GITHUB_REF_NAME#v}"
+            expected_version="$(python3 -c 'import json; print(json.load(open("website/package.json"))["version"])')"
+            if [[ "$version" != "$expected_version" ]]; then
+              echo "Tag $GITHUB_REF_NAME does not match the documentation version $expected_version" >&2
+              exit 1
+            fi
+          fi
           if [[ "$GITHUB_EVENT_NAME" != pull_request && "$PUBLISH_IMAGES" == true ]]; then
             publish=true
             if [[ "$GITHUB_EVENT_NAME" == workflow_dispatch || "$GITHUB_REF" == refs/heads/main ]]; then
               latest=true
-            elif [[ "$GITHUB_REF" == refs/tags/v* ]]; then
-              version="${GITHUB_REF_NAME#v}"
             fi
           fi
-          echo "publish=$publish" >> "$GITHUB_OUTPUT"
-          echo "latest=$latest" >> "$GITHUB_OUTPUT"
-          echo "version=$version" >> "$GITHUB_OUTPUT"
+          {
+            echo "sha=$source_sha"
+            echo "tag=sha-${source_sha:0:12}"
+            echo "publish=$publish"
+            echo "latest=$latest"
+            echo "version=$version"
+          } >> "$GITHUB_OUTPUT"
 
   build:
     needs: revision
@@ -93,6 +102,9 @@ jobs:
       - uses: actions/checkout@v7
         with:
           ref: ${{ needs.revision.outputs.sha }}
+      - name: Resolve Ubuntu package mirrors for BuildKit
+        id: ubuntu-mirrors
+        uses: ./.github/actions/ubuntu-mirrors
       - uses: docker/setup-buildx-action@v4
       - name: Log in to Docker Hub
         if: needs.revision.outputs.publish == 'true'
@@ -100,17 +112,65 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Build and optionally push the architecture image
+      - name: Build and load the architecture image
         uses: docker/build-push-action@v7
         with:
           context: .
           file: ${{ matrix.dockerfile }}
           platforms: linux/${{ matrix.arch }}
-          push: ${{ needs.revision.outputs.publish == 'true' }}
+          add-hosts: ${{ steps.ubuntu-mirrors.outputs.hosts }}
+          load: true
           tags: ${{ env.IMAGE_NAME }}:${{ needs.revision.outputs.tag }}-${{ matrix.arch }}
           labels: |
             org.opencontainers.image.source=https://github.com/IOES-Lab/POSIM
             org.opencontainers.image.revision=${{ needs.revision.outputs.sha }}
+      - name: Test the installed image
+        timeout-minutes: 15
+        env:
+          IMAGE_TAG: ${{ needs.revision.outputs.tag }}-${{ matrix.arch }}
+          TEST_CONTAINER: >-
+            posim-test-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.arch }}
+        run: |
+          results="$RUNNER_TEMP/posim-image-tests-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          results+="-${{ matrix.arch }}"
+          mkdir -p "$results"
+          cleanup() {
+            docker rm -f "$TEST_CONTAINER" >/dev/null 2>&1 || true
+            docker run --rm --entrypoint chown \
+              --mount "type=bind,source=$results,target=/tmp/posim-image-tests" \
+              "$IMAGE_NAME:$IMAGE_TAG" -R "$(id -u):$(id -g)" /tmp/posim-image-tests
+          }
+          trap cleanup EXIT
+          docker run --rm --init --interactive --name "$TEST_CONTAINER" --shm-size=1g \
+            --mount "type=bind,source=$results,target=/tmp/posim-image-tests" \
+            --entrypoint bash "$IMAGE_NAME:$IMAGE_TAG" -s < .docker/test-image.sh
+      - name: Preserve image test results
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: image-tests-${{ matrix.arch }}
+          path: >-
+            ${{ format('{0}/posim-image-tests-{1}-{2}-{3}',
+            runner.temp, github.run_id, github.run_attempt, matrix.arch) }}
+          if-no-files-found: ignore
+      - name: Push the tested architecture image
+        if: needs.revision.outputs.publish == 'true'
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: ${{ matrix.dockerfile }}
+          platforms: linux/${{ matrix.arch }}
+          add-hosts: ${{ steps.ubuntu-mirrors.outputs.hosts }}
+          push: true
+          tags: ${{ env.IMAGE_NAME }}:${{ needs.revision.outputs.tag }}-${{ matrix.arch }}
+          labels: |
+            org.opencontainers.image.source=https://github.com/IOES-Lab/POSIM
+            org.opencontainers.image.revision=${{ needs.revision.outputs.sha }}
+      - name: Remove the loaded test image
+        if: always()
+        env:
+          IMAGE_TAG: ${{ needs.revision.outputs.tag }}-${{ matrix.arch }}
+        run: docker image rm "$IMAGE_NAME:$IMAGE_TAG" || true
       - name: Remove unused POSIM images older than two days
         if: always() && matrix.arch == 'amd64'
         run: |

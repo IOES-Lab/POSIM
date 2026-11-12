@@ -2,6 +2,8 @@
 
 POSIM是一套面向ROS 2和Gazebo的开源海洋机器人仿真库。你可以直接运行海洋环境、水面与水下机器人、仿真传感器和控制实验。它源自[Project DAVE](https://field-robotics-lab.github.io/dave.doc/)，后者以[UUV Simulator](https://uuvsimulator.github.io/)为基础。
 
+{{TUTORIALS}}
+
 {{OVERVIEW}}
 
 ## 从这里开始

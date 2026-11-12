@@ -12,6 +12,8 @@ POSIM のマルチビームソナーは、点散乱モデルで距離ごとの�
 
 {{CODE:sonar:1}}
 
+{{MEDIA:sonar:0}}
+
 例は 1 つずつ実行してください。`wgpu` を `cpu`、`cuda`、`auto` に替えると計算方法を選べます。ロボット搭載の例では、適切なソナーワールドで `bluerov2_heavy_multibeam_sonar` を選びます。
 
 ## センサーの計算処理
@@ -71,6 +73,8 @@ P900センサーはモデルの`<link>`内に配置します。
 
 接尾辞はセンサーの`<topic>`に付加されます。この例では`/sensor/multibeam_sonar`です。Gazeboの点群型は`gz.msgs.PointCloudPacked`で、付属のROSブリッジが`sensor_msgs/msg/PointCloud2`へ変換します。`pointCloudTopicName`を`sensor_config.py`と一致させ、`frameName`にソナーの光学座標系を指定してください。
 
+BlueView P900とBlueROV2ソナーのlaunchファイルは、RViz表示用に`world`からソナー座標系への恒等変換を配信します。点群の座標はセンサー基準です。この静的変換は機体の動きやソナーの取り付け位置・姿勢を反映しません。ワールド座標で地図を作成する場合は、機体とソナー取り付け部の位置・姿勢を反映する変換チェーンに置き換えてください。
+
 ### 音線の配置
 
 `<ray>`の既定値は、水平方向256ビーム、垂直方向3本の音線、水平角±π/4、垂直角±π/8、距離範囲0.1–5 mです。角度はラジアンで指定し、`degrees="true"`の場合は度を使います。`<gz:multibeam_sonar>`内の任意項目`<reference_frame>`は、位置と回転が0の姿勢を既定値とします。
@@ -97,7 +101,7 @@ P900センサーはモデルの`<link>`内に配置します。
 1. `models/posim_sensor_models/description/blueview_p900/`を新しいセンサー名でコピーします。
 2. 対応する`config/<センサー名>/sensor_config.py`を用意し、モデル・リンク・座標系の名前とブリッジのトピックをそろえます。
 3. サンプル数、角度、距離範囲を設定します。ワールドに上記の2つのシステムを組み込みます。その他の設定は[ソナー用ワールドのSDF](https://github.com/IOES-Lab/POSIM/blob/main/models/posim_worlds/worlds/posim_multibeam_sonar.world)を参照してください。
-4. 計算バックエンドと描画環境を準備し、ワークスペースを再ビルドして環境を読み込みます。[起動引数](quickstart.md)で新しいセンサーを選びます。
+4. 計算バックエンドと描画環境を準備し、ワークスペースを再ビルドして環境を読み込みます。[起動引数](worlds.md)で新しいセンサーを選びます。
 
 ## 生データを保存・表示する
 
@@ -123,6 +127,11 @@ PNGとして保存する場合：
 
 ## シーンと観測例
 
-{{MEDIA:sonar}}
+{{MEDIA:sonar:1}}
+{{MEDIA:sonar:2}}
+{{MEDIA:sonar:3}}
+{{MEDIA:sonar:4}}
+{{MEDIA:sonar:5}}
+{{MEDIA:sonar:6}}
 
 図・動画：POSIM Notion Wiki。DAVEとソナーモデルの出典は[引用とライセンス](citation.md)を参照してください。コマンドとトピック名は、このページのコードブロックを使用します。

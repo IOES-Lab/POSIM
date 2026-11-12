@@ -524,7 +524,7 @@
     <velocity_stddev>0.1</velocity_stddev>
     <water_level>0</water_level>
     <seed>42</seed>
-    <enabled>false</enabled>
+    <enabled>true</enabled>
     <link_name>gnss_link</link_name>
     <topic>/model/bluerov2/gnss</topic>
     <wave_topic />

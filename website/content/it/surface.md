@@ -2,6 +2,14 @@
 
 Simula un WAM-V con le onde di Wave Sim e ArduRover in modalità imbarcazione. L'installatore POSIM e le ricette Docker compilano le librerie esterne per le onde.
 
+## Tutorial standard
+
+L’installazione standard include un percorso tra boe con WAM-V, telecamera, lidar e vista RViz preconfigurata. Non richiede l’immagine opzionale descritta sotto. Nel [terminale POSIM preparato](terminals.md), esegui:
+
+{{CODE:quickstart:4}}
+
+Segui [Prima simulazione](quickstart.md) per la scena, la vista lidar, il video e i controlli di QGroundControl.
+
 ## Preparare il WAM-V
 
 Questa immagine opzionale usa la struttura desktop ARM64. Su un Mac Apple Silicon, prepara [Docker e RDP](install-macos.md), poi esegui i comandi nel Terminale macOS da una copia del repository POSIM:

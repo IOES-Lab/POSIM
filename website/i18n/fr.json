@@ -67,6 +67,7 @@
     "previousNext": "Guides précédent et suivant",
     "previous": "Précédent",
     "next": "Suivant",
+    "maintainer": "Maintenu par IOES Lab. à la KMOU",
     "edit": "Modifier cette page",
     "references": "Références",
     "onThisPage": "Sur cette page",
@@ -106,6 +107,7 @@
       "Topic Gazebo du courant du modèle"
     ],
     "dvl": [
+      "Faisceaux DVL atteignant le fond marin dans Gazebo.",
       "Faisceaux acoustiques du DVL dirigés vers le fond marin",
       "Mesures de vitesse du DVL",
       "Inspection du topic DVL dans Gazebo",
@@ -132,6 +134,7 @@
       "Étapes du traitement sonar sur le GPU"
     ],
     "sonar": [
+      "Image sonar, nuage de points et caméra en direct dans RViz (calcul CUDA).",
       "Traitement sonar multifaisceaux par diffusion ponctuelle",
       "RVB, profondeur, image sonar et nuage de points d’une même scène",
       "Évolution de l’image dans l’exemple sonar",
@@ -140,6 +143,7 @@
       "Exploration locale d’une scène au sonar"
     ],
     "usbl": [
+      "Exemple USBL : un émetteur-récepteur et deux transpondeurs.",
       "Disposition de l’émetteur-récepteur et des transpondeurs USBL",
       "Échanges d’interrogation commune et individuelle",
       "Mesures de position du transpondeur"
@@ -149,7 +153,23 @@
     ],
     "install-macos": [
       "L’image ARM64 prête à l’emploi affiche Gazebo dans le bureau distant."
+    ],
+    "quickstart": [
+      "BlueROV2 et les échos sonar partagent une vue liée au véhicule, à côté des images de la caméra et du sonar.",
+      "La caméra sous-marine dans QGC. La perte du positionnement GNSS sous l’eau ne signifie pas la perte de connexion au véhicule.",
+      "WAM-V et les échos lidar dans la même vue, avec la caméra avant à côté.",
+      "La caméra avant du WAM-V transmet le parcours de bouées à QGC."
     ]
   },
-  "overview": "Environnement océanique → robots et dynamique → mesures des capteurs → commande ROS 2. Cliquez sur une image pour ouvrir le guide."
+  "overview": "Environnement océanique → robots et dynamique → mesures des capteurs → commande ROS 2. Cliquez sur une image pour ouvrir le guide.",
+  "tutorials": {
+    "labels": [
+      "BlueROV2 · Gazebo",
+      "BlueROV2 · RViz",
+      "WAM-V · Gazebo",
+      "WAM-V · RViz",
+      "WAM-V · QGC"
+    ],
+    "caption": "Vues de la première simulation. Cliquez sur une image pour l’ouvrir en taille réelle."
+  }
 }

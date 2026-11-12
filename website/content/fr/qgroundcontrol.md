@@ -1,8 +1,12 @@
 # Piloter avec QGroundControl
 
-Connectez QGroundControl (QGC) à BlueROV2, utilisez les joysticks virtuels et regardez l'image de sa caméra avant. Commencez par la [première simulation](quickstart.md), puis préparez les [terminaux A et B](terminals.md).
+Connectez QGroundControl (QGC) au BlueROV2 simulé, utilisez les joysticks virtuels et regardez l’image de sa caméra avant. Terminez l’[installation](requirements.md), puis préparez les [terminaux A et B](terminals.md).
 
 ## 1. Ouvrir QGC dans l'environnement de POSIM
+
+**Windows/WSL :** utilisez la version Linux de QGC pour ces tutoriels. Ne lancez pas l’application installée sous Windows. Démarrez QGC dans la même distribution Ubuntu que POSIM ou, avec Docker, dans le même conteneur POSIM. WSLg peut afficher la fenêtre Linux sur le bureau Windows ; l’application continue de fonctionner dans Linux.
+
+Les adresses `127.0.0.1` de ce guide désignent l’environnement où QGC s’exécute. Elles ne configurent pas l’application Windows pour recevoir la télémétrie ou la vidéo provenant de WSL ou de Docker.
 
 | Installation | Où lancer QGC |
 |---|---|
@@ -11,7 +15,7 @@ Connectez QGroundControl (QGC) à BlueROV2, utilisez les joysticks virtuels et r
 | Linux ou Windows avec Docker | Lancez l'application fournie dans le conteneur POSIM. |
 | macOS avec Docker et RDP | Lancez l'application depuis un terminal du bureau RDP. |
 
-Pour une installation native, suivez le [guide officiel de QGC](https://docs.qgroundcontrol.com/master/en/qgc-user-guide/getting_started/download_and_install.html) et choisissez la version Linux adaptée au processeur. Dans Docker, utilisez le terminal B :
+Ce guide utilise QGC **5.1.5**, fourni dans les images Docker POSIM. Pour une installation native, suivez le [guide officiel d’installation](https://docs.qgroundcontrol.com/master/en/qgc-user-guide/getting_started/download_and_install.html) et téléchargez l’AppImage Linux correspondant à votre processeur depuis la [page de la version 5.1.5](https://github.com/mavlink/qgroundcontrol/releases/tag/v5.1.5). Dans Docker, utilisez le terminal B :
 
 {{CODE:qgroundcontrol:0}}
 
@@ -37,6 +41,7 @@ Ouvrez **Application Settings → Video**. Choisissez d'abord la source vidéo, 
 | UDP URL | `127.0.0.1:5600` |
 | Aspect Ratio | `0`, proportions automatiques |
 | Disable Video Stream When Disarmed | Désactivé |
+| Low Latency Mode | Activé |
 | Auto-reconnect on stream loss | Activé |
 
 ## 4. Lancer le robot et la caméra
@@ -55,7 +60,7 @@ Revenez à **Fly View** et cliquez sur l'aperçu vidéo pour l'agrandir.
 
 La caméra produit des images de **640 × 480 à 5 Hz en temps simulé**. Le rendu logiciel peut ralentir la simulation. BlueROV2 possède une flottabilité positive : même désarmé, il peut remonter et perdre les objets de vue.
 
-`qgc_video:=true` ajoute l'émetteur H.264 pour cette exécution. Il diffuse la caméra RVB normale ; le [filtre de caméra sous-marine](camera.md) dispose d'une sortie ROS distincte.
+`qgc_video:=true` ajoute l'émetteur H.264. La vidéo RVB inclut les [effets sous-marins du monde](underwater-rendering.md). Le [filtre de caméra](camera.md) indépendant conserve sa sortie ROS. Le GNSS perd la position quand l'antenne est immergée et la retrouve après émersion ; télémétrie, vidéo et commande manuelle restent connectées. Utilisez Manual sous l'eau. L'objectif est plus bas que l'antenne : une image sous-marine peut donc coexister avec une position GNSS valide.
 
 ## 5. Armer, déplacer et arrêter
 
@@ -71,7 +76,11 @@ Gardez les commandes au clavier et le joystick web désactivés pour éviter les
 
 Appuyez sur **Ctrl+C** dans A, puis fermez QGC.
 
+MAVROS attend jusqu’à 60 secondes sans message de présence du véhicule avant de signaler une perte de connexion. Ce délai tient compte du rendu logiciel lent ; une interruption réelle de ces messages peut donc mettre jusqu’à 60 secondes à apparaître dans `/mavros/state`.
+
 ## Résoudre un problème de connexion
+
+Les options `qgc_video` et `qgc_video_port` ci-dessous concernent le lancement séparé de l’étape 4. Les [premières simulations](quickstart.md) incluent déjà un émetteur vidéo ; utilisez leur commande `/tutorial/camera/enable_streaming`. Une forte charge du sonar peut espacer les images et faire apparaître temporairement **Waiting for video** dans QGC. Gardez **Low Latency Mode** activé et essayez le tutoriel sous-marin sans sonar.
 
 - **Véhicule absent :** vérifiez que QGC utilise le même environnement Linux que POSIM et qu'aucune autre instance n'occupe UDP 14550.
 - **Waiting for video :** vérifiez la source H.264, l'adresse UDP et `qgc_video:=true`. Activez l'envoi depuis B et attendez quelques images.

@@ -2,6 +2,8 @@
 
 Les mondes se trouvent dans `models/posim_worlds/worlds`. Sélectionnez-les par leur nom de fichier, sans l'extension `.world`.
 
+Les mondes océaniques incluent `model://calm_waves` : vagues FFT de Wave Sim avec un vent d’entrée de 3 m/s, une tuile périodique de 256 m et une zone visible de 768 × 768 m. La surface est visible du dessus et du dessous. Les effets sous-marins natifs s’appliquent aux images RGB ; le tutoriel en eau peu profonde les active aussi dans la vue du monde Gazebo. Les installations standard et les images incluent Wave Sim. La flottabilité des véhicules sous-marins, le GNSS marin et la limite optique utilisent le niveau moyen z = 0, indépendamment de la hauteur des vagues affichées. WAM-V utilise l’hydrodynamique Wave Sim couplée aux vagues. La démonstration USBL sans eau et les mondes de test sonar isolés conservent leur propre géométrie.
+
 ## Lancer un monde
 
 Utilisez le [terminal POSIM de votre installation](terminals.md), sous Ubuntu natif, WSL, Docker ou dans le bureau RDP.
@@ -61,6 +63,6 @@ Vérifiez les modèles dans la réponse, l'avancement de l'horloge et les mesure
 | `x`, `y`, `z` | Position initiale, m | `0.0` chacun |
 | `roll`, `pitch`, `yaw` | Orientation initiale, rad | `0.0` chacun |
 | `debug` / `verbosity_level` | Journal détaillé / niveau | `false` / `1` |
-| `use_ned_frame` | Repère NED | `false` |
+| `use_ned_frame` | Publier la transformation `world_ned` (ENU vers NED) | `false` |
 
 Utilisez `paused:=false` pour produire des données de capteurs. Consultez `--show-args` sur le lancement concerné pour les options des robots et des mondes.

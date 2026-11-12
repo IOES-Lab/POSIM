@@ -11,7 +11,7 @@
 | `bluerov2_heavy` | Heavy 構成 |
 | `bluerov2_heavy_multibeam_sonar` | ソナー付き Heavy 構成 |
 
-インストール方法に合った[準備済みターミナル](terminals.md)を使います。REXROV は[最初のシミュレーション](quickstart.md)から始めてください。
+インストール方法に合った[準備済みターミナル](terminals.md)を使います。 REXROV は[以下の例](#start-rexrov)で起動してください。
 
 ## BlueROV2 を起動する {#start-bluerov2}
 
@@ -51,3 +51,9 @@ WebSocket ブリッジは遠隔操作の起動処理に含まれるため、`use
 {{MEDIA:rovs}}
 
 図と動画：POSIM Notion Wiki。DAVE の帰属表示は[引用とライセンス](citation.md)にあります。本ページのコマンドとトピック名を使ってください。
+
+## REXROV を起動する {#start-rexrov}
+
+[準備済みのターミナル A](terminals.md)で、Python とスラスター制御ガイド用の例を別途起動します。海洋ワールドと ROS ブリッジを起動し、REXROV を z = −5 m に配置します。ターミナル B で各ガイドを実行する間、このセッションを動かしておいてください。
+
+{{CODE:rovs:3}}

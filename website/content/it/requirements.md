@@ -14,6 +14,8 @@ Scegli il percorso adatto al sistema operativo del tuo computer. **Consigliamo U
 
 L’immagine fornisce il proprio ambiente Ubuntu. L’host Linux può quindi usare un’altra versione o distribuzione supportata da Docker. L’emulazione ARM64 sui Mac Intel non è trattata qui.
 
+Per questa versione, usa Docker/RDP su macOS. L’installazione nativa su macOS non è ancora stata verificata nel suo insieme. I riferimenti al supporto Metal nativo riguardano singoli componenti e non confermano il supporto dell’intero ambiente del tutorial.
+
 ## Software e grafica
 
 Tutti i percorsi utilizzano **ROS 2 Lyrical** e **Gazebo Sim — Gazebo Jetty**. L’installazione nativa li prepara in Ubuntu; le immagini li contengono già. Installa il driver grafico sull’host come indicato nella guida scelta.

@@ -97,7 +97,9 @@ WGPU 保留请求的变换长度，包括非 2 的幂长度，并自动选择 FF
 
 {{MEDIA:sonar-tuning}}
 
-处理包括射线求和、加窗与校正、FFT 等阶段。请分别测量计算与内存传输耗时。图片来源：POSIM Notion Wiki。
+处理包括射线求和、波束校正和 FFT 等阶段。WGPU 还会应用传入的频域窗函数；CUDA 路径不会应用该窗函数。请分别测量计算与内存传输耗时。图片来源：POSIM Notion Wiki。
+
+使用经过测试的 Gazebo Sim 10.5 macOS SDK 时，仅有声呐的世界可能在初始化 Ogre2 时崩溃。使用该 SDK 时，请在世界中加入一个小型内置摄像头。
 
 ## 原生 macOS 的 ROS 传输设置 {#native-macos-ros-transport}
 

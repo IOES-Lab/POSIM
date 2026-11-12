@@ -11,7 +11,7 @@ L'argument `namespace` sélectionne le répertoire d'un modèle installé. Les t
 | `bluerov2_heavy` | Configuration Heavy |
 | `bluerov2_heavy_multibeam_sonar` | Heavy avec sonar |
 
-Utilisez le [terminal préparé pour votre installation](terminals.md). Pour REXROV, suivez la [première simulation](quickstart.md).
+Utilisez le [terminal préparé pour votre installation](terminals.md). Pour REXROV, utilisez l’[exemple ci-dessous](#start-rexrov).
 
 ## Lancer BlueROV2 {#start-bluerov2}
 
@@ -51,3 +51,9 @@ Pour les abonnements et commandes depuis vos programmes, passez à [ROS](ros.md)
 {{MEDIA:rovs}}
 
 Images et vidéos : POSIM Notion Wiki. L'attribution à DAVE figure dans [Citations et licences](citation.md). Utilisez les commandes et topics de cette page.
+
+## Démarrer REXROV {#start-rexrov}
+
+Dans le [terminal A préparé](terminals.md), lancez cet exemple séparé pour les guides Python et de commande des propulseurs. Il démarre le monde océanique et les ponts ROS, puis place REXROV à z = −5 m. Gardez cette session active pendant les exercices dans le terminal B.
+
+{{CODE:rovs:3}}

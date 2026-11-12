@@ -1,8 +1,12 @@
 # QGroundControl로 제어하기
 
-QGroundControl(QGC)에서 시뮬레이션 중인 BlueROV2에 연결하고, 가상 조이스틱으로 조종하며 전방 카메라 영상을 확인합니다. 먼저 [첫 시뮬레이션](quickstart.md)을 실행해 보고 [터미널 A와 B를 준비하세요](terminals.md).
+QGroundControl(QGC)에서 시뮬레이션 중인 BlueROV2에 연결하고, 가상 조이스틱으로 조종하며 전방 카메라 영상을 확인합니다. [설치](requirements.md)를 마친 뒤 [터미널 A와 B를 준비하세요](terminals.md).
 
 ## 1. POSIM과 같은 Linux 환경에서 QGC 열기
+
+**Windows/WSL:** 이 튜토리얼에서는 Linux용 QGC를 사용합니다. Windows에 설치한 QGC를 실행하지 마세요. POSIM과 같은 Ubuntu 배포판 안에서 실행하고, Docker를 사용한다면 같은 POSIM 컨테이너 안에서 실행하세요. WSLg를 통해 Windows 바탕 화면에 QGC 창이 표시되어도 앱은 Linux 안에서 실행됩니다.
+
+이 안내의 `127.0.0.1`은 QGC가 실행되는 환경 내부를 가리킵니다. 이 주소만으로 Windows용 QGC가 WSL이나 Docker의 상태 정보와 영상을 받도록 연결되지는 않습니다.
 
 | POSIM 설치 방식 | QGC를 실행할 위치 |
 |---|---|
@@ -11,7 +15,7 @@ QGroundControl(QGC)에서 시뮬레이션 중인 BlueROV2에 연결하고, 가�
 | Linux·Windows Docker | POSIM 컨테이너에 포함된 앱을 컨테이너 안에서 실행합니다. |
 | macOS Docker·RDP | RDP 데스크톱 안의 터미널에서 컨테이너에 포함된 앱을 실행합니다. |
 
-네이티브 설치에서는 공식 [QGC 다운로드·설치 안내](https://docs.qgroundcontrol.com/master/en/qgc-user-guide/getting_started/download_and_install.html)를 따르세요. CPU 아키텍처에 맞는 Linux 앱을 받습니다. WSL에서도 Ubuntu 안에서 실행합니다.
+이 안내는 POSIM Docker 이미지에 포함된 QGC **5.1.5**를 기준으로 합니다. 네이티브 설치에서는 공식 [설치 안내](https://docs.qgroundcontrol.com/master/en/qgc-user-guide/getting_started/download_and_install.html)를 따르고, [5.1.5 릴리스](https://github.com/mavlink/qgroundcontrol/releases/tag/v5.1.5)에서 CPU 아키텍처에 맞는 Linux AppImage를 받으세요. WSL에서도 Ubuntu 안에서 실행합니다.
 
 Docker에서는 터미널 B에 다음을 입력합니다.
 
@@ -41,6 +45,7 @@ qgroundcontrol &
 | UDP URL | `127.0.0.1:5600` |
 | Aspect Ratio | `0`: 카메라 영상 비율 자동 적용 |
 | Disable Video Stream When Disarmed | 끔 |
+| Low Latency Mode | 켬 |
 | Auto-reconnect on stream loss | 켬 |
 
 ## 4. BlueROV2와 카메라 송신 시작하기
@@ -61,7 +66,7 @@ Gazebo에 해저 물체와 로봇이 나타납니다. QGC는 ArduSub에 자동�
 
 ```bash
 gz topic -t /model/bluerov2/camera/enable_streaming \
-  -m gz.msgs.Boolean -p 'data: true' --duration 1
+  -m gz.msgs.Boolean -p 'data: true' --duration 3
 ```
 
 **Fly View**로 돌아온 뒤 작은 영상 창을 클릭하면 카메라가 주 화면으로 표시됩니다.
@@ -73,7 +78,7 @@ gz topic -t /model/bluerov2/camera/enable_streaming \
 
 기본 카메라는 **시뮬레이션 시간 기준 5 Hz, 640 × 480** 영상을 만듭니다. 소프트웨어 렌더링으로 시뮬레이션이 느려지면 화면에 도착하는 영상도 느려집니다. BlueROV2에는 양성 부력이 있으므로 시동을 걸지 않고 기다리는 동안 떠올라 물체가 화면 밖으로 벗어날 수 있습니다.
 
-`qgc_video:=true`를 지정하면 이번 실행에 H.264 송신기를 추가합니다. 지정하지 않으면 QGC 영상 송신기를 만들지 않습니다. 이 영상은 로봇의 일반 RGB 카메라 출력입니다. 별도의 [수중 카메라 필터](camera.md)는 자체 ROS 토픽으로 처리 결과를 보냅니다.
+`qgc_video:=true`를 지정하면 H.264 송신기를 추가합니다. 로봇의 RGB 영상에는 월드의 [수중 장면 효과](underwater-rendering.md)가 포함됩니다. 별도의 [카메라 필터](camera.md)는 자체 ROS 출력을 사용합니다. 해양 GNSS는 안테나가 잠기면 측위를 잃고 수면 위로 나오면 다시 수신하지만, 텔레메트리·영상·수동 조작 연결은 유지됩니다. 수중에서는 Manual 모드를 사용하세요. 카메라 렌즈가 안테나보다 낮으므로 GNSS가 유효해도 수중 영상이 보일 수 있습니다.
 
 ## 5. 시동을 걸고 조종한 뒤 정지하기
 
@@ -89,12 +94,16 @@ QGC로 조종하는 동안 키보드·웹 조이스틱 제어기는 꺼 두세�
 
 ```bash
 gz topic -t /model/bluerov2/camera/enable_streaming \
-  -m gz.msgs.Boolean -p 'data: false' --duration 1
+  -m gz.msgs.Boolean -p 'data: false' --duration 3
 ```
 
 이어서 터미널 A에서 **Ctrl+C**로 시뮬레이션을 종료하고 QGC도 닫습니다.
 
+MAVROS는 기체의 하트비트가 60초 동안 수신되지 않으면 연결 끊김을 보고합니다. 소프트웨어 렌더링이 느릴 때 연결 상태가 반복해서 바뀌는 것을 줄이기 위한 설정입니다. 실제로 하트비트가 끊겨도 `/mavros/state`에 반영되기까지 최대 60초가 걸릴 수 있습니다.
+
 ## 연결이나 영상이 보이지 않을 때
+
+아래의 `qgc_video`와 `qgc_video_port` 옵션은 4단계의 별도 실행 명령에 적용됩니다. [첫 시뮬레이션 튜토리얼](quickstart.md)에는 송신기가 이미 포함되어 있으므로 해당 안내의 `/tutorial/camera/enable_streaming` 명령을 사용하세요. 소나 부하로 프레임 간격이 길어지면 QGC에 **Waiting for video**가 잠시 표시될 수 있습니다. **Low Latency Mode**를 켜고 수중 튜토리얼을 소나 없이 실행해 보세요.
 
 - **기체가 연결되지 않음:** QGC와 POSIM이 같은 Linux 환경에 있는지, 다른 QGC 창이 UDP 14550을 사용 중인지 확인합니다.
 - **영상 대기 상태:** H.264 입력 방식, UDP URL, `qgc_video:=true` 옵션을 확인합니다. 터미널 B에서 송신을 시작하고 몇 프레임이 도착할 때까지 기다립니다.

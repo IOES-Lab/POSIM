@@ -3,6 +3,9 @@
 
 <sdf version="1.4">
   <world name="oceans_waves_sonar_integrated">
+    <plugin filename="posim_underwater" name="posim::Underwater">
+      <session_nonce>oceans_waves_sonar_integrated</session_nonce>
+    </plugin>
     <scene>
       <ambient>0.01 0.01 0.01 1.0</ambient>
       <sky>
@@ -92,9 +95,7 @@
 
     <!-- Sea surface -->
     <include>
-      <uri>
-        https://fuel.gazebosim.org/1.0/OpenRobotics/models/Coast Water
-      </uri>
+      <uri>model://calm_waves</uri>
     </include>
 
     <include>

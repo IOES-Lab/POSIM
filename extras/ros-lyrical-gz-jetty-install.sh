@@ -40,6 +40,7 @@ sudo apt install -y \
     python3-pip \
     python3-venv \
     qtbase5-dev \
+    xvfb xauth \
     ruby \
     software-properties-common \
     sudo \
@@ -104,9 +105,10 @@ sudo apt update && sudo apt install -y \
 # ardupilot_gazebo build resolves Jetty's vendored CMake packages.
 sudo mkdir -p /opt/ardusub_ws && cd /opt/ardusub_ws || exit
 if [[ -n "${POSIM_EXTRAS_DIR:-}" && -f "${POSIM_EXTRAS_DIR}/ardusub-ubuntu-install.sh" ]]; then
-    sudo bash "${POSIM_EXTRAS_DIR}/ardusub-ubuntu-install.sh"
+    ARDUPILOT_HELPERS="$POSIM_EXTRAS_DIR"
 else
     ARDUPILOT_HELPERS="$(mktemp -d)"
+    trap 'rm -rf -- "$ARDUPILOT_HELPERS"' EXIT
     mkdir -p "$ARDUPILOT_HELPERS/ardupilot_gazebo" "$ARDUPILOT_HELPERS/premerge"
     for ARDUPILOT_HELPER in ardusub-ubuntu-install.sh \
         ardupilot_gazebo/patch_resampling.py ardupilot_gazebo/SensorResampler.hh \
@@ -115,13 +117,13 @@ else
         curl -fsSL "https://raw.githubusercontent.com/IOES-Lab/POSIM/main/extras/$ARDUPILOT_HELPER" \
             -o "$ARDUPILOT_HELPERS/$ARDUPILOT_HELPER"
     done
-    sudo bash "$ARDUPILOT_HELPERS/ardusub-ubuntu-install.sh"
-    rm -rf "$ARDUPILOT_HELPERS"
 fi
+sudo bash "$ARDUPILOT_HELPERS/ardusub-ubuntu-install.sh"
 
 
 # Mavros install
 sudo apt-get -y install "ros-${DIST}-mavros" "ros-${DIST}-mavros-msgs" \
+    "ros-${DIST}-mavros-extras" python3-scipy \
     "ros-${DIST}-ament-cmake-google-benchmark" "ros-${DIST}-angles" \
     "ros-${DIST}-ament-cmake-gmock" "ros-${DIST}-ament-cmake-pytest" \
     "ros-${DIST}-ament-lint-auto" "ros-${DIST}-ament-lint-common"
@@ -145,6 +147,23 @@ else
     rm -rf "$MAVROS_HELPERS"
 fi
 
+# Stop RViz updates on accepted close and release view-owned ROS resources during
+# teardown, without changing files owned by the ROS packages.
+RVIZ_OVERLAY=/opt/posim/rviz-close
+if [[ -f "${POSIM_EXTRAS_DIR}/rviz/build_overlay.sh" ]]; then
+    sudo bash "${POSIM_EXTRAS_DIR}/rviz/build_overlay.sh" "$RVIZ_OVERLAY"
+else
+    RVIZ_HELPERS="$(mktemp -d)"
+    mkdir -p "$RVIZ_HELPERS/test"
+    for RVIZ_HELPER in build_overlay.sh stop-update-on-close.patch release-view-manager.patch test_overlay.sh \
+        test/CMakeLists.txt test/close_test.cpp; do
+        curl -fsSL "https://raw.githubusercontent.com/IOES-Lab/POSIM/main/extras/rviz/$RVIZ_HELPER" \
+            -o "$RVIZ_HELPERS/$RVIZ_HELPER"
+    done
+    sudo bash "$RVIZ_HELPERS/build_overlay.sh" "$RVIZ_OVERLAY"
+    rm -rf "$RVIZ_HELPERS"
+fi
+
 # Fetch and build the pinned external waves during the same POSIM install.
 if [[ -n "${POSIM_EXTRAS_DIR:-}" && -f "${POSIM_EXTRAS_DIR}/install-waves.sh" ]]; then
     sudo bash "${POSIM_EXTRAS_DIR}/install-waves.sh"
@@ -161,7 +180,7 @@ else
 fi
 
 # Separate rendering resources: never modify files owned by the ROS packages.
-sudo python3 /opt/ardusub_ws/premerge/apply.py terrain \
+sudo python3 "$ARDUPILOT_HELPERS/premerge/apply.py" terrain \
     --source "/opt/ros/${DIST}/opt/gz_rendering_vendor/share/gz/gz-rendering" \
     --output /opt/posim/terra
 
@@ -186,15 +205,17 @@ cat > "$ENV_FILE" <<EOF
 if [ -n "\${ZSH_VERSION:-}" ]; then
     source /opt/ros/${DIST}/setup.zsh
     source ${MAVROS_OVERLAY}/install/local_setup.zsh
+    source ${RVIZ_OVERLAY}/install/local_setup.zsh
 else
     source /opt/ros/${DIST}/setup.bash
     source ${MAVROS_OVERLAY}/install/local_setup.bash
+    source ${RVIZ_OVERLAY}/install/local_setup.bash
 fi
 export PATH=/opt/ardusub_ws/ardupilot/Tools/autotest:\$PATH
 export PATH=/opt/ardusub_ws/ardupilot/build/sitl/bin:\$PATH
 export GEOGRAPHICLIB_GEOID_PATH=/usr/share/GeographicLib/geoids
 export GZ_VERSION=jetty
-export GZ_RENDERING_RESOURCE_PATH=/opt/posim/terra:\${GZ_RENDERING_RESOURCE_PATH:-}
+export GZ_RENDERING_RESOURCE_PATH=/opt/posim/terra
 export LD_LIBRARY_PATH=/opt/waves/lib:\${LD_LIBRARY_PATH:-}
 export GZ_SIM_SYSTEM_PLUGIN_PATH=/opt/waves/lib:/opt/ardusub_ws/ardupilot_gazebo/build:\${GZ_SIM_SYSTEM_PLUGIN_PATH:-}
 export GZ_SIM_RESOURCE_PATH=/opt/asv_wave_sim/gz-waves-models/models:/opt/asv_wave_sim/gz-waves-models/world_models:/opt/ardusub_ws/ardupilot_gazebo/models:/opt/ardusub_ws/ardupilot_gazebo/worlds:\${GZ_SIM_RESOURCE_PATH:-}

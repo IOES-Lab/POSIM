@@ -20,10 +20,14 @@
 @media(max-width:600px){.docs-abstract-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.docs-abstract{padding:8px}.docs-abstract-grid img{height:110px}.docs-abstract-grid span{padding:6px;font-size:11px}}
 
 .docs-abstract-grid img[src*="/overview/"]{object-fit:cover;object-position:50% 55%}
+.docs-tutorials-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}.docs-tutorials-grid a{display:flex;flex-direction:column;min-width:0;text-decoration:none;color:var(--ink);background:var(--soft);border:1px solid var(--line)}.docs-tutorials-grid img{display:block;width:100%;height:auto;aspect-ratio:8/5;object-fit:contain;border:0;border-radius:0}.docs-tutorials-grid span{padding:7px;font-size:11px;line-height:1.45;font-weight:650}.docs-tutorials figcaption{margin-top:10px}
+@media(max-width:600px){.docs-tutorials-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 
 /* Navigation groups carry more visual weight than the individual guide links. */
 .docs-brand{display:flex;align-items:center;gap:9px;flex-shrink:0}
 .docs-brand img{display:block;width:28px;height:28px}
+.docs-wordmark{display:flex;align-items:baseline;gap:6px}
+.docs-version{font-size:11px;font-weight:500;letter-spacing:0;color:var(--muted);white-space:nowrap}
 .docs-sidebar{border-right:0;padding:28px 20px 32px}
 .docs-sidebar h2,.docs-mobile-menu h2{font-size:18px;line-height:1.35;letter-spacing:0;text-transform:none;font-weight:750;color:var(--ink);margin-bottom:12px}
 .docs-sidebar nav section{margin:30px 0}
@@ -78,6 +82,7 @@
   .docs-header{gap:6px;padding-inline:8px}
   .docs-brand{gap:4px;font-size:16px}
   .docs-brand img{width:22px;height:22px}
+  .docs-wordmark{display:grid;gap:1px;line-height:1.1}
   .docs-header nav{gap:4px}
   .docs-control{padding-inline:6px 20px}
   .docs-control-wrap::after{right:7px}

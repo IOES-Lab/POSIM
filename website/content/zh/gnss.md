@@ -14,7 +14,9 @@
 
 按机器人实际情况修改连杆和话题。[创建机器人](custom-robots.md)介绍了模型准备与启动方法。
 
-[配置文件](https://github.com/IOES-Lab/POSIM/blob/main/gazebo/posim_gz_gnss/config/profiles.json)提供相对 `base_link` 的安装位置：WAM-V 的 z = 1.8 m，BlueROV2 为 0.3 m，REXROV 为 0.8 m。WAM-V 配置启用接收机，水下机器人配置默认停用。这些是安装配置数据，仍需将天线连杆和插件加入模型。WAM-V 还需要[外部 Wave Sim 模型](surface.md)。
+[配置文件](https://github.com/IOES-Lab/POSIM/blob/main/gazebo/posim_gz_gnss/config/profiles.json)提供相对 `base_link` 的安装位置：WAM-V 的 z = 1.8 m，BlueROV2 为 0.3 m，REXROV 为 0.8 m。WAM-V 和三种 BlueROV2 配置启用接收机，REXROV 默认停用。这些是安装配置数据，仍需将天线连杆和插件加入模型。WAM-V 还需要[外部 Wave Sim 模型](surface.md)。
+
+BlueROV2、BlueROV2 Heavy 及声呐版本包含接收机和 `marine_gnss_input` 适配器。启用 ArduSub 时，适配器通过 MAVROS `GPSINPUT` 提供定位，代替 SITL 合成 GPS。速度从 ENU 转为 NED；安装的 GeographicLib 数据将 WGS 84 椭球高转换为 EGM96 平均海平面高。水下、遮挡、无效、未来或超过 1 s 的过期测量均发送未定位状态。有效定位的卫星数为未知（`255`），不计算卫星几何和 DOP。示例接收机使用平均水面 z = 0，与显示的波浪独立。
 
 ## 参数
 
@@ -74,6 +76,8 @@
 
 ## 解读与检查
 
-比较静止且露出水面的天线、水下天线、被遮挡天线及恢复过程。检查捕获时间、延迟、重置后的 epoch 和递增的测量时间戳。接收端须拒绝过期或未来的定位结果，并处理无效状态。插件输出 Gazebo 消息；需要 ROS `NavSatFix` 或向自动驾驶仪、导航估计器输入时，须通过适配器转换为目标格式。
+比较静止且露出水面的天线、水下天线、被遮挡天线及恢复过程。检查捕获时间、延迟、重置后的 epoch 和递增的测量时间戳。接收端须拒绝过期或未来的定位结果，并处理无效状态。
+
+随附的 BlueROV2 适配器向 ArduSub 提供数据；其他 ROS `NavSatFix` 使用方及自定义自动驾驶仪仍需适配器。
 
 该模型基于天线位姿，不计算卫星几何、射频传播、物理多径或水声定位。精度配置是仿真输入，并非厂商精度保证。参见[实现](https://github.com/IOES-Lab/POSIM/blob/main/gazebo/posim_gz_gnss/Gnss.cc)及[软件包指南](https://github.com/IOES-Lab/POSIM/tree/main/gazebo/posim_gz_gnss)。

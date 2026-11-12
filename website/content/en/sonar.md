@@ -19,6 +19,8 @@ ros2 launch posim_multibeam_sonar_demo multibeam_sonar_demo.launch.py \
   compute_backend:=wgpu
 ```
 
+<figure><a href="{{ASSET_PREFIX}}media/guides/sonar-rviz.png"><img width="1920" height="1080" src="{{ASSET_PREFIX}}media/guides/sonar-rviz.png" alt="Live sonar fan, point cloud and camera in RViz (CUDA backend)." loading="lazy" decoding="async"></a><figcaption>Live sonar fan, point cloud and camera in RViz (CUDA backend).</figcaption></figure>
+
 Use one launch at a time. Replace `wgpu` with `cpu`, `cuda` or `auto` to choose another backend. For the robot variant, select `bluerov2_heavy_multibeam_sonar` with a suitable sonar world.
 
 ## Observe outputs
@@ -144,6 +146,8 @@ The actual received rate depends on computation and rendering. Read [the sensor 
 
 Topic suffixes are appended to the sensor's `<topic>`, here `/sensor/multibeam_sonar`. Raw observations use `marine_acoustic_msgs/msg/ProjectedSonarImage`. Point clouds use Gazebo `gz.msgs.PointCloudPacked` and need the included ROS bridge. Match `pointCloudTopicName` to `sensor_config.py` and set `frameName` to the sonar's optical frame.
 
+The BlueView P900 and BlueROV2 sonar launch files publish an identity transform from `world` to the sonar frame for RViz viewing. Point-cloud coordinates remain relative to the sensor. This static transform does not track the vehicle or account for the sonar's mounting pose. For mapping in world coordinates, replace it with a transform chain that uses both poses.
+
 ### Ray geometry
 
 The `<ray>` block defaults to 256 horizontal beams, 3 vertical rays, horizontal angles ±π/4, vertical angles ±π/8 and range 0.1–5 m. Set `degrees="true"` to specify scan angles in degrees; otherwise use radians. The optional `<reference_frame>` inside `<gz:multibeam_sonar>` defaults to the zero pose. Keep the complete `<ray>` and `<spec>` blocks; values above are defaults for fields within them. The [implementation](https://github.com/IOES-Lab/POSIM/blob/main/gazebo/posim_gz_multibeam_sonar/multibeam_sonar/MultibeamSonarSensor.cc) is the authority for parsing and publication.
@@ -178,7 +182,7 @@ Include the Gazebo rendering-sensor system and sonar system in the world. Consul
 <plugin filename="libmultibeam_sonar_system" name="custom::MultibeamSonarSystem"/>
 ```
 
-Prepare a compute backend and rendering, rebuild the workspace and load its environment, then select your sensor model using the [sensor launch arguments](quickstart.md). The ROS point-cloud bridge connects `sensor_msgs/msg/PointCloud2` to Gazebo `gz.msgs.PointCloudPacked`. Match `pointCloudTopicName` to the path configured in `sensor_config.py`.
+Prepare a compute backend and rendering, rebuild the workspace and load its environment, then select your sensor model using the [sensor launch arguments](worlds.md). The ROS point-cloud bridge connects `sensor_msgs/msg/PointCloud2` to Gazebo `gz.msgs.PointCloudPacked`. Match `pointCloudTopicName` to the path configured in `sensor_config.py`.
 
 ## Record raw sonar data
 

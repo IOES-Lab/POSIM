@@ -95,8 +95,9 @@ const redirectData = document.querySelector('#docs-anchor-redirects');
 if (redirectData) {
   const redirects = JSON.parse(redirectData.textContent);
   const follow = () => {
-    const destination = redirects[decodeURIComponent(location.hash.slice(1))];
-    if (destination) location.replace(destination);
+    let fragment;
+    try { fragment = decodeURIComponent(location.hash.slice(1)); } catch { return; }
+    if (Object.hasOwn(redirects, fragment)) location.replace(redirects[fragment]);
   };
   follow(); window.addEventListener('hashchange', follow);
 }

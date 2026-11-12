@@ -1,0 +1,63 @@
+<?xml version="1.0"?>
+<!-- SPDX-License-Identifier: Apache-2.0
+     Configuration for the separately installed GPL Wave Sim dependency.
+     Mesh, textures and wave implementation remain in that dependency. -->
+<sdf version="1.8">
+  <model name="waves">
+    <static>true</static>
+    <plugin filename="gz-waves1-waves-model-system" name="gz::sim::systems::WavesModel">
+      <static>false</static>
+      <update_rate>30</update_rate>
+      <wave>
+        <algorithm>fft</algorithm>
+        <tile_size>256</tile_size>
+        <cell_count>32</cell_count>
+        <wind_speed>3</wind_speed>
+        <wind_angle_deg>135</wind_angle_deg>
+        <steepness>1</steepness>
+      </wave>
+    </plugin>
+    <link name="base_link">
+      <visual name="visual">
+        <geometry>
+          <mesh><uri>model://waves/materials/mesh_L256m_N256.dae</uri></mesh>
+        </geometry>
+        <cast_shadows>false</cast_shadows>
+        <material>
+          <double_sided>true</double_sided>
+          <ambient>0.0 0.05 0.8 0.92</ambient>
+          <diffuse>0.0 0.1 0.7 0.92</diffuse>
+          <specular>0.7 0.7 0.7 0.92</specular>
+          <pbr>
+            <metal>
+              <albedo_map>model://waves/materials/water.jpg</albedo_map>
+              <normal_map>model://waves/materials/wave_normals.dds</normal_map>
+              <environment_map>model://waves/materials/skybox_lowres.dds</environment_map>
+              <roughness>0.3</roughness>
+              <metalness>0.1</metalness>
+            </metal>
+          </pbr>
+        </material>
+        <plugin filename="gz-waves1-waves-visual-system" name="gz::sim::systems::WavesVisual">
+          <static>false</static>
+          <mesh_deformation_method>DYNAMIC_GEOMETRY</mesh_deformation_method>
+          <tiles_x>-1 1</tiles_x>
+          <tiles_y>-1 1</tiles_y>
+          <!-- Wave Sim requires this declaration when configuring geometry mode. -->
+          <shader language="metal">
+            <vertex>model://waves/materials/waves_vs.metal</vertex>
+            <fragment>model://waves/materials/waves_fs.metal</fragment>
+          </shader>
+          <wave>
+            <algorithm>fft</algorithm>
+            <tile_size>256</tile_size>
+            <cell_count>32</cell_count>
+            <wind_speed>3</wind_speed>
+            <wind_angle_deg>135</wind_angle_deg>
+            <steepness>1</steepness>
+          </wave>
+        </plugin>
+      </visual>
+    </link>
+  </model>
+</sdf>

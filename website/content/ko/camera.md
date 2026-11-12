@@ -4,9 +4,9 @@
 
 ## 예제 실행
 
-이 센서 예제는 깊이 기반 카메라 필터를 사용합니다. 장면 렌더러는 별도의 [빌드·월드 플러그인·외관 설정](underwater-rendering.md)을 사용합니다.
+카메라 예제 월드는 작은 파도와 [수중 장면 효과](underwater-rendering.md)를 켭니다. 센서 Launch는 `POSIM_UNDERWATER_PLUGIN`을 설정하여 이미 음영 처리된 RGB 영상을 호환 출력으로 전달하고 감쇠를 중복 적용하지 않습니다. 별도의 깊이 기반 필터를 비교하려면 장면 렌더러가 없는 월드를 사용하고 이 환경 변수를 설정하지 마세요.
 
-[설치 방식에 맞게 준비한 터미널 A](terminals.md)에서 실행합니다.
+[준비한 터미널 A](terminals.md)에서 예제를 실행합니다.
 
 ```bash
 ros2 launch posim_demos posim_sensor.launch.py \

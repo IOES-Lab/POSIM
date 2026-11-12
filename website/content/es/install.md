@@ -14,7 +14,7 @@ Lee primero `src/posim/extras/ros-lyrical-gz-jetty-install.sh`. El script config
 
 {{CODE:install:1}}
 
-Instala ROS 2 Lyrical, Gazebo Jetty, ArduSub, MAVROS y las bibliotecas de olas. Wave Sim se descarga en una revisión fijada y se compila como dependencia externa; no hace falta clonar POSIM de forma recursiva.
+Instala ROS 2 Lyrical, Gazebo Jetty, ArduSub, ArduRover, MAVROS y las bibliotecas de olas. Wave Sim se descarga en una revisión fijada y se compila como dependencia externa; no hace falta clonar POSIM de forma recursiva.
 
 ## 3. Preparar los paquetes del workspace
 

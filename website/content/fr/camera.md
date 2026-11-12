@@ -5,7 +5,9 @@
 <a id="run-the-example"></a>
 ## Exécuter l'exemple
 
-Cet exemple utilise le filtre de caméra fondé sur la profondeur. Le moteur de scène a sa propre [compilation et configuration](underwater-rendering.md). Dans le [terminal A préparé pour votre installation](terminals.md) :
+Le monde caméra active de petites vagues et les [effets sous-marins natifs](underwater-rendering.md). Le lancement du capteur définit `POSIM_UNDERWATER_PLUGIN` pour transmettre les pixels RVB déjà traités sans seconde atténuation. Pour comparer le filtre indépendant fondé sur la profondeur, utilisez un monde sans système de scène et laissez cette variable non définie.
+
+Exécutez l’exemple dans le [terminal A préparé](terminals.md).
 
 {{CODE:camera:0}}
 

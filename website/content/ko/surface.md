@@ -2,6 +2,14 @@
 
 WAM-V 수상 로봇에 Wave Sim의 파도와 ArduRover의 보트 제어를 적용해 시뮬레이션합니다. 기본 POSIM 설치 도우미와 Docker 구성에서 외부 파도 라이브러리를 함께 빌드합니다.
 
+## 기본 튜토리얼
+
+기본 POSIM 설치에는 카메라·라이다·RViz 설정을 갖춘 WAM-V 부표 코스 예제가 포함됩니다. 아래의 선택적 이미지를 따로 만들 필요는 없습니다. [준비한 POSIM 터미널](terminals.md)에서 실행하세요.
+
+{{CODE:quickstart:4}}
+
+장면, 라이다 표시, QGroundControl 영상과 조작은 [첫 시뮬레이션](quickstart.md)을 참고하세요.
+
 ## WAM-V 통합 빌드
 
 이 선택형 이미지는 ARM64 데스크톱 구성을 사용합니다. Apple Silicon Mac에서 [Docker와 RDP 클라이언트](install-macos.md)를 준비한 뒤, macOS 터미널의 POSIM 소스 디렉토리에서 실행하세요.

@@ -97,7 +97,9 @@ Conservez SDF, révision POSIM, moteur/adaptateur, versions pilote/toolkit, temp
 
 {{MEDIA:sonar-tuning}}
 
-Le traitement comprend somme des rayons, fenêtrage/correction et FFT. Mesurez séparément calcul et transferts mémoire. Figure : POSIM Notion Wiki.
+Le traitement comprend la somme des rayons, la correction des faisceaux et la FFT. WGPU applique aussi la fenêtre fréquentielle fournie ; le chemin CUDA ne l’applique pas. Mesurez séparément calcul et transferts mémoire. Figure : POSIM Notion Wiki.
+
+Avec le SDK macOS de Gazebo Sim 10.5 testé, les mondes dont le sonar est le seul capteur peuvent planter à l’initialisation d’Ogre2. Avec ce SDK, ajoutez une petite caméra intégrée au monde.
 
 ## Transport ROS sous macOS natif {#native-macos-ros-transport}
 

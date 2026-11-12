@@ -58,3 +58,5 @@ ros2 launch posim_demos posim_world.launch.py \
 ```
 
 Gazebo should open the ocean world. Leave the terminal open while it runs; press **Ctrl+C** to stop. Next, [launch your first robot](quickstart.md).
+
+Run the Linux version of QGC inside the same POSIM container. Do not open QGC on the Windows host or outside the container in WSL. Follow [QGC setup](qgroundcontrol.md).

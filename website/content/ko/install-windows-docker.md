@@ -58,3 +58,5 @@ ros2 launch posim_demos posim_world.launch.py \
 ```
 
 Gazebo 창에 해양 월드가 나타나야 합니다. 실행 중에는 터미널을 열어 두고, **Ctrl+C**로 종료하세요. 다음은 [첫 로봇 실행](quickstart.md)입니다.
+
+같은 POSIM 컨테이너 안에서 Linux용 QGC를 실행하세요. Windows 호스트나 컨테이너 밖의 WSL에서 QGC를 열지 마세요. [QGC 설정 안내](qgroundcontrol.md)를 따르세요.

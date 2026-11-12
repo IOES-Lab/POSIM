@@ -55,3 +55,5 @@ source ~/posim_ws/install/setup.bash
 ros2 launch posim_demos posim_world.launch.py \
   world_name:=posim_ocean_waves headless:=false
 ```
+
+Run the Linux version of QGC in the same Ubuntu distribution as POSIM. Do not open the Windows-installed application for this setup. Follow [QGC setup](qgroundcontrol.md).

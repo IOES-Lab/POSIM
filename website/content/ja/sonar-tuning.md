@@ -96,7 +96,9 @@ SDF、POSIM リビジョン、バックエンドとアダプター、ドライ�
 
 {{MEDIA:sonar-tuning}}
 
-レイの加算、窓関数・補正、FFT の各段階があります。計算時間とメモリー転送時間を分けて測定します。図：POSIM Notion Wiki。
+レイの加算、ビーム補正、FFT の各段階があります。WGPU は指定された周波数窓関数も適用しますが、CUDA の処理経路では適用しません。計算時間とメモリー転送時間を分けて測定します。図：POSIM Notion Wiki。
+
+検証したmacOS用Gazebo Sim 10.5 SDKでは、センサーがソナーだけのワールドでOgre2の初期化時に異常終了することがあります。このSDKを使う場合は、ワールドに小さな標準カメラを追加してください。
 
 ## ネイティブ macOS の ROS 通信設定 {#native-macos-ros-transport}
 

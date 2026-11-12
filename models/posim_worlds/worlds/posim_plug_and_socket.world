@@ -18,6 +18,9 @@
 
 <sdf version="1.4">
   <world name="posim_plug_and_socket">
+    <plugin filename="posim_underwater" name="posim::Underwater">
+      <session_nonce>posim_plug_and_socket</session_nonce>
+    </plugin>
     <physics name="1ms" type="ignored">
       <max_step_size>0.001</max_step_size>
       <real_time_factor>1.0</real_time_factor>
@@ -77,9 +80,7 @@
 
     <!-- Sea surface -->
     <include>
-      <uri>
-        https://fuel.gazebosim.org/1.0/OpenRobotics/models/Coast Water
-      </uri>
+      <uri>model://calm_waves</uri>
       <pose>0 0 0 0 0 0</pose>
     </include>
 

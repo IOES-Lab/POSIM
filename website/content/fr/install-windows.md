@@ -41,3 +41,5 @@ Si les topics d’image sont visibles mais que les images n’arrivent pas, cons
 Exécutez ces commandes dans Ubuntu. Gazebo doit s’ouvrir sur le bureau Windows et afficher l’océan. Au premier lancement, des modèles Fuel peuvent être téléchargés. Arrêtez la simulation avec Ctrl+C avant de lancer un autre exemple.
 
 {{CODE:install-windows:4}}
+
+Exécutez la version Linux de QGC dans la même distribution Ubuntu que POSIM. Pour cette configuration, n’utilisez pas l’application installée sous Windows. Suivez la [configuration de QGC](qgroundcontrol.md).

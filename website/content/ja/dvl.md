@@ -8,6 +8,8 @@ DVL は海底または周囲の水に対する速度を推定します。POSIM �
 
 {{CODE:dvl:0}}
 
+{{MEDIA:dvl:0}}
+
 準備済みのターミナル B で Gazebo のデータを確認し、**Ctrl+C** で表示を終了してから ROS のデータを確認します。
 
 {{CODE:dvl:1}}
@@ -70,6 +72,9 @@ POSIM ブリッジはセンサーの `<model>` 内に置きます。トピック
 
 ## DVL のビームと出力
 
-{{MEDIA:dvl}}
+{{MEDIA:dvl:1}}
+{{MEDIA:dvl:2}}
+{{MEDIA:dvl:3}}
+{{MEDIA:dvl:4}}
 
 画像の出典：POSIM Notion Wiki。DAVE の帰属は[引用とライセンス](citation.md)を参照してください。実行にはこのページのコマンドとトピック名を使います。

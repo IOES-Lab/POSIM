@@ -4,6 +4,8 @@ POSIM's `posim_gz_rendering` applies water-path haze, RGB absorption, depth-depe
 
 The Gazebo scene, RGB cameras and RGBD color share this rendering path. Numeric depth and collision geometry remain unchanged. Use [underwater camera](camera.md) for the separate depth-based image attenuation plugin.
 
+The installed system finds its sibling rendering helper and `share/posim/underwater` shaders automatically. `renderer_library` and `shader_directory` remain optional overrides. Ocean demo launches enable the camera pass-through flag automatically; custom launches must set it when using both systems.
+
 ## Build and attach the system
 
 Use a Gazebo Jetty/Ogre2 development environment matching the server. In [terminal A prepared for your installation](terminals.md), build the system and its rendering helper from the POSIM checkout. On macOS, use the Linux terminal inside the RDP desktop:
@@ -24,8 +26,6 @@ Add this plugin inside your SDF `<world>`. Replace `/absolute/underwater` with t
 ```xml
 <plugin filename="/absolute/underwater/lib/posim_underwater.so"
         name="posim::Underwater">
-  <renderer_library>/absolute/underwater/lib/posim_underwater_render.so</renderer_library>
-  <shader_directory>/absolute/underwater/share/posim/underwater</shader_directory>
   <session_nonce>appearance_example</session_nonce>
 </plugin>
 ```

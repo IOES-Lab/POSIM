@@ -92,9 +92,8 @@ AHRS_EKF_TYPE 3
 
 # Enable external nav
 # From https://ardupilot.org/copter/docs/common-vio-tracking-camera.html
-GPS1_TYPE 1           # Enable GPS
-SIM_GPS1_ENABLE 1     # Enable the simulated GPS
-SIM_GPS1_LCKTIME 0    # Acquire simulated GPS lock without a startup delay
+GPS1_TYPE 14         # MAVLink GPS_INPUT from the marine GNSS receiver
+SIM_GPS1_ENABLE 0    # Disable independent SITL GPS, including underwater
 VISO_TYPE 1           # External vision
 EK3_SRC1_POSXY 6      # External nav
 EK3_SRC1_VELXY 6      # External nav

@@ -14,6 +14,8 @@
 
 Docker镜像包含自己的Ubuntu用户空间。Linux宿主机可以使用其他受Docker支持的版本或发行版。本文不涵盖在Intel Mac上模拟运行ARM64镜像的情况。
 
+本版本请在 macOS 上使用 Docker/RDP。macOS 原生安装尚未通过完整验证。文中提到的原生 Metal 支持针对单个组件，并不表示整个教程运行环境支持原生 macOS。
+
 ## 软件与图形环境
 
 所有安装方式均使用**ROS 2 Lyrical**和**Gazebo Sim — Gazebo Jetty**。原生安装将它们配置在Ubuntu中；Docker镜像已经包含这些软件。图形驱动应按照相应指南安装在宿主机上。

@@ -1,6 +1,6 @@
 # Docker environment
 
-POSIM images contain Ubuntu, ROS 2 Lyrical, Gazebo Jetty, POSIM, ArduSub, MAVROS and QGroundControl. Choose the host-specific setup in [Choose an environment](requirements.md) for display and driver configuration.
+POSIM images contain Ubuntu, ROS 2 Lyrical, Gazebo Jetty, POSIM, ArduSub, ArduRover, MAVROS and QGroundControl. Choose the host-specific setup in [Choose an environment](requirements.md) for display and driver configuration.
 
 ## Download a published image
 

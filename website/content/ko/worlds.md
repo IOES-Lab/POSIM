@@ -2,6 +2,8 @@
 
 월드는 `models/posim_worlds/worlds`에 있습니다. 파일 이름에서 `.world` 확장자를 뺀 값으로 선택합니다.
 
+해양 데모 월드는 `model://calm_waves`를 포함합니다. Wave Sim FFT 파도는 풍속 입력 3 m/s, 주기 타일 256 m, 시각 패치 768 × 768 m를 사용하며 위와 아래에서 수면을 볼 수 있습니다. 네이티브 수중 효과는 RGB 센서 영상에 적용되고, 얕은 수중 튜토리얼은 Gazebo 월드 화면에도 적용합니다. 기본 설치 스크립트와 이미지에 Wave Sim이 포함됩니다. 수중 차량의 부력, 해양 GNSS와 광학 경계는 시각적 파고와 별개로 평균 수면 z = 0을 사용합니다. WAM-V는 파도와 결합된 Wave Sim 유체력을 사용합니다. 물이 없는 USBL 예제와 독립 소나 시험 월드는 자체 형상을 유지합니다.
+
 ## 월드 시작
 
 Ubuntu 네이티브, WSL, Docker, RDP 중 설치 방식에 맞게 [준비한 POSIM 터미널](terminals.md)에서 실행합니다.
@@ -75,6 +77,6 @@ ros2 launch posim_demos posim_sensor.launch.py --show-args
 | `x`, `y`, `z` | 초기 위치, m | 각각 `0.0` |
 | `roll`, `pitch`, `yaw` | 초기 자세, rad | 각각 `0.0` |
 | `debug` / `verbosity_level` | 상세 로그 / 로그 수준 | `false` / `1` |
-| `use_ned_frame` | NED 프레임 사용 | `false` |
+| `use_ned_frame` | `world_ned` 변환 발행(ENU → NED) | `false` |
 
 센서 예제에서는 `paused:=false`를 지정해 데이터가 생성되도록 합니다. 로봇·월드 launch의 인수는 해당 launch의 `--show-args`로 확인하세요.

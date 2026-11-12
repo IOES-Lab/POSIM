@@ -405,8 +405,10 @@ test('moved tutorial bookmarks open the corresponding English and Korean section
   for (const [oldPath, newPath] of [
     ['/ros.html#subscribe-from-python', '/python-control.html#subscribe-from-python'],
     ['/ros.html#visualization-and-recording', '/visualization.html#visualization-and-recording'],
-    ['/quickstart.html#2-spawn-rexrov', '/quickstart.html#1-start-the-robot-and-world'],
+    ['/quickstart.html#2-spawn-rexrov', '/rovs.html#start-rexrov'],
+    ['/quickstart.html#1-start-the-robot-and-world', '/rovs.html#start-rexrov'],
     ['/ko/ros.html#python에서-구독', '/ko/python-control.html#python에서-구독'],
+    ['/ko/quickstart.html#2-rexrov-배치', '/ko/rovs.html#start-rexrov'],
     ['/ko/quickstart.html#3-카메라-영상-받기', '/ko/visualization.html#카메라-영상-받기'],
   ]) {
     await page.goto(oldPath);
@@ -416,6 +418,24 @@ test('moved tutorial bookmarks open the corresponding English and Korean section
     }).toBe(newPath);
     await expect(page.locator('[id="' + newPath.split('#')[1] + '"]')).toBeInViewport();
   }
+});
+
+test('invalid and unmapped bookmarks leave documentation controls usable', async ({ page }) => {
+  const errors = [];
+  page.on('pageerror', error => errors.push(error.message));
+  for (const directory of ['', 'ko/']) {
+    for (const fragment of ['%', '%E0%A4%A', 'constructor', '__proto__']) {
+      const target = `/${directory}quickstart.html#${fragment}`;
+      await page.goto(target);
+      expect(errors).toEqual([]);
+      await expect(page.locator('.docs-code-copy').first()).toBeVisible();
+      expect(new URL(page.url()).pathname + new URL(page.url()).hash).toBe(target);
+      await page.locator('[data-language-select]').selectOption(
+        directory ? '../quickstart.html' : 'ko/quickstart.html');
+      await expect(page.locator('html')).toHaveAttribute('lang', directory ? 'en' : 'ko');
+    }
+  }
+  expect(errors).toEqual([]);
 });
 
 for (const lang of ['en', 'ko']) {

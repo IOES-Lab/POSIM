@@ -4,6 +4,8 @@
 
 Gazebo 场景、RGB 相机和 RGBD 彩色图像共用这些效果。数值深度和碰撞几何保持不变。独立的深度图像滤镜见[水下相机](camera.md)。
 
+安装后的系统会自动查找同目录的渲染辅助库及 `share/posim/underwater` 着色器。也可通过 `renderer_library` 和 `shader_directory` 覆盖路径。海洋示例启动时自动设置相机直通标志；自定义启动同时使用两套系统时，需要自行设置。
+
 ## 构建并集成系统
 
 准备与服务器匹配的 Gazebo Jetty/Ogre2 开发环境。在[准备好的终端 A](terminals.md)中从 POSIM 源码构建；macOS 使用 RDP 桌面内的 Linux 终端：

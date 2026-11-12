@@ -1,0 +1,5 @@
+<RCC>
+  <qresource prefix="posim_underwater_gui">
+    <file>posim_underwater_gui.qml</file>
+  </qresource>
+</RCC>

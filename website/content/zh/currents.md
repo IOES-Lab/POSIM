@@ -38,7 +38,7 @@ POSIM 生成世界中的海流，计算每个机器人所在位置的流速，�
 
 ## 准备深度剖面
 
-[示例 CSV](https://github.com/IOES-Lab/POSIM/blob/main/models/posim_worlds/worlds/transientOceanCurrentDatabase.csv)的三列依次为北向流速（m/s）、东向流速（m/s）和深度（m）。
+[示例 CSV](https://github.com/IOES-Lab/POSIM/blob/main/models/posim_worlds/worlds/transientOceanCurrentDatabase.csv)的三列依次为世界 X 轴速度（m/s）、世界 Y 轴速度（m/s）和深度（m）。沿用的键名 `velocity_north`、`velocity_east` 和 `velocity_down` 分别直接对应世界 X、Y、Z 轴。
 
 - 保留前三行说明和表头。
 - 至少提供两层，每个数据行恰好包含三个有限数值。
@@ -122,6 +122,8 @@ REXROV 示例默认使用均匀海流 `/ocean_current`。使用深度剖面时�
 ## 加入潮流数据
 
 为 `<tidal_oscillation>` 配置 CSV 或 M2/S2/N2 等分潮、涨落潮流向和 GMT 起始时间。分潮示例使用的单位为：振幅 m、相位度、角速度度/小时。请与海流服务使用的弧度区分。
+
+在潮流模式下，计算出的分潮信号或 CSV 速度除以 100 后的值，会乘以深度剖面的第一列。示例中的高度振幅仅作为数值系数使用；模型并未将潮位转换为流速。请针对目标流速校准信号与剖面的组合。
 
 潮流 CSV 包含一行表头，以及 `YYYY-MM-DD HH:MM,event,speed` 格式的数据行：
 

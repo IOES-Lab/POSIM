@@ -11,7 +11,7 @@ Select a packaged robot description with the `namespace` argument. This argument
 | `bluerov2_heavy` | Heavy configuration |
 | `bluerov2_heavy_multibeam_sonar` | Heavy configuration with sonar |
 
-Use the [prepared POSIM terminal](terminals.md) for your installation route. For REXROV, use the [first simulation](quickstart.md) example.
+Use the [prepared POSIM terminal](terminals.md) for your installation route. For REXROV, use the [example below](#start-rexrov).
 
 ## Start BlueROV2
 
@@ -66,3 +66,13 @@ For programmatic sensor subscriptions and commands, continue to [ROS 2 and contr
 <figure><a href="{{ASSET_PREFIX}}media/notion/rovs-670c9419.gif"><img width="782" height="494" src="{{ASSET_PREFIX}}media/notion/rovs-670c9419.gif" alt="REXROV underwater motion and attitude" loading="lazy" decoding="async"></a><figcaption>REXROV underwater motion and attitude</figcaption></figure>
 
 Figures and videos: POSIM Notion Wiki. See [Citation and licenses](citation.md) for DAVE documentation attribution. Use this page's code blocks for execution commands and topic names.
+
+## Start REXROV {#start-rexrov}
+
+In [prepared Terminal A](terminals.md), run this separate example for the Python and thruster-control guides. It starts the ocean world, spawns REXROV at z = −5 m and starts its ROS bridges. Keep this session running while using Terminal B for those guides.
+
+```bash
+ros2 launch posim_demos posim_robot.launch.py \
+  namespace:=rexrov world_name:=posim_ocean_waves z:=-5 paused:=false \
+  gui:=true headless:=false use_teleop:=false use_web_joystick:=false
+```

@@ -97,7 +97,9 @@ SDF, POSIM 커밋, 백엔드·장치, 드라이버·툴킷 버전, 프레임 시
 
 <figure><a href="{{ASSET_PREFIX}}media/notion/sonar-optimization-a26c9419.png"><img width="1049" height="554" src="{{ASSET_PREFIX}}media/notion/sonar-optimization-a26c9419.png" alt="소나 계산의 GPU 처리 단계" loading="lazy" decoding="async"></a><figcaption>소나 계산의 GPU 처리 단계</figcaption></figure>
 
-GPU 처리는 음선 합산, 창 함수·보정, FFT 단계로 구성됩니다. 계산 시간과 메모리 전송 시간을 구분해서 측정하세요. 그림 출처: POSIM Notion Wiki.
+GPU 처리는 음선 합산, 빔 보정, FFT 단계로 구성됩니다. WGPU는 입력으로 받은 주파수 창 함수도 적용하지만 CUDA 경로는 이 창 함수를 적용하지 않습니다. 계산 시간과 메모리 전송 시간을 구분해서 측정하세요. 그림 출처: POSIM Notion Wiki.
+
+검증에 사용한 macOS용 Gazebo Sim 10.5 SDK에서는 소나만 있는 월드가 Ogre2 초기화 중 비정상 종료될 수 있습니다. 이 SDK를 사용할 때는 월드에 작은 기본 카메라를 추가하세요.
 
 ## 네이티브 macOS의 ROS 전송 설정 {#native-macos-ros-transport}
 

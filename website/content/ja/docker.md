@@ -1,6 +1,6 @@
 # Docker環境
 
-POSIMイメージにはUbuntu、ROS 2 Lyrical、Gazebo Jetty、POSIM、ArduSub、MAVROS、QGroundControlが含まれています。画面表示とドライバの準備は、[実行環境の選択](requirements.md)から各OSの手順を確認してください。
+POSIMイメージにはUbuntu、ROS 2 Lyrical、Gazebo Jetty、POSIM、ArduSub、ArduRover、MAVROS、QGroundControlが含まれています。画面表示とドライバの準備は、[実行環境の選択](requirements.md)から各OSの手順を確認してください。
 
 ## 配布済みイメージを取得する
 

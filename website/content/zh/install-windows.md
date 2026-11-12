@@ -41,3 +41,5 @@ Linux 命令应在 Windows Terminal 的 **Ubuntu** 配置文件中执行。先�
 在 Ubuntu 终端中执行以下命令。Windows 桌面应出现 Gazebo 窗口，显示海洋场景。首次运行可能需要下载 Fuel 模型。开始其他示例前，请按 Ctrl+C 停止当前仿真。
 
 {{CODE:install-windows:4}}
+
+请在运行 POSIM 的同一个 Ubuntu 发行版中启动 Linux 版 QGC。此配置不使用安装在 Windows 上的 QGC。请参阅 [QGC 设置](qgroundcontrol.md)。

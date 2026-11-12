@@ -1,48 +1,82 @@
 # 첫 시뮬레이션
 
-해양 월드에서 REXROV 한 대를 실행하고, 실시간 측정값을 받은 뒤 정상 종료해 봅니다. 첫 실행은 기본 로봇 모델과 월드를 그대로 사용하세요.
+BlueROV2로 얕은 수중 점검 장면을 살펴본 뒤 WAM-V로 부표 사이를 관찰합니다. 각 예제는 Gazebo와 설정된 RViz 창을 함께 엽니다. 시뮬레이션은 한 번에 하나만 실행하세요.
 
 ## 시작 전 준비
 
-[실행 환경 선택](requirements.md)에서 고른 설치를 마친 뒤 [터미널 준비](terminals.md)를 따라 창 두 개를 열고 각각 ROS·POSIM 환경을 불러오세요. 터미널 A는 시뮬레이터를 실행하고, B는 결과를 읽습니다. Docker에서도 설치할 때 준비한 Linux 데스크톱, WSLg 또는 RDP를 통해 Gazebo 창을 봅니다.
+[실행 환경 선택](requirements.md)에서 고른 설치를 마친 뒤 [터미널 A와 B를 준비](terminals.md)하고 두 창에서 같은 ROS·POSIM 작업공간을 불러옵니다. A는 시뮬레이터를 실행하고, B는 데이터를 읽고 영상 전송을 시작합니다. Docker에서는 설치할 때 준비한 Linux 데스크톱, WSLg 또는 RDP를 사용합니다. 두 예제 모두 기본 POSIM 설치에 포함되며, 수상 예제용 이미지를 따로 만들 필요가 없습니다.
 
-## 1. 로봇과 월드 시작하기
+## BlueROV2 수중 점검
 
-작업공간을 불러온 **터미널 A**에서 실행합니다.
+**터미널 A**에서 실행합니다.
 
-```bash
-ros2 launch posim_demos posim_robot.launch.py \
-  namespace:=rexrov world_name:=posim_ocean_waves z:=-5 paused:=false \
-  gui:=true headless:=false use_teleop:=false use_web_joystick:=false
-```
+{{CODE:quickstart:0}}
 
-이 명령은 월드를 시작하고 z = 0보다 5 m 아래에 REXROV를 배치하며 ROS 브리지를 실행합니다. 터미널 A에서 시뮬레이션을 계속 실행하세요. 로봇 Launch가 월드도 시작하므로 하나의 시뮬레이션으로 실행합니다.
+BlueROV2는 평균 수면 아래 약 3.1 m, 수심 4 m의 해저면 위에서 시작합니다. 앞에는 상자, 파이프, 기둥과 구가 있습니다. 작은 파도와 수중 산란, 흡수, 코스틱, 마린 스노가 적용됩니다. 이 예제는 밸러스트를 조정해 모터를 활성화하기 전에도 차량이 물체 가까이에 머물도록 합니다. Gazebo는 장면 옆에 실시간 카메라 영상을 표시합니다.
 
-## 2. 실시간 위치 읽기
+멀티빔 소나를 사용하려면 위 명령 뒤에 `sonar:=true`를 붙이세요. 소나가 장착된 BlueROV2 Heavy 모델을 선택하며 Gazebo에 소나 영상 패널을, RViz에 소나 영상과 포인트 클라우드를 추가합니다. 소나는 연산 자원을 많이 사용하므로 **프레임 속도와 조작 응답성이 낮아질 수 있습니다**. `auto` 백엔드는 호스트와 센서 설정이 지원하는 범위에서 CUDA, WGPU, CPU 순으로 선택합니다. 렌더링은 일반 기본 설정을 유지합니다. 백엔드 요구사항은 [소나 설정과 튜닝](sonar-tuning.md)을 참고하세요.
 
-**터미널 B**에서 같은 작업공간을 불러온 뒤 실행합니다.
+아래 캡처는 소나를 켠 예제입니다. RViz는 차량 모델, 카메라와 센서 표시 설정을 자동으로 불러옵니다. 1 m 격자는 차량 좌표계의 거리 기준이며 측정된 해저면이 아닙니다. **Move Camera**가 선택되어 있으므로 드래그로 회전하고, 마우스 가운데 버튼으로 이동하며, 휠로 확대·축소합니다. 표시용 프로펠러는 정지 각도를 유지하지만 시뮬레이션의 동역학은 그대로 작동합니다.
 
-```bash
-ros2 topic echo --no-daemon /model/rexrov/odometry nav_msgs/msg/Odometry --field pose.pose.position
-```
+{{MEDIA:quickstart:0}}
 
-위치 데이터가 계속 들어와야 합니다. 차량이 안정되는 동안 값이 조금만 변하거나 거의 같을 수 있습니다. 확인을 마치면 **터미널 B에서 Ctrl+C**를 누르세요.
+### 실시간 데이터 확인
 
-## 3. 시뮬레이션 시간 확인하기
+**터미널 B**에서 실행합니다.
 
-```bash
-ros2 topic echo --no-daemon /clock rosgraph_msgs/msg/Clock
-```
+{{CODE:quickstart:1}}
 
-시뮬레이션 시간이 증가해야 합니다. Ctrl+C로 확인 도구를 종료하세요. 시간이 멈춰 있거나 메시지가 오지 않으면 [문제 해결](troubleshooting.md)을 확인합니다.
+소나를 켰다면 토픽의 `bluerov2`를 `bluerov2_heavy_multibeam_sonar`로 바꾸세요. 차량이 거의 정지해 있어도 위치 데이터는 계속 들어와야 합니다. **Ctrl+C**로 확인을 마친 뒤 시뮬레이션 시간이 증가하는지 봅니다.
 
-## 4. 세션 종료하기
+{{CODE:quickstart:2}}
 
-**터미널 A에서 Ctrl+C**를 누르고 Launch 프로세스가 종료될 때까지 기다립니다. 토픽 확인 도구를 닫아도 시뮬레이터는 계속 실행됩니다. 다른 예제를 시작하기 전에 현재 시뮬레이션을 종료하세요.
+Ctrl+C로 확인 도구를 종료합니다. 메시지가 없거나 시간이 멈춰 있으면 [문제 해결](troubleshooting.md)을 참고하세요.
+
+### QGC로 영상 보기와 제어하기
+
+Windows/WSL에서는 POSIM과 같은 Ubuntu 배포판 안에서 Linux용 QGC를 실행하세요. Docker를 사용한다면 같은 POSIM 컨테이너 안에서 실행합니다. 이 튜토리얼에서는 Windows에 설치한 QGC를 열지 마세요.
+
+[QGC 설정](qgroundcontrol.md)의 1–3단계에 따라 가상 조이스틱을 켭니다. 영상 소스는 **UDP h.264 Video Stream**, 주소는 **127.0.0.1:5600**으로 설정합니다. **Low Latency Mode**는 켜고 **Disable Video Stream When Disarmed**는 끕니다. 현재 실행 중인 예제를 유지하고 터미널 B에서 영상 전송을 시작합니다.
+
+{{CODE:quickstart:3}}
+
+QGC의 작은 영상 패널을 클릭하면 크게 볼 수 있습니다. 해양 GNSS 안테나가 물속에 있으면 **No GPS Lock**이 표시되는 것이 정상입니다. 텔레메트리, 영상과 Manual 제어는 계속 사용할 수 있습니다. **Ready**를 기다린 뒤 **Manual** 모드에서 Arm을 누르고 조이스틱을 잠깐 움직여 보세요. 스틱을 놓아 중립으로 돌린 뒤 Disarm합니다. 자세한 조작은 [QGC 제어 단계](qgroundcontrol.md)를 참고하세요. 다른 키보드·조이스틱 제어기를 동시에 실행하지 마세요.
+
+{{MEDIA:quickstart:1}}
+
+## WAM-V 수상 센싱
+
+먼저 수중 예제를 종료합니다. **터미널 A**에서 실행하세요.
+
+{{CODE:quickstart:4}}
+
+WAM-V는 작은 파도가 있는 수면에서 고정된 부표 네 개를 바라보며 시작합니다. RViz는 카메라와 함께 차량·라이다 포인트 클라우드를 같은 화면에 표시합니다. 1 m 기준 격자와 Move Camera도 준비되어 있습니다. 라이다는 수평 스캔이므로 센서 높이에서 부표의 윤곽을 보여주며, 물체 전체를 3차원으로 복원하지는 않습니다.
+
+Gazebo의 **Lidar** 패널에서 새로 고침 버튼을 누르고 `/tutorial/lidar`를 선택하세요. **Show Non Hitting Rays**를 끄면 물체에 닿은 광선만 표시합니다. 카메라 패널도 장면 옆에 유지됩니다.
+
+{{MEDIA:quickstart:2}}
+
+카메라 토픽은 수중 예제와 같은 `/tutorial/camera`이며 영상 전송 시작 명령과 QGC 영상 설정도 같습니다. 이 차량은 ArduRover 보트 모드와 시뮬레이션 위치·속도를 외부 항법 입력으로 사용합니다. [수상 로봇과 파도](surface.md)를 참고하세요. 이 항법 입력은 BlueROV2의 해양 GNSS 수신기와 별개입니다.
+
+QGC Manual 모드에서 WAM-V의 스로틀은 왼쪽 스틱의 위아래 움직임으로 조작합니다. Arm 후 잠깐 움직이고, 스틱을 놓아 중립으로 돌린 뒤 Disarm하세요.
+
+{{MEDIA:quickstart:3}}
+
+**터미널 B**에서 라이다 스캔 하나를 읽습니다.
+
+{{CODE:quickstart:5}}
+
+포인트 클라우드는 `/tutorial/lidar/points`, 차량 오도메트리는 `/model/wamv/odometry`입니다.
+
+## 세션 종료
+
+차량을 Disarm하고 RViz와 QGC를 닫은 뒤 **터미널 A에서 Ctrl+C**를 눌러 Launch 프로세스가 끝날 때까지 기다립니다. RViz가 화면 변경사항을 저장할지 물으면 Discard를 선택해 제공된 프리셋을 유지하세요. RViz가 정상적으로 종료되지 않으면 [뷰어 문제 해결](troubleshooting.md)을 참고하세요. 토픽 확인 도구를 닫아도 시뮬레이션은 계속됩니다. 다른 예제를 시작하기 전에 현재 세션을 종료하세요.
+
+초기 위치에서 다시 시작하려면 세션을 종료하고 해당 launch 명령을 다시 실행하세요. Gazebo의 전체 월드 초기화는 시작 후 추가된 모델을 제거하므로 튜토리얼 차량도 사라집니다. 이 동작은 차량의 자동 조종 프로그램을 다시 시작하지 않습니다.
 
 ## 이어서 배우기
 
-- [센서 데이터 보기와 기록](visualization.md): 수중 카메라를 실행하고 영상을 확인합니다.
-- [Python으로 제어하기](python-control.md): REXROV를 관찰하고 추진기 하나를 시험합니다.
+- [센서 데이터 보기와 기록](visualization.md): 영상을 확인하고 측정값을 저장합니다.
+- [Python으로 제어하기](python-control.md): 별도의 REXROV 예제를 실행해 추진기 하나를 시험합니다.
 - [ROV와 BlueROV2](rovs.md): ArduSub, 키보드 또는 로컬 조이스틱을 사용합니다.
-- [월드 목록](worlds.md): 다른 환경을 선택하고 Launch 인수를 확인합니다.
+- [월드 목록](worlds.md): 환경을 선택하고 Launch 인수를 확인합니다.

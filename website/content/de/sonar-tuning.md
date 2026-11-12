@@ -97,7 +97,9 @@ Bewahre SDF, POSIM-Revision, Backend/Adapter, Treiber-/Toolkit-Versionen, Bildze
 
 {{MEDIA:sonar-tuning}}
 
-Die Stufen umfassen Strahlsummierung, Fensterung/Korrektur und FFT. Miss Berechnung und Speichertransfers getrennt. Abbildung: POSIM Notion Wiki.
+Die Stufen umfassen Strahlsummierung, Strahlkorrektur und FFT. WGPU wendet außerdem die übergebene Frequenzfensterfunktion an; der CUDA-Pfad verwendet sie nicht. Miss Berechnung und Speichertransfers getrennt. Abbildung: POSIM Notion Wiki.
+
+Mit dem getesteten macOS-SDK von Gazebo Sim 10.5 können Welten mit Sonar als einzigem Sensor bei der Ogre2-Initialisierung abstürzen. Fügen Sie bei diesem SDK eine kleine integrierte Kamera zur Welt hinzu.
 
 ## ROS-Transport unter nativem macOS {#native-macos-ros-transport}
 

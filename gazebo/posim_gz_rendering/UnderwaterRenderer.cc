@@ -170,11 +170,24 @@ void main() {
       throw;
     }
   }
-  ~Impl()
+  ~Impl() { Restore(); }
+  void sceneManagerDestroyed(Ogre::SceneManager *) override
   {
+    // Gazebo GUI has no RenderTeardown event. Restore while its render
+    // thread and Ogre context still exist, before the engine is destroyed.
+    manager = nullptr;
+    Restore();
+  }
+  void Restore()
+  {
+    if (!pbs)
+    {
+      return;
+    }
     if (manager)
     {
       manager->removeListener(this);
+      manager = nullptr;
     }
     for (auto & entry : skyPrograms)
     {
@@ -196,6 +209,9 @@ void main() {
       pbs->setListener(previous);
       pbs->reloadFrom(pbs->getDataFolder(), &original);
     }
+    skyPrograms.clear();
+    skyProgram.reset();
+    pbs = nullptr;
   }
   void propertiesMergedPreGenerationStep(
     Ogre::Hlms * h, const Ogre::HlmsCache & c, const Ogre::HlmsPropertyVec & r,

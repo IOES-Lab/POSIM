@@ -2,6 +2,14 @@
 
 Simulieren Sie ein WAM-V mit Wave-Sim-Wellen und ArduRover im Bootsmodus. POSIM-Installer und Docker-Rezepte bauen die externen Wellenbibliotheken.
 
+## Standardtutorial
+
+Die Standardinstallation enthält einen WAM-V-Bojenparcours mit Kamera, Lidar und vorkonfigurierter RViz-Ansicht. Das optionale Image unten ist dafür nicht nötig. Führen Sie im [vorbereiteten POSIM-Terminal](terminals.md) aus:
+
+{{CODE:quickstart:4}}
+
+Szene, Lidar-Anzeige sowie QGroundControl-Video und Steuerung sind unter [Erste Simulation](quickstart.md) beschrieben.
+
 ## WAM-V vorbereiten
 
 Dieses optionale Image verwendet den ARM64-Desktopaufbau. Bereiten Sie auf einem Apple-Silicon-Mac [Docker und RDP](install-macos.md) vor. Führen Sie im macOS-Terminal aus einer POSIM-Repository-Kopie Folgendes aus:

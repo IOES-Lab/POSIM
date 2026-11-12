@@ -14,7 +14,7 @@ Gazebo Jetty / Ogre2 시스템이 PBR 표면을 그릴 때 빛의 수중 이동 
 셀 순회에는 기존 3차원 DDA 방식을 사용합니다.
 [Amanatides와 Woo, 1987](https://www.cse.yorku.ca/~amana/research/grid.pdf).
 
-- 기본 셀 점유율: 3%.
+- 기본 셀 점유율: 10%.
 - 입자 반지름: 1.5–4mm.
 - 표시 거리: 0.05–3m, 장면과 평균 수면으로 제한.
 - 계산 한도: 픽셀당 지나는 셀 24개.
@@ -24,17 +24,25 @@ Gazebo Jetty / Ogre2 시스템이 PBR 표면을 그릴 때 빛의 수중 이동 
 음선·압력·수치 깊이를 바꾸지 않습니다. 부유 입자는 고정된 해저 특징이 아니므로
 인식 알고리즘에서 고정 표면과 구분할 필요가 있습니다.
 
-서버와 같은 Gazebo/Ogre SDK에서 CMake로 빌드합니다. 시스템 라이브러리는 Gazebo가 렌더링 장면을 만든 뒤 렌더링 보조 라이브러리를 불러옵니다. 라이브러리는 `lib`, 셰이더는 `share/posim/underwater`에 설치합니다.
+서버·GUI와 같은 Gazebo/Ogre SDK에서 빌드합니다. ROS 패키지는 설치된 플러그인 검색 경로를 설정하며, 독립적인 CMake 빌드도 지원합니다. 시스템 라이브러리는 Gazebo가 렌더링 장면을 만든 뒤 렌더링 보조 라이브러리를 불러옵니다. 라이브러리는 `lib`, 셰이더는 `share/posim/underwater`에 설치합니다.
 
 ```xml
-<plugin filename="/absolute/lib/posim_underwater.so" name="posim::Underwater">
-  <renderer_library>/absolute/lib/posim_underwater_render.so</renderer_library>
-  <shader_directory>/absolute/share/posim/underwater</shader_directory>
+<plugin filename="posim_underwater" name="posim::Underwater">
   <session_nonce>unique_session_id</session_nonce>
 </plugin>
 ```
 
-macOS 라이브러리 확장자는 `.dylib`입니다. Gazebo 프로세스마다 한 인스턴스를 사용하세요. 렌더러는 엔진의 PBS 리스너를 확장하고 렌더링 종료 시 복원합니다.
+설치된 시스템 라이브러리를 기준으로 보조 라이브러리와 셰이더를 찾습니다. `renderer_library`와 `shader_directory`를 지정하면 이 경로를 바꿀 수 있습니다. 네이티브 macOS 라이브러리 확장자는 `.dylib`입니다. Gazebo 프로세스마다 렌더러 인스턴스를 하나만 사용하세요. 렌더러는 엔진의 PBS 리스너를 확장하고 렌더링 종료 또는 장면 파괴 시 복원합니다.
+
+서버 시스템은 센서 영상에 효과를 적용합니다. Gazebo 월드 화면에도 같은 설정을 적용하려면 기존 `<gui>` 플러그인 옆에 다음 항목을 추가하고 서버와 같은 세션 nonce를 사용하세요.
+
+```xml
+<plugin filename="posim_underwater_gui" name="posim::UnderwaterGui">
+  <session_nonce>unique_session_id</session_nonce>
+</plugin>
+```
+
+GUI 플러그인은 서버에 적용된 외관 상태를 읽어 자체 렌더링 장면을 갱신합니다. 얕은 수중 튜토리얼에는 두 플러그인이 모두 포함됩니다. 카메라 클리핑 거리는 광학 감쇠와 별도 설정입니다.
 
 `/posim/appearance/<session_nonce>/set`은 `gz.msgs.Double_V`를 받습니다. 13개 값의 순서는 스키마(1), 리비전, 수중 광학 효과, 해저면 질감, 격자선, 등고선, 안개, 색상 흡수, 햇빛 감쇠, 햇빛 무늬, 부유 입자, 격자 간격, 등고선 간격입니다. 논리값은 0 또는 1입니다. 리비전은 정확히 1씩 증가하며 같은 요청의 재전송은 중복 적용하지 않습니다. `/state`는 `gz.msgs.Empty`를 받아 13개 값 뒤에 준비 여부, 카메라 수, 렌더러 실패 여부를 반환합니다. 렌더링 후 적용 상태를 확인합니다.
 
@@ -55,7 +63,7 @@ macOS 라이브러리 확장자는 `.dylib`입니다. Gazebo 프로세스마다 
 광선 순회·표현·이동·가림 코드는 유지합니다. 알려진 입자 네 개를 카메라 네 위치와
 시간 경과 후에 검사합니다. 독립적인 3차원 투영과 영상 중심을 비교하고, 가까운
 불투명 표면의 가림과 입자 켬·끔 사이의 수치 깊이 바이트 동일성도 확인합니다.
-설정 검사는 `ctest`로 실행하며, 그래픽 검사는 Metal 또는 headless Ogre2 환경에서
+설정·시스템 수명 주기 검사는 `ctest`로 실행하며, 그래픽 검사는 Metal 또는 headless Ogre2 환경에서
 별도로 실행합니다. SLAM 정확도와는 별도의 렌더링 검사입니다.
 
 ```sh

@@ -28,18 +28,17 @@ Nothing. This issue is meant to welcome you to Open Source :) We are happy to wa
 
 - [ ] 🙋 **Claim this issue**: Comment below. If someone else has claimed it, ask if they've opened a pull request already and if they're stuck -- maybe you can help them solve a problem or move it along!
 
-- [ ] 🗄️ **Create a local workspace** for making your changes and testing [following these instructions](https://docs.ros.org/en/lyrical/Tutorials/Beginner-Client-Libraries/Creating-A-Workspace.html)
+- [ ] 🗄️ **Create a local workspace** for making your changes and testing [following the POSIM source installation guide](https://ioes-lab.github.io/POSIM/install.html).
 
-- [ ] 🍴 **Fork the repository** using the handy button at the top of the repository page and **clone** it into `~/ros2_ws/src/posim`, [here is a guide that you can follow](https://guides.github.com/activities/forking/) (You will have to remove or empty the existing `posim` folder before cloning your own fork)
+- [ ] 🍴 **Fork the repository** using the button at the top of the repository page. Clone your fork into `~/posim_ws/src/posim` when following the installation guide, or use a separate workspace if that directory already contains your work.
 
 - [ ] **Checkout a new branch** using `git checkout -b <branch_name>`
 
-- [ ] 🤖 **Apply `pre-commit`** auto formatting, by running `pip3 install pre-commit` and running `pre-commit install` in the POSIM repo.
+- [ ] 🤖 **Run the formatting checks** using the [local lint guide](https://github.com/IOES-Lab/POSIM/blob/main/extras/lint_local/README.md). It installs the Python tools in a virtual environment and runs the same helper as CI.
 
 - [ ] 💾 **Commit and Push** your changes
 
-- [ ] 🔀 **Start a Pull Request** to request to merge your code into `master`. There are two ways that you can start a pull request:
-1. If you are not familiar with GitHub or how to create a pull request, [here is a guide you can follow](https://guides.github.com/activities/hello-world/) on how GitHub works.
+- [ ] 🔀 **Start a Pull Request** to request to merge your code into `main`. If you are not familiar with GitHub, [follow this guide](https://guides.github.com/activities/hello-world/).
 
 - [ ] 🏁 **Done** Ask in comments for a review :)
 

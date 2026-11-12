@@ -17,6 +17,9 @@
 
 <sdf version="1.4">
 	<world name="dvl_world">
+    <plugin filename="posim_underwater" name="posim::Underwater">
+      <session_nonce>dvl_world</session_nonce>
+    </plugin>
       <scene>
       <!-- For turquoise ambient to match particle effect -->
       <ambient>0.0 1.0 1.0</ambient>
@@ -90,9 +93,7 @@
 
 		<!-- Sea surface -->
 		<include>
-			<uri>
-				https://fuel.gazebosim.org/1.0/OpenRobotics/models/Waves
-			</uri>
+			<uri>model://calm_waves</uri>
 		</include>
 
 		<include>

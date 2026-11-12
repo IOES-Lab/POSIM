@@ -97,7 +97,9 @@ Salva SDF, revisione POSIM, backend/adattatore, versioni driver/toolkit, tempo p
 
 {{MEDIA:sonar-tuning}}
 
-Le fasi comprendono somma dei raggi, finestratura/correzione e FFT. Misura separatamente calcolo e trasferimenti di memoria. Figura: POSIM Notion Wiki.
+Le fasi comprendono somma dei raggi, correzione dei fasci e FFT. WGPU applica anche la finestra in frequenza fornita; il percorso CUDA non la applica. Misura separatamente calcolo e trasferimenti di memoria. Figura: POSIM Notion Wiki.
+
+Con l’SDK macOS di Gazebo Sim 10.5 testato, i mondi in cui il sonar è l’unico sensore possono arrestarsi durante l’inizializzazione di Ogre2. Se usi questo SDK, aggiungi al mondo una piccola telecamera integrata.
 
 ## Trasporto ROS su macOS nativo {#native-macos-ros-transport}
 

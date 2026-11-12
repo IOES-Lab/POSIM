@@ -11,7 +11,7 @@
 | `bluerov2_heavy` | Heavy 配置 |
 | `bluerov2_heavy_multibeam_sonar` | 配备 声呐的 Heavy 配置 |
 
-请使用[与安装方式对应的终端](terminals.md)。REXROV 可从[第一次仿真](quickstart.md)开始。
+请使用[与安装方式对应的终端](terminals.md)。 请用[下方示例](#start-rexrov)启动 REXROV。
 
 ## 启动 BlueROV2 {#start-bluerov2}
 
@@ -51,3 +51,9 @@
 {{MEDIA:rovs}}
 
 图片和视频：POSIM Notion Wiki。DAVE 署名见[引用与许可证](citation.md)。请使用本页给出的命令和话题名称。
+
+## 启动 REXROV {#start-rexrov}
+
+在[准备好的终端 A](terminals.md)中单独启动 Python 和推进器控制指南使用的示例。它会启动海洋场景与 ROS 桥接，并在 z = −5 m 放置 REXROV。在终端 B 执行这些指南时，保持本会话运行。
+
+{{CODE:rovs:3}}

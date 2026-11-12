@@ -11,7 +11,7 @@
 | `bluerov2_heavy` | Configuración Heavy |
 | `bluerov2_heavy_multibeam_sonar` | Heavy con sonar |
 
-Utiliza la [terminal preparada para tu instalación](terminals.md). Para REXROV, sigue la [primera simulación](quickstart.md).
+Utiliza la [terminal preparada para tu instalación](terminals.md). Para REXROV, usa el [ejemplo siguiente](#start-rexrov).
 
 ## Iniciar BlueROV2 {#start-bluerov2}
 
@@ -51,3 +51,9 @@ Para suscripciones y órdenes desde tus programas, continúa con [ROS](ros.md).
 {{MEDIA:rovs}}
 
 Imágenes y vídeos: POSIM Notion Wiki. La atribución a DAVE está en [Citas y licencias](citation.md). Utiliza los comandos y tópicos de esta página.
+
+## Iniciar REXROV {#start-rexrov}
+
+En la [terminal A preparada](terminals.md), inicia este ejemplo separado para las guías de Python y propulsores. Abre el mundo oceánico y los puentes ROS, y coloca REXROV en z = −5 m. Mantén esta sesión activa mientras sigues las guías en la terminal B.
+
+{{CODE:rovs:3}}

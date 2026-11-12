@@ -12,6 +12,8 @@
 
 根据安装方式完成[终端准备](terminals.md)。保持[第一次仿真](quickstart.md)在 A 中运行，在 B 中执行以下命令。
 
+以下话题适用于未启用声呐的 BlueROV2 水下示例。启用声呐时，将 `bluerov2` 替换为 `bluerov2_heavy_multibeam_sonar`；水面示例则使用 `wamv`。
+
 ## 检查通信关系
 
 `--no-daemon` 直接查询 ROS，不依赖命令行守护进程的缓存。

@@ -10,7 +10,8 @@ To send us a pull request, please:
 
 - [ ] Fork the repository.
 - [ ] Modify the source; please focus on the specific change you are contributing. If you also reformat all the code, it will be hard for us to focus on your change.
-- [ ] Ensure local tests pass. (`colcon test` and `pre-commit run` (requires you to install pre-commit by `pip3 install pre-commit`)
+- [ ] Ensure POSIM's tests pass. Run `colcon test --merge-install --base-paths src/posim --return-code-on-test-failure` from the sourced workspace and inspect `colcon test-result --verbose` for failures.
+- [ ] Run the checks in the [local lint guide](https://github.com/IOES-Lab/POSIM/blob/main/extras/lint_local/README.md). For documentation changes, also follow the [website build and checks](https://github.com/IOES-Lab/POSIM/blob/main/website/README.md).
 - [ ] Commit to your fork using clear commit messages.
 - [ ] Send a pull request, answering any default questions in the pull request interface.
 - [ ] Pay attention to any automated CI failures reported in the pull request, and stay involved in the conversation.

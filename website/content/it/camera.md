@@ -5,7 +5,9 @@
 <a id="run-the-example"></a>
 ## Eseguire l'esempio
 
-Questo esempio usa il filtro della camera basato sulla profondità. Il renderer di scena ha [compilazione e configurazione proprie](underwater-rendering.md). Nel [terminale A preparato per la tua installazione](terminals.md):
+Il mondo della telecamera attiva piccole onde ed [effetti subacquei nativi](underwater-rendering.md). L'avvio del sensore imposta `POSIM_UNDERWATER_PLUGIN` per inoltrare i pixel RGB già elaborati all'uscita compatibile senza una seconda attenuazione. Per confrontare il filtro indipendente basato sulla profondità, usa un mondo senza il sistema di scena e lascia questa variabile non impostata.
+
+Esegui l’esempio nel [terminale A preparato](terminals.md).
 
 {{CODE:camera:0}}
 

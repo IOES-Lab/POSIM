@@ -1,0 +1,304 @@
+<?xml version="1.0"?>
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<sdf version="1.10" xmlns:gz="http://gazebosim.org">
+  <world name="shallow_surface">
+    <gz:policies>
+      <include_gui_default_plugins>false</include_gui_default_plugins>
+    </gz:policies>
+    <physics name="default" type="ignored">
+      <max_step_size>.005</max_step_size>
+      <real_time_factor>1</real_time_factor>
+    </physics>
+    <plugin filename="gz-sim-physics-system" name="gz::sim::systems::Physics" />
+    <plugin filename="gz-sim-user-commands-system" name="gz::sim::systems::UserCommands" />
+    <plugin filename="gz-sim-scene-broadcaster-system" name="gz::sim::systems::SceneBroadcaster" />
+    <plugin filename="gz-sim-imu-system" name="gz::sim::systems::Imu" />
+    <plugin filename="gz-sim-sensors-system" name="gz::sim::systems::Sensors">
+      <render_engine>ogre2</render_engine>
+    </plugin>
+    <plugin filename="posim_underwater" name="posim::Underwater">
+      <session_nonce>shallow_surface</session_nonce>
+    </plugin>
+    <light name="sun" type="directional">
+      <diffuse>1 1 .95 1</diffuse>
+      <specular>.3 .3 .3 1</specular>
+      <direction>.3 .2 -1</direction>
+      <cast_shadows>true</cast_shadows>
+    </light>
+    <scene>
+      <grid>false</grid>
+      <ambient>.35 .35 .4 1</ambient>
+      <background>.55 .72 .85 1</background>
+      <sky />
+    </scene>
+    <spherical_coordinates>
+      <surface_model>EARTH_WGS84</surface_model>
+      <latitude_deg>35.074823</latitude_deg>
+      <longitude_deg>129.084798</longitude_deg>
+      <elevation>0</elevation>
+      <heading_deg>0</heading_deg>
+    </spherical_coordinates>
+    <include>
+      <uri>model://calm_waves</uri>
+    </include>
+    <model name="seabed">
+      <static>true</static>
+      <pose>0 0 -4.1 0 0 0</pose>
+      <link name="link">
+        <collision name="seabed">
+          <geometry>
+            <box>
+              <size>200 200 .2</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="seabed">
+          <geometry>
+            <box>
+              <size>200 200 .2</size>
+            </box>
+          </geometry>
+          <material>
+            <ambient>.55 .48 .32 1</ambient>
+            <diffuse>.55 .48 .32 1</diffuse>
+            <pbr>
+              <metal>
+                <roughness>.75</roughness>
+                <metalness>0</metalness>
+              </metal>
+            </pbr>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name="port_buoy">
+      <static>true</static>
+      <pose>9 2.5 .75 0 0 0</pose>
+      <link name="link">
+        <collision name="port_buoy">
+          <geometry>
+            <cylinder>
+              <radius>.55</radius>
+              <length>3.5</length>
+            </cylinder>
+          </geometry>
+        </collision>
+        <visual name="port_buoy">
+          <geometry>
+            <cylinder>
+              <radius>.55</radius>
+              <length>3.5</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>.8 .08 .05 1</ambient>
+            <diffuse>.8 .08 .05 1</diffuse>
+            <pbr>
+              <metal>
+                <roughness>.75</roughness>
+                <metalness>0</metalness>
+              </metal>
+            </pbr>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name="starboard_buoy">
+      <static>true</static>
+      <pose>9 -2.5 .75 0 0 0</pose>
+      <link name="link">
+        <collision name="starboard_buoy">
+          <geometry>
+            <cylinder>
+              <radius>.55</radius>
+              <length>3.5</length>
+            </cylinder>
+          </geometry>
+        </collision>
+        <visual name="starboard_buoy">
+          <geometry>
+            <cylinder>
+              <radius>.55</radius>
+              <length>3.5</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>.05 .65 .2 1</ambient>
+            <diffuse>.05 .65 .2 1</diffuse>
+            <pbr>
+              <metal>
+                <roughness>.75</roughness>
+                <metalness>0</metalness>
+              </metal>
+            </pbr>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name="channel_buoy">
+      <static>true</static>
+      <pose>16 0 .75 0 0 0</pose>
+      <link name="link">
+        <collision name="channel_buoy">
+          <geometry>
+            <cylinder>
+              <radius>.55</radius>
+              <length>3.5</length>
+            </cylinder>
+          </geometry>
+        </collision>
+        <visual name="channel_buoy">
+          <geometry>
+            <cylinder>
+              <radius>.55</radius>
+              <length>3.5</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>.95 .75 .08 1</ambient>
+            <diffuse>.95 .75 .08 1</diffuse>
+            <pbr>
+              <metal>
+                <roughness>.75</roughness>
+                <metalness>0</metalness>
+              </metal>
+            </pbr>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <model name="outer_buoy">
+      <static>true</static>
+      <pose>20 -4 .75 0 0 0</pose>
+      <link name="link">
+        <collision name="outer_buoy">
+          <geometry>
+            <cylinder>
+              <radius>.55</radius>
+              <length>3.5</length>
+            </cylinder>
+          </geometry>
+        </collision>
+        <visual name="outer_buoy">
+          <geometry>
+            <cylinder>
+              <radius>.55</radius>
+              <length>3.5</length>
+            </cylinder>
+          </geometry>
+          <material>
+            <ambient>.9 .3 .05 1</ambient>
+            <diffuse>.9 .3 .05 1</diffuse>
+            <pbr>
+              <metal>
+                <roughness>.75</roughness>
+                <metalness>0</metalness>
+              </metal>
+            </pbr>
+          </material>
+        </visual>
+      </link>
+    </model>
+    <gui fullscreen="0">
+      <plugin filename="MinimalScene" name="3D View">
+        <gz-gui>
+          <title>3D View</title>
+          <property type="bool" key="showTitleBar">false</property>
+          <property type="string" key="state">docked</property>
+        </gz-gui>
+        <engine>ogre2</engine>
+        <scene>scene</scene>
+        <ambient_light>0.4 0.4 0.4</ambient_light>
+        <background_color>0.8 0.8 0.8</background_color>
+        <camera_pose>-8 -9 7 0 .4 .6</camera_pose>
+      </plugin>
+      <plugin filename="EntityContextMenuPlugin" name="Entity context menu">
+        <gz-gui>
+          <property key="state" type="string">floating</property>
+          <property key="width" type="double">5</property>
+          <property key="height" type="double">5</property>
+          <property key="showTitleBar" type="bool">false</property>
+        </gz-gui>
+      </plugin>
+      <plugin filename="GzSceneManager" name="Scene Manager">
+        <gz-gui>
+          <property key="resizable" type="bool">false</property>
+          <property key="width" type="double">5</property>
+          <property key="height" type="double">5</property>
+          <property key="state" type="string">floating</property>
+          <property key="showTitleBar" type="bool">false</property>
+        </gz-gui>
+      </plugin>
+      <plugin filename="InteractiveViewControl" name="Interactive view control">
+        <gz-gui>
+          <property key="resizable" type="bool">false</property>
+          <property key="width" type="double">5</property>
+          <property key="height" type="double">5</property>
+          <property key="state" type="string">floating</property>
+          <property key="showTitleBar" type="bool">false</property>
+        </gz-gui>
+      </plugin>
+      <plugin filename="CameraTracking" name="Camera Tracking">
+        <gz-gui>
+          <property key="resizable" type="bool">false</property>
+          <property key="width" type="double">5</property>
+          <property key="height" type="double">5</property>
+          <property key="state" type="string">floating</property>
+          <property key="showTitleBar" type="bool">false</property>
+        </gz-gui>
+      </plugin>
+      <plugin filename="WorldControl" name="World control">
+        <gz-gui>
+          <title>World control</title>
+          <property type="bool" key="showTitleBar">false</property>
+          <property type="bool" key="resizable">false</property>
+          <property type="double" key="height">72</property>
+          <property type="double" key="z">1</property>
+          <property type="string" key="state">floating</property>
+          <anchors target="3D View">
+            <line own="left" target="left" />
+            <line own="bottom" target="bottom" />
+          </anchors>
+        </gz-gui>
+        <play_pause>true</play_pause>
+        <step>true</step>
+        <start_paused>false</start_paused>
+        <use_event>true</use_event>
+      </plugin>
+      <plugin filename="WorldStats" name="World stats">
+        <gz-gui>
+          <title>World stats</title>
+          <property type="bool" key="showTitleBar">false</property>
+          <property type="bool" key="resizable">false</property>
+          <property type="double" key="height">110</property>
+          <property type="double" key="width">290</property>
+          <property type="double" key="z">1</property>
+          <property type="string" key="state">floating</property>
+          <anchors target="3D View">
+            <line own="right" target="right" />
+            <line own="bottom" target="bottom" />
+          </anchors>
+        </gz-gui>
+        <sim_time>true</sim_time>
+        <real_time>true</real_time>
+        <real_time_factor>true</real_time_factor>
+        <iterations>true</iterations>
+      </plugin>
+      <plugin filename="ImageDisplay" name="Camera">
+        <gz-gui>
+          <title>Camera</title>
+          <property type="string" key="state">docked</property>
+        </gz-gui>
+        <topic>/tutorial/camera</topic>
+        <topic_picker>false</topic_picker>
+        <show_depth_flip>false</show_depth_flip>
+      </plugin>
+      <plugin filename="VisualizeLidar" name="Lidar">
+        <gz-gui>
+          <title>Lidar</title>
+          <property type="string" key="state">docked</property>
+        </gz-gui>
+      </plugin>
+    </gui>
+  </world>
+</sdf>

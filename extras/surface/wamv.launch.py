@@ -4,6 +4,7 @@ from pathlib import Path
 import shlex
 import sys
 import xml.etree.ElementTree as ET
+from ament_index_python.packages import get_package_prefix
 from launch import LaunchDescription
 from launch.actions import (
     DeclareLaunchArgument,
@@ -65,11 +66,19 @@ def setup(context):
     )
     path = folder / "world.sdf"
     ET.ElementTree(sdf).write(path)
-    path = prepare(path, 0, 0)
-    args = ["gz", "sim", "--force-version", "10", str(path), "-r"]
-    if LaunchConfiguration("headless").perform(context) == "true":
-        args += ["-s", "--headless-rendering"]
-    server = ExecuteProcess(cmd=args, output="screen")
+    world_file = LaunchConfiguration("world_file").perform(context)
+    path = Path(world_file) if world_file else prepare(path, 0, 0)
+    gz_sim = ["gz", "sim", "--force-version", "10"]
+    server_args = [*gz_sim, str(path), "-r", "-s"]
+    headless = LaunchConfiguration("headless").perform(context) == "true"
+    if headless:
+        server_args.append("--headless-rendering")
+    gazebo = [ExecuteProcess(cmd=server_args, output="screen")]
+    if not headless:
+        # The gz sim -g wrapper can exit without forwarding shutdown to its GUI child.
+        vendor = Path(get_package_prefix("gz_sim_vendor")) / "opt/gz_sim_vendor"
+        gui = vendor / "libexec/gz/sim10/gz-sim-gui-client"
+        gazebo.append(ExecuteProcess(cmd=[str(gui)], output="screen"))
     create = Node(
         package="ros_gz_sim",
         executable="create",
@@ -78,7 +87,7 @@ def setup(context):
             "-world",
             world_name,
             "-file",
-            make_model(folder / "wamv.sdf"),
+            LaunchConfiguration("model_file").perform(context) or make_model(folder / "wamv.sdf"),
             "-name",
             "wamv",
             "-z",
@@ -135,7 +144,7 @@ def setup(context):
     )
     return [
         navigation,
-        server,
+        *gazebo,
         create,
         RegisterEventHandler(
             OnProcessExit(
@@ -160,6 +169,12 @@ def generate_launch_description():
     return LaunchDescription(
         [
             DeclareLaunchArgument("headless", default_value="true"),
+            DeclareLaunchArgument(
+                "world_file", default_value="", description="Optional world SDF"
+            ),
+            DeclareLaunchArgument(
+                "model_file", default_value="", description="Optional WAM-V SDF"
+            ),
             DeclareLaunchArgument(
                 "world_name",
                 default_value="posim_surface",

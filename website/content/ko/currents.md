@@ -63,7 +63,7 @@ ros2 topic echo /hydrodynamics/currentVelocityTopic --once
 </plugin>
 ```
 
-[층상 해류 CSV](https://github.com/IOES-Lab/POSIM/blob/main/models/posim_worlds/worlds/transientOceanCurrentDatabase.csv)는 북쪽 속도(m/s), 동쪽 속도(m/s), 수심(m)의 순서입니다. 첫 세 설명·헤더 행을 유지하세요. 깊이 층은 두 개 이상이어야 하며, 각 데이터 행에는 유한한 수 세 개만 넣습니다. 수심은 0 이상이고 행마다 증가해야 합니다. 파일이 없거나 형식이 잘못되면 오류를 기록하고 해류를 발행하지 않습니다.
+[층상 해류 CSV](https://github.com/IOES-Lab/POSIM/blob/main/models/posim_worlds/worlds/transientOceanCurrentDatabase.csv)는 월드 X축 속도(m/s), 월드 Y축 속도(m/s), 수심(m)의 순서입니다. 기존 키 `velocity_north`, `velocity_east`, `velocity_down`은 각각 월드 X, Y, Z축에 직접 대응합니다. 첫 세 설명·헤더 행을 유지하세요. 깊이 층은 두 개 이상이어야 하며, 각 데이터 행에는 유한한 수 세 개만 넣습니다. 수심은 0 이상이고 행마다 증가해야 합니다. 파일이 없거나 형식이 잘못되면 오류를 기록하고 해류를 발행하지 않습니다.
 
 월드 ROS 플러그인은 전체 데이터베이스를 전달하고, 모델 해류 플러그인은 차량 수심에서 해류를 계산합니다. 모델의 `<namespace>`와 hydrodynamics가 구독하는 `/model/<namespace>/ocean_current`를 맞추세요. 차량 속도에 대한 상대 유속이 유체역학 응답에 영향을 줍니다.
 
@@ -173,6 +173,8 @@ ros2 service call /hydrodynamics/set_stratified_current_velocity \
 프로파일을 변경할 때는 데이터 단위, 보간 범위, 월드 기준 좌표와 시간 기준을 기록합니다. 같은 초기 자세에서 수신 해류와 로봇 반응을 비교한 뒤 항법 결과를 해석하세요.
 
 조석을 사용할 때 `<tidal_oscillation>`에 CSV 입력 또는 M2·S2·N2 같은 조화 성분, 낙조·창조(ebb/flood) 방향과 GMT 시작 시각을 설정합니다. 예제의 조화 성분 단위는 진폭 m, 위상 도, 각속도 도/시간입니다. 조석 방향 설정과 해류 서비스의 rad 단위를 구분하세요.
+
+조류 모드에서는 계산한 조화 신호 또는 CSV 속도를 100으로 나눈 값에 수심 프로파일의 첫 번째 열을 곱합니다. 예제의 높이 진폭은 수치 계수로 쓰이며, 모델이 조석 높이를 유속으로 변환하지는 않습니다. 원하는 유속에 맞게 신호와 프로파일의 조합을 보정하세요.
 
 조류 CSV는 머리글 한 행 다음에 `YYYY-MM-DD HH:MM,event,speed` 형식의 행을 둡니다. event는 `flood`, `ebb`, `slack`이며 speed는 유한한 cm/s 값입니다. 건너뛰는 slack 행에는 `-`를 사용할 수 있습니다. 날짜는 유효하고 엄격히 증가해야 합니다. 로더는 양·음의 극값을 번갈아 유지하며 최소 두 개가 필요합니다. 시간 범위 밖에서는 첫 번째 또는 마지막 극값을 유지합니다. 파일 누락, 불완전한 설정 또는 잘못된 데이터는 오류를 남기고 월드 해류 플러그인을 비활성화합니다.
 

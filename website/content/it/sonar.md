@@ -12,6 +12,8 @@ Il pacchetto `posim_multibeam_sonar_demo` offre anche un esempio autonomo:
 
 {{CODE:sonar:1}}
 
+{{MEDIA:sonar:0}}
+
 Esegui un solo esempio alla volta. Sostituisci `wgpu` con `cpu`, `cuda` o `auto` per cambiare backend. Per il sonar a bordo, scegli `bluerov2_heavy_multibeam_sonar` con un mondo adatto.
 
 ## Come funziona il sensore
@@ -71,6 +73,8 @@ L'esempio richiede 512 fasci orizzontali su circa 130°, 300 raggi verticali su 
 
 I suffissi si aggiungono al `<topic>` del sensore, qui `/sensor/multibeam_sonar`. La nuvola di punti Gazebo usa `gz.msgs.PointCloudPacked`; il bridge ROS incluso la rende disponibile come `sensor_msgs/msg/PointCloud2`. Allinea `pointCloudTopicName` a `sensor_config.py` e imposta il riferimento ottico del sonar in `frameName`.
 
+I file di avvio del BlueView P900 e del sonar BlueROV2 pubblicano una trasformazione identità da `world` al sistema di riferimento del sonar per la visualizzazione in RViz. Le coordinate della nuvola di punti restano relative al sensore. Questa trasformazione statica non segue il movimento del veicolo e non tiene conto della posizione e dell'orientamento di montaggio del sonar. Per creare mappe in coordinate globali, sostituiscila con una catena di trasformazioni che includa entrambe le pose.
+
 ### Geometria dei raggi
 
 I valori predefiniti di `<ray>` sono 256 fasci orizzontali, 3 raggi verticali, angoli orizzontali ±π/4, verticali ±π/8 e portata 0.1–5 m. Gli angoli sono in radianti; con `degrees="true"` si usano i gradi. Il `<reference_frame>` facoltativo in `<gz:multibeam_sonar>` ha posizione e orientamento nulli per impostazione predefinita.
@@ -97,7 +101,7 @@ L'esempio dedicato accetta `compute_backend`; gli altri avvii leggono `POSIM_SON
 1. Copia `models/posim_sensor_models/description/blueview_p900/` con un nuovo identificatore.
 2. Prepara il relativo `config/<identificatore>/sensor_config.py`. Allinea nomi del modello, link, sistemi di riferimento e topic del bridge.
 3. Imposta campionamento, angoli e portata. Carica nel mondo i due sistemi mostrati sopra; consulta il [mondo sonar in SDF](https://github.com/IOES-Lab/POSIM/blob/main/models/posim_worlds/worlds/posim_multibeam_sonar.world) per le altre impostazioni.
-4. Prepara il backend di calcolo e il rendering, ricompila il workspace e caricane l'ambiente. Seleziona il sensore tramite gli [argomenti di avvio](quickstart.md).
+4. Prepara il backend di calcolo e il rendering, ricompila il workspace e caricane l'ambiente. Seleziona il sensore tramite gli [argomenti di avvio](worlds.md).
 
 ## Registrare e visualizzare i dati grezzi
 
@@ -123,6 +127,11 @@ I colori sono relativi al massimo di ciascun fotogramma: usa i valori CSV per co
 
 ## Scene e osservazioni
 
-{{MEDIA:sonar}}
+{{MEDIA:sonar:1}}
+{{MEDIA:sonar:2}}
+{{MEDIA:sonar:3}}
+{{MEDIA:sonar:4}}
+{{MEDIA:sonar:5}}
+{{MEDIA:sonar:6}}
 
 Immagini e video: POSIM Notion Wiki. Consulta [Citazioni e licenze](citation.md) per l'attribuzione di DAVE e del modello sonar. Usa i comandi e i topic riportati nei blocchi di questa pagina.

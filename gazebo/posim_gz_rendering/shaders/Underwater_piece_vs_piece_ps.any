@@ -94,7 +94,7 @@
      float separation=length(point-origin-ray*travel);
      float radius=0.0015+0.0025*seed;
      float footprint=max(travel*pixelAngle,0.0001);
-     specks+=seed>0.97?(1.0-smoothstep(radius,radius+footprint,separation))*exp(-travel*0.2)*0.035:0.0;
+     specks+=seed>0.90?(1.0-smoothstep(radius,radius+footprint,separation))*exp(-travel*0.2)*0.035:0.0;
     }
     if(nextTravel.x<=nextTravel.y && nextTravel.x<=nextTravel.z){entry=nextTravel.x;nextTravel.x+=travelStep.x;cell.x+=stepDirection.x;}
     else if(nextTravel.y<=nextTravel.z){entry=nextTravel.y;nextTravel.y+=travelStep.y;cell.y+=stepDirection.y;}

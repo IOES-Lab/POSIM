@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<sdf version="1.7">
+<sdf version="1.7" xmlns:gz="http://gazebosim.org">
   <model name="nortek_dvl500_6000">
     <link name="dvl500_base_link">
       <pose>0 0 0 0 0 0</pose>

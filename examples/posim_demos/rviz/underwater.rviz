@@ -1,0 +1,50 @@
+Panels:
+  - Class: rviz_common/Displays
+    Name: Displays
+Visualization Manager:
+  Class: ""
+  Displays:
+    - Class: rviz_default_plugins/RobotModel
+      Name: BlueROV2
+      Enabled: true
+      Description Source: Topic
+      Description Topic:
+        Value: /robot_description
+        Durability Policy: Transient Local
+      TF Prefix: ROBOT
+      Visual Enabled: true
+      Collision Enabled: false
+    - Class: rviz_default_plugins/Grid
+      Name: Distance grid (1 m)
+      Enabled: true
+      Cell Size: 1
+      Plane Cell Count: 10
+      Color: 100; 110; 120
+      Alpha: 0.25
+    - Class: rviz_default_plugins/Image
+      Name: Camera
+      Enabled: true
+      Topic:
+        Value: /tutorial/camera
+        Reliability Policy: Best Effort
+        Depth: 2
+  Global Options:
+    Fixed Frame: ROBOT/base_link
+    Frame Rate: 15
+  Enabled: true
+  Tools:
+    - Class: rviz_default_plugins/MoveCamera
+  Views:
+    Current:
+      Class: rviz_default_plugins/Orbit
+      Distance: 2
+      Focal Point:
+        X: 0
+        Y: 0
+        Z: 0
+      Pitch: 0.65
+      Yaw: 3.6
+      Target Frame: <Fixed Frame>
+Window Geometry:
+  Width: 1200
+  Height: 800

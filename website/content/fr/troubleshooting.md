@@ -68,7 +68,11 @@ Arrêtez les outils de visualisation, appuyez une fois sur Ctrl+C dans le termin
 
 ### RViz plante après Discard
 
-Sur Ubuntu 26.04, RViz 15.2.6 peut parfois planter à la fermeture de sa fenêtre après le choix **Discard**, même si les vues des capteurs fonctionnent. Arrêtez les processus de lancement restants avec Ctrl+C avant de recommencer. Précisez la version de RViz et l'action de fermeture dans le rapport.
+L'installateur POSIM pour Ubuntu/WSL et les images Docker AMD64/ARM64 incluent un [overlay RViz isolé](https://github.com/IOES-Lab/POSIM/tree/main/extras/rviz) pour RViz 15.2.6. Il arrête le minuteur de mise à jour une fois la fermeture confirmée et libère les ressources ROS détenues par les vues lors de l'arrêt. Le choix **Cancel** laisse les mises à jour actives. Les paquets RViz du système restent inchangés. Après avoir chargé l'environnement POSIM, `ros2 pkg prefix rviz_common` doit afficher `/opt/posim/rviz-close/install`. Pour une installation plus ancienne, suivez les instructions de compilation et d'activation du lien.
+
+Sans l'overlay, RViz 15.2.6 sur Ubuntu 26.04 peut parfois planter à la fermeture de sa fenêtre après le choix **Discard**, même si les vues des capteurs fonctionnent. L'overlay corrige des problèmes précis de minuteur et de libération des ressources, sans couvrir tous les moteurs de rendu ni tous les chemins d'arrêt. Si un problème persiste, précisez la version de RViz, les chemins des bibliothèques chargées et l'action de fermeture dans le rapport.
+
+Si RViz continue à fonctionner après la fermeture de sa fenêtre, il peut consommer trop de mémoire, notamment avec le rendu logiciel. Avant de relancer la simulation, appuyez sur Ctrl+C dans le terminal de lancement pour arrêter les processus restants. Si RViz ne s'arrête pas normalement, ROS launch force l'arrêt du processus. Pour exécuter le sonar sans visualiseur, ajoutez `rviz:=false` à la commande `multibeam_sonar_demo.launch.py`. Les images restent disponibles dans ROS.
 
 ## Recréer une caméra de profondeur avec un SDK macOS natif
 
@@ -89,3 +93,7 @@ doit afficher `/opt/posim/mavros-router/install`. Pour une installation existant
 suivez les instructions de compilation séparée indiquées dans ce lien. Si le
 plantage persiste, joignez au rapport le journal de MAVROS et les chemins des
 bibliothèques effectivement chargées.
+
+## QGC est ouvert sous Windows, mais POSIM fonctionne dans WSL {#qgc-on-windows-host}
+
+Fermez l’application Windows, puis lancez la version Linux de QGC dans la même distribution Ubuntu que POSIM ou dans le conteneur POSIM. Une fenêtre WSLg apparaît sur le bureau Windows, mais reste un processus Linux. La [configuration de QGC](qgroundcontrol.md) conserve la télémétrie et la vidéo dans cet environnement.

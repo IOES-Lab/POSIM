@@ -4,6 +4,8 @@
 
 La escena Gazebo, las cámaras RGB y el color RGBD comparten estos efectos. La profundidad numérica y las colisiones se mantienen. El filtro independiente basado en profundidad se explica en [Cámara subacuática](camera.md).
 
+El sistema instalado encuentra automáticamente la biblioteca de renderizado contigua y los shaders de `share/posim/underwater`. `renderer_library` y `shader_directory` permiten sustituir las rutas. Los lanzamientos oceánicos activan automáticamente el paso directo de la cámara; configúralo en tus lanzamientos personalizados que usen ambos sistemas.
+
 ## Compilar e incorporar el sistema
 
 Prepara un entorno de desarrollo Gazebo Jetty/Ogre2 compatible con el servidor. En la [terminal A preparada](terminals.md), compila desde el código de POSIM; en macOS, usa la terminal Linux del escritorio RDP:

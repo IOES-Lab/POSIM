@@ -62,7 +62,8 @@ than overwritten. Source and output directories may not overlap.
 
 ```bash
 python3 extras/premerge/test_apply.py
-bash -n extras/ardusub-ubuntu-install.sh extras/ros-lyrical-gz-jetty-install.sh
+bash -n extras/ardusub-ubuntu-install.sh
+bash -n extras/ros-lyrical-gz-jetty-install.sh
 
 # Run only in a separate dependency checkout that you intend to rebuild.
 bash extras/ardusub-ubuntu-install.sh --patch-gst-camera /path/to/ardupilot_gazebo
@@ -72,11 +73,14 @@ bash extras/ardusub-ubuntu-install.sh --patch-gst-camera /path/to/ardupilot_gaze
 python3 extras/premerge/apply.py terrain \
   --source /opt/ros/lyrical/opt/gz_rendering_vendor/share/gz/gz-rendering \
   --output /absolute/new/terra-overlay
-export GZ_RENDERING_RESOURCE_PATH=/absolute/new/terra-overlay${GZ_RENDERING_RESOURCE_PATH:+:$GZ_RENDERING_RESOURCE_PATH}
+export GZ_RENDERING_RESOURCE_PATH=/absolute/new/terra-overlay
 ```
 
 Unknown hashes are a deliberate build failure: inspect the new upstream
 revision and update/remove the backport rather than weakening the guard.
+
+Gazebo Ogre2 reads `GZ_RENDERING_RESOURCE_PATH` as one directory. Select the
+complete Terra resource copy for this session.
 
 ## Runtime acceptance checks
 
@@ -107,5 +111,5 @@ and copies it without reapplying the diff; other revisions still need review.
 
 Rollback uses the previous image tag/digest or a fresh unpatched dependency
 build. To bypass only the Terra overlay for diagnosis, start a process without
-`GZ_RENDERING_RESOURCE_PATH` (preserve any other user overlays as appropriate).
+`GZ_RENDERING_RESOURCE_PATH` or select a complete alternate resource directory.
 No package-file restoration is needed. Existing environments are not migrated.

@@ -5,6 +5,7 @@ ARG ROS_DISTRO="lyrical"
 ENV ROS_DISTRO=${ROS_DISTRO}
 ENV DEBIAN_FRONTEND=noninteractive
 ENV POSIM_MAVROS_OVERLAY=/opt/posim/mavros-router
+ENV POSIM_RVIZ_OVERLAY=/opt/posim/rviz-close
 
 # The installer expects sudo even when the image build runs as root.
 RUN apt-get update && \
@@ -20,10 +21,11 @@ ENV LD_LIBRARY_PATH=/opt/waves/lib
 ENV GZ_SIM_SYSTEM_PLUGIN_PATH=/opt/waves/lib:/opt/ardusub_ws/ardupilot_gazebo/build
 ENV GZ_SIM_RESOURCE_PATH=/opt/asv_wave_sim/gz-waves-models/models:/opt/asv_wave_sim/gz-waves-models/world_models:/opt/ardusub_ws/ardupilot_gazebo/models:/opt/ardusub_ws/ardupilot_gazebo/worlds
 
-# Install QGroundControl.
+# Install the versioned QGroundControl release and verify its archive.
 RUN mkdir -p /opt/QGC && cd /opt/QGC && \
     wget -O QGroundControl-x86_64.AppImage \
-      "https://d176tv9ibo4jno.cloudfront.net/latest/QGroundControl-x86_64.AppImage" && \
+      "https://github.com/mavlink/qgroundcontrol/releases/download/v5.1.5/QGroundControl-x86_64.AppImage" && \
+    echo "9a47e4cf269d9e4f897f582f6b19aa7ebf1e9e67c9d68a532a45b541354bc344  QGroundControl-x86_64.AppImage" | sha256sum --check --status && \
     chmod +x QGroundControl-x86_64.AppImage && \
     ./QGroundControl-x86_64.AppImage --appimage-extract && \
     mv squashfs-root/* /opt/QGC/ && \
@@ -31,14 +33,15 @@ RUN mkdir -p /opt/QGC && cd /opt/QGC && \
     rm QGroundControl-x86_64.AppImage
 
 COPY .docker/qgroundcontrol.sh /usr/local/bin/qgroundcontrol
+COPY .docker/firefox.sh /usr/local/bin/firefox
+COPY .docker/desktop-app.sh /usr/local/bin/posim-desktop-app
 RUN useradd --create-home --user-group --groups dialout --shell /bin/bash posim-qgc && \
-    chmod 0755 /usr/local/bin/qgroundcontrol
+    chmod 0755 /usr/local/bin/qgroundcontrol /usr/local/bin/firefox /usr/local/bin/posim-desktop-app
 
 # Install Firefox from Mozilla.
 RUN curl -L "https://download.mozilla.org/?product=firefox-latest-ssl&os=linux64&lang=en-US" \
       -o /tmp/firefox.tar.xz && \
     tar -xJf /tmp/firefox.tar.xz -C /opt && \
-    ln -sf /opt/firefox/firefox /usr/local/bin/firefox && \
     rm -f /tmp/firefox.tar.xz
 
 # Build the exact POSIM revision supplied as the Docker build context. Import the
@@ -57,7 +60,9 @@ RUN apt-get update && \
 WORKDIR $POSIM_WS
 RUN . "/opt/ros/${ROS_DISTRO}/setup.sh" && \
     . "$POSIM_MAVROS_OVERLAY/install/setup.sh" && \
-    colcon build --merge-install --executor sequential --symlink-install
+    . "$POSIM_RVIZ_OVERLAY/install/local_setup.sh" && \
+    MAKEFLAGS="-j2" CMAKE_BUILD_PARALLEL_LEVEL=2 \
+      colcon build --merge-install --executor sequential --symlink-install
 
 RUN . "$POSIM_WS/install/setup.sh" && \
     test "$(ros2 pkg prefix mavros)" = "$POSIM_MAVROS_OVERLAY/install" && \

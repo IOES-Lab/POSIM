@@ -19,6 +19,8 @@ ros2 launch posim_multibeam_sonar_demo multibeam_sonar_demo.launch.py \
   compute_backend:=wgpu
 ```
 
+<figure><a href="{{ASSET_PREFIX}}media/guides/sonar-rviz.png"><img width="1920" height="1080" src="{{ASSET_PREFIX}}media/guides/sonar-rviz.png" alt="RViz에서 확인한 실시간 소나 영상, 점군과 카메라 영상(CUDA 계산)." loading="lazy" decoding="async"></a><figcaption>RViz에서 확인한 실시간 소나 영상, 점군과 카메라 영상(CUDA 계산).</figcaption></figure>
+
 예제는 하나씩 실행합니다. `wgpu`를 `cpu`, `cuda`, `auto`로 바꾸면 계산 방식을 선택할 수 있습니다. 로봇형 예제는 적절한 소나 월드에서 `bluerov2_heavy_multibeam_sonar`를 선택합니다.
 
 ## 출력 확인
@@ -144,6 +146,8 @@ Gazebo는 장면의 기하 정보를 제공합니다. 소나 모델은 표면 �
 
 토픽 접미사는 센서의 `<topic>` 뒤에 붙습니다. 예제에서는 `/sensor/multibeam_sonar`입니다. 원시 관측값은 `marine_acoustic_msgs/msg/ProjectedSonarImage`를 사용합니다. 점군은 Gazebo `gz.msgs.PointCloudPacked`이며, 포함된 ROS 브리지가 필요합니다. `pointCloudTopicName`은 `sensor_config.py`와 일치시키고, `frameName`에는 소나 광학 좌표계를 지정하세요.
 
+BlueView P900과 BlueROV2 소나 launch 파일은 RViz 표시를 위해 `world`에서 소나 좌표계로의 항등 변환을 발행합니다. 점군 좌표는 센서를 기준으로 합니다. 이 정적 변환은 기체의 움직임이나 소나의 장착 위치·자세를 반영하지 않습니다. 월드 좌표계에서 지도를 작성하려면 기체와 소나 장착부의 위치·자세를 모두 반영하는 변환 체인으로 교체하세요.
+
 ### 음선의 범위와 각도
 
 `<ray>` 블록의 기본값은 수평 빔 256개, 수직 ray 3개, 수평 각도 ±π/4, 수직 각도 ±π/8, 범위 0.1–5 m입니다. 스캔 각도는 `degrees="true"`이면 도, 그 외에는 rad 단위입니다. `<gz:multibeam_sonar>` 안의 선택 항목 `<reference_frame>`은 영 자세가 기본값입니다. `<ray>`와 `<spec>` 블록을 모두 유지하세요. 위 기본값은 블록 내부 항목에 적용됩니다. 파싱과 발행 방식은 [구현](https://github.com/IOES-Lab/POSIM/blob/main/gazebo/posim_gz_multibeam_sonar/multibeam_sonar/MultibeamSonarSensor.cc)에서 확인할 수 있습니다.
@@ -178,7 +182,7 @@ Gazebo는 장면의 기하 정보를 제공합니다. 소나 모델은 표면 �
 <plugin filename="libmultibeam_sonar_system" name="custom::MultibeamSonarSystem"/>
 ```
 
-계산 백엔드와 렌더링 환경을 준비한 뒤 작업 공간을 다시 빌드하고 환경을 불러오세요. [센서 launch 인수](quickstart.md)로 새 센서 모델을 선택합니다. ROS 점군 브리지는 `sensor_msgs/msg/PointCloud2`와 Gazebo `gz.msgs.PointCloudPacked`를 연결합니다. `pointCloudTopicName`과 `sensor_config.py`에 지정한 경로를 일치시키세요.
+계산 백엔드와 렌더링 환경을 준비한 뒤 작업 공간을 다시 빌드하고 환경을 불러오세요. [센서 launch 인수](worlds.md)로 새 센서 모델을 선택합니다. ROS 점군 브리지는 `sensor_msgs/msg/PointCloud2`와 Gazebo `gz.msgs.PointCloudPacked`를 연결합니다. `pointCloudTopicName`과 `sensor_config.py`에 지정한 경로를 일치시키세요.
 
 ## 원시 소나 데이터 기록하기
 

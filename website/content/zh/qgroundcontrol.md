@@ -1,8 +1,12 @@
 # 使用 QGroundControl 控制
 
-将 QGroundControl（QGC）连接到 BlueROV2，通过虚拟摇杆操纵机器人，同时查看前置相机画面。先完成[第一次仿真](quickstart.md)，并准备好[终端 A 和 B](terminals.md)。
+将 QGroundControl（QGC）连接到模拟的 BlueROV2，通过虚拟摇杆控制并查看前置相机画面。先完成[安装](requirements.md)，再准备[终端 A 和 B](terminals.md)。
 
 ## 1. 在 POSIM 所在的 Linux 环境中启动 QGC
+
+**Windows/WSL：**本教程使用 Linux 版 QGC。请勿启动安装在 Windows 上的 QGC。应在运行 POSIM 的同一个 Ubuntu 发行版中启动 QGC；使用 Docker 时，应在同一个 POSIM 容器中启动。WSLg 会将 Linux QGC 的窗口显示在 Windows 桌面上，但程序仍在 Linux 内运行。
+
+本指南中的 `127.0.0.1` 指向 QGC 所在环境的本地地址。该地址并不会将 Windows 版 QGC 配置为接收 WSL 或 Docker 中的遥测和视频。
 
 | 安装方式 | QGC 的运行位置 |
 |---|---|
@@ -11,7 +15,7 @@
 | Linux 或 Windows Docker | 在 POSIM 容器内运行镜像自带的应用。 |
 | macOS Docker 与 RDP | 在 RDP 桌面的终端中运行自带的应用。 |
 
-原生安装请按照 [QGC 官方安装指南](https://docs.qgroundcontrol.com/master/en/qgc-user-guide/getting_started/download_and_install.html)，选择与 CPU 架构对应的 Linux 版本。在 Docker 中，从终端 B 启动：
+本指南使用 POSIM Docker 镜像中附带的 QGC **5.1.5**。原生安装请按照[官方安装指南](https://docs.qgroundcontrol.com/master/en/qgc-user-guide/getting_started/download_and_install.html)，从 [5.1.5 发布页面](https://github.com/mavlink/qgroundcontrol/releases/tag/v5.1.5)下载与 CPU 架构对应的 Linux AppImage。在 Docker 中，从终端 B 启动：
 
 {{CODE:qgroundcontrol:0}}
 
@@ -37,6 +41,7 @@ QGC、MAVROS 和 Gazebo 位于同一个 Linux 环境中。遥测使用 **UDP 145
 | UDP URL | `127.0.0.1:5600` |
 | Aspect Ratio | `0`，自动使用相机画面比例 |
 | Disable Video Stream When Disarmed | 关闭 |
+| Low Latency Mode | 开启 |
 | Auto-reconnect on stream loss | 开启 |
 
 ## 4. 启动机器人和视频流
@@ -55,7 +60,7 @@ Gazebo 打开海底场景，QGC 自动连接 ArduSub。等待初始化完成后�
 
 相机按仿真时间以 **5 Hz** 的频率生成 **640 × 480** 图像。软件渲染可能降低实际显示帧率。BlueROV2 具有正浮力，即使未解锁，也可能上浮，使目标移出画面。
 
-`qgc_video:=true` 为本次启动添加 H.264 发送功能。发送的是普通 RGB 相机图像；[水下相机滤镜](camera.md)另有独立的 ROS 输出。
+`qgc_video:=true` 添加 H.264 发送功能。机器人 RGB 视频包含世界的[水下场景效果](underwater-rendering.md)。独立的[相机滤镜](camera.md)使用自己的 ROS 输出。GNSS 在天线入水后失去定位，出水后重新捕获；遥测、视频和手动控制连接仍保持。水下使用 Manual 模式。镜头低于天线，因此 GNSS 有效时也可能显示水下画面。
 
 ## 5. 解锁、操纵和停止
 
@@ -71,7 +76,11 @@ Gazebo 打开海底场景，QGC 自动连接 ArduSub。等待初始化完成后�
 
 然后在终端 A 中按 **Ctrl+C**，并关闭 QGC。
 
+MAVROS 在最长 60 秒未收到载具心跳后报告连接中断。此设置用于适应较慢的软件渲染，因此真正的心跳中断也可能需要最长 60 秒才会反映在 `/mavros/state` 中。
+
 ## 排查连接和画面问题
+
+下方的 `qgc_video` 和 `qgc_video_port` 参数用于第 4 步的独立启动命令。[首次仿真教程](quickstart.md)已包含视频发送功能，请使用该教程的 `/tutorial/camera/enable_streaming` 命令。声呐负载较高、帧间隔过长时，QGC 可能暂时显示 **Waiting for video**。保持 **Low Latency Mode** 开启，并尝试不带声呐的水下教程。
 
 - **没有载具：** 确认 QGC 与 POSIM 位于同一 Linux 环境中，且没有其他 QGC 实例占用 UDP 14550。
 - **一直显示 Waiting for video：** 检查 H.264 视频源、UDP 地址和 `qgc_video:=true`，从终端 B 开启发送后等待几帧。

@@ -67,6 +67,7 @@
     "previousNext": "Guide precedente e successiva",
     "previous": "Precedente",
     "next": "Successiva",
+    "maintainer": "Manutenzione a cura di IOES Lab. presso KMOU",
     "edit": "Modifica questa pagina",
     "references": "Riferimenti",
     "onThisPage": "In questa pagina",
@@ -106,6 +107,7 @@
       "Topic Gazebo della corrente del modello"
     ],
     "dvl": [
+      "Fasci DVL che intersecano il fondale in Gazebo.",
       "Fasci acustici del DVL rivolti verso il fondale",
       "Misure di velocità del DVL",
       "Verifica del topic DVL in Gazebo",
@@ -132,6 +134,7 @@
       "Fasi di elaborazione del sonar sulla GPU"
     ],
     "sonar": [
+      "Immagine sonar, nuvola di punti e telecamera in tempo reale in RViz (calcolo CUDA).",
       "Elaborazione del sonar multibeam con diffusione puntiforme",
       "RGB, profondità, immagine sonar e nuvola di punti della stessa scena",
       "Variazione delle immagini nell’esempio sonar",
@@ -140,6 +143,7 @@
       "Esplorazione locale della scena con il sonar"
     ],
     "usbl": [
+      "Esempio USBL: un ricetrasmettitore e due transponder.",
       "Disposizione di ricetrasmettitore e transponder USBL",
       "Flusso dei messaggi di interrogazione comune e individuale",
       "Misure di posizione del transponder"
@@ -149,7 +153,23 @@
     ],
     "install-macos": [
       "L’immagine ARM64 pronta all’uso mostra Gazebo nel desktop remoto."
+    ],
+    "quickstart": [
+      "BlueROV2 e gli echi sonar sono mostrati nello stesso riferimento del veicolo, accanto alle immagini di telecamera e sonar.",
+      "La telecamera subacquea in QGC. La perdita della posizione GNSS sott’acqua non implica la perdita della connessione al veicolo.",
+      "WAM-V ed echi lidar nella stessa vista, con la telecamera frontale accanto.",
+      "La telecamera frontale di WAM-V trasmette il percorso tra le boe a QGC."
     ]
   },
-  "overview": "Ambiente oceanico → robot e dinamica → misure dei sensori → controllo ROS 2. Seleziona un’immagine per aprire la guida."
+  "overview": "Ambiente oceanico → robot e dinamica → misure dei sensori → controllo ROS 2. Seleziona un’immagine per aprire la guida.",
+  "tutorials": {
+    "labels": [
+      "BlueROV2 · Gazebo",
+      "BlueROV2 · RViz",
+      "WAM-V · Gazebo",
+      "WAM-V · RViz",
+      "WAM-V · QGC"
+    ],
+    "caption": "Viste della prima simulazione. Seleziona un’immagine per aprirla a grandezza naturale."
+  }
 }

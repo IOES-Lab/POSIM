@@ -1,8 +1,14 @@
 import os
 import shlex
+import xml.etree.ElementTree as ET
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, OpaqueFunction, IncludeLaunchDescription
+from launch.actions import (
+    DeclareLaunchArgument,
+    OpaqueFunction,
+    IncludeLaunchDescription,
+    SetEnvironmentVariable,
+)
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
 
@@ -36,7 +42,10 @@ def launch_setup(context, *args, **kwargs):
         launch_arguments={"gz_args": gz_args}.items(),
     )
 
-    return [gz_sim]
+    environment = []
+    if ET.parse(world_path).find(".//world/plugin[@name='posim::Underwater']") is not None:
+        environment.append(SetEnvironmentVariable("POSIM_UNDERWATER_PLUGIN", "1"))
+    return environment + [gz_sim]
 
 
 def generate_launch_description():

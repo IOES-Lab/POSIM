@@ -1,4 +1,4 @@
-"""Exercise world-path quoting at both launch entry points."""
+"""Exercise world-path quoting at every launch entry point."""
 
 from contextlib import ExitStack
 from importlib.util import module_from_spec, spec_from_file_location
@@ -37,7 +37,7 @@ def arguments(entry, share, platform_name="posix", empty=False, headless=True, p
         verbose="4" if entry == "robot" else "true",
     )
     with ExitStack() as stack:
-        if entry == "robot":
+        if entry != "world":
             stack.enter_context(
                 patch.object(module.FindPackageShare, "find", lambda self, package: str(share))
             )
@@ -60,7 +60,7 @@ def share(tmp_path):
 
 
 @pytest.mark.skipif(os.name != "posix", reason="Requires a POSIX shell")
-@pytest.mark.parametrize("entry", ["world", "robot"])
+@pytest.mark.parametrize("entry", ["world", "robot", "sensor", "object"])
 @pytest.mark.parametrize(
     "directory",
     [
@@ -98,7 +98,7 @@ def test_world_remains_one_literal_shell_argument(tmp_path, entry, directory):
     assert "-s" in argv
 
 
-@pytest.mark.parametrize("entry", ["world", "robot"])
+@pytest.mark.parametrize("entry", ["world", "robot", "sensor", "object"])
 def test_windows_keeps_unquoted_command_construction(share, entry):
     # Deliberately preserve Windows behavior; not a Windows execution test.
     spaced = share.with_name("Program Files")
@@ -109,8 +109,9 @@ def test_windows_keeps_unquoted_command_construction(share, entry):
 
 @pytest.mark.parametrize("headless", [False, True])
 @pytest.mark.parametrize("paused", [False, True])
-def test_robot_empty_world_preserves_flags(share, headless, paused):
-    argv = shlex.split(arguments("robot", share, empty=True, headless=headless, paused=paused))
+@pytest.mark.parametrize("entry", ["robot", "sensor", "object"])
+def test_empty_world_preserves_flags(share, headless, paused, entry):
+    argv = shlex.split(arguments(entry, share, empty=True, headless=headless, paused=paused))
     assert argv.count("empty.sdf") == 1
     assert ("-r" in argv) == (not paused)
     assert ("-s" in argv) == headless

@@ -18,13 +18,15 @@ ARG X11Forwarding=true
 
 # --- RDP / XFCE desktop setup ---
 # hadolint ignore=DL3008,DL3015,DL3009
-RUN DEBIAN_FRONTEND=noninteractive apt-get update && \
-        apt-get install -y --no-install-recommends \
-          dbus dbus-x11 xrdp xorgxrdp \
-          xfce4 xfce4-goodies xfce4-terminal xterm \
-          sudo openssl; \
-    [ $X11Forwarding = 'true' ] && apt-get install -y openssh-server; \
-    apt-get autoremove --purge; \
+RUN set -e; \
+    export DEBIAN_FRONTEND=noninteractive; \
+    apt-get -o Acquire::Retries=3 --error-on=any update; \
+    apt-get install -y --no-install-recommends \
+      dbus dbus-x11 xrdp xorgxrdp \
+      xfce4 xfce4-goodies xfce4-terminal xterm \
+      sudo openssl; \
+    if [ "$X11Forwarding" = true ]; then apt-get install -y openssh-server; fi; \
+    apt-get autoremove --purge -y; \
     apt-get clean; \
     rm -f /run/reboot-required*
 
@@ -111,7 +113,7 @@ RUN curl --fail --show-error --location --retry 5 --retry-delay 2 \
     apt install -y --no-install-recommends \
       ros-${ROS_DISTRO}-desktop ros-${ROS_DISTRO}-ros-gz \
       ros-${ROS_DISTRO}-image-view \
-      ros-${ROS_DISTRO}-mavros ros-${ROS_DISTRO}-mavros-msgs \
+      ros-${ROS_DISTRO}-mavros ros-${ROS_DISTRO}-mavros-extras ros-${ROS_DISTRO}-mavros-msgs \
       ros-${ROS_DISTRO}-ament-cmake-google-benchmark \
       ros-${ROS_DISTRO}-angles ros-${ROS_DISTRO}-ament-cmake-gmock \
       ros-${ROS_DISTRO}-ament-cmake-pytest ros-${ROS_DISTRO}-ament-lint-auto \
@@ -123,6 +125,11 @@ RUN curl --fail --show-error --location --retry 5 --retry-delay 2 \
 ENV POSIM_MAVROS_OVERLAY=/opt/posim/mavros-router
 COPY extras/mavros /tmp/posim-mavros
 RUN bash /tmp/posim-mavros/build_overlay.sh "$POSIM_MAVROS_OVERLAY"
+
+ENV POSIM_RVIZ_OVERLAY=/opt/posim/rviz-close
+COPY extras/rviz /tmp/posim-rviz
+RUN apt-get update && apt-get install -y --no-install-recommends xvfb xauth && \
+    bash /tmp/posim-rviz/build_overlay.sh "$POSIM_RVIZ_OVERLAY"
 
 # --- POSIM workspace ---
 # Build the exact checked-out revision supplied as the Docker build context.
@@ -147,7 +154,9 @@ USER $USER
 WORKDIR $POSIM_UNDERLAY
 RUN . "/opt/ros/${ROS_DISTRO}/setup.sh" && \
     . "$POSIM_MAVROS_OVERLAY/install/setup.sh" && \
-    colcon build --merge-install --executor sequential --symlink-install
+    . "$POSIM_RVIZ_OVERLAY/install/local_setup.sh" && \
+    MAKEFLAGS="-j2" CMAKE_BUILD_PARALLEL_LEVEL=2 \
+      colcon build --merge-install --executor sequential --symlink-install
 
 RUN . "$POSIM_UNDERLAY/install/setup.sh" && \
     test "$(ros2 pkg prefix mavros)" = "$POSIM_MAVROS_OVERLAY/install" && \
@@ -257,11 +266,14 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 USER $USER
-RUN mkdir -p ~/QGC && wget -O ~/QGC/QGroundControl-aarch64-DailyBuild.AppImage \
-    "https://d176tv9ibo4jno.cloudfront.net/builds/master/QGroundControl-aarch64.AppImage" && \
-    cd ~/QGC && chmod +x QGroundControl-aarch64-DailyBuild.AppImage && \
-    ./QGroundControl-aarch64-DailyBuild.AppImage --appimage-extract && \
-    mv ~/QGC/squashfs-root/* ~/QGC/. && rm ~/QGC/QGroundControl-aarch64-DailyBuild.AppImage && \
+# Use the same stable release as AMD64, with its architecture-specific checksum.
+RUN mkdir -p ~/QGC && wget -O ~/QGC/QGroundControl-aarch64.AppImage \
+    "https://github.com/mavlink/qgroundcontrol/releases/download/v5.1.5/QGroundControl-aarch64.AppImage" && \
+    cd ~/QGC && \
+    echo "ddd92fe3a1cd1c1c21a3028052e9f9b4d4a68cb80689552d3f34727ed2c91e03  QGroundControl-aarch64.AppImage" | sha256sum --check --status && \
+    chmod +x QGroundControl-aarch64.AppImage && \
+    ./QGroundControl-aarch64.AppImage --appimage-extract && \
+    mv ~/QGC/squashfs-root/* ~/QGC/. && rm ~/QGC/QGroundControl-aarch64.AppImage && \
     mkdir -p /home/$USER/.local/bin
 
 # Isolate the bundled GStreamer from Gazebo's system plugins and shared cache.

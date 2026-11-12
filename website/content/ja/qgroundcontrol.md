@@ -1,8 +1,12 @@
 # QGroundControl で操作する
 
-QGroundControl（QGC）を BlueROV2 に接続し、仮想ジョイスティックで操作しながら前方カメラの映像を確認します。[最初のシミュレーション](quickstart.md)を試してから、[ターミナル A と B](terminals.md)を準備してください。
+QGroundControl（QGC）を BlueROV2 に接続し、仮想ジョイスティックで操作しながら前方カメラの映像を確認します。[インストール](requirements.md)を終え、[ターミナル A と B](terminals.md)を準備してください。
 
 ## 1. POSIM と同じ Linux 環境で QGC を開く
+
+**Windows/WSL:** このチュートリアルではLinux版QGCを使用します。WindowsにインストールしたQGCは起動しないでください。POSIMと同じUbuntuディストリビューション内で、Dockerの場合は同じPOSIMコンテナー内で起動します。WSLgによってWindowsデスクトップに表示されたQGCのウィンドウも、Linux内で動作しています。
+
+このガイドの`127.0.0.1`は、QGCが動作する環境内を指します。このアドレスだけでは、Windows版QGCがWSLやDockerからテレメトリーや映像を受信するようには設定されません。
 
 | インストール方法 | QGC の実行場所 |
 |---|---|
@@ -11,7 +15,7 @@ QGroundControl（QGC）を BlueROV2 に接続し、仮想ジョイスティッ�
 | Linux・Windows の Docker | POSIM コンテナ内の同梱アプリを実行します。 |
 | macOS の Docker・RDP | RDP デスクトップのターミナルから同梱アプリを実行します。 |
 
-ネイティブ環境では、[QGC 公式インストールガイド](https://docs.qgroundcontrol.com/master/en/qgc-user-guide/getting_started/download_and_install.html)に従って CPU アーキテクチャに合う Linux 版を入れます。Docker ではターミナル B で実行します。
+このガイドは、POSIM の Docker イメージに同梱されている QGC **5.1.5** を使用します。ネイティブ環境では、[公式インストールガイド](https://docs.qgroundcontrol.com/master/en/qgc-user-guide/getting_started/download_and_install.html)に従い、[5.1.5 リリース](https://github.com/mavlink/qgroundcontrol/releases/tag/v5.1.5)から CPU アーキテクチャに合う Linux AppImage を入手してください。Docker ではターミナル B で実行します。
 
 {{CODE:qgroundcontrol:0}}
 
@@ -37,6 +41,7 @@ QGC、MAVROS、Gazebo は同じ Linux 環境内で通信します。テレメト
 | UDP URL | `127.0.0.1:5600` |
 | Aspect Ratio | `0`（縦横比を自動設定） |
 | Disable Video Stream When Disarmed | オフ |
+| Low Latency Mode | オン |
 | Auto-reconnect on stream loss | オン |
 
 ## 4. ロボットと映像配信を開始する
@@ -55,7 +60,7 @@ Gazebo に海底のシーンが開き、QGC が ArduSub に接続します。初
 
 カメラは**シミュレーション時間で 5 Hz、640 × 480 ピクセル**の画像を生成します。ソフトウェアレンダリングでは実際の表示速度が下がることがあります。BlueROV2 は正の浮力を持つため、アームしていなくても上昇し、対象物が画面外に移る場合があります。
 
-`qgc_video:=true` は、この起動に H.264 送信機能を追加します。配信するのは通常の RGB カメラです。[水中カメラフィルター](camera.md)は別の ROS 出力を持ちます。
+`qgc_video:=true` は H.264 送信機能を追加します。ロボットの RGB 映像にはワールドの[水中シーン効果](underwater-rendering.md)も含まれます。独立した[カメラフィルター](camera.md)は別の ROS 出力を使います。GNSS はアンテナが水没すると測位を失い、水面に出ると再捕捉しますが、テレメトリ、映像、手動操作の接続は維持されます。水中では Manual モードを使います。レンズはアンテナより低いため、GNSS が有効でも水中映像になる場合があります。
 
 ## 5. アームして操作し、停止する
 
@@ -71,7 +76,11 @@ Gazebo に海底のシーンが開き、QGC が ArduSub に接続します。初
 
 ターミナル A で **Ctrl+C** を押し、QGC を閉じます。
 
+MAVROSは、機体のハートビートが最大60秒間届かなくなると接続断を報告します。低速なソフトウェアレンダリングに対応する設定のため、実際にハートビートが途絶えても、`/mavros/state`への反映に最大60秒かかる場合があります。
+
 ## 接続や映像を確認できない場合
+
+以下の `qgc_video` と `qgc_video_port` は、手順 4 の個別の起動コマンド用です。[最初のシミュレーション](quickstart.md)には映像送信機能が含まれているため、そのページの `/tutorial/camera/enable_streaming` コマンドを使ってください。ソナーの負荷でフレーム間隔が長くなると、QGC に **Waiting for video** が一時的に表示されることがあります。**Low Latency Mode** をオンにし、ソナーなしで水中チュートリアルを試してください。
 
 - **機体が表示されない：** QGC と POSIM が同じ Linux 環境で動いているか、別の QGC が UDP 14550 を使用していないか確認します。
 - **Waiting for video のまま：** H.264 の入力、UDP URL、`qgc_video:=true` を確認し、B から送信を有効にして数フレーム待ちます。

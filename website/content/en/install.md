@@ -16,7 +16,7 @@ The checkout directory is `posim`. Keep this name when importing the matching re
 
 ## 2. Install the stack
 
-The helper installs ROS 2 Lyrical, Gazebo Jetty, ArduSub, MAVROS and wave libraries. Read `src/posim/extras/ros-lyrical-gz-jetty-install.sh` first.
+The helper installs ROS 2 Lyrical, Gazebo Jetty, ArduSub, ArduRover, MAVROS and wave libraries. Read `src/posim/extras/ros-lyrical-gz-jetty-install.sh` first.
 
 - Configures system repositories
 - Uses `sudo`

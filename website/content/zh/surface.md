@@ -2,6 +2,14 @@
 
 使用 Wave Sim 波浪和 ArduRover 船舶模式来仿真 WAM-V。POSIM 标准安装程序和 Docker 构建流程会编译外部波浪库。
 
+## 标准教程
+
+标准 POSIM 安装包含带相机、激光雷达和预设 RViz 视图的 WAM-V 浮标航道示例，无需下方的可选镜像。在[准备好的 POSIM 终端](terminals.md)中运行：
+
+{{CODE:quickstart:4}}
+
+场景、激光雷达显示、QGroundControl 视频与控制步骤见[第一次仿真](quickstart.md)。
+
 ## 准备 WAM-V
 
 此可选镜像采用 ARM64 桌面布局。在 Apple Silicon Mac 上准备好 [Docker 与 RDP](install-macos.md)，然后进入 POSIM 仓库副本，在 macOS 终端执行：

@@ -4,8 +4,8 @@
 
 struct Params {
   n_beams:  u32,
-  n_freq:   u32,   // actual number of frequency bins (may not be power-of-2)
-  padded_n: u32,   // next power of 2 >= n_freq (actual FFT size, <= 4096)
+  n_freq:   u32,   // power-of-two frequency count for this fast path
+  padded_n: u32,   // equals n_freq on this path, at most 4096
   log2_n:   u32,   // log2(padded_n)
 };
 
@@ -83,13 +83,9 @@ fn main(
     workgroupBarrier();
   }
 
-  // Range-preserving writeback.
-  //
-  // A target at original-grid bin k appears at approximately
-  // k * padded_n / n_real in the padded FFT. Copying smem[k] directly therefore
-  // stretches the reported range by padded_n / n_real and drops the far-range
-  // tail. Sample the padded spectrum at that scaled coordinate and linearly
-  // interpolate the complex components back to n_real output bins.
+  // Here n == n_real: src is i and alpha is zero. Retain the existing
+  // writeback arithmetic for this fast path. Non-power-of-two lengths use
+  // Bluestein's exact transform, not this interpolation expression.
   for (var i: u32 = lid.x; i < n_real; i = i + 256u) {
     let src = f32(i) * f32(n) / f32(n_real);
     let lo = min(u32(floor(src)), n - 1u);

@@ -2,6 +2,14 @@
 
 Wave Sim の波と ArduRover のボートモードを使って WAM-V を動かします。標準の POSIM インストーラーと Docker ビルド手順には、外部の波ライブラリのビルドが含まれます。
 
+## 標準チュートリアル
+
+標準の POSIM には、カメラ、ライダー、設定済み RViz を備えた WAM-V のブイコースが含まれます。以下の追加イメージは不要です。[準備済みの POSIM ターミナル](terminals.md)で実行します。
+
+{{CODE:quickstart:4}}
+
+シーン、ライダー表示、QGroundControl の映像と操作は[最初のシミュレーション](quickstart.md)を参照してください。
+
 ## WAM-V を準備する
 
 この追加イメージは ARM64 のデスクトップ構成を使います。Apple Silicon Mac で [Docker と RDP](install-macos.md)を準備し、POSIM リポジトリのコピーから macOS のターミナルで実行します。

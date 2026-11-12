@@ -12,6 +12,8 @@ Les mesures remontent vers le programme ROS ; les commandes vont au simulateur. 
 
 Suivez la [préparation des terminaux adaptée à votre installation](terminals.md). Gardez la [première simulation](quickstart.md) active dans A et exécutez les commandes suivantes dans B.
 
+Ces topics correspondent à BlueROV2 sans sonar. Avec le sonar, remplacez `bluerov2` par `bluerov2_heavy_multibeam_sonar` ; pour l’exemple de surface, utilisez `wamv`.
+
 ## Examiner les connexions
 
 `--no-daemon` interroge directement ROS, sans dépendre du cache du démon de la CLI.

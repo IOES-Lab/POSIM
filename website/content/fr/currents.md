@@ -38,7 +38,7 @@ Utilisez le même `namespace`, non vide, dans les deux plugins. Les blocs `const
 
 ## Préparer un profil selon la profondeur
 
-Le [CSV d'exemple](https://github.com/IOES-Lab/POSIM/blob/main/models/posim_worlds/worlds/transientOceanCurrentDatabase.csv) contient, dans cet ordre, la vitesse vers le nord (m/s), la vitesse vers l'est (m/s) et la profondeur (m).
+Le [CSV d'exemple](https://github.com/IOES-Lab/POSIM/blob/main/models/posim_worlds/worlds/transientOceanCurrentDatabase.csv) contient, dans cet ordre, la vitesse selon l'axe X du monde (m/s), la vitesse selon l'axe Y du monde (m/s) et la profondeur (m). Les noms historiques `velocity_north`, `velocity_east` et `velocity_down` correspondent directement aux axes X, Y et Z du monde.
 
 - Conservez les trois premières lignes de description et d'en-tête.
 - Fournissez au moins deux couches, avec exactement trois nombres finis par ligne.
@@ -122,6 +122,8 @@ Lisez le modèle, modifiez ses bornes, puis réglez la première couche :
 ## Fournir des données de marée
 
 Configurez `<tidal_oscillation>` avec un CSV ou des composantes harmoniques, par exemple M2/S2/N2, les directions du flot et du jusant et une date de départ GMT. Dans les exemples harmoniques, l'amplitude est en mètres, la phase en degrés et la vitesse angulaire en degrés/heure. Ces unités diffèrent des radians des services de courant.
+
+En mode marée, le signal harmonique calculé, ou la vitesse du CSV divisée par 100, est multiplié par la première colonne du profil de profondeur. Les amplitudes de hauteur de l'exemple servent de facteurs numériques ; le modèle ne convertit pas la hauteur de marée en vitesse du courant. Calibrez conjointement le signal et le profil pour obtenir la vitesse voulue.
 
 Le CSV comporte une ligne d'en-tête, puis des lignes `YYYY-MM-DD HH:MM,event,speed` :
 

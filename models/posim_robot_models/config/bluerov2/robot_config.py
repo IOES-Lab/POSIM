@@ -122,11 +122,7 @@ def launch_setup(context, *args, **kwargs):
         "fi; "
         f"sleep {ui_launch_delay}; "
         "while true; do "
-        'if [ "$(id -u)" -eq 0 ]; then '
-        "sudo -u ubuntu qgroundcontrol; "
-        "else "
         "qgroundcontrol; "
-        "fi; "
         "sleep 3; "
         "done"
     )
@@ -147,11 +143,7 @@ def launch_setup(context, *args, **kwargs):
         "exit 0; "
         "fi; "
         f"sleep {ui_launch_delay}; "
-        'if [ "$(id -u)" -eq 0 ]; then '
-        f"sudo -u ubuntu firefox --new-window '{virtual_joystick_url}'; "
-        "else "
         f"firefox --new-window '{virtual_joystick_url}'; "
-        "fi"
     )
     joystick_process = ExecuteProcess(
         cmd=[
@@ -168,7 +160,15 @@ def launch_setup(context, *args, **kwargs):
         package="mavros",
         executable="mavros_node",
         output="screen",
-        parameters=[mavros_file, {"use_sim_time": True}],
+        parameters=[{"use_sim_time": True}, mavros_file],
+        condition=IfCondition(use_ardusub),
+    )
+
+    marine_gnss = Node(
+        package="posim_robot_models",
+        executable="marine_gnss_input",
+        parameters=[{"use_sim_time": True, "gz_topic": f"/model/{namespace}/gnss"}],
+        output="screen",
         condition=IfCondition(use_ardusub),
     )
 
@@ -225,6 +225,7 @@ def launch_setup(context, *args, **kwargs):
 
     return [
         bluerov2_bridge,
+        marine_gnss,
         start_imu_wait,
         start_ardusub,
         start_mavros,

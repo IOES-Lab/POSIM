@@ -8,6 +8,8 @@ Nel [terminale A preparato per la tua installazione](terminals.md):
 
 {{CODE:usbl:0}}
 
+{{MEDIA:usbl:0}}
+
 Il mondo contiene già i tre dispositivi. Nel terminale B preparato, ricevi le posizioni:
 
 {{CODE:usbl:1}}
@@ -78,6 +80,8 @@ Cambiare canale seleziona `individual`; ogni ping programmato è diretto a quell
 
 ## Disposizione e modalità di interrogazione
 
-{{MEDIA:usbl}}
+{{MEDIA:usbl:1}}
+{{MEDIA:usbl:2}}
+{{MEDIA:usbl:3}}
 
 Immagini: wiki Notion POSIM; attribuzione DAVE in [Citazioni e licenze](citation.md). Usa i comandi e i topic di questa pagina.

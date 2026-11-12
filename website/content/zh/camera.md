@@ -5,7 +5,9 @@
 <a id="run-the-example"></a>
 ## 运行示例
 
-此示例使用基于深度的相机滤镜。场景渲染器有单独的[构建和配置步骤](underwater-rendering.md)。在[按安装方式准备好的终端 A](terminals.md)中运行：
+相机示例世界默认启用小波浪和[水下场景效果](underwater-rendering.md)。传感器启动时设置 `POSIM_UNDERWATER_PLUGIN`，让兼容输出直接传递已渲染的 RGB 像素，避免重复衰减。比较独立的深度滤镜时，请使用未加载场景系统的世界，并取消该环境变量。
+
+在[准备好的终端 A](terminals.md)中运行示例。
 
 {{CODE:camera:0}}
 

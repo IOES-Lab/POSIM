@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<sdf version="1.7">
+<sdf version="1.7" xmlns:gz="http://gazebosim.org">
   <model name="dvl500_300">
     <pose>4 0 0.5 0 0.0 3.14</pose>
     <link name="dvl500_base_link">

@@ -44,7 +44,7 @@ public:
   /// \param _min Minimum limit
   /// \param _max Maximum limit
   /// \param _mu Process constant
-  /// \param _noise Amplitude for the Gaussian white noise
+  /// \param _noise Scale of the uniform random increment
   /// \return True, if all parameters were valid
 public:
   bool SetModel(double _mean, double _min, double _max, double _mu = 0, double _noise = 0);
@@ -75,7 +75,7 @@ public:
 public:
   double mu;
 
-  /// \brief Gaussian white noise amplitude
+  /// \brief Uniform random increment scale
 public:
   double noiseAmp;
 

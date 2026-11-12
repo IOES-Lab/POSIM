@@ -84,7 +84,11 @@ ros2 daemon stop
 
 ### Discard를 선택한 뒤 RViz가 비정상 종료될 때
 
-Ubuntu 26.04의 RViz 15.2.6은 센서 화면이 정상적으로 표시되어도 창을 닫고 **Discard**를 선택할 때 간헐적으로 비정상 종료될 수 있습니다. 다시 실행하기 전에 Launch 터미널에서 Ctrl+C를 눌러 남은 프로세스를 종료하세요. 문제를 보고할 때 RViz 버전과 창을 닫은 방법도 적어주세요.
+POSIM의 Ubuntu/WSL 설치 프로그램과 AMD64/ARM64 Docker 이미지에는 RViz 15.2.6용 [독립 RViz 오버레이](https://github.com/IOES-Lab/POSIM/tree/main/extras/rviz)가 포함되어 있습니다. 종료가 확정되면 업데이트 타이머를 멈추고, 종료 과정에서 뷰가 소유한 ROS 리소스를 해제합니다. **Cancel**을 선택하면 업데이트가 계속됩니다. 시스템 RViz 패키지는 변경하지 않습니다. POSIM 환경을 불러온 뒤 `ros2 pkg prefix rviz_common`을 실행하면 `/opt/posim/rviz-close/install`이 나와야 합니다. 이전 설치 환경에서는 링크의 빌드 및 활성화 절차를 따르세요.
+
+오버레이를 사용하지 않는 Ubuntu 26.04의 RViz 15.2.6은 센서 화면이 정상적으로 표시되어도 창을 닫고 **Discard**를 선택할 때 간헐적으로 비정상 종료될 수 있습니다. 오버레이는 특정 타이머 및 리소스 해제 문제를 수정하며, 모든 렌더러나 종료 경로의 문제를 해결하지는 않습니다. 문제가 계속되면 RViz 버전, 로드된 라이브러리 경로와 창을 닫은 방법을 보고에 포함하세요.
+
+RViz 창이 닫힌 뒤에도 프로세스가 남아 있으면 메모리를 과도하게 사용할 수 있으며, 소프트웨어 렌더링에서 특히 주의해야 합니다. 다시 실행하기 전에 Launch 터미널에서 Ctrl+C를 눌러 남은 프로세스를 종료하세요. RViz가 정상 종료되지 않으면 ROS launch가 강제로 종료합니다. 뷰어가 필요 없는 소나 실행에서는 `multibeam_sonar_demo.launch.py` 명령에 `rviz:=false`를 추가하세요. ROS 이미지 출력은 계속 사용할 수 있습니다.
 
 ## macOS에서 깊이 카메라 재생성
 
@@ -102,3 +106,7 @@ POSIM 설치 스크립트와 공식 Docker 빌드에는 MAVROS 2.16.0의
 `/opt/posim/mavros-router/install`이 출력되어야 합니다. 기존 설치에는 링크의 별도
 빌드 방법을 적용할 수 있습니다. 계속 충돌한다면 MAVROS 프로세스의 로그와 실제
 로드된 라이브러리 경로를 문제 보고에 함께 적어주세요.
+
+## WSL에서 POSIM을 실행하고 Windows에서 QGC를 연 경우 {#qgc-on-windows-host}
+
+Windows용 QGC를 닫고, POSIM과 같은 Ubuntu 배포판이나 POSIM 컨테이너 안에서 Linux용 QGC를 여세요. WSLg 창은 Windows 바탕 화면에 표시되지만 Linux 프로세스입니다. [QGC 설정 안내](qgroundcontrol.md)는 상태 정보와 영상이 같은 환경 안에서 전달되도록 구성합니다.

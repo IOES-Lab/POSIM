@@ -11,7 +11,7 @@
 | `bluerov2_heavy` | Heavy 구성 |
 | `bluerov2_heavy_multibeam_sonar` | 소나를 포함한 Heavy 구성 |
 
-설치 방식에 맞게 [준비한 POSIM 터미널](terminals.md)을 사용합니다. REXROV는 [첫 시뮬레이션](quickstart.md)의 예제로 시작할 수 있습니다.
+설치 방식에 맞게 [준비한 POSIM 터미널](terminals.md)을 사용합니다. REXROV는 [아래 예제](#start-rexrov)로 시작하세요.
 
 ## BlueROV2 실행
 
@@ -66,3 +66,9 @@ WebSocket 브리지가 teleoperation Launch 안에 있으므로 `use_teleop:=tru
 <figure><a href="{{ASSET_PREFIX}}media/notion/rovs-670c9419.gif"><img width="782" height="494" src="{{ASSET_PREFIX}}media/notion/rovs-670c9419.gif" alt="REXROV의 수중 운항과 자세 변화" loading="lazy" decoding="async"></a><figcaption>REXROV의 수중 운항과 자세 변화</figcaption></figure>
 
 그림·영상 출처: POSIM Notion Wiki. DAVE 문서에서 이어받은 그림의 저자 표시는 [인용과 라이선스](citation.md)를 참고하세요. 실행 명령과 토픽 이름은 이 페이지의 코드 블록을 기준으로 사용하세요.
+
+## REXROV 시작 {#start-rexrov}
+
+[준비한 터미널 A](terminals.md)에서 Python·추진기 제어 가이드용 예제를 별도로 실행합니다. 해양 월드와 ROS 브리지를 시작하고 REXROV를 z = −5 m에 배치합니다. 터미널 B에서 해당 가이드를 따라가는 동안 이 세션을 유지하세요.
+
+{{CODE:rovs:3}}

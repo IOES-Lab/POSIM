@@ -1,0 +1,1 @@
+# Build the external overlay and regression fixture only through build_overlay.sh.

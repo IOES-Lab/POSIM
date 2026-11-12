@@ -67,6 +67,7 @@
     "previousNext": "Vorherige und nächste Anleitung",
     "previous": "Zurück",
     "next": "Weiter",
+    "maintainer": "Betreut von IOES Lab. an der KMOU",
     "edit": "Diese Seite bearbeiten",
     "references": "Quellen",
     "onThisPage": "Auf dieser Seite",
@@ -106,6 +107,7 @@
       "Gazebo-Topic für die Modellströmung"
     ],
     "dvl": [
+      "DVL-Strahlen treffen in Gazebo auf den Meeresboden.",
       "DVL-Schallstrahlen zum Meeresboden",
       "DVL-Geschwindigkeitsmessungen",
       "DVL-Topic in Gazebo untersuchen",
@@ -132,6 +134,7 @@
       "GPU-Verarbeitungsschritte des Sonars"
     ],
     "sonar": [
+      "Live-Sonarfächer, Punktwolke und Kamerabild in RViz (CUDA-Backend).",
       "Mehrstrahlsonar-Verarbeitung mit Punktstreuung",
       "RGB, Tiefe, Sonarbild und Punktwolke derselben Szene",
       "Bildänderungen im Sonarbeispiel",
@@ -140,6 +143,7 @@
       "Lokale Szenensuche mit Sonar"
     ],
     "usbl": [
+      "USBL-Beispiel: ein Transceiver und zwei Transponder.",
       "Anordnung von USBL-Sendeempfänger und Transpondern",
       "Nachrichtenfluss bei gemeinsamer und einzelner Abfrage",
       "Positionsmessungen des Transponders"
@@ -149,7 +153,23 @@
     ],
     "install-macos": [
       "Das vorbereitete ARM64-Image zeigt Gazebo auf dem RDP-Desktop."
+    ],
+    "quickstart": [
+      "BlueROV2 und Sonarechos erscheinen gemeinsam im Fahrzeugkoordinatensystem, neben Kamera- und Sonarbild.",
+      "Unterwasserkamera in QGC. Ein verlorener GNSS-Fix unter Wasser bedeutet keinen Verbindungsabbruch zum Fahrzeug.",
+      "WAM-V und Lidar-Echos in derselben Ansicht, daneben die Frontkamera.",
+      "Die Frontkamera des WAM-V überträgt den Bojenparcours an QGC."
     ]
   },
-  "overview": "Meeresumgebung → Roboter und Dynamik → Sensormessungen → ROS-2-Steuerung. Ein Klick auf ein Bild öffnet die Anleitung."
+  "overview": "Meeresumgebung → Roboter und Dynamik → Sensormessungen → ROS-2-Steuerung. Ein Klick auf ein Bild öffnet die Anleitung.",
+  "tutorials": {
+    "labels": [
+      "BlueROV2 · Gazebo",
+      "BlueROV2 · RViz",
+      "WAM-V · Gazebo",
+      "WAM-V · RViz",
+      "WAM-V · QGC"
+    ],
+    "caption": "Ansichten der ersten Simulation. Klicken Sie auf ein Bild, um es in voller Größe zu öffnen."
+  }
 }

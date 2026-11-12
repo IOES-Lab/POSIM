@@ -35,7 +35,7 @@ export async function readContent(language, slug) {
     text = text.replaceAll(match[0], selected);
   }
   if (text.includes('{{OVERVIEW}}')) {
-    let figure = (await english('index')).match(/<figure\b[\s\S]*?<\/figure>/)?.[0];
+    let figure = (await english('index')).match(/<figure class="docs-abstract"[\s\S]*?<\/figure>/)?.[0];
     if (!figure || !messages[language].overview) throw new Error(`${language}: missing overview caption`);
     figure = figure.replace(/<a href="([a-z-]+)\.html" aria-label="[^"]+">([\s\S]*?)<\/a>/g,
       (_, destination, contents) => {
@@ -47,12 +47,27 @@ export async function readContent(language, slug) {
         `<figcaption>${esc(messages[language].overview)}</figcaption>`);
     text = text.replaceAll('{{OVERVIEW}}', figure);
   }
+  if (text.includes('{{TUTORIALS}}')) {
+    const captions = messages[language].tutorials;
+    const files = ['first-underwater-scene', 'first-underwater-rviz',
+      'first-surface-scene', 'first-surface-rviz', 'first-surface-qgc'];
+    if (!captions?.caption || captions.labels?.length !== files.length) {
+      throw new Error(`${language}: missing tutorial gallery captions`);
+    }
+    const panels = files.map((file, index) => {
+      const label = esc(captions.labels[index]);
+      const url = `{{ASSET_PREFIX}}media/guides/${file}.png`;
+      return `<a href="${url}"><img width="1280" height="800" src="${url}" alt="${label}" decoding="async"><span>${label}</span></a>`;
+    }).join('');
+    text = text.replaceAll('{{TUTORIALS}}',
+      `<figure class="docs-tutorials"><div class="docs-tutorials-grid">${panels}</div><figcaption>${esc(captions.caption)} <a href="quickstart.html">${esc(messages[language].pages.quickstart)}</a></figcaption></figure>`);
+  }
   if (text.includes('{{INTRO_VIDEO}}')) {
     const embed = (await english('index')).match(/<iframe\b[\s\S]*?<\/iframe>/)?.[0];
     if (!embed) throw new Error('Missing introduction video');
     text = text.replaceAll('{{INTRO_VIDEO}}', embed.replace(/title="[^"]*"/, 'title="WWW-POSIM"'));
   }
-  if (/\{\{(?:CODE|MEDIA|OVERVIEW|INTRO_VIDEO)\b/.test(text)) {
+  if (/\{\{(?:CODE|MEDIA|OVERVIEW|TUTORIALS|INTRO_VIDEO)\b/.test(text)) {
     throw new Error(`${language}/${slug}: unresolved shared content`);
   }
   return text;

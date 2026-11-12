@@ -3,6 +3,7 @@
 #include <gz/msgs/empty.pb.h>
 #include <atomic>
 #include <filesystem>
+#include <functional>
 #include <gz/common/Console.hh>
 #include <gz/plugin/Register.hh>
 #include <gz/rendering/RenderEngine.hh>
@@ -11,20 +12,23 @@
 #include <gz/sim/System.hh>
 #include <gz/sim/rendering/Events.hh>
 #include <gz/transport/Node.hh>
+#include <memory>
 #include <mutex>
 #include <sstream>
 #include "Appearance.hh"
-#ifdef _WIN32
-#include <windows.h>
-#else
-#include <dlfcn.h>
-#endif
+#include "RuntimePaths.hh"
 namespace posim
 {
 class Underwater final : public gz::sim::System,
                          public gz::sim::ISystemConfigure,
                          public gz::sim::ISystemPostUpdate
 {
+  struct ServiceState
+  {
+    std::mutex mutex;
+    Underwater * owner = nullptr;
+  };
+  std::shared_ptr<ServiceState> serviceState = std::make_shared<ServiceState>();
   std::mutex mutex;
   Appearance requested = Defaults(), applied = Defaults(), staged = Defaults();
   bool stagedReady = false;
@@ -52,8 +56,14 @@ class Underwater final : public gz::sim::System,
   }
 
 public:
+  Underwater() { serviceState->owner = this; }
   ~Underwater() override
   {
+    // Gazebo may retain a service handler after its node stops advertising.
+    {
+      std::lock_guard<std::mutex> lock(serviceState->mutex);
+      serviceState->owner = nullptr;
+    }
     renderConnection.reset();
     postRenderConnection.reset();
     teardownConnection.reset();
@@ -72,15 +82,21 @@ public:
     const gz::sim::Entity &, const std::shared_ptr<const sdf::Element> & sdf,
     gz::sim::EntityComponentManager &, gz::sim::EventManager & events) override
   {
-    if (
-      !sdf->HasElement("renderer_library") || !sdf->HasElement("shader_directory") ||
-      !sdf->HasElement("session_nonce"))
+    if (!sdf->HasElement("session_nonce"))
     {
-      gzerr << "Underwater requires renderer_library, shader_directory and session_nonce\n";
+      gzerr << "Underwater requires session_nonce\n";
       return;
     }
-    path = sdf->Get<std::string>("renderer_library");
-    pieces = sdf->Get<std::string>("shader_directory");
+    const auto directory = LibraryDirectory();
+    path =
+      sdf
+        ->Get<std::string>(
+          "renderer_library", (directory / "posim_underwater_render" POSIM_LIBRARY_SUFFIX).string())
+        .first;
+    pieces = sdf
+               ->Get<std::string>(
+                 "shader_directory", (directory.parent_path() / "share/posim/underwater").string())
+               .first;
     if (sdf->HasElement("initial_settings"))
     {
       std::istringstream stream(sdf->Get<std::string>("initial_settings"));
@@ -99,8 +115,21 @@ public:
       requested = applied = initial;
     }
     auto service = "/posim/appearance/" + sdf->Get<std::string>("session_nonce");
-    node.Advertise(service + "/set", &Underwater::Set, this);
-    node.Advertise(service + "/state", &Underwater::State, this);
+    const auto state = serviceState;
+    std::function<bool(const gz::msgs::Double_V &, gz::msgs::Double_V &)> set =
+      [state](const auto & request, auto & response)
+    {
+      std::lock_guard<std::mutex> lock(state->mutex);
+      return state->owner && state->owner->Set(request, response);
+    };
+    std::function<bool(const gz::msgs::Empty &, gz::msgs::Double_V &)> get =
+      [state](const auto & request, auto & response)
+    {
+      std::lock_guard<std::mutex> lock(state->mutex);
+      return state->owner && state->owner->State(request, response);
+    };
+    node.Advertise(service + "/set", set);
+    node.Advertise(service + "/state", get);
     renderConnection = events.Connect<gz::sim::events::PreRender>([this] { Render(); });
     postRenderConnection = events.Connect<gz::sim::events::PostRender>(
       [this]

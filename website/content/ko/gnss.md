@@ -28,7 +28,9 @@ source install/setup.bash
 </plugin>
 ```
 
-[수신기 프로필](https://github.com/IOES-Lab/POSIM/blob/main/gazebo/posim_gz_gnss/config/profiles.json)은 `base_link` 기준 장착 위치를 제공합니다. WAM-V는 z = 1.8 m, BlueROV2 계열은 0.3 m, REXROV는 0.8 m입니다. WAM-V 프로필은 수신기를 켜고 수중 차량 프로필은 기본적으로 끕니다. 이 JSON 프로필은 모델 생성 코드가 사용하는 데이터입니다. 설치만으로 모든 로봇에 링크·플러그인이 삽입되지는 않습니다. WAM-V에는 외부 [Wave Sim 모델](surface.md)도 필요합니다.
+[수신기 프로필](https://github.com/IOES-Lab/POSIM/blob/main/gazebo/posim_gz_gnss/config/profiles.json)은 `base_link` 기준 장착 위치를 제공합니다. WAM-V는 z = 1.8 m, BlueROV2 계열은 0.3 m, REXROV는 0.8 m입니다. WAM-V와 BlueROV2 세 종류의 프로필은 수신기를 켜고, REXROV는 기본적으로 끕니다. 이 JSON 프로필은 모델 생성 코드가 사용하는 데이터입니다. 설치만으로 모든 로봇에 링크·플러그인이 삽입되지는 않습니다. WAM-V에는 외부 [Wave Sim 모델](surface.md)도 필요합니다.
+
+BlueROV2, BlueROV2 Heavy와 소나 탑재형에는 수신기와 `marine_gnss_input` 어댑터가 포함됩니다. ArduSub를 사용할 때 SITL의 합성 GPS 대신 MAVROS `GPSINPUT`을 자동 조종기에 전달합니다. ENU 속도를 NED로 변환하고, 설치된 GeographicLib 데이터로 WGS 84 타원체 고도를 EGM96 평균 해수면 고도로 변환합니다. 잠김·차단·유효하지 않은 값·미래 시각·1 s를 초과한 오래된 측정은 미측위 상태로 전달합니다. 유효한 측위에서도 위성 수는 미상(`255`)이며 위성 배치와 DOP는 모사하지 않습니다. 예제 수신기는 시각적 파도와 별개로 평균 수면 z = 0을 사용합니다.
 
 ## 설정값
 
@@ -80,6 +82,8 @@ gz topic -t /model/my_robot/gnss/blocked -m gz.msgs.Boolean -p 'data: true'
 
 ## 해석과 확인 방법
 
-정지한 수면 위 안테나, 잠긴 안테나, 차단된 안테나와 수신 회복을 비교합니다. 수신 준비 시간, 지연, 재설정 후 세대 번호와 증가하는 측정 시각을 확인하세요. 데이터를 받는 쪽은 오래되거나 미래인 측정을 거부하고 유효하지 않은 상태를 처리해야 합니다. 이 플러그인은 Gazebo 측정을 발행합니다. ROS `NavSatFix`, autopilot 입력과 항법 추정에는 별도 어댑터가 필요합니다.
+정지한 수면 위 안테나, 잠긴 안테나, 차단된 안테나와 수신 회복을 비교합니다. 수신 준비 시간, 지연, 재설정 후 세대 번호와 증가하는 측정 시각을 확인하세요. 데이터를 받는 쪽은 오래되거나 미래인 측정을 거부하고 유효하지 않은 상태를 처리해야 합니다.
+
+제공된 BlueROV2 어댑터는 ArduSub에 데이터를 전달합니다. 다른 ROS `NavSatFix` 소비자나 사용자 지정 자동 조종기에는 어댑터가 필요합니다.
 
 수신기는 위치 기반의 단순화된 모델입니다. 위성 배치, RF 신호 전파, 물리적 다중경로 또는 수중 음향 위치 추정을 계산하지 않습니다. 정확도 설정값은 시뮬레이션 입력이며 제조사 성능 보증이 아닙니다. [수신기 구현](https://github.com/IOES-Lab/POSIM/blob/main/gazebo/posim_gz_gnss/Gnss.cc)과 [패키지 안내](https://github.com/IOES-Lab/POSIM/tree/main/gazebo/posim_gz_gnss)를 참고하세요.

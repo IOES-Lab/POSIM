@@ -9,6 +9,7 @@ on:
       - "extras/ros-lyrical-gz-jetty-install.sh"
       - ".docker/lyrical.*.dockerfile"
       - ".github/workflows/mavros-router.yml"
+      - ".github/actions/ubuntu-mirrors/**"
   push:
     branches: [main]
     paths:
@@ -16,6 +17,7 @@ on:
       - "extras/ros-lyrical-gz-jetty-install.sh"
       - ".docker/lyrical.*.dockerfile"
       - ".github/workflows/mavros-router.yml"
+      - ".github/actions/ubuntu-mirrors/**"
 
 permissions:
   contents: read
@@ -33,6 +35,9 @@ jobs:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
+      - uses: ./.github/actions/ubuntu-mirrors
+        with:
+          configure-hosts: 'true'
       - name: Install the versioned ROS build dependencies
         run: |
           apt-get update

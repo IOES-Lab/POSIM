@@ -18,6 +18,7 @@
     "previousNext": "이전·다음 문서",
     "previous": "이전",
     "next": "다음",
+    "maintainer": "한국해양대학교 IOES Lab.에서 관리",
     "edit": "이 문서 편집",
     "references": "참고 자료",
     "onThisPage": "이 페이지의 내용",
@@ -85,5 +86,22 @@
     "플러그인 참고",
     "참고와 프로젝트"
   ],
-  "media": {}
+  "media": {
+    "quickstart": [
+      "차량 좌표계에서 BlueROV2와 소나 반사점을 함께 보고, 카메라와 소나 영상도 확인합니다.",
+      "QGC의 수중 카메라 영상입니다. 물속에서 GNSS 위치를 잃어도 차량 연결은 유지됩니다.",
+      "WAM-V와 라이다 반사점을 같은 화면에 표시하고, 옆에서 전방 카메라를 봅니다.",
+      "WAM-V의 전방 카메라가 부표 코스 영상을 QGC로 전송합니다."
+    ]
+  },
+  "tutorials": {
+    "labels": [
+      "BlueROV2 · Gazebo",
+      "BlueROV2 · RViz",
+      "WAM-V · Gazebo",
+      "WAM-V · RViz",
+      "WAM-V · QGC"
+    ],
+    "caption": "첫 시뮬레이션의 화면입니다. 그림을 누르면 원본 크기로 볼 수 있습니다."
+  }
 }
