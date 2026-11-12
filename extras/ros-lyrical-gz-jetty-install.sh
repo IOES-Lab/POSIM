@@ -40,6 +40,7 @@ sudo apt install -y \
     python3-pip \
     python3-venv \
     qtbase5-dev \
+    xvfb xauth \
     ruby \
     software-properties-common \
     sudo \
@@ -146,6 +147,23 @@ else
     rm -rf "$MAVROS_HELPERS"
 fi
 
+# Stop RViz updates on accepted close and release view-owned ROS resources during
+# teardown, without changing files owned by the ROS packages.
+RVIZ_OVERLAY=/opt/posim/rviz-close
+if [[ -f "${POSIM_EXTRAS_DIR}/rviz/build_overlay.sh" ]]; then
+    sudo bash "${POSIM_EXTRAS_DIR}/rviz/build_overlay.sh" "$RVIZ_OVERLAY"
+else
+    RVIZ_HELPERS="$(mktemp -d)"
+    mkdir -p "$RVIZ_HELPERS/test"
+    for RVIZ_HELPER in build_overlay.sh stop-update-on-close.patch release-view-manager.patch test_overlay.sh \
+        test/CMakeLists.txt test/close_test.cpp; do
+        curl -fsSL "https://raw.githubusercontent.com/IOES-Lab/POSIM/main/extras/rviz/$RVIZ_HELPER" \
+            -o "$RVIZ_HELPERS/$RVIZ_HELPER"
+    done
+    sudo bash "$RVIZ_HELPERS/build_overlay.sh" "$RVIZ_OVERLAY"
+    rm -rf "$RVIZ_HELPERS"
+fi
+
 # Fetch and build the pinned external waves during the same POSIM install.
 if [[ -n "${POSIM_EXTRAS_DIR:-}" && -f "${POSIM_EXTRAS_DIR}/install-waves.sh" ]]; then
     sudo bash "${POSIM_EXTRAS_DIR}/install-waves.sh"
@@ -187,9 +205,11 @@ cat > "$ENV_FILE" <<EOF
 if [ -n "\${ZSH_VERSION:-}" ]; then
     source /opt/ros/${DIST}/setup.zsh
     source ${MAVROS_OVERLAY}/install/local_setup.zsh
+    source ${RVIZ_OVERLAY}/install/local_setup.zsh
 else
     source /opt/ros/${DIST}/setup.bash
     source ${MAVROS_OVERLAY}/install/local_setup.bash
+    source ${RVIZ_OVERLAY}/install/local_setup.bash
 fi
 export PATH=/opt/ardusub_ws/ardupilot/Tools/autotest:\$PATH
 export PATH=/opt/ardusub_ws/ardupilot/build/sitl/bin:\$PATH

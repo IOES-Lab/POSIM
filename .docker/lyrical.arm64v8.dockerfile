@@ -126,6 +126,11 @@ ENV POSIM_MAVROS_OVERLAY=/opt/posim/mavros-router
 COPY extras/mavros /tmp/posim-mavros
 RUN bash /tmp/posim-mavros/build_overlay.sh "$POSIM_MAVROS_OVERLAY"
 
+ENV POSIM_RVIZ_OVERLAY=/opt/posim/rviz-close
+COPY extras/rviz /tmp/posim-rviz
+RUN apt-get update && apt-get install -y --no-install-recommends xvfb xauth && \
+    bash /tmp/posim-rviz/build_overlay.sh "$POSIM_RVIZ_OVERLAY"
+
 # --- POSIM workspace ---
 # Build the exact checked-out revision supplied as the Docker build context.
 ENV POSIM_UNDERLAY=/home/$USER/posim_ws
@@ -149,6 +154,7 @@ USER $USER
 WORKDIR $POSIM_UNDERLAY
 RUN . "/opt/ros/${ROS_DISTRO}/setup.sh" && \
     . "$POSIM_MAVROS_OVERLAY/install/setup.sh" && \
+    . "$POSIM_RVIZ_OVERLAY/install/local_setup.sh" && \
     MAKEFLAGS="-j2" CMAKE_BUILD_PARALLEL_LEVEL=2 \
       colcon build --merge-install --executor sequential --symlink-install
 

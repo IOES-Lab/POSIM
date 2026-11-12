@@ -9,6 +9,12 @@ mkdir -p "$results"
 source "$workspace/install/setup.bash"
 cd "$workspace"
 
+# Validate the final workspace setup selects the corrected RViz library and that
+# Cancel keeps real render updates alive, accepted close stops them, and teardown
+# releases the view manager and DDS participant resources.
+bash "$workspace/src/posim/extras/rviz/test_overlay.sh" \
+  "${POSIM_RVIZ_OVERLAY:?RViz overlay is not configured}/install" "$results/rviz-close"
+
 export ROS_DOMAIN_ID=137 ROS_AUTOMATIC_DISCOVERY_RANGE=LOCALHOST
 export GZ_PARTITION="posim_image_test_${HOSTNAME}"
 export LIBGL_ALWAYS_SOFTWARE=1 QT_QPA_PLATFORM=offscreen

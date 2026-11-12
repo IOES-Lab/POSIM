@@ -1,0 +1,13 @@
+diff --git a/rviz_common/src/rviz_common/visualization_frame.cpp b/rviz_common/src/rviz_common/visualization_frame.cpp
+--- a/rviz_common/src/rviz_common/visualization_frame.cpp
++++ b/rviz_common/src/rviz_common/visualization_frame.cpp
+@@ -205,6 +205,9 @@ void VisualizationFrame::updateFps()
+ void VisualizationFrame::closeEvent(QCloseEvent * event)
+ {
+   if (prepareToExit()) {
++    if (manager_) {
++      manager_->stopUpdate();
++    }
+     event->accept();
+   } else {
+     event->ignore();

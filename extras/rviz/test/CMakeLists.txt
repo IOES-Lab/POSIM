@@ -1,0 +1,16 @@
+cmake_minimum_required(VERSION 3.16)
+project(posim_rviz_close_test LANGUAGES CXX)
+set(CMAKE_CXX_STANDARD 17)
+find_package(rviz_common REQUIRED)
+find_package(sensor_msgs REQUIRED)
+find_package(Qt6 QUIET COMPONENTS Widgets)
+if(Qt6_FOUND)
+  set(QT_VERSION_MAJOR 6)
+else()
+  find_package(Qt5 REQUIRED COMPONENTS Widgets)
+  set(QT_VERSION_MAJOR 5)
+endif()
+add_executable(rviz_close_test close_test.cpp)
+target_link_libraries(rviz_close_test PRIVATE rviz_common::rviz_common
+  sensor_msgs::sensor_msgs__rosidl_typesupport_cpp
+  Qt${QT_VERSION_MAJOR}::Widgets)

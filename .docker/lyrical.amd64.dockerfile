@@ -5,6 +5,7 @@ ARG ROS_DISTRO="lyrical"
 ENV ROS_DISTRO=${ROS_DISTRO}
 ENV DEBIAN_FRONTEND=noninteractive
 ENV POSIM_MAVROS_OVERLAY=/opt/posim/mavros-router
+ENV POSIM_RVIZ_OVERLAY=/opt/posim/rviz-close
 
 # The installer expects sudo even when the image build runs as root.
 RUN apt-get update && \
@@ -59,6 +60,7 @@ RUN apt-get update && \
 WORKDIR $POSIM_WS
 RUN . "/opt/ros/${ROS_DISTRO}/setup.sh" && \
     . "$POSIM_MAVROS_OVERLAY/install/setup.sh" && \
+    . "$POSIM_RVIZ_OVERLAY/install/local_setup.sh" && \
     MAKEFLAGS="-j2" CMAKE_BUILD_PARALLEL_LEVEL=2 \
       colcon build --merge-install --executor sequential --symlink-install
 

@@ -1,0 +1,14 @@
+diff --git a/rviz_common/src/rviz_common/visualization_manager.cpp b/rviz_common/src/rviz_common/visualization_manager.cpp
+--- a/rviz_common/src/rviz_common/visualization_manager.cpp
++++ b/rviz_common/src/rviz_common/visualization_manager.cpp
+@@ -257,6 +257,10 @@ VisualizationManager::~VisualizationManager()
+ 
+   shutting_down_ = true;
+ 
++  render_panel_->setViewController(nullptr);
++  delete view_manager_;
++  view_manager_ = nullptr;
++
+   delete display_property_tree_model_;
+   delete tool_manager_;
+   delete display_factory_;
