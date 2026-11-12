@@ -103,6 +103,8 @@ MAVROS allows up to 60 seconds without a vehicle heartbeat before reporting a lo
 
 ## If the connection or video is missing
 
+The `qgc_video` and `qgc_video_port` options below apply to the separate launch in step 4. The [first-simulation tutorials](quickstart.md) already include a video sender; use their `/tutorial/camera/enable_streaming` command. If heavy sonar load causes long gaps between frames, QGC may temporarily show **Waiting for video**. Keep **Low Latency Mode** on and try the underwater tutorial without sonar.
+
 - **No vehicle:** check that QGC runs in the same Linux environment as POSIM and that no second QGC instance is using UDP 14550.
 - **Waiting for video:** check the H.264 source, UDP URL and `qgc_video:=true` launch option. Start streaming from terminal B, then allow several frames to arrive.
 - **Different video port:** launch with `qgc_video_port:=5602` and enter `127.0.0.1:5602` in QGC. Use the same port at both ends.

@@ -80,6 +80,8 @@ MAVROS espera hasta 60 segundos sin recibir un mensaje de latido del vehículo a
 
 ## Resolver problemas de conexión
 
+Las opciones `qgc_video` y `qgc_video_port` de abajo se aplican al lanzamiento independiente del paso 4. Las [primeras simulaciones](quickstart.md) ya incluyen un emisor de vídeo; usa su comando `/tutorial/camera/enable_streaming`. Si la carga del sonar provoca intervalos largos entre fotogramas, QGC puede mostrar **Waiting for video** temporalmente. Mantén **Low Latency Mode** activado y prueba el tutorial submarino sin sonar.
+
 - **No aparece el vehículo:** comprueba que QGC comparte el entorno Linux de POSIM y que no hay otra instancia utilizando UDP 14550.
 - **Waiting for video:** revisa la fuente H.264, la dirección UDP y `qgc_video:=true`; activa el envío desde B y espera varios fotogramas.
 - **Otro puerto:** utiliza `qgc_video_port:=5602` y `127.0.0.1:5602` en QGC.

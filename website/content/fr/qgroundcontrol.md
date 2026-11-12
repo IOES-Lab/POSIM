@@ -80,6 +80,8 @@ MAVROS attend jusqu’à 60 secondes sans message de présence du véhicule avan
 
 ## Résoudre un problème de connexion
 
+Les options `qgc_video` et `qgc_video_port` ci-dessous concernent le lancement séparé de l’étape 4. Les [premières simulations](quickstart.md) incluent déjà un émetteur vidéo ; utilisez leur commande `/tutorial/camera/enable_streaming`. Une forte charge du sonar peut espacer les images et faire apparaître temporairement **Waiting for video** dans QGC. Gardez **Low Latency Mode** activé et essayez le tutoriel sous-marin sans sonar.
+
 - **Véhicule absent :** vérifiez que QGC utilise le même environnement Linux que POSIM et qu'aucune autre instance n'occupe UDP 14550.
 - **Waiting for video :** vérifiez la source H.264, l'adresse UDP et `qgc_video:=true`. Activez l'envoi depuis B et attendez quelques images.
 - **Autre port :** utilisez `qgc_video_port:=5602` et saisissez `127.0.0.1:5602` dans QGC.

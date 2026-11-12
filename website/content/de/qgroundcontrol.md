@@ -80,6 +80,8 @@ MAVROS meldet einen Verbindungsverlust, wenn bis zu 60 Sekunden lang kein Heartb
 
 ## Verbindungsprobleme beheben
 
+Die folgenden Optionen `qgc_video` und `qgc_video_port` gelten für den separaten Startbefehl in Schritt 4. Die [ersten Simulationen](quickstart.md) enthalten bereits einen Videosender; verwenden Sie dort den Befehl für `/tutorial/camera/enable_streaming`. Bei hoher Sonarlast und langen Abständen zwischen Bildern kann QGC vorübergehend **Waiting for video** anzeigen. Lassen Sie **Low Latency Mode** aktiviert und versuchen Sie das Unterwassertutorial ohne Sonar.
+
 - **Kein Fahrzeug:** Prüfen Sie die gemeinsame Linux-Umgebung und ob eine zweite QGC-Instanz UDP 14550 belegt.
 - **Waiting for video:** Prüfen Sie H.264-Quelle, UDP-Adresse und `qgc_video:=true`. Aktivieren Sie die Übertragung in B und warten Sie einige Bilder ab.
 - **Anderer Port:** Verwenden Sie `qgc_video_port:=5602` und in QGC `127.0.0.1:5602`.

@@ -80,6 +80,8 @@ MAVROSは、機体のハートビートが最大60秒間届かなくなると接
 
 ## 接続や映像を確認できない場合
 
+以下の `qgc_video` と `qgc_video_port` は、手順 4 の個別の起動コマンド用です。[最初のシミュレーション](quickstart.md)には映像送信機能が含まれているため、そのページの `/tutorial/camera/enable_streaming` コマンドを使ってください。ソナーの負荷でフレーム間隔が長くなると、QGC に **Waiting for video** が一時的に表示されることがあります。**Low Latency Mode** をオンにし、ソナーなしで水中チュートリアルを試してください。
+
 - **機体が表示されない：** QGC と POSIM が同じ Linux 環境で動いているか、別の QGC が UDP 14550 を使用していないか確認します。
 - **Waiting for video のまま：** H.264 の入力、UDP URL、`qgc_video:=true` を確認し、B から送信を有効にして数フレーム待ちます。
 - **別のポートを使う：** `qgc_video_port:=5602` と QGC の `127.0.0.1:5602` を対応させます。

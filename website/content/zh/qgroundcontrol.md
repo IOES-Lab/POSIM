@@ -80,6 +80,8 @@ MAVROS 在最长 60 秒未收到载具心跳后报告连接中断。此设置用
 
 ## 排查连接和画面问题
 
+下方的 `qgc_video` 和 `qgc_video_port` 参数用于第 4 步的独立启动命令。[首次仿真教程](quickstart.md)已包含视频发送功能，请使用该教程的 `/tutorial/camera/enable_streaming` 命令。声呐负载较高、帧间隔过长时，QGC 可能暂时显示 **Waiting for video**。保持 **Low Latency Mode** 开启，并尝试不带声呐的水下教程。
+
 - **没有载具：** 确认 QGC 与 POSIM 位于同一 Linux 环境中，且没有其他 QGC 实例占用 UDP 14550。
 - **一直显示 Waiting for video：** 检查 H.264 视频源、UDP 地址和 `qgc_video:=true`，从终端 B 开启发送后等待几帧。
 - **使用其他端口：** 启动时指定 `qgc_video_port:=5602`，并将 QGC 地址设为 `127.0.0.1:5602`。
