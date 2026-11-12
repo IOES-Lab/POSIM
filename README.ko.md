@@ -7,7 +7,7 @@
 POSIM은 [한국해양대학교(KMOU)의 IOES Lab.](https://lab.wschoi.com)에서 관리하는 오픈소스 해양 로보틱스 시뮬레이션 라이브러리입니다.
 해양 환경, 수중·수상 로봇, 센서 모델과 ROS 2 제어 인터페이스를 Gazebo Sim에서 함께 사용할 수 있습니다.
 
-![GraphicalAbstract](docs/release/POSIM_Graphical_Abstract_Release1.0.0_FF.png)
+![GraphicalAbstract](docs/releases/POSIM_Graphical_Abstract_Release1.0.0_FF.png)
 
 ## 문서와 시작하기
 
