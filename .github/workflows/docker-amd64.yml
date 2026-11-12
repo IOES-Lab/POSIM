@@ -131,7 +131,8 @@ jobs:
           TEST_CONTAINER: >-
             posim-test-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.arch }}
         run: |
-          results="$RUNNER_TEMP/posim-image-tests-${{ matrix.arch }}"
+          results="$RUNNER_TEMP/posim-image-tests-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          results+="-${{ matrix.arch }}"
           mkdir -p "$results"
           cleanup() {
             docker rm -f "$TEST_CONTAINER" >/dev/null 2>&1 || true
@@ -148,7 +149,9 @@ jobs:
         uses: actions/upload-artifact@v6
         with:
           name: image-tests-${{ matrix.arch }}
-          path: ${{ runner.temp }}/posim-image-tests-${{ matrix.arch }}
+          path: >-
+            ${{ format('{0}/posim-image-tests-{1}-{2}-{3}',
+            runner.temp, github.run_id, github.run_attempt, matrix.arch) }}
           if-no-files-found: ignore
       - name: Push the tested architecture image
         if: needs.revision.outputs.publish == 'true'
