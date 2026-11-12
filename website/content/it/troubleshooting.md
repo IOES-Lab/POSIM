@@ -70,7 +70,7 @@ Ferma i visualizzatori, premi Ctrl+C una volta nel terminale di avvio e attendi 
 
 Su Ubuntu 26.04, RViz 15.2.6 può arrestarsi in modo intermittente quando chiudi la finestra e scegli **Discard**, anche se le viste dei sensori funzionano. Ferma i processi di avvio rimasti con Ctrl+C prima di ripartire. Indica versione di RViz e azione di chiusura nella segnalazione.
 
-Con il rendering software in Docker su ARM64, questa versione di RViz può anche restare in esecuzione dopo che Ctrl+C ne ha chiuso la finestra, finché ROS launch non termina forzatamente il processo. Per eseguire il sonar senza il visualizzatore, aggiungi `rviz:=false` al comando `multibeam_sonar_demo.launch.py`. Le immagini restano disponibili in ROS.
+Con il rendering software, RViz può restare in esecuzione dopo la chiusura della finestra e consumare troppa memoria. Premi Ctrl+C nel terminale di avvio per arrestare i processi rimasti. Se RViz non si arresta normalmente, ROS launch ne forza la terminazione. Per eseguire il sonar senza il visualizzatore, aggiungi `rviz:=false` al comando `multibeam_sonar_demo.launch.py`. Le immagini restano disponibili in ROS.
 
 ## Ricreare telecamere di profondità con un SDK macOS nativo
 

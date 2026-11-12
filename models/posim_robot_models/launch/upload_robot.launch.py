@@ -71,6 +71,7 @@ def launch_setup(context, *args, **kwargs):
             ("udp_port", str(port)),
             ("use_basic_pipeline", "true"),
             ("use_cuda", "false"),
+            ("keyframe_interval", "1"),
         ):
             ET.SubElement(plugin, name).text = value
         with tempfile.NamedTemporaryFile(

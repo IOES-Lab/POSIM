@@ -86,7 +86,7 @@ ros2 daemon stop
 
 Ubuntu 26.04의 RViz 15.2.6은 센서 화면이 정상적으로 표시되어도 창을 닫고 **Discard**를 선택할 때 간헐적으로 비정상 종료될 수 있습니다. 다시 실행하기 전에 Launch 터미널에서 Ctrl+C를 눌러 남은 프로세스를 종료하세요. 문제를 보고할 때 RViz 버전과 창을 닫은 방법도 적어주세요.
 
-ARM64 Docker에서 소프트웨어 렌더링을 사용하면 이 RViz 버전은 Ctrl+C로 창이 닫힌 뒤에도 ROS launch가 강제로 종료할 때까지 실행 중인 상태로 남을 수 있습니다. 뷰어가 필요 없는 소나 실행에서는 `multibeam_sonar_demo.launch.py` 명령에 `rviz:=false`를 추가하세요. ROS 이미지 출력은 계속 사용할 수 있습니다.
+소프트웨어 렌더링을 사용하면 RViz 창이 닫힌 뒤에도 프로세스가 남아 메모리를 과도하게 사용할 수 있습니다. Launch 터미널에서 Ctrl+C를 눌러 남은 프로세스를 종료하세요. RViz가 정상 종료되지 않으면 ROS launch가 강제로 종료합니다. 뷰어가 필요 없는 소나 실행에서는 `multibeam_sonar_demo.launch.py` 명령에 `rviz:=false`를 추가하세요. ROS 이미지 출력은 계속 사용할 수 있습니다.
 
 ## macOS에서 깊이 카메라 재생성
 

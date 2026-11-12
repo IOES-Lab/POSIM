@@ -70,7 +70,7 @@
 
 在 Ubuntu 26.04 上，RViz 15.2.6 即使能正常显示传感器数据，也可能在关闭窗口并选择 **Discard** 时偶发崩溃。重新运行前，先用 Ctrl+C 停止剩余启动进程。报告时注明 RViz 版本及关闭窗口时的操作。
 
-在使用软件渲染的 ARM64 Docker 中，此版本的 RViz 还可能在 Ctrl+C 关闭窗口后继续运行，直到 ROS launch 强制终止进程。运行声呐时若不需要查看器，可在 `multibeam_sonar_demo.launch.py` 命令中添加 `rviz:=false`。ROS 图像输出仍然可用。
+使用软件渲染时，RViz 可能在窗口关闭后继续运行，并占用过多内存。在启动仿真的终端按 Ctrl+C，停止剩余进程。如果 RViz 未能正常退出，ROS launch 会强制终止它。运行声呐时若不需要查看器，可在 `multibeam_sonar_demo.launch.py` 命令中添加 `rviz:=false`。ROS 图像输出仍然可用。
 
 ## 在 macOS 原生 SDK 中重新创建深度相机
 
