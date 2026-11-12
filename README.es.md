@@ -7,7 +7,7 @@
 POSIM es una biblioteca de código abierto para la simulación de robótica marina. La mantiene el [IOES Lab. de la Universidad Marítima y Oceánica de Corea (KMOU)](https://lab.wschoi.com).
 Reúne entornos oceánicos, robots submarinos y de superficie, sensores simulados e interfaces de control ROS 2 para Gazebo Sim.
 
-![GraphicalAbstract](docs/release/POSIM_Graphical_Abstract_Release1.0.0_FF.png)
+![GraphicalAbstract](docs/releases/POSIM_Graphical_Abstract_Release1.0.0_FF.png)
 
 ## Documentación y primeros pasos
 
