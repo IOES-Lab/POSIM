@@ -7,7 +7,7 @@
 POSIM 是由[韩国海洋大学（KMOU）的 IOES Lab.](https://lab.wschoi.com)维护的开源海洋机器人仿真库。
 通过Gazebo Sim，可以搭建海洋环境，运行水下和水面机器人，并使用仿真传感器和ROS 2控制接口。
 
-![GraphicalAbstract](docs/release/POSIM_Graphical_Abstract_Release1.0.0_FF.png)
+![GraphicalAbstract](docs/releases/POSIM_Graphical_Abstract_Release1.0.0_FF.png)
 
 ## 文档与入门
 
