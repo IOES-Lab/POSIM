@@ -7,6 +7,8 @@
 POSIMは、[韓国海洋大学校（KMOU）のIOES Lab.](https://lab.wschoi.com)が保守する海洋ロボット向けのオープンソースシミュレーションライブラリです。
 Gazebo Simで海洋環境、水中・水上ロボット、センサーモデル、ROS 2の制御インターフェースを組み合わせて利用できます。
 
+![GraphicalAbstract](docs/release/POSIM_Graphical_Abstract_Release1.0.0_FF.png)
+
 ## ドキュメントと使い始め方
 
 **[日本語ドキュメントを読む](https://ioes-lab.github.io/POSIM/ja/)**
