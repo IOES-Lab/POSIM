@@ -41,3 +41,5 @@ LinuxのコマンドはWindows Terminalの**Ubuntu**プロファイルで実行�
 Ubuntuのターミナルで実行します。WindowsデスクトップにGazeboが開き、海のシーンが表示されれば成功です。初回はFuelモデルをダウンロードすることがあります。別の例を起動する前にCtrl+Cで停止してください。
 
 {{CODE:install-windows:4}}
+
+POSIMと同じUbuntuディストリビューション内でLinux版QGCを実行してください。この構成では、WindowsにインストールしたQGCは起動しません。[QGCの設定](qgroundcontrol.md)に従ってください。

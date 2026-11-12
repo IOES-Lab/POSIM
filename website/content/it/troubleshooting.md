@@ -91,3 +91,7 @@ deve mostrare `/opt/posim/mavros-router/install`. Per un'installazione esistente
 segui le istruzioni per la compilazione separata disponibili al link. Se il crash
 persiste, allega alla segnalazione il log di MAVROS e i percorsi delle librerie
 effettivamente caricate.
+
+## QGC è aperto su Windows, ma POSIM viene eseguito in WSL {#qgc-on-windows-host}
+
+Chiudi l’applicazione Windows e avvia la versione Linux di QGC nella stessa distribuzione Ubuntu di POSIM o nel contenitore POSIM. Una finestra WSLg appare sul desktop di Windows, ma resta un processo Linux. La [configurazione di QGC](qgroundcontrol.md) mantiene telemetria e video all’interno di quell’ambiente.

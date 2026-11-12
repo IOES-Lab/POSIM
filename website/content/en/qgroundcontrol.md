@@ -4,6 +4,10 @@ Use QGroundControl (QGC) to connect to the simulated BlueROV2, operate its virtu
 
 ## 1. Open QGC in the same Linux environment
 
+**Windows/WSL:** use the Linux version of QGC. Do not launch the Windows-installed QGC for these tutorials. Start QGC from the same Ubuntu distribution as POSIM, or from inside the same POSIM container when using Docker. WSLg can display the Linux QGC window on the Windows desktop; it is still running inside Linux.
+
+The `127.0.0.1` addresses in this guide refer to the environment where QGC is running. They do not configure a Windows QGC application to receive telemetry or video from WSL or Docker.
+
 | POSIM installation | Where to run QGC |
 |---|---|
 | Ubuntu native | Install the official Linux application and run it in Ubuntu. |
@@ -41,6 +45,7 @@ Open **Application Settings → Video**. Select the video source first, then ent
 | UDP URL | `127.0.0.1:5600` |
 | Aspect Ratio | `0`, to use the camera's ratio automatically |
 | Disable Video Stream When Disarmed | Off |
+| Low Latency Mode | On |
 | Auto-reconnect on stream loss | On |
 
 ## 4. Start BlueROV2 and its camera stream

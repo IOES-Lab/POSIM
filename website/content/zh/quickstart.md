@@ -34,7 +34,9 @@ BlueROV2 从平均水面以下约 3.1 m 处开始，海底深度为 4 m，前方
 
 ### 用 QGC 查看视频并控制
 
-按照 [QGC 设置](qgroundcontrol.md)的第 1–3 步，在相同 Linux 环境中打开 QGroundControl 并启用虚拟摇杆。视频源选择 **UDP h.264 Video Stream**，地址为 **127.0.0.1:5600**，关闭 **Disable Video Stream When Disarmed**。继续使用正在运行的教程场景，在终端 B 启动视频传输：
+在 Windows/WSL 上，请在运行 POSIM 的同一个 Ubuntu 发行版中启动 Linux 版 QGC；使用 Docker 时，请在同一个 POSIM 容器内启动。本教程不使用安装在 Windows 上的 QGC。
+
+按照 [QGC 设置](qgroundcontrol.md)的第 1–3 步启用虚拟摇杆。视频源选择 **UDP h.264 Video Stream**，地址为 **127.0.0.1:5600**。开启 **Low Latency Mode**，关闭 **Disable Video Stream When Disarmed**。继续使用正在运行的教程场景，在终端 B 启动视频传输：
 
 {{CODE:quickstart:3}}
 
@@ -69,6 +71,8 @@ WAM-V 在小幅波浪中面向四个固定浮标。RViz 打开相机画面，并
 ## 结束仿真
 
 将机器人上锁，关闭 RViz 和 QGC，再在**终端 A 按 Ctrl+C**，等待启动的进程退出。RViz 若询问是否保存视图修改，选择放弃以保留提供的预设。若无法正常退出，请参阅[查看器故障排除](troubleshooting.md)。关闭话题查看程序不会停止仿真。运行其他示例前，请先结束当前会话。
+
+如需从初始位置重新开始，请结束当前仿真，再次执行对应的启动命令。Gazebo 的完整世界重置会删除启动后添加的模型，包括教程中的载具，但不会重启其自动驾驶程序。
 
 ## 继续学习
 

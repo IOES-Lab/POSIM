@@ -39,3 +39,5 @@ Verifica l'installazione:
 {{CODE:install-windows-docker:4}}
 
 Gazebo dovrebbe mostrare l'oceano. Lascia aperto il terminale; **Ctrl+C** arresta la simulazione. Prosegui con il [primo robot](quickstart.md).
+
+Esegui la versione Linux di QGC nello stesso contenitore POSIM. Non aprire QGC sull’host Windows né in WSL fuori dal contenitore. Segui la [configurazione di QGC](qgroundcontrol.md).

@@ -104,3 +104,7 @@ POSIM 설치 스크립트와 공식 Docker 빌드에는 MAVROS 2.16.0의
 `/opt/posim/mavros-router/install`이 출력되어야 합니다. 기존 설치에는 링크의 별도
 빌드 방법을 적용할 수 있습니다. 계속 충돌한다면 MAVROS 프로세스의 로그와 실제
 로드된 라이브러리 경로를 문제 보고에 함께 적어주세요.
+
+## WSL에서 POSIM을 실행하고 Windows에서 QGC를 연 경우 {#qgc-on-windows-host}
+
+Windows용 QGC를 닫고, POSIM과 같은 Ubuntu 배포판이나 POSIM 컨테이너 안에서 Linux용 QGC를 여세요. WSLg 창은 Windows 바탕 화면에 표시되지만 Linux 프로세스입니다. [QGC 설정 안내](qgroundcontrol.md)는 상태 정보와 영상이 같은 환경 안에서 전달되도록 구성합니다.

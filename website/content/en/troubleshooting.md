@@ -104,3 +104,7 @@ for MAVROS 2.16.0. After loading your POSIM environment, `ros2 pkg prefix mavros
 should print `/opt/posim/mavros-router/install`. Existing installations can use
 the separate build instructions at that link. If a crash persists, include the
 MAVROS process log and the loaded library paths in your issue report.
+
+## QGC opened on Windows but POSIM runs in WSL {#qgc-on-windows-host}
+
+Close the Windows QGC application, then open the Linux QGC from the same Ubuntu distribution as POSIM, or from inside the POSIM container. A WSLg window appears on the Windows desktop but remains a Linux process. Follow [QGC setup](qgroundcontrol.md); these instructions keep telemetry and video within that environment.

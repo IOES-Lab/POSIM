@@ -4,6 +4,10 @@ Conecta QGroundControl (QGC) al BlueROV2 simulado, usa los joysticks virtuales y
 
 ## 1. Abrir QGC junto a POSIM
 
+**Windows/WSL:** utiliza la versión de Linux de QGC en estos tutoriales. No abras la aplicación instalada en Windows. Inicia QGC en la misma distribución Ubuntu que POSIM o, si usas Docker, dentro del mismo contenedor POSIM. WSLg puede mostrar la ventana de Linux en el escritorio de Windows; la aplicación sigue ejecutándose en Linux.
+
+Las direcciones `127.0.0.1` de esta guía corresponden al entorno donde se ejecuta QGC. No configuran la aplicación de Windows para recibir telemetría o vídeo desde WSL o Docker.
+
 | Instalación | Dónde ejecutar QGC |
 |---|---|
 | Ubuntu nativo | Instala y abre la aplicación Linux en Ubuntu. |
@@ -37,6 +41,7 @@ Abre **Application Settings → Video**. Selecciona primero la fuente de vídeo;
 | UDP URL | `127.0.0.1:5600` |
 | Aspect Ratio | `0`, proporción automática |
 | Disable Video Stream When Disarmed | Desactivado |
+| Low Latency Mode | Activado |
 | Auto-reconnect on stream loss | Activado |
 
 ## 4. Iniciar el robot y la cámara

@@ -39,3 +39,5 @@ Docker Desktop で POSIM を動かし、WSLg を通じて Windows デスクト�
 {{CODE:install-windows-docker:4}}
 
 Gazebo に海のワールドが表示されれば準備完了です。実行中はターミナルを開いたままにし、停止するには **Ctrl+C** を押します。次は[最初のロボット](quickstart.md)を動かします。
+
+同じPOSIMコンテナー内でLinux版QGCを実行してください。Windowsホストや、コンテナー外のWSLではQGCを起動しないでください。[QGCの設定](qgroundcontrol.md)に従ってください。

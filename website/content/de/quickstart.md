@@ -34,7 +34,9 @@ Beenden Sie diese Anzeige mit Strg+C. Bei fehlenden Nachrichten oder angehaltene
 
 ### Video und Steuerung mit QGC
 
-Folgen Sie den Schritten 1–3 der [QGC-Einrichtung](qgroundcontrol.md). Öffnen Sie QGroundControl in derselben Linux-Umgebung und aktivieren Sie die virtuellen Joysticks. Wählen Sie **UDP h.264 Video Stream**, Adresse **127.0.0.1:5600**, und deaktivieren Sie **Disable Video Stream When Disarmed**. Lassen Sie das Tutorial weiterlaufen und starten Sie die Videoübertragung in Terminal B:
+Starten Sie unter Windows/WSL die Linux-Version von QGC in derselben Ubuntu-Distribution wie POSIM, bei Docker im selben POSIM-Container. Verwenden Sie für diese Tutorials nicht die unter Windows installierte Anwendung.
+
+Folgen Sie den Schritten 1–3 der [QGC-Einrichtung](qgroundcontrol.md) und aktivieren Sie die virtuellen Joysticks. Wählen Sie **UDP h.264 Video Stream**, Adresse **127.0.0.1:5600**. Aktivieren Sie **Low Latency Mode** und deaktivieren Sie **Disable Video Stream When Disarmed**. Lassen Sie das Tutorial weiterlaufen und starten Sie die Videoübertragung in Terminal B:
 
 {{CODE:quickstart:3}}
 
@@ -69,6 +71,8 @@ Die Punktwolke liegt unter `/tutorial/lidar/points`, die Fahrzeugodometrie unter
 ## Sitzung beenden
 
 Wählen Sie Disarm, schließen Sie RViz und QGC und drücken Sie **Strg+C in Terminal A**. Warten Sie, bis die gestarteten Prozesse beendet sind. Verwerfen Sie gegebenenfalls Änderungen an der RViz-Ansicht, um die gelieferte Voreinstellung zu behalten. Bei Problemen beim Beenden hilft die [Viewer-Fehlersuche](troubleshooting.md). Das Schließen einer Topic-Anzeige stoppt die Simulation nicht. Beenden Sie die aktuelle Sitzung, bevor Sie ein weiteres Beispiel starten.
+
+Um zur Ausgangsposition zurückzukehren, beenden Sie die Sitzung und führen Sie den Startbefehl erneut aus. Ein vollständiger Welt-Reset in Gazebo entfernt nach dem Start hinzugefügte Modelle, einschließlich des Tutorial-Fahrzeugs, und startet dessen Autopiloten nicht neu.
 
 ## Weiterlernen
 

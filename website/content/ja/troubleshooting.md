@@ -90,3 +90,7 @@ POSIM の環境を読み込んでから `ros2 pkg prefix mavros` を実行する
 `/opt/posim/mavros-router/install` が表示されます。既存の環境には、リンク先の
 個別ビルド手順で修正を適用できます。クラッシュが続く場合は、MAVROS のログと
 実際に読み込まれたライブラリのパスを不具合報告に添えてください。
+
+## POSIMはWSL、QGCはWindowsで起動している場合 {#qgc-on-windows-host}
+
+Windows版QGCを閉じ、POSIMと同じUbuntuディストリビューションまたはPOSIMコンテナー内でLinux版QGCを起動してください。WSLgのウィンドウはWindowsデスクトップに表示されますが、Linuxプロセスです。[QGCの設定](qgroundcontrol.md)では、テレメトリーと映像を同じ環境内で送受信します。

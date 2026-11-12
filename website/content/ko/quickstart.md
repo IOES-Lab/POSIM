@@ -34,7 +34,9 @@ Ctrl+C로 확인 도구를 종료합니다. 메시지가 없거나 시간이 멈
 
 ### QGC로 영상 보기와 제어하기
 
-[QGC 설정](qgroundcontrol.md)의 1–3단계에 따라 같은 Linux 환경에서 QGroundControl을 열고 가상 조이스틱을 켭니다. 영상 소스는 **UDP h.264 Video Stream**, 주소는 **127.0.0.1:5600**으로 설정하고 **Disable Video Stream When Disarmed**는 끕니다. 현재 실행 중인 예제를 유지하고 터미널 B에서 영상 전송을 시작합니다.
+Windows/WSL에서는 POSIM과 같은 Ubuntu 배포판 안에서 Linux용 QGC를 실행하세요. Docker를 사용한다면 같은 POSIM 컨테이너 안에서 실행합니다. 이 튜토리얼에서는 Windows에 설치한 QGC를 열지 마세요.
+
+[QGC 설정](qgroundcontrol.md)의 1–3단계에 따라 가상 조이스틱을 켭니다. 영상 소스는 **UDP h.264 Video Stream**, 주소는 **127.0.0.1:5600**으로 설정합니다. **Low Latency Mode**는 켜고 **Disable Video Stream When Disarmed**는 끕니다. 현재 실행 중인 예제를 유지하고 터미널 B에서 영상 전송을 시작합니다.
 
 {{CODE:quickstart:3}}
 
@@ -69,6 +71,8 @@ QGC Manual 모드에서 WAM-V의 스로틀은 왼쪽 스틱의 위아래 움직�
 ## 세션 종료
 
 차량을 Disarm하고 RViz와 QGC를 닫은 뒤 **터미널 A에서 Ctrl+C**를 눌러 Launch 프로세스가 끝날 때까지 기다립니다. RViz가 화면 변경사항을 저장할지 물으면 Discard를 선택해 제공된 프리셋을 유지하세요. RViz가 정상적으로 종료되지 않으면 [뷰어 문제 해결](troubleshooting.md)을 참고하세요. 토픽 확인 도구를 닫아도 시뮬레이션은 계속됩니다. 다른 예제를 시작하기 전에 현재 세션을 종료하세요.
+
+초기 위치에서 다시 시작하려면 세션을 종료하고 해당 launch 명령을 다시 실행하세요. Gazebo의 전체 월드 초기화는 시작 후 추가된 모델을 제거하므로 튜토리얼 차량도 사라집니다. 이 동작은 차량의 자동 조종 프로그램을 다시 시작하지 않습니다.
 
 ## 이어서 배우기
 

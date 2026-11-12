@@ -39,3 +39,5 @@
 {{CODE:install-windows-docker:4}}
 
 Gazebo 应显示海洋场景。仿真运行期间保持终端打开，按 **Ctrl+C** 停止。接下来可以[启动第一个机器人](quickstart.md)。
+
+请在同一个 POSIM 容器内启动 Linux 版 QGC，不要在 Windows 主机或容器外的 WSL 中启动 QGC。请参阅 [QGC 设置](qgroundcontrol.md)。

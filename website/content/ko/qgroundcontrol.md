@@ -4,6 +4,10 @@ QGroundControl(QGC)에서 시뮬레이션 중인 BlueROV2에 연결하고, 가�
 
 ## 1. POSIM과 같은 Linux 환경에서 QGC 열기
 
+**Windows/WSL:** 이 튜토리얼에서는 Linux용 QGC를 사용합니다. Windows에 설치한 QGC를 실행하지 마세요. POSIM과 같은 Ubuntu 배포판 안에서 실행하고, Docker를 사용한다면 같은 POSIM 컨테이너 안에서 실행하세요. WSLg를 통해 Windows 바탕 화면에 QGC 창이 표시되어도 앱은 Linux 안에서 실행됩니다.
+
+이 안내의 `127.0.0.1`은 QGC가 실행되는 환경 내부를 가리킵니다. 이 주소만으로 Windows용 QGC가 WSL이나 Docker의 상태 정보와 영상을 받도록 연결되지는 않습니다.
+
 | POSIM 설치 방식 | QGC를 실행할 위치 |
 |---|---|
 | Ubuntu 네이티브 | 공식 Linux 앱을 설치하고 Ubuntu에서 실행합니다. |
@@ -41,6 +45,7 @@ qgroundcontrol &
 | UDP URL | `127.0.0.1:5600` |
 | Aspect Ratio | `0`: 카메라 영상 비율 자동 적용 |
 | Disable Video Stream When Disarmed | 끔 |
+| Low Latency Mode | 켬 |
 | Auto-reconnect on stream loss | 켬 |
 
 ## 4. BlueROV2와 카메라 송신 시작하기

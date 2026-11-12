@@ -40,7 +40,9 @@ Press Ctrl+C to stop this viewer. If messages are missing or the clock is paused
 
 ### Watch and control with QGC
 
-Follow steps 1–3 of [QGC setup](qgroundcontrol.md) to open QGroundControl in the same Linux environment, enable its virtual joysticks and select **UDP h.264 Video Stream**, address **127.0.0.1:5600**. Keep **Disable Video Stream When Disarmed** off and continue with the tutorial already running. Start video from Terminal B:
+On Windows/WSL, run Linux QGC in the same Ubuntu distribution as POSIM; with Docker, run it inside the same POSIM container. Do not open the Windows-installed QGC for these tutorials.
+
+Follow steps 1–3 of [QGC setup](qgroundcontrol.md) to enable virtual joysticks and select **UDP h.264 Video Stream**, address **127.0.0.1:5600**. Turn **Low Latency Mode** on and keep **Disable Video Stream When Disarmed** off. Continue with the tutorial already running and start video from Terminal B:
 
 ```bash
 gz topic -t /tutorial/camera/enable_streaming \
@@ -82,6 +84,8 @@ The point cloud is `/tutorial/lidar/points`; vehicle odometry is `/model/wamv/od
 ## Stop the session
 
 Disarm the vehicle, close RViz and QGC, then press **Ctrl+C in Terminal A** and wait for the launch processes to exit. If RViz asks to save view changes, discard them to keep the supplied preset. If it fails to exit cleanly, see [viewer troubleshooting](troubleshooting.md). Closing a topic viewer does not stop the simulation. Stop the current session before running another example.
+
+To start again from the initial pose, stop the session and rerun its launch command. Gazebo's full-world reset removes models spawned after startup, including the tutorial vehicle, and does not restart its autopilot.
 
 ## Continue learning
 

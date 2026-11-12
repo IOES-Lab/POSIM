@@ -89,3 +89,7 @@ POSIM 安装脚本和官方 Docker 构建默认包含 MAVROS 2.16.0 的
 加载 POSIM 环境后，运行 `ros2 pkg prefix mavros` 应输出
 `/opt/posim/mavros-router/install`。已有安装可按链接中的单独编译步骤应用修复。
 如果仍然崩溃，请在问题报告中附上 MAVROS 日志和实际加载的库文件路径。
+
+## POSIM 在 WSL 中运行，但 QGC 在 Windows 中启动 {#qgc-on-windows-host}
+
+关闭 Windows 版 QGC，然后在运行 POSIM 的同一个 Ubuntu 发行版或 POSIM 容器内启动 Linux 版 QGC。WSLg 窗口虽然显示在 Windows 桌面上，程序仍是 Linux 进程。[QGC 设置](qgroundcontrol.md)让遥测和视频在同一环境内部传输。

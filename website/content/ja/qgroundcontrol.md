@@ -4,6 +4,10 @@ QGroundControl（QGC）を BlueROV2 に接続し、仮想ジョイスティッ�
 
 ## 1. POSIM と同じ Linux 環境で QGC を開く
 
+**Windows/WSL:** このチュートリアルではLinux版QGCを使用します。WindowsにインストールしたQGCは起動しないでください。POSIMと同じUbuntuディストリビューション内で、Dockerの場合は同じPOSIMコンテナー内で起動します。WSLgによってWindowsデスクトップに表示されたQGCのウィンドウも、Linux内で動作しています。
+
+このガイドの`127.0.0.1`は、QGCが動作する環境内を指します。このアドレスだけでは、Windows版QGCがWSLやDockerからテレメトリーや映像を受信するようには設定されません。
+
 | インストール方法 | QGC の実行場所 |
 |---|---|
 | Ubuntu ネイティブ | Ubuntu に Linux 版アプリをインストールして実行します。 |
@@ -37,6 +41,7 @@ QGC、MAVROS、Gazebo は同じ Linux 環境内で通信します。テレメト
 | UDP URL | `127.0.0.1:5600` |
 | Aspect Ratio | `0`（縦横比を自動設定） |
 | Disable Video Stream When Disarmed | オフ |
+| Low Latency Mode | オン |
 | Auto-reconnect on stream loss | オン |
 
 ## 4. ロボットと映像配信を開始する

@@ -4,6 +4,10 @@
 
 ## 1. 在 POSIM 所在的 Linux 环境中启动 QGC
 
+**Windows/WSL：**本教程使用 Linux 版 QGC。请勿启动安装在 Windows 上的 QGC。应在运行 POSIM 的同一个 Ubuntu 发行版中启动 QGC；使用 Docker 时，应在同一个 POSIM 容器中启动。WSLg 会将 Linux QGC 的窗口显示在 Windows 桌面上，但程序仍在 Linux 内运行。
+
+本指南中的 `127.0.0.1` 指向 QGC 所在环境的本地地址。该地址并不会将 Windows 版 QGC 配置为接收 WSL 或 Docker 中的遥测和视频。
+
 | 安装方式 | QGC 的运行位置 |
 |---|---|
 | Ubuntu 原生安装 | 在 Ubuntu 中安装并运行 Linux 版应用。 |
@@ -37,6 +41,7 @@ QGC、MAVROS 和 Gazebo 位于同一个 Linux 环境中。遥测使用 **UDP 145
 | UDP URL | `127.0.0.1:5600` |
 | Aspect Ratio | `0`，自动使用相机画面比例 |
 | Disable Video Stream When Disarmed | 关闭 |
+| Low Latency Mode | 开启 |
 | Auto-reconnect on stream loss | 开启 |
 
 ## 4. 启动机器人和视频流
