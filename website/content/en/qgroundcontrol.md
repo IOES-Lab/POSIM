@@ -1,6 +1,6 @@
 # Control with QGroundControl
 
-Use QGroundControl (QGC) to connect to the simulated BlueROV2, operate its virtual joysticks and watch the forward camera. Finish [your first simulation](quickstart.md) and [prepare terminals A and B](terminals.md) before starting.
+Use QGroundControl (QGC) to connect to the simulated BlueROV2, operate its virtual joysticks and watch the forward camera. Complete your [installation](requirements.md) and [prepare terminals A and B](terminals.md) before starting.
 
 ## 1. Open QGC in the same Linux environment
 
@@ -61,7 +61,7 @@ In prepared terminal B, start sending the camera frames:
 
 ```bash
 gz topic -t /model/bluerov2/camera/enable_streaming \
-  -m gz.msgs.Boolean -p 'data: true' --duration 1
+  -m gz.msgs.Boolean -p 'data: true' --duration 3
 ```
 
 Return to **Fly View**. Click the small video panel to make the camera the main view.
@@ -73,7 +73,7 @@ Return to **Fly View**. Click the small video panel to make the camera the main 
 
 The included camera produces **640 × 480 images at 5 Hz in simulation time**. Software rendering can slow the simulation and lower the displayed frame rate. BlueROV2 has positive buoyancy: while unarmed, it can rise and move the objects out of view.
 
-`qgc_video:=true` adds the optional H.264 sender for this launch. Without it, the model has no QGC video sender. The streamed image is the robot's regular RGB camera; the separate [underwater camera filter](camera.md) has its own ROS output.
+`qgc_video:=true` adds the H.264 sender for this launch. The stream uses the robot's RGB camera, including the world's [underwater scene effects](underwater-rendering.md). The separate [camera filter](camera.md) publishes its own ROS output. Marine GNSS loses its fix when the antenna submerges and reacquires after surfacing; this does not disconnect telemetry, video or manual control. Use Manual mode underwater. The lens is below the antenna, so it can show underwater imagery while GNSS still has a fix.
 
 ## 5. Arm, move and stop
 
@@ -89,10 +89,12 @@ To stop transmitting video, use terminal B:
 
 ```bash
 gz topic -t /model/bluerov2/camera/enable_streaming \
-  -m gz.msgs.Boolean -p 'data: false' --duration 1
+  -m gz.msgs.Boolean -p 'data: false' --duration 3
 ```
 
 Then press **Ctrl+C** in terminal A to stop the simulation and close QGC.
+
+MAVROS allows up to 60 seconds without a vehicle heartbeat before reporting a lost connection. This accommodates slow software rendering; a real loss of heartbeats can therefore take up to 60 seconds to appear in `/mavros/state`.
 
 ## If the connection or video is missing
 

@@ -1,0 +1,63 @@
+Panels:
+  - Class: rviz_common/Displays
+    Name: Displays
+Visualization Manager:
+  Class: ""
+  Displays:
+    - Class: rviz_default_plugins/Grid
+      Name: Distance grid (1 m)
+      Enabled: true
+      Cell Size: 1
+      Plane Cell Count: 40
+      Color: 100; 110; 120
+      Alpha: 0.25
+    - Class: rviz_default_plugins/Image
+      Name: Camera
+      Enabled: true
+      Topic:
+        Value: /tutorial/camera
+        Reliability Policy: Best Effort
+        Depth: 2
+    - Class: rviz_default_plugins/RobotModel
+      Name: WAM-V
+      Enabled: true
+      Description Source: Topic
+      Description Topic:
+        Value: /robot_description
+        Durability Policy: Transient Local
+      TF Prefix: wamv
+      Visual Enabled: true
+      Collision Enabled: false
+    - Class: rviz_default_plugins/PointCloud2
+      Name: Lidar point cloud
+      Enabled: true
+      Topic:
+        Value: /tutorial/lidar/points
+        Reliability Policy: Best Effort
+        Depth: 2
+      Size (Pixels): 5
+      Style: Points
+      Color Transformer: FlatColor
+      Color: 255; 210; 50
+      Position Transformer: XYZ
+  Global Options:
+    Fixed Frame: wamv/base_link
+    Frame Rate: 15
+    Background Color: 35; 42; 48
+  Enabled: true
+  Tools:
+    - Class: rviz_default_plugins/MoveCamera
+  Views:
+    Current:
+      Class: rviz_default_plugins/Orbit
+      Distance: 36
+      Focal Point:
+        X: 8
+        Y: 0
+        Z: 0
+      Pitch: 0.8
+      Yaw: 3.6
+      Target Frame: <Fixed Frame>
+Window Geometry:
+  Width: 1400
+  Height: 850

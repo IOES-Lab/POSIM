@@ -2,6 +2,8 @@
 
 Los mundos están en `models/posim_worlds/worlds`. Selecciónalos por su nombre de archivo, sin la extensión `.world`.
 
+Los mundos oceánicos incluyen `model://calm_waves`: olas FFT de Wave Sim con viento de entrada de 3 m/s, una tesela periódica de 256 m y un área visible de 768 × 768 m. La superficie se ve desde arriba y desde abajo. Los efectos submarinos nativos se aplican a imágenes RGB; el tutorial de aguas someras también los activa en la vista de Gazebo. Las instalaciones estándar y las imágenes incluyen Wave Sim. La flotabilidad de los vehículos submarinos, el GNSS marino y el límite óptico usan el nivel medio z = 0, independientemente de la altura visual de las olas. WAM-V utiliza la hidrodinámica de Wave Sim acoplada a las olas. La demostración USBL sin agua y los mundos aislados de prueba del sonar conservan su propia geometría.
+
 ## Iniciar un mundo
 
 Usa la [terminal POSIM de tu instalación](terminals.md), tanto en Ubuntu nativo como en WSL, Docker o RDP.

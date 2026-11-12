@@ -2,6 +2,8 @@
 
 场景文件位于 `models/posim_worlds/worlds`。启动时填写文件名，省略 `.world` 扩展名。
 
+海洋演示场景包含 `model://calm_waves`：Wave Sim FFT 波浪使用 3 m/s 风速输入、256 m 周期网格和 768 × 768 m 显示区域，水面从上下两侧均可见。原生水下效果作用于 RGB 传感器图像；浅水教程也将其应用到 Gazebo 世界视图。标准安装脚本和镜像包含 Wave Sim。水下机器人的浮力、海洋 GNSS 和光学边界使用平均水面 z = 0，独立于显示波高；WAM-V 则使用与波浪耦合的 Wave Sim 水动力。无水的 USBL 示例和独立声呐测试场景保留各自的几何结构。
+
 ## 启动场景
 
 无论使用 Ubuntu 原生安装、WSL、Docker 还是 RDP 桌面，都在[对应安装方式的 POSIM 终端](terminals.md)中执行。

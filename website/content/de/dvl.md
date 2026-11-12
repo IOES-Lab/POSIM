@@ -8,6 +8,8 @@ Im [für Ihre Installation vorbereiteten Terminal A](terminals.md):
 
 {{CODE:dvl:0}}
 
+{{MEDIA:dvl:0}}
+
 Lesen Sie im vorbereiteten Terminal B zunächst Gazebo-Daten, beenden Sie die Anzeige mit **Strg+C** und lesen Sie dann ROS:
 
 {{CODE:dvl:1}}
@@ -70,6 +72,9 @@ Lesen Sie `ros2 interface show posim_interfaces/msg/DVL`. Prüfen Sie Geschwindi
 
 ## DVL-Strahlen und Ausgabe
 
-{{MEDIA:dvl}}
+{{MEDIA:dvl:1}}
+{{MEDIA:dvl:2}}
+{{MEDIA:dvl:3}}
+{{MEDIA:dvl:4}}
 
 Bilder: POSIM Notion Wiki; DAVE-Zuordnung unter [Zitation und Lizenzen](citation.md). Verwenden Sie die Befehle und Topics dieser Seite.

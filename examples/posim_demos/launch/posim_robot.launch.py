@@ -7,6 +7,7 @@ from launch.actions import (
     DeclareLaunchArgument,
     IncludeLaunchDescription,
     OpaqueFunction,
+    SetEnvironmentVariable,
 )
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
@@ -44,16 +45,22 @@ def launch_setup(context, *args, **kwargs):
     virtual_joystick_url = LaunchConfiguration("virtual_joystick_url")
     ui_launch_delay = LaunchConfiguration("ui_launch_delay")
 
+    environment = []
     selected_world_name = LaunchConfiguration("world_name").perform(context)
-    if selected_world_name != "empty.sdf":
+    selected_world_file = LaunchConfiguration("world_file").perform(context)
+    if selected_world_file or selected_world_name != "empty.sdf":
         world_filename = f"{selected_world_name}.world"
         world_filepath = PathJoinSubstitution(
             [FindPackageShare("posim_worlds"), "worlds", world_filename]
         )
+        if selected_world_file:
+            world_filepath = LaunchConfiguration("world_file")
         world_element = ET.parse(world_filepath.perform(context)).getroot().find("world")
         if world_element is None or not world_element.get("name"):
             raise ValueError(f"World file [{world_filename}] does not declare a world name")
         world_entity_name = world_element.get("name")
+        if world_element.find("plugin[@name='posim::Underwater']") is not None:
+            environment.append(SetEnvironmentVariable("POSIM_UNDERWATER_PLUGIN", "1"))
         gz_args = [_quote_path(world_filepath.perform(context))]
     else:
         world_entity_name = "empty"
@@ -64,7 +71,11 @@ def launch_setup(context, *args, **kwargs):
     )
     # A server-only launch has no GUI camera service to move.
     zoom_camera_value = (
-        "true" if selected_world_name == "posim_ocean_waves" and not run_server_only else "false"
+        "true"
+        if selected_world_name == "posim_ocean_waves"
+        and not selected_world_file
+        and not run_server_only
+        else "false"
     )
     if run_server_only:
         gz_args.append(" -s")
@@ -109,6 +120,7 @@ def launch_setup(context, *args, **kwargs):
             "gui": gui,
             "use_sim_time": use_sim_time,
             "namespace": namespace,
+            "model_file": LaunchConfiguration("model_file"),
             "x": x,
             "y": y,
             "z": z,
@@ -134,13 +146,19 @@ def launch_setup(context, *args, **kwargs):
 
     include = [gz_sim_launch, robot_launch]
 
-    return include
+    return environment + include
 
 
 def generate_launch_description():
 
     # Declare the launch arguments with default values
     args = [
+        DeclareLaunchArgument(
+            "world_file", default_value="", description="Optional world SDF path"
+        ),
+        DeclareLaunchArgument(
+            "model_file", default_value="", description="Optional SDF override for this robot"
+        ),
         DeclareLaunchArgument(
             "paused",
             default_value="true",

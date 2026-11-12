@@ -225,7 +225,9 @@ int main(int argc, char ** argv)
         }
       }
     }
+    // GUI teardown destroys the scene before the plugin's renderer handle.
+    // This must restore the shader hooks without a late Ogre access.
+    engine->DestroyScene(scene);
   }
-  engine->DestroyScene(scene);
   return 0;
 }

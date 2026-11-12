@@ -8,6 +8,8 @@ Im [für Ihre Installation vorbereiteten Terminal A](terminals.md):
 
 {{CODE:usbl:0}}
 
+{{MEDIA:usbl:0}}
+
 Die Welt enthält bereits alle drei Geräte. Empfangen Sie ihre Positionen im vorbereiteten Terminal B:
 
 {{CODE:usbl:1}}
@@ -78,6 +80,8 @@ Ein Kanalwechsel wählt `individual`; jeder geplante Ping richtet sich an diese 
 
 ## Anordnung und Abfragemodi
 
-{{MEDIA:usbl}}
+{{MEDIA:usbl:1}}
+{{MEDIA:usbl:2}}
+{{MEDIA:usbl:3}}
 
 Bilder: POSIM Notion Wiki; DAVE-Zuordnung unter [Zitation und Lizenzen](citation.md). Verwenden Sie die Befehle und Topics dieser Seite.

@@ -12,6 +12,8 @@
 
 [터미널 준비](terminals.md)에서 설치 방법에 맞는 위치와 환경 설정을 확인하세요. 터미널 A에서는 [첫 시뮬레이션](quickstart.md)을 실행한 채로 두고, B에서 아래 확인 명령을 실행합니다.
 
+아래 토픽은 소나를 끈 BlueROV2 수중 예제를 기준으로 합니다. 소나를 켰다면 `bluerov2`를 `bluerov2_heavy_multibeam_sonar`로, 수상 예제라면 `wamv`로 바꾸세요.
+
 ## 통신 구성 확인
 
 확인 명령은 `--no-daemon`으로 ROS에 직접 연결하여 CLI 데몬의 캐시에 의존하지 않습니다.
@@ -20,7 +22,7 @@
 ros2 topic list --no-daemon -t
 ros2 service list --no-daemon -t
 gz topic -l
-ros2 topic info --no-daemon /model/rexrov/odometry --verbose
+ros2 topic info --no-daemon /model/bluerov2/odometry --verbose
 ```
 
 `ros2 topic list`는 ROS 토픽, `gz topic -l`은 Gazebo Transport 토픽을 보여 줍니다. 프로그램을 연결하기 전에 메시지 자료형, 발행자, 구독자와 QoS를 확인하세요.
@@ -28,7 +30,7 @@ ros2 topic info --no-daemon /model/rexrov/odometry --verbose
 ## 연속으로 값 확인하기
 
 ```bash
-ros2 topic echo --no-daemon /model/rexrov/odometry nav_msgs/msg/Odometry --field pose.pose.position
+ros2 topic echo --no-daemon /model/bluerov2/odometry nav_msgs/msg/Odometry --field pose.pose.position
 ```
 
 위치 데이터가 계속 들어와야 합니다. 로봇이 정지해 있으면 위치는 거의 같아도 측정 시각은 증가합니다. **터미널 B에서 Ctrl+C**를 누르면 확인 도구만 종료됩니다. 터미널 A의 시뮬레이션은 계속 실행됩니다.

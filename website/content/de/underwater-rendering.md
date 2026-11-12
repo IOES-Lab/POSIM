@@ -4,6 +4,8 @@
 
 Gazebo-Szene, RGB-Kameras und RGBD-Farbbilder teilen diese Effekte. Numerische Tiefe und Kollisionsgeometrie bleiben erhalten. Den separaten tiefenbasierten Bildfilter beschreibt [Unterwasserkamera](camera.md).
 
+Das installierte System findet die benachbarte Renderbibliothek und die Shader unter `share/posim/underwater` automatisch. `renderer_library` und `shader_directory` bleiben optionale Pfadüberschreibungen. Ozean-Demostarts setzen das Kamera-Durchleitungsflag automatisch; eigene Starts mit beiden Systemen müssen es setzen.
+
 ## System bauen und einbinden
 
 Verwenden Sie eine zum Server passende Gazebo-Jetty/Ogre2-Entwicklungsumgebung. Bauen Sie im [vorbereiteten Terminal A](terminals.md) aus den POSIM-Quellen; unter macOS im Linux-Terminal des RDP-Desktops:

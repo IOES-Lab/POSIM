@@ -1,6 +1,6 @@
 # 使用 QGroundControl 控制
 
-将 QGroundControl（QGC）连接到 BlueROV2，通过虚拟摇杆操纵机器人，同时查看前置相机画面。先完成[第一次仿真](quickstart.md)，并准备好[终端 A 和 B](terminals.md)。
+将 QGroundControl（QGC）连接到模拟的 BlueROV2，通过虚拟摇杆控制并查看前置相机画面。先完成[安装](requirements.md)，再准备[终端 A 和 B](terminals.md)。
 
 ## 1. 在 POSIM 所在的 Linux 环境中启动 QGC
 
@@ -55,7 +55,7 @@ Gazebo 打开海底场景，QGC 自动连接 ArduSub。等待初始化完成后�
 
 相机按仿真时间以 **5 Hz** 的频率生成 **640 × 480** 图像。软件渲染可能降低实际显示帧率。BlueROV2 具有正浮力，即使未解锁，也可能上浮，使目标移出画面。
 
-`qgc_video:=true` 为本次启动添加 H.264 发送功能。发送的是普通 RGB 相机图像；[水下相机滤镜](camera.md)另有独立的 ROS 输出。
+`qgc_video:=true` 添加 H.264 发送功能。机器人 RGB 视频包含世界的[水下场景效果](underwater-rendering.md)。独立的[相机滤镜](camera.md)使用自己的 ROS 输出。GNSS 在天线入水后失去定位，出水后重新捕获；遥测、视频和手动控制连接仍保持。水下使用 Manual 模式。镜头低于天线，因此 GNSS 有效时也可能显示水下画面。
 
 ## 5. 解锁、操纵和停止
 
@@ -70,6 +70,8 @@ Gazebo 打开海底场景，QGC 自动连接 ArduSub。等待初始化完成后�
 {{CODE:qgroundcontrol:3}}
 
 然后在终端 A 中按 **Ctrl+C**，并关闭 QGC。
+
+MAVROS 在最长 60 秒未收到载具心跳后报告连接中断。此设置用于适应较慢的软件渲染，因此真正的心跳中断也可能需要最长 60 秒才会反映在 `/mavros/state` 中。
 
 ## 排查连接和画面问题
 

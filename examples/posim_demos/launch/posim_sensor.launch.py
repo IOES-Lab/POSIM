@@ -1,8 +1,14 @@
 import os
 import shlex
+import xml.etree.ElementTree as ET
 
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, OpaqueFunction
+from launch.actions import (
+    DeclareLaunchArgument,
+    IncludeLaunchDescription,
+    OpaqueFunction,
+    SetEnvironmentVariable,
+)
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.substitutions import FindPackageShare
@@ -30,6 +36,7 @@ def launch_setup(context, *args, **kwargs):
     yaw = LaunchConfiguration("yaw")
     use_ned_frame = LaunchConfiguration("use_ned_frame")
 
+    environment = []
     if world_name.perform(context) != "empty.sdf":
         world_name = LaunchConfiguration("world_name").perform(context)
         world_filename = f"{world_name}.world"
@@ -37,6 +44,14 @@ def launch_setup(context, *args, **kwargs):
             [FindPackageShare("posim_worlds"), "worlds", world_filename]
         )
         gz_args = [_quote_path(world_filepath.perform(context))]
+        if (
+            ET.parse(world_filepath.perform(context)).find(
+                ".//world/plugin[@name='posim::Underwater']"
+            )
+            is not None
+        ):
+            # The compatibility camera must not attenuate already shaded pixels.
+            environment.append(SetEnvironmentVariable("POSIM_UNDERWATER_PLUGIN", "1"))
     else:
         gz_args = [_quote_path(world_name.perform(context))]
 
@@ -93,7 +108,7 @@ def launch_setup(context, *args, **kwargs):
         }.items(),
     )
 
-    return [gz_sim_launch, sensor_launch]
+    return environment + [gz_sim_launch, sensor_launch]
 
 
 def generate_launch_description():

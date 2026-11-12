@@ -14,6 +14,8 @@ Elige según el sistema operativo de tu equipo. **Recomendamos Ubuntu 26.04 nati
 
 La imagen aporta su propio entorno Ubuntu; el anfitrión Linux puede usar otra versión o distribución compatible con Docker. Esta guía no cubre la emulación ARM64 en Mac Intel.
 
+Para esta versión, usa Docker/RDP en macOS. La instalación nativa en macOS aún no se ha validado por completo. Las referencias a Metal nativo se refieren a componentes individuales y no confirman la compatibilidad de todo el entorno del tutorial.
+
 ## Software y gráficos
 
 Todas las opciones usan **ROS 2 Lyrical** y **Gazebo Sim — Gazebo Jetty**. La instalación nativa los prepara en Ubuntu; las imágenes ya los incluyen. Instala el controlador gráfico en el anfitrión siguiendo la guía elegida.

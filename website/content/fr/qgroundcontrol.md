@@ -1,6 +1,6 @@
 # Piloter avec QGroundControl
 
-Connectez QGroundControl (QGC) à BlueROV2, utilisez les joysticks virtuels et regardez l'image de sa caméra avant. Commencez par la [première simulation](quickstart.md), puis préparez les [terminaux A et B](terminals.md).
+Connectez QGroundControl (QGC) au BlueROV2 simulé, utilisez les joysticks virtuels et regardez l’image de sa caméra avant. Terminez l’[installation](requirements.md), puis préparez les [terminaux A et B](terminals.md).
 
 ## 1. Ouvrir QGC dans l'environnement de POSIM
 
@@ -55,7 +55,7 @@ Revenez à **Fly View** et cliquez sur l'aperçu vidéo pour l'agrandir.
 
 La caméra produit des images de **640 × 480 à 5 Hz en temps simulé**. Le rendu logiciel peut ralentir la simulation. BlueROV2 possède une flottabilité positive : même désarmé, il peut remonter et perdre les objets de vue.
 
-`qgc_video:=true` ajoute l'émetteur H.264 pour cette exécution. Il diffuse la caméra RVB normale ; le [filtre de caméra sous-marine](camera.md) dispose d'une sortie ROS distincte.
+`qgc_video:=true` ajoute l'émetteur H.264. La vidéo RVB inclut les [effets sous-marins du monde](underwater-rendering.md). Le [filtre de caméra](camera.md) indépendant conserve sa sortie ROS. Le GNSS perd la position quand l'antenne est immergée et la retrouve après émersion ; télémétrie, vidéo et commande manuelle restent connectées. Utilisez Manual sous l'eau. L'objectif est plus bas que l'antenne : une image sous-marine peut donc coexister avec une position GNSS valide.
 
 ## 5. Armer, déplacer et arrêter
 
@@ -70,6 +70,8 @@ Gardez les commandes au clavier et le joystick web désactivés pour éviter les
 {{CODE:qgroundcontrol:3}}
 
 Appuyez sur **Ctrl+C** dans A, puis fermez QGC.
+
+MAVROS attend jusqu’à 60 secondes sans message de présence du véhicule avant de signaler une perte de connexion. Ce délai tient compte du rendu logiciel lent ; une interruption réelle de ces messages peut donc mettre jusqu’à 60 secondes à apparaître dans `/mavros/state`.
 
 ## Résoudre un problème de connexion
 

@@ -4,9 +4,9 @@ The `UnderwaterCamera` plugin uses depth data to reduce RGB color intensity with
 
 ## Run the example
 
-This sensor example uses the depth-based camera filter. The scene renderer has its own [build, world plugin and appearance settings](underwater-rendering.md).
+The camera tutorial enables gentle waves and native [underwater scene effects](underwater-rendering.md). The sensor launch sets `POSIM_UNDERWATER_PLUGIN` so the compatibility image output passes through the shaded RGB pixels without applying attenuation twice. To compare the separate depth-based filter, use a world without the native system and leave that environment variable unset.
 
-Run in [terminal A prepared for your installation](terminals.md):
+Run the example in [prepared Terminal A](terminals.md).
 
 ```bash
 ros2 launch posim_demos posim_sensor.launch.py \

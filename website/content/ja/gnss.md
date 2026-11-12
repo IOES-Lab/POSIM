@@ -14,7 +14,9 @@
 
 リンクとトピックをロボットに合わせます。モデルの準備と起動は[ロボットを作る](custom-robots.md)を参照してください。
 
-[プロファイル](https://github.com/IOES-Lab/POSIM/blob/main/gazebo/posim_gz_gnss/config/profiles.json)の取り付け位置は `base_link` 基準で、WAM-V は z = 1.8 m、BlueROV2 は 0.3 m、REXROV は 0.8 m です。WAM-V は受信機を有効にし、水中機のプロファイルは初期状態で無効にします。プロファイルは取り付け設定のデータなので、リンクとプラグインはモデルへ組み込む必要があります。WAM-V には[外部の Wave Sim モデル](surface.md)も必要です。
+[プロファイル](https://github.com/IOES-Lab/POSIM/blob/main/gazebo/posim_gz_gnss/config/profiles.json)の取り付け位置は `base_link` 基準で、WAM-V は z = 1.8 m、BlueROV2 は 0.3 m、REXROV は 0.8 m です。WAM-V と BlueROV2 の 3 種類のプロファイルは受信機を有効にし、REXROV は既定で無効にします。プロファイルは取り付け設定のデータなので、リンクとプラグインはモデルへ組み込む必要があります。WAM-V には[外部の Wave Sim モデル](surface.md)も必要です。
+
+BlueROV2、BlueROV2 Heavy、ソナー搭載型には受信機と `marine_gnss_input` アダプターが含まれます。ArduSub 使用時は SITL の合成 GPS の代わりに MAVROS `GPSINPUT` を送信します。速度を ENU から NED に変換し、インストール済みの GeographicLib データで WGS 84 楕円体高を EGM96 平均海面高に変換します。水没、遮蔽、無効値、未来の時刻、1 s を超えた古い測定は測位不能として送信します。有効な測位でも衛星数は不明（`255`）で、衛星配置と DOP は計算しません。サンプルの受信機は表示上の波とは独立に平均水面 z = 0 を使います。
 
 ## パラメーター
 
@@ -74,6 +76,8 @@
 
 ## 解釈と確認
 
-静止した水面上のアンテナ、水没、遮蔽、回復を比較します。捕捉時間、遅延、リセット後の epoch、取得時刻の増加を確認してください。受信側は古い値や未来の値を除外し、無効状態を処理します。出力は Gazebo メッセージです。ROS `NavSatFix`、オートパイロット、航法推定器に渡す場合は、受信側の形式に変換するアダプターを用意します。
+静止した水面上のアンテナ、水没、遮蔽、回復を比較します。捕捉時間、遅延、リセット後の epoch、取得時刻の増加を確認してください。受信側は古い値や未来の値を除外し、無効状態を処理します。
+
+付属の BlueROV2 アダプターは ArduSub に接続します。他の ROS `NavSatFix` 利用先や独自のオートパイロットにはアダプターが必要です。
 
 これはアンテナ姿勢に基づくモデルです。衛星配置、RF 伝搬、物理的なマルチパス、音響測位は計算しません。精度設定はシミュレーションの入力値で、メーカーの精度保証ではありません。[実装](https://github.com/IOES-Lab/POSIM/blob/main/gazebo/posim_gz_gnss/Gnss.cc)と[パッケージガイド](https://github.com/IOES-Lab/POSIM/tree/main/gazebo/posim_gz_gnss)も参照してください。

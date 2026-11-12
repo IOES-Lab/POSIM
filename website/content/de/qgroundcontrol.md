@@ -1,6 +1,6 @@
 # Mit QGroundControl steuern
 
-Verbinden Sie QGroundControl (QGC) mit BlueROV2, bedienen Sie die virtuellen Joysticks und betrachten Sie das Bild der Frontkamera. Führen Sie zuerst die [erste Simulation](quickstart.md) aus und bereiten Sie [Terminal A und B](terminals.md) vor.
+Verbinden Sie QGroundControl (QGC) mit dem simulierten BlueROV2, bedienen Sie die virtuellen Joysticks und betrachten Sie das Bild der Frontkamera. Schließen Sie die [Installation](requirements.md) ab und bereiten Sie [Terminal A und B](terminals.md) vor.
 
 ## 1. QGC in der POSIM-Umgebung öffnen
 
@@ -55,7 +55,7 @@ Wechseln Sie zu **Fly View** und klicken Sie auf die Videovorschau, um sie zu ve
 
 Die Kamera liefert Bilder mit **640 × 480 Pixeln bei 5 Hz bezogen auf die Simulationszeit**. Software-Rendering kann die tatsächliche Bildrate verringern. BlueROV2 hat positiven Auftrieb: Auch bei deaktivierten Antrieben kann es aufsteigen, sodass die Objekte aus dem Bild verschwinden.
 
-`qgc_video:=true` fügt für diesen Start einen H.264-Sender hinzu. Er überträgt die normale RGB-Kamera; der [Unterwasserkamerafilter](camera.md) besitzt einen eigenen ROS-Ausgang.
+`qgc_video:=true` fügt den H.264-Sender hinzu. Das RGB-Bild enthält die [Unterwassereffekte der Szene](underwater-rendering.md). Der separate [Kamerafilter](camera.md) hat einen eigenen ROS-Ausgang. GNSS verliert beim Untertauchen der Antenne die Position und erfasst sie nach dem Auftauchen erneut; Telemetrie, Video und manuelle Steuerung bleiben verbunden. Verwenden Sie unter Wasser Manual. Die Linse liegt unter der Antenne, sodass trotz gültiger GNSS-Position ein Unterwasserbild möglich ist.
 
 ## 5. Antriebe freigeben, fahren und stoppen
 
@@ -70,6 +70,8 @@ Lassen Sie Tastatursteuerung und Web-Joystick deaktiviert, damit keine konkurrie
 {{CODE:qgroundcontrol:3}}
 
 Drücken Sie in A **Strg+C** und schließen Sie QGC.
+
+MAVROS meldet einen Verbindungsverlust, wenn bis zu 60 Sekunden lang kein Heartbeat des Fahrzeugs eintrifft. Damit wird langsames Software-Rendering berücksichtigt; ein tatsächlicher Ausfall der Heartbeats kann deshalb erst nach bis zu 60 Sekunden in `/mavros/state` erscheinen.
 
 ## Verbindungsprobleme beheben
 

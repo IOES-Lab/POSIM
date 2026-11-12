@@ -12,6 +12,8 @@
 
 インストール方法に合った[ターミナルの準備](terminals.md)を行います。A で[最初のシミュレーション](quickstart.md)を動かしたまま、B で以下のコマンドを実行してください。
 
+以下のトピックはソナーなしの BlueROV2 水中例に対応します。ソナー付きでは `bluerov2` を `bluerov2_heavy_multibeam_sonar` に、水上の例では `wamv` に置き換えます。
+
 ## 接続構成を調べる
 
 `--no-daemon` は CLI デーモンのキャッシュを使わず、ROS に直接問い合わせます。

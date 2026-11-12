@@ -1,13 +1,21 @@
-# Automatic external waves and optional WAM-V
+# External waves and WAM-V
 
 Wave Sim is a pinned external build dependency. The standard Docker recipes and Ubuntu installer build it automatically. The upstream checkout supplies wave, hydrodynamics and WAM-V assets. `wamv.py` reads that model and configures its controller and propulsion.
 
 - Dependency source: `/opt/asv_wave_sim`
 - Installed libraries: `/opt/waves`
-- Optional surface overlay: WAM-V model and launch
+- Standard tutorial: installed WAM-V integration, camera and lidar
+- Optional ARM64 surface image: separate integration example
 - World setup: include the wave and buoyancy systems in the selected SDF
 
-## Build and run
+## Standard tutorial
+
+The standard POSIM installation includes `surface_tutorial.launch.py`; it
+does not require the optional surface image below. Follow the
+[first-simulation guide](../../website/content/en/quickstart.md) for the buoy
+scene, Gazebo camera/lidar panels, RViz and QGroundControl.
+
+## Optional image
 
 This optional Dockerfile targets the ARM64 desktop layout. Follow the
 [WAM-V guide](../../website/content/en/surface.md#build-the-wam-v-integration)

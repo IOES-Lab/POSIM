@@ -1,6 +1,6 @@
 # Python으로 제어하기
 
-[첫 시뮬레이션](quickstart.md)에 따라 터미널 A에서 REXROV를 실행한 채로 두세요. 아래 프로그램은 [준비한 터미널 B](terminals.md)에서 실행합니다. 먼저 위치를 읽고, 이어서 추진기에 짧은 명령을 보냅니다.
+터미널 A에서 [REXROV 예제](rovs.md#start-rexrov)를 실행한 채로 두세요. 아래 프로그램은 [준비한 터미널 B](terminals.md)에서 실행합니다. 먼저 위치를 읽고, 이어서 추진기에 짧은 명령을 보냅니다.
 
 ## Python에서 구독
 

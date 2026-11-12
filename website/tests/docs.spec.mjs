@@ -405,8 +405,10 @@ test('moved tutorial bookmarks open the corresponding English and Korean section
   for (const [oldPath, newPath] of [
     ['/ros.html#subscribe-from-python', '/python-control.html#subscribe-from-python'],
     ['/ros.html#visualization-and-recording', '/visualization.html#visualization-and-recording'],
-    ['/quickstart.html#2-spawn-rexrov', '/quickstart.html#1-start-the-robot-and-world'],
+    ['/quickstart.html#2-spawn-rexrov', '/rovs.html#start-rexrov'],
+    ['/quickstart.html#1-start-the-robot-and-world', '/rovs.html#start-rexrov'],
     ['/ko/ros.html#python에서-구독', '/ko/python-control.html#python에서-구독'],
+    ['/ko/quickstart.html#2-rexrov-배치', '/ko/rovs.html#start-rexrov'],
     ['/ko/quickstart.html#3-카메라-영상-받기', '/ko/visualization.html#카메라-영상-받기'],
   ]) {
     await page.goto(oldPath);

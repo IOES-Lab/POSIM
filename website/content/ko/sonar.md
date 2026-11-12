@@ -19,6 +19,8 @@ ros2 launch posim_multibeam_sonar_demo multibeam_sonar_demo.launch.py \
   compute_backend:=wgpu
 ```
 
+<figure><a href="{{ASSET_PREFIX}}media/guides/sonar-rviz.png"><img width="1920" height="1080" src="{{ASSET_PREFIX}}media/guides/sonar-rviz.png" alt="RViz에서 확인한 실시간 소나 영상, 점군과 카메라 영상(CUDA 계산)." loading="lazy" decoding="async"></a><figcaption>RViz에서 확인한 실시간 소나 영상, 점군과 카메라 영상(CUDA 계산).</figcaption></figure>
+
 예제는 하나씩 실행합니다. `wgpu`를 `cpu`, `cuda`, `auto`로 바꾸면 계산 방식을 선택할 수 있습니다. 로봇형 예제는 적절한 소나 월드에서 `bluerov2_heavy_multibeam_sonar`를 선택합니다.
 
 ## 출력 확인
@@ -180,7 +182,7 @@ BlueView P900과 BlueROV2 소나 launch 파일은 RViz 표시를 위해 `world`�
 <plugin filename="libmultibeam_sonar_system" name="custom::MultibeamSonarSystem"/>
 ```
 
-계산 백엔드와 렌더링 환경을 준비한 뒤 작업 공간을 다시 빌드하고 환경을 불러오세요. [센서 launch 인수](quickstart.md)로 새 센서 모델을 선택합니다. ROS 점군 브리지는 `sensor_msgs/msg/PointCloud2`와 Gazebo `gz.msgs.PointCloudPacked`를 연결합니다. `pointCloudTopicName`과 `sensor_config.py`에 지정한 경로를 일치시키세요.
+계산 백엔드와 렌더링 환경을 준비한 뒤 작업 공간을 다시 빌드하고 환경을 불러오세요. [센서 launch 인수](worlds.md)로 새 센서 모델을 선택합니다. ROS 점군 브리지는 `sensor_msgs/msg/PointCloud2`와 Gazebo `gz.msgs.PointCloudPacked`를 연결합니다. `pointCloudTopicName`과 `sensor_config.py`에 지정한 경로를 일치시키세요.
 
 ## 원시 소나 데이터 기록하기
 

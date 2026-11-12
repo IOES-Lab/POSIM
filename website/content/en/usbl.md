@@ -11,6 +11,8 @@ ros2 launch posim_demos posim_world.launch.py \
   world_name:=usbl_tutorial headless:=false
 ```
 
+<figure><a href="{{ASSET_PREFIX}}media/guides/usbl-scene.png"><img width="1440" height="1000" src="{{ASSET_PREFIX}}media/guides/usbl-scene.png" alt="USBL tutorial: one transceiver and two transponders." loading="lazy" decoding="async"></a><figcaption>USBL tutorial: one transceiver and two transponders.</figcaption></figure>
+
 The world already contains the transceiver and transponders. Start them together with the world launch.
 
 ## Receive positions

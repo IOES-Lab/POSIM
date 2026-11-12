@@ -19,6 +19,8 @@ ros2 launch posim_multibeam_sonar_demo multibeam_sonar_demo.launch.py \
   compute_backend:=wgpu
 ```
 
+<figure><a href="{{ASSET_PREFIX}}media/guides/sonar-rviz.png"><img width="1920" height="1080" src="{{ASSET_PREFIX}}media/guides/sonar-rviz.png" alt="Live sonar fan, point cloud and camera in RViz (CUDA backend)." loading="lazy" decoding="async"></a><figcaption>Live sonar fan, point cloud and camera in RViz (CUDA backend).</figcaption></figure>
+
 Use one launch at a time. Replace `wgpu` with `cpu`, `cuda` or `auto` to choose another backend. For the robot variant, select `bluerov2_heavy_multibeam_sonar` with a suitable sonar world.
 
 ## Observe outputs
@@ -180,7 +182,7 @@ Include the Gazebo rendering-sensor system and sonar system in the world. Consul
 <plugin filename="libmultibeam_sonar_system" name="custom::MultibeamSonarSystem"/>
 ```
 
-Prepare a compute backend and rendering, rebuild the workspace and load its environment, then select your sensor model using the [sensor launch arguments](quickstart.md). The ROS point-cloud bridge connects `sensor_msgs/msg/PointCloud2` to Gazebo `gz.msgs.PointCloudPacked`. Match `pointCloudTopicName` to the path configured in `sensor_config.py`.
+Prepare a compute backend and rendering, rebuild the workspace and load its environment, then select your sensor model using the [sensor launch arguments](worlds.md). The ROS point-cloud bridge connects `sensor_msgs/msg/PointCloud2` to Gazebo `gz.msgs.PointCloudPacked`. Match `pointCloudTopicName` to the path configured in `sensor_config.py`.
 
 ## Record raw sonar data
 

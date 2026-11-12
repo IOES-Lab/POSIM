@@ -11,6 +11,8 @@ ros2 launch posim_demos posim_world.launch.py \
   world_name:=usbl_tutorial headless:=false
 ```
 
+<figure><a href="{{ASSET_PREFIX}}media/guides/usbl-scene.png"><img width="1440" height="1000" src="{{ASSET_PREFIX}}media/guides/usbl-scene.png" alt="USBL 예제: 송수신기 한 개와 응답기 두 개." loading="lazy" decoding="async"></a><figcaption>USBL 예제: 송수신기 한 개와 응답기 두 개.</figcaption></figure>
+
 송수신기와 응답기가 월드에 포함되어 있으므로 월드 Launch로 함께 실행하세요.
 
 ## 위치 받기

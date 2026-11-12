@@ -8,6 +8,8 @@
 
 {{CODE:usbl:0}}
 
+{{MEDIA:usbl:0}}
+
 世界已包含这三个设备。在准备好的终端 B 中接收位置：
 
 {{CODE:usbl:1}}
@@ -78,6 +80,8 @@
 
 ## 布局与询问模式
 
-{{MEDIA:usbl}}
+{{MEDIA:usbl:1}}
+{{MEDIA:usbl:2}}
+{{MEDIA:usbl:3}}
 
 图片来源：POSIM Notion Wiki；DAVE 署名见[引用与许可证](citation.md)。执行时使用本页命令和话题名称。

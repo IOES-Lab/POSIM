@@ -28,7 +28,9 @@ Your model needs a physical antenna link, usually `gnss_link`, with its intended
 </plugin>
 ```
 
-The [receiver profiles](https://github.com/IOES-Lab/POSIM/blob/main/gazebo/posim_gz_gnss/config/profiles.json) provide mount poses relative to `base_link`: WAM-V at z = 1.8 m; BlueROV2 variants at 0.3 m; REXROV at 0.8 m. WAM-V's profile enables the receiver; the underwater vehicle profiles disable it by default. These JSON profiles are data for model-building callers. Installing them does not insert a link or plugin into every robot. WAM-V also needs its external [Wave Sim model](surface.md).
+The [receiver profiles](https://github.com/IOES-Lab/POSIM/blob/main/gazebo/posim_gz_gnss/config/profiles.json) provide mount poses relative to `base_link`: WAM-V at z = 1.8 m; BlueROV2 variants at 0.3 m; REXROV at 0.8 m. WAM-V and the three BlueROV2 profiles enable the receiver; REXROV disables it by default. These JSON profiles are data for model-building callers. Installing them does not insert a link or plugin into every robot. WAM-V also needs its external [Wave Sim model](surface.md).
+
+BlueROV2, BlueROV2 Heavy and the sonar variant include the receiver and the `marine_gnss_input` adapter. With ArduSub enabled, the adapter sends MAVROS `GPSINPUT` messages to the autopilot instead of SITL's synthetic GPS. It converts ENU velocity to NED and WGS 84 ellipsoid altitude to EGM96 mean-sea-level altitude using the installed GeographicLib dataset. Submerged, blocked, invalid, future or more than 1 s old measurements produce no fix. Satellite count is unknown (`255`) for a valid fix; satellite geometry and dilution are not simulated. The demo receiver uses mean water level z = 0, independently of the visual waves.
 
 ## Parameters
 
@@ -80,6 +82,8 @@ gz topic -t /model/my_robot/gnss/blocked -m gz.msgs.Boolean -p 'data: true'
 
 ## Interpretation and checks
 
-Compare a stationary dry antenna, a submerged antenna, a blocked antenna and recovery. Check acquisition time, delay, epoch after reset and increasing measurement timestamps. Consumers must reject stale/future fixes and handle invalid states. This plugin publishes Gazebo measurements; ROS `NavSatFix`, autopilot injection and navigation estimation need consumer adapters.
+Compare a stationary dry antenna, a submerged antenna, a blocked antenna and recovery. Check acquisition time, delay, epoch after reset and increasing measurement timestamps. Consumers must reject stale/future fixes and handle invalid states.
+
+The supplied BlueROV2 adapter feeds ArduSub; other ROS `NavSatFix` consumers and custom autopilots still need an adapter.
 
 The receiver is a simplified pose-based model. It does not compute satellite geometry, RF propagation, physical multipath or underwater acoustic positioning. Configurable accuracy values are simulation inputs, not a vendor accuracy guarantee. See [the receiver implementation](https://github.com/IOES-Lab/POSIM/blob/main/gazebo/posim_gz_gnss/Gnss.cc) and [package guide](https://github.com/IOES-Lab/POSIM/tree/main/gazebo/posim_gz_gnss).

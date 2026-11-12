@@ -66,7 +66,8 @@ def setup(context):
     )
     path = folder / "world.sdf"
     ET.ElementTree(sdf).write(path)
-    path = prepare(path, 0, 0)
+    world_file = LaunchConfiguration("world_file").perform(context)
+    path = Path(world_file) if world_file else prepare(path, 0, 0)
     gz_sim = ["gz", "sim", "--force-version", "10"]
     server_args = [*gz_sim, str(path), "-r", "-s"]
     headless = LaunchConfiguration("headless").perform(context) == "true"
@@ -86,7 +87,7 @@ def setup(context):
             "-world",
             world_name,
             "-file",
-            make_model(folder / "wamv.sdf"),
+            LaunchConfiguration("model_file").perform(context) or make_model(folder / "wamv.sdf"),
             "-name",
             "wamv",
             "-z",
@@ -168,6 +169,12 @@ def generate_launch_description():
     return LaunchDescription(
         [
             DeclareLaunchArgument("headless", default_value="true"),
+            DeclareLaunchArgument(
+                "world_file", default_value="", description="Optional world SDF"
+            ),
+            DeclareLaunchArgument(
+                "model_file", default_value="", description="Optional WAM-V SDF"
+            ),
             DeclareLaunchArgument(
                 "world_name",
                 default_value="posim_surface",

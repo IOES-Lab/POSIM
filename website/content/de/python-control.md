@@ -1,6 +1,6 @@
 # Mit Python steuern
 
-Lassen Sie REXROV aus der [ersten Simulation](quickstart.md) weiterlaufen. Lesen Sie in einem zweiten [vorbereiteten Terminal](terminals.md) seine Position und steuern Sie anschließend kurz einen Thruster an.
+Starten Sie das [REXROV-Beispiel](rovs.md#start-rexrov) in Terminal A und lassen Sie es laufen. Lesen Sie im [vorbereiteten Terminal B](terminals.md) seine Position und steuern Sie anschließend kurz einen Thruster an.
 
 ## Position abonnieren
 

@@ -1,6 +1,6 @@
 # Commander avec Python
 
-Gardez REXROV actif avec la [première simulation](quickstart.md). Dans un autre [terminal préparé](terminals.md), lisez sa position, puis appliquez une brève impulsion à un propulseur.
+Lancez l’[exemple REXROV](rovs.md#start-rexrov) dans le terminal A et gardez-le actif. Dans le [terminal B préparé](terminals.md), lisez sa position, puis appliquez une brève impulsion à un propulseur.
 
 ## S'abonner à la position
 

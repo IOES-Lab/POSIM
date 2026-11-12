@@ -1,7 +1,6 @@
 """Catch DVL configurations rejected by Gazebo before publication starts."""
 
 from pathlib import Path
-import re
 import xml.etree.ElementTree as ET
 
 import pytest
@@ -16,10 +15,8 @@ def test_dvl_catalog_is_present():
 
 @pytest.mark.parametrize("path", DVL_MODELS, ids=lambda p: p.parent.name)
 def test_water_mass_layer_fits_sensor_range(path):
-    # SDF accepts the gz extension without an XML namespace declaration.
-    text = re.sub(r"<sdf\b", '<sdf xmlns:gz="urn:gz"', path.read_text(), count=1)
-    root = ET.fromstring(text)
-    for dvl in root.iter("{urn:gz}dvl"):
+    root = ET.parse(path).getroot()
+    for dvl in root.iter("{http://gazebosim.org}dvl"):
         minimum = float(dvl.findtext("minimum_range"))
         maximum = float(dvl.findtext("maximum_range"))
         assert 0 <= minimum < maximum

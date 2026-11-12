@@ -2,6 +2,8 @@
 
 Worlds live in `models/posim_worlds/worlds`. Choose a world by its filename without the `.world` extension.
 
+Ocean demo worlds include `model://calm_waves`: Wave Sim FFT waves with a 3 m/s wind input, a 256 m periodic tile and a 768 × 768 m visual patch. The surface is visible from above and below. Native underwater effects shade RGB sensor images; the shallow underwater tutorial also enables them in the Gazebo world view. Wave Sim is included by the standard installers and images. Underwater vehicle buoyancy, marine GNSS and the optical boundary use mean water level z = 0, independently of visual wave elevation. WAM-V uses Wave Sim hydrodynamics coupled to the waves. The dry USBL and isolated sonar test worlds keep their own geometry.
+
 ## Start a world
 
 Run commands in the [POSIM terminal prepared for your installation](terminals.md), whether you use native Ubuntu, WSL, Docker or the RDP desktop.

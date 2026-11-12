@@ -4,7 +4,8 @@
   <description>Shared underwater surface optics for Gazebo Ogre2 cameras.</description>
   <maintainer email="woensug.choi@gmail.com">Woen-Sug Choi</maintainer>
   <license>Apache-2.0</license>
-  <buildtool_depend>cmake</buildtool_depend>
+  <buildtool_depend>ament_cmake</buildtool_depend>
   <depend>gz_sim_vendor</depend><depend>gz_rendering_vendor</depend><depend>gz_plugin_vendor</depend>
-  <export><build_type>cmake</build_type></export>
+  <depend>gz_gui_vendor</depend>
+  <export><build_type>ament_cmake</build_type></export>
 </package>

@@ -12,6 +12,8 @@ POSIM 多波束声呐采用点散射模型，生成随距离变化的回波强�
 
 {{CODE:sonar:1}}
 
+{{MEDIA:sonar:0}}
+
 一次只运行一个示例。将 `wgpu` 改为 `cpu`、`cuda` 或 `auto` 即可切换后端。若需搭载声呐的机器人，请选择 `bluerov2_heavy_multibeam_sonar` 和合适的声呐世界。
 
 ## 传感器计算流程
@@ -99,7 +101,7 @@ BlueView P900 和 BlueROV2 声呐的 launch 文件会发布从 `world` 到声呐
 1. 将 `models/posim_sensor_models/description/blueview_p900/` 复制为新的传感器目录。
 2. 准备对应的 `config/<传感器标识>/sensor_config.py`，统一模型、连杆、坐标系名称和桥接话题。
 3. 调整采样数、角度和距离范围。在世界中加载上面的两个系统；其他配置可参考[声呐世界 SDF](https://github.com/IOES-Lab/POSIM/blob/main/models/posim_worlds/worlds/posim_multibeam_sonar.world)。
-4. 准备计算后端和渲染环境，重新编译工作空间并加载环境，然后用[启动参数](quickstart.md)选择新传感器。
+4. 准备计算后端和渲染环境，重新编译工作空间并加载环境，然后用[启动参数](worlds.md)选择新传感器。
 
 ## 记录和绘制原始数据
 
@@ -125,6 +127,11 @@ BlueView P900 和 BlueROV2 声呐的 launch 文件会发布从 `world` 到声呐
 
 ## 场景与观测示例
 
-{{MEDIA:sonar}}
+{{MEDIA:sonar:1}}
+{{MEDIA:sonar:2}}
+{{MEDIA:sonar:3}}
+{{MEDIA:sonar:4}}
+{{MEDIA:sonar:5}}
+{{MEDIA:sonar:6}}
 
 图片和视频来自 POSIM Notion Wiki。DAVE 与声呐模型的出处见[引用与许可证](citation.md)。执行时请使用本页代码块中的命令和话题名。

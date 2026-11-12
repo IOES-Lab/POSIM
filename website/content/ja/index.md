@@ -2,6 +2,8 @@
 
 POSIMは、ROS 2とGazeboを使うオープンソースの海洋ロボティクスシミュレーションライブラリです。海洋環境、水上・水中ロボット、センサー、制御実験を実行できます。[UUV Simulator](https://uuvsimulator.github.io/)を基盤とする[Project DAVE](https://field-robotics-lab.github.io/dave.doc/)から派生しています。
 
+{{TUTORIALS}}
+
 {{OVERVIEW}}
 
 ## まずはここから

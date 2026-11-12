@@ -1,6 +1,6 @@
 # QGroundControl로 제어하기
 
-QGroundControl(QGC)에서 시뮬레이션 중인 BlueROV2에 연결하고, 가상 조이스틱으로 조종하며 전방 카메라 영상을 확인합니다. 먼저 [첫 시뮬레이션](quickstart.md)을 실행해 보고 [터미널 A와 B를 준비하세요](terminals.md).
+QGroundControl(QGC)에서 시뮬레이션 중인 BlueROV2에 연결하고, 가상 조이스틱으로 조종하며 전방 카메라 영상을 확인합니다. [설치](requirements.md)를 마친 뒤 [터미널 A와 B를 준비하세요](terminals.md).
 
 ## 1. POSIM과 같은 Linux 환경에서 QGC 열기
 
@@ -61,7 +61,7 @@ Gazebo에 해저 물체와 로봇이 나타납니다. QGC는 ArduSub에 자동�
 
 ```bash
 gz topic -t /model/bluerov2/camera/enable_streaming \
-  -m gz.msgs.Boolean -p 'data: true' --duration 1
+  -m gz.msgs.Boolean -p 'data: true' --duration 3
 ```
 
 **Fly View**로 돌아온 뒤 작은 영상 창을 클릭하면 카메라가 주 화면으로 표시됩니다.
@@ -73,7 +73,7 @@ gz topic -t /model/bluerov2/camera/enable_streaming \
 
 기본 카메라는 **시뮬레이션 시간 기준 5 Hz, 640 × 480** 영상을 만듭니다. 소프트웨어 렌더링으로 시뮬레이션이 느려지면 화면에 도착하는 영상도 느려집니다. BlueROV2에는 양성 부력이 있으므로 시동을 걸지 않고 기다리는 동안 떠올라 물체가 화면 밖으로 벗어날 수 있습니다.
 
-`qgc_video:=true`를 지정하면 이번 실행에 H.264 송신기를 추가합니다. 지정하지 않으면 QGC 영상 송신기를 만들지 않습니다. 이 영상은 로봇의 일반 RGB 카메라 출력입니다. 별도의 [수중 카메라 필터](camera.md)는 자체 ROS 토픽으로 처리 결과를 보냅니다.
+`qgc_video:=true`를 지정하면 H.264 송신기를 추가합니다. 로봇의 RGB 영상에는 월드의 [수중 장면 효과](underwater-rendering.md)가 포함됩니다. 별도의 [카메라 필터](camera.md)는 자체 ROS 출력을 사용합니다. 해양 GNSS는 안테나가 잠기면 측위를 잃고 수면 위로 나오면 다시 수신하지만, 텔레메트리·영상·수동 조작 연결은 유지됩니다. 수중에서는 Manual 모드를 사용하세요. 카메라 렌즈가 안테나보다 낮으므로 GNSS가 유효해도 수중 영상이 보일 수 있습니다.
 
 ## 5. 시동을 걸고 조종한 뒤 정지하기
 
@@ -89,10 +89,12 @@ QGC로 조종하는 동안 키보드·웹 조이스틱 제어기는 꺼 두세�
 
 ```bash
 gz topic -t /model/bluerov2/camera/enable_streaming \
-  -m gz.msgs.Boolean -p 'data: false' --duration 1
+  -m gz.msgs.Boolean -p 'data: false' --duration 3
 ```
 
 이어서 터미널 A에서 **Ctrl+C**로 시뮬레이션을 종료하고 QGC도 닫습니다.
+
+MAVROS는 기체의 하트비트가 60초 동안 수신되지 않으면 연결 끊김을 보고합니다. 소프트웨어 렌더링이 느릴 때 연결 상태가 반복해서 바뀌는 것을 줄이기 위한 설정입니다. 실제로 하트비트가 끊겨도 `/mavros/state`에 반영되기까지 최대 60초가 걸릴 수 있습니다.
 
 ## 연결이나 영상이 보이지 않을 때
 

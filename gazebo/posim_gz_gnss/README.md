@@ -4,8 +4,10 @@
 `gnss_link`, applies Gaussian receiver errors, and publishes one atomic
 `gz.msgs.Double_V` measurement. It uses the world's WGS 84 spherical coordinates.
 It supports any model with a named antenna link; vehicle mounts and receiver
-defaults are in `config/profiles.json`. BlueROV mounts are optional and disabled
-by default. The WAM-V model requires the external Wave Sim `wam-v` model.
+defaults are in `config/profiles.json`. The three BlueROV2 descriptions include
+enabled receivers; the REXROV profile is disabled by default. Profiles alone do
+not insert a receiver into a model. The WAM-V model requires the external Wave
+Sim `wam-v` model.
 
 Build from the configured POSIM workspace root:
 
@@ -47,3 +49,11 @@ not a vendor product guarantee. Consumers are responsible for measurement
 freshness, estimator source selection, coordinate conversion and distinguishing
 sensor measurements from estimated state. This plugin publishes Gazebo sensor
 measurements; it does not implement an autopilot integration or navigation filter.
+
+The separate `marine_gnss_input` adapter in `posim_robot_models` connects the
+three BlueROV2 receivers to ArduSub through MAVROS `GPSINPUT`. It converts ENU
+velocity to NED and ellipsoid altitude to EGM96 mean-sea-level altitude. Invalid,
+submerged, blocked, future or more than 1 s old samples produce no fix. Valid
+fixes use satellite count 255 (unknown), because satellite geometry is not
+simulated. The supplied ArduSub profiles select this input instead of synthetic
+SITL GPS. Loss of fix underwater does not stop telemetry or Manual control.

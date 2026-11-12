@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <!-- Teledyne Workhorse Navigator Doppler Velocity Logger (DVL) utilizing the
      WHOI DSL Gazebo environment DVL plugin -->
-<sdf version="1.6">
+<sdf version="1.6" xmlns:gz="http://gazebosim.org">
   <model name="teledyne_whn_dsl">
     <link name="whn_base_link">
       <pose>0 0 0 0 0 0</pose>

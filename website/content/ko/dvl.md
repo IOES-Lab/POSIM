@@ -12,6 +12,8 @@ ros2 launch posim_demos posim_sensor.launch.py \
   paused:=false gui:=true headless:=false
 ```
 
+<figure><a href="{{ASSET_PREFIX}}media/guides/dvl-beams.png"><img width="1440" height="1000" src="{{ASSET_PREFIX}}media/guides/dvl-beams.png" alt="Gazebo에서 해저와 만나는 DVL 빔." loading="lazy" decoding="async"></a><figcaption>Gazebo에서 해저와 만나는 DVL 빔.</figcaption></figure>
+
 준비한 터미널 B에서 Gazebo 데이터를 확인하고 **Ctrl+C**로 확인 도구를 종료한 뒤 ROS 데이터를 확인합니다.
 
 ```bash

@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<sdf version="1.7">
+<sdf version="1.7" xmlns:gz="http://gazebosim.org">
   <model name="blueview_p900">
     <pose>4 0 0.5 0 0.0 3.14</pose>
     <link name="blueview_p900_base_link">

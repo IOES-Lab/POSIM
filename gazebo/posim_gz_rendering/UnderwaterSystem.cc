@@ -16,11 +16,7 @@
 #include <mutex>
 #include <sstream>
 #include "Appearance.hh"
-#ifdef _WIN32
-#include <windows.h>
-#else
-#include <dlfcn.h>
-#endif
+#include "RuntimePaths.hh"
 namespace posim
 {
 class Underwater final : public gz::sim::System,
@@ -86,15 +82,21 @@ public:
     const gz::sim::Entity &, const std::shared_ptr<const sdf::Element> & sdf,
     gz::sim::EntityComponentManager &, gz::sim::EventManager & events) override
   {
-    if (
-      !sdf->HasElement("renderer_library") || !sdf->HasElement("shader_directory") ||
-      !sdf->HasElement("session_nonce"))
+    if (!sdf->HasElement("session_nonce"))
     {
-      gzerr << "Underwater requires renderer_library, shader_directory and session_nonce\n";
+      gzerr << "Underwater requires session_nonce\n";
       return;
     }
-    path = sdf->Get<std::string>("renderer_library");
-    pieces = sdf->Get<std::string>("shader_directory");
+    const auto directory = LibraryDirectory();
+    path =
+      sdf
+        ->Get<std::string>(
+          "renderer_library", (directory / "posim_underwater_render" POSIM_LIBRARY_SUFFIX).string())
+        .first;
+    pieces = sdf
+               ->Get<std::string>(
+                 "shader_directory", (directory.parent_path() / "share/posim/underwater").string())
+               .first;
     if (sdf->HasElement("initial_settings"))
     {
       std::istringstream stream(sdf->Get<std::string>("initial_settings"));

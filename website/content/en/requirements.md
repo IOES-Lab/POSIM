@@ -14,6 +14,8 @@ Choose a route for the operating system already on your computer. **Native Ubunt
 
 A Docker image supplies its own Ubuntu userspace. The Linux host does not need to use the same Ubuntu release as the image. Follow Docker's supported host requirements for your distribution. The macOS route above uses Apple silicon; ARM64 emulation on Intel Macs is not covered here.
 
+For this release, use Docker/RDP on macOS. A native macOS installation has not been qualified. References to native Metal support describe individual components; they do not establish support for the complete tutorial environment.
+
 ## Software inside the simulation environment
 
 Every route uses **ROS 2 Lyrical** and **Gazebo Sim — Gazebo Jetty**. Native installation prepares these in Ubuntu; the Docker image contains them. Install the graphics driver on the host as explained in the selected guide.

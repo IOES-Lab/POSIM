@@ -1,6 +1,6 @@
 # Controlar con QGroundControl
 
-Conecta QGroundControl (QGC) a BlueROV2, controla sus propulsores con los joysticks virtuales y observa la cámara frontal. Completa la [primera simulación](quickstart.md) y prepara las [terminales A y B](terminals.md).
+Conecta QGroundControl (QGC) al BlueROV2 simulado, usa los joysticks virtuales y observa la cámara frontal. Completa la [instalación](requirements.md) y prepara las [terminales A y B](terminals.md).
 
 ## 1. Abrir QGC junto a POSIM
 
@@ -55,7 +55,7 @@ Vuelve a **Fly View** y pulsa la vista previa del vídeo para ampliarla.
 
 La cámara genera imágenes de **640 × 480 a 5 Hz en tiempo simulado**. El renderizado por software puede ralentizar la simulación y reducir la frecuencia de imágenes mostrada. BlueROV2 tiene flotabilidad positiva y puede ascender sin armar los motores, dejando los objetos fuera de la imagen.
 
-`qgc_video:=true` añade el emisor H.264 a esta ejecución. Transmite la cámara RGB normal; el [filtro de cámara submarina](camera.md) tiene una salida ROS independiente.
+`qgc_video:=true` añade el emisor H.264. El vídeo RGB incluye los [efectos submarinos del mundo](underwater-rendering.md). El [filtro de cámara](camera.md) independiente tiene su propia salida ROS. GNSS pierde la posición al sumergirse la antena y la recupera al emerger; telemetría, vídeo y control manual siguen conectados. Usa Manual bajo el agua. La lente queda por debajo de la antena, por lo que puede verse una imagen submarina con una posición GNSS válida.
 
 ## 5. Armar, mover y detener
 
@@ -70,6 +70,8 @@ Mantén desactivados el control por teclado y el joystick web para evitar órden
 {{CODE:qgroundcontrol:3}}
 
 Pulsa **Ctrl+C** en A y cierra QGC.
+
+MAVROS espera hasta 60 segundos sin recibir un mensaje de latido del vehículo antes de indicar que se ha perdido la conexión. Este margen permite un renderizado por software lento; por ello, una pérdida real de los mensajes de latido puede tardar hasta 60 segundos en aparecer en `/mavros/state`.
 
 ## Resolver problemas de conexión
 

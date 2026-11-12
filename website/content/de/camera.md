@@ -5,7 +5,9 @@
 <a id="run-the-example"></a>
 ## Beispiel starten
 
-Dieses Beispiel verwendet den tiefenbasierten Kamerafilter. Der Szenenrenderer hat eigene [Build- und Konfigurationsschritte](underwater-rendering.md). Im [für Ihre Installation vorbereiteten Terminal A](terminals.md):
+Die Kamerawelt aktiviert kleine Wellen und native [Unterwassereffekte](underwater-rendering.md). Der Sensorstart setzt `POSIM_UNDERWATER_PLUGIN`, damit der Kompatibilitätsausgang bereits eingefärbte RGB-Pixel ohne zweite Dämpfung weitergibt. Zum Vergleich des separaten tiefenbasierten Filters verwenden Sie eine Welt ohne Szenensystem und setzen diese Umgebungsvariable nicht.
+
+Führen Sie das Beispiel im [vorbereiteten Terminal A](terminals.md) aus.
 
 {{CODE:camera:0}}
 

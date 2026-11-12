@@ -1,6 +1,6 @@
 # Controllare con QGroundControl
 
-Collega QGroundControl (QGC) a BlueROV2, usa i joystick virtuali e osserva la telecamera anteriore. Completa la [prima simulazione](quickstart.md) e prepara i [terminali A e B](terminals.md).
+Collega QGroundControl (QGC) al BlueROV2 simulato, usa i joystick virtuali e osserva la telecamera anteriore. Completa l’[installazione](requirements.md) e prepara i [terminali A e B](terminals.md).
 
 ## 1. Aprire QGC nell'ambiente POSIM
 
@@ -55,7 +55,7 @@ Torna a **Fly View** e fai clic sull'anteprima video per ingrandirla.
 
 La telecamera produce immagini di **640 × 480 a 5 Hz nel tempo di simulazione**. Il rendering software può ridurre la frequenza effettiva. BlueROV2 ha un assetto a galleggiabilità positiva: anche disarmato, può risalire e portare gli oggetti fuori dall'inquadratura.
 
-`qgc_video:=true` aggiunge il trasmettitore H.264 a questa esecuzione. Trasmette la normale telecamera RGB; il [filtro subacqueo](camera.md) ha un'uscita ROS separata.
+`qgc_video:=true` aggiunge il trasmettitore H.264. Il video RGB include gli [effetti subacquei del mondo](underwater-rendering.md). Il [filtro della telecamera](camera.md) indipendente ha una propria uscita ROS. GNSS perde la posizione quando l'antenna si immerge e la riacquisisce dopo l'emersione; telemetria, video e controllo manuale restano connessi. Usa Manual sott'acqua. La lente è più bassa dell'antenna, quindi l'immagine può essere subacquea anche con una posizione GNSS valida.
 
 ## 5. Armare, muovere e fermare
 
@@ -70,6 +70,8 @@ Mantieni disattivati il controllo da tastiera e il joystick web per evitare coma
 {{CODE:qgroundcontrol:3}}
 
 Premi **Ctrl+C** in A e chiudi QGC.
+
+MAVROS attende fino a 60 secondi senza ricevere un heartbeat dal veicolo prima di segnalare la perdita della connessione. Questo margine tiene conto del rendering software lento; una reale interruzione degli heartbeat può quindi richiedere fino a 60 secondi per apparire in `/mavros/state`.
 
 ## Risolvere problemi di connessione
 

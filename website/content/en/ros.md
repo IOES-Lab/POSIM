@@ -12,6 +12,8 @@ Sensor data travels toward your ROS program; commands travel toward the simulato
 
 Follow [Prepare your terminals](terminals.md) for your installation route. Keep [First simulation](quickstart.md) running in Terminal A and use Terminal B for the inspection commands below.
 
+Use the BlueROV2 underwater example without sonar for these topic names. With sonar, replace `bluerov2` with `bluerov2_heavy_multibeam_sonar`; for the surface example, use `wamv`.
+
 ## Inspect the graph
 
 The inspection commands use `--no-daemon` to query ROS directly, without depending on a cached CLI daemon.
@@ -20,7 +22,7 @@ The inspection commands use `--no-daemon` to query ROS directly, without dependi
 ros2 topic list --no-daemon -t
 ros2 service list --no-daemon -t
 gz topic -l
-ros2 topic info --no-daemon /model/rexrov/odometry --verbose
+ros2 topic info --no-daemon /model/bluerov2/odometry --verbose
 ```
 
 `ros2 topic list` lists ROS topics; `gz topic -l` lists Gazebo Transport topics. Inspect the message type, publisher, subscriber and QoS information before connecting a program.
@@ -28,7 +30,7 @@ ros2 topic info --no-daemon /model/rexrov/odometry --verbose
 ## Watch a changing value
 
 ```bash
-ros2 topic echo --no-daemon /model/rexrov/odometry nav_msgs/msg/Odometry --field pose.pose.position
+ros2 topic echo --no-daemon /model/bluerov2/odometry nav_msgs/msg/Odometry --field pose.pose.position
 ```
 
 Position samples should continue to arrive. A stationary robot can report nearly constant positions while its timestamps advance. Press **Ctrl+C in Terminal B** to stop the viewer; Terminal A keeps the simulation running.

@@ -2,6 +2,14 @@
 
 Simulez un WAM-V avec les vagues de Wave Sim et ArduRover en mode bateau. L'installateur POSIM et ses recettes Docker compilent les bibliothèques externes de vagues.
 
+## Tutoriel standard
+
+L’installation standard inclut un parcours de bouées WAM-V avec caméra, lidar et vue RViz préconfigurée. L’image optionnelle ci-dessous n’est pas nécessaire. Dans le [terminal POSIM préparé](terminals.md), exécutez :
+
+{{CODE:quickstart:4}}
+
+Suivez [Première simulation](quickstart.md) pour la scène, l’affichage lidar, la vidéo et le pilotage avec QGroundControl.
+
 ## Préparer le WAM-V
 
 Cette image facultative utilise l'organisation du bureau ARM64. Sur un Mac Apple Silicon, préparez [Docker et RDP](install-macos.md), puis exécutez ces commandes depuis une copie du dépôt POSIM dans le Terminal macOS :

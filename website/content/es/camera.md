@@ -5,7 +5,9 @@
 <a id="run-the-example"></a>
 ## Ejecutar el ejemplo
 
-Este ejemplo usa el filtro de cámara basado en profundidad. El renderizador de escena tiene su propia [compilación y configuración](underwater-rendering.md). En la [terminal A preparada para tu instalación](terminals.md):
+El mundo de cámara activa olas pequeñas y [efectos submarinos nativos](underwater-rendering.md). El lanzamiento del sensor define `POSIM_UNDERWATER_PLUGIN` para pasar los píxeles RGB ya procesados a la salida compatible sin atenuarlos dos veces. Para comparar el filtro independiente basado en profundidad, usa un mundo sin el sistema de escena y deja esa variable sin definir.
+
+Ejecuta el ejemplo en la [terminal A preparada](terminals.md).
 
 {{CODE:camera:0}}
 

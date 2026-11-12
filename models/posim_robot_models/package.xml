@@ -11,12 +11,19 @@
   <exec_depend>launch</exec_depend>
   <exec_depend>launch_ros</exec_depend>
   <exec_depend>mavros</exec_depend>
-  <exec_depend>mavros_msgs</exec_depend>
+  <depend>mavros_msgs</depend>
+  <depend>rclcpp</depend>
+  <depend>gz_transport_vendor</depend>
+  <depend>geographiclib</depend>
+  <build_depend>pkg-config</build_depend>
+  <exec_depend>mavros_extras</exec_depend>
+  <exec_depend>posim_gz_gnss</exec_depend>
   <exec_depend>python3-websockets</exec_depend>
   <exec_depend>rclpy</exec_depend>
   <exec_depend>sensor_msgs</exec_depend>
   <exec_depend>std_msgs</exec_depend>
   <test_depend>ament_cmake_pytest</test_depend>
+  <test_depend>ament_cmake_gtest</test_depend>
   <test_depend>gz_tools_vendor</test_depend>
   <test_depend>sdformat_vendor</test_depend>
   <export>

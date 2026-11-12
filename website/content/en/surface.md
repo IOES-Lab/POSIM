@@ -2,6 +2,14 @@
 
 Simulate a WAM-V surface vehicle with Wave Sim waves and ArduRover boat-mode control. The standard POSIM installer and Docker recipes build the external wave libraries.
 
+## Standard tutorial
+
+The standard POSIM installation includes a WAM-V buoy-course tutorial with camera, lidar and a configured RViz view. It does not require the optional image below. In your [prepared POSIM terminal](terminals.md), run:
+
+{{CODE:quickstart:4}}
+
+Follow [First simulation](quickstart.md) for the scene, lidar display, QGroundControl video and control steps.
+
 ## Build the WAM-V integration
 
 This optional image uses the ARM64 desktop layout. On an Apple Silicon Mac, prepare [Docker and an RDP client](install-macos.md), then run these commands from a POSIM checkout in the macOS Terminal:

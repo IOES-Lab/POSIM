@@ -12,6 +12,8 @@ POSIM のマルチビームソナーは、点散乱モデルで距離ごとの�
 
 {{CODE:sonar:1}}
 
+{{MEDIA:sonar:0}}
+
 例は 1 つずつ実行してください。`wgpu` を `cpu`、`cuda`、`auto` に替えると計算方法を選べます。ロボット搭載の例では、適切なソナーワールドで `bluerov2_heavy_multibeam_sonar` を選びます。
 
 ## センサーの計算処理
@@ -99,7 +101,7 @@ BlueView P900とBlueROV2ソナーのlaunchファイルは、RViz表示用に`wor
 1. `models/posim_sensor_models/description/blueview_p900/`を新しいセンサー名でコピーします。
 2. 対応する`config/<センサー名>/sensor_config.py`を用意し、モデル・リンク・座標系の名前とブリッジのトピックをそろえます。
 3. サンプル数、角度、距離範囲を設定します。ワールドに上記の2つのシステムを組み込みます。その他の設定は[ソナー用ワールドのSDF](https://github.com/IOES-Lab/POSIM/blob/main/models/posim_worlds/worlds/posim_multibeam_sonar.world)を参照してください。
-4. 計算バックエンドと描画環境を準備し、ワークスペースを再ビルドして環境を読み込みます。[起動引数](quickstart.md)で新しいセンサーを選びます。
+4. 計算バックエンドと描画環境を準備し、ワークスペースを再ビルドして環境を読み込みます。[起動引数](worlds.md)で新しいセンサーを選びます。
 
 ## 生データを保存・表示する
 
@@ -125,6 +127,11 @@ PNGとして保存する場合：
 
 ## シーンと観測例
 
-{{MEDIA:sonar}}
+{{MEDIA:sonar:1}}
+{{MEDIA:sonar:2}}
+{{MEDIA:sonar:3}}
+{{MEDIA:sonar:4}}
+{{MEDIA:sonar:5}}
+{{MEDIA:sonar:6}}
 
 図・動画：POSIM Notion Wiki。DAVEとソナーモデルの出典は[引用とライセンス](citation.md)を参照してください。コマンドとトピック名は、このページのコードブロックを使用します。

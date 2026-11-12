@@ -12,6 +12,8 @@ Le misure arrivano al programma ROS; i comandi vanno al simulatore. Un topic Gaz
 
 Segui la [preparazione dei terminali per la tua installazione](terminals.md). Mantieni la [prima simulazione](quickstart.md) in A ed esegui i comandi seguenti in B.
 
+Questi topic corrispondono a BlueROV2 senza sonar. Con il sonar, sostituisci `bluerov2` con `bluerov2_heavy_multibeam_sonar`; per l’esempio di superficie usa `wamv`.
+
 ## Esaminare le connessioni
 
 `--no-daemon` interroga direttamente ROS, senza dipendere dalla cache del demone della CLI.

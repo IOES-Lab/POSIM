@@ -8,6 +8,8 @@ DVL 估计相对于海底或周围水体的速度。POSIM 使用 Gazebo DVL 系�
 
 {{CODE:dvl:0}}
 
+{{MEDIA:dvl:0}}
+
 在准备好的终端 B 中先查看 Gazebo 数据，按 **Ctrl+C** 停止查看，再读取 ROS 数据：
 
 {{CODE:dvl:1}}
@@ -70,6 +72,9 @@ POSIM 桥接插件放在传感器的 `<model>` 中，其话题须与 `<link>` �
 
 ## DVL 波束与输出
 
-{{MEDIA:dvl}}
+{{MEDIA:dvl:1}}
+{{MEDIA:dvl:2}}
+{{MEDIA:dvl:3}}
+{{MEDIA:dvl:4}}
 
 图片来源：POSIM Notion Wiki；DAVE 署名见[引用与许可证](citation.md)。执行时使用本页命令和话题名称。

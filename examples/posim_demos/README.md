@@ -9,9 +9,32 @@ source "$HOME/.ros_ardusub_env/env"
 source ~/posim_ws/install/setup.bash
 ```
 
-The `posim_demos` package provides four launch entry points for installed
-world, object, sensor and robot descriptions. Packages install their resource
-hooks automatically.
+The `posim_demos` package provides two introductory tutorials and four generic
+launch entry points for installed world, object, sensor and robot descriptions.
+Packages install their resource hooks automatically.
+
+## First simulations
+
+Start BlueROV2 above a four-metre seabed with inspection objects and a shaded
+underwater camera:
+
+```bash
+ros2 launch posim_demos underwater_tutorial.launch.py
+```
+
+Append `sonar:=true` to add multibeam sonar. The backend remains `auto`; sonar
+may reduce frame rate and control responsiveness. Gazebo and RViz load the
+camera, vehicle and optional sonar views.
+
+After stopping that session, start WAM-V with a camera and lidar facing buoys:
+
+```bash
+ros2 launch posim_demos surface_tutorial.launch.py
+```
+
+Both tutorials use the standard installation. Follow
+[First simulation](../../website/content/en/quickstart.md) for live-data checks,
+QGroundControl video and controls, and shutdown.
 
 ## World
 
@@ -41,8 +64,8 @@ ros2 launch posim_demos posim_sensor.launch.py \
 
 Use `gui:=false headless:=true` for a server-only run. Rendering sensors may
 still need a working render context when the graphical client is disabled.
-The [CUDA sonar](../../gazebo/posim_gz_multibeam_sonar/README.md) has additional
-hardware and toolkit requirements.
+The [multibeam sonar](../../gazebo/posim_gz_multibeam_sonar/README.md) has
+backend-specific hardware and toolkit requirements.
 
 ## Robot
 
@@ -61,7 +84,8 @@ ros2 launch posim_demos posim_robot.launch.py \
 ```
 
 Use `namespace:=bluerov2_heavy` for the heavy configuration. The
-`bluerov2_heavy_multibeam_sonar` configuration also needs the CUDA sonar backend.
+`bluerov2_heavy_multibeam_sonar` configuration needs a supported CPU, WGPU or
+CUDA sonar backend and a working renderer.
 
 Slocum glider:
 

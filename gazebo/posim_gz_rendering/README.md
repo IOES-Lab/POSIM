@@ -17,7 +17,7 @@ Scene distance clips the contribution at opaque surfaces.
 Grid traversal uses standard 3D DDA; see
 [Amanatides and Woo, 1987](https://www.cse.yorku.ca/~amana/research/grid.pdf).
 
-- Cell occupancy: 3% by default.
+- Cell occupancy: 10% by default.
 - Particle radius: 1.5–4 mm.
 - Visible ray interval: 0.05–3 m, clipped by the scene and mean water level.
 - Work limit: 24 crossed cells per fragment.
@@ -28,17 +28,25 @@ separate from fluid simulation and does not change acoustic rays, pressure or
 numeric depth. A particle is not a fixed seabed landmark; perception systems
 still need to distinguish suspended matter from static surfaces.
 
-Build with CMake against the same Gazebo/Ogre SDK as the server. The system library delays loading its rendering helper until Gazebo creates a rendering scene. Install libraries to `lib` and shader pieces to `share/posim/underwater`.
+Build against the same Gazebo/Ogre SDK as the server and GUI. The ROS package exports the installed plugin search paths; standalone CMake builds are also supported. The system library delays loading its rendering helper until Gazebo creates a rendering scene. Install libraries to `lib` and shader pieces to `share/posim/underwater`.
 
 ```xml
-<plugin filename="/absolute/lib/posim_underwater.so" name="posim::Underwater">
-  <renderer_library>/absolute/lib/posim_underwater_render.so</renderer_library>
-  <shader_directory>/absolute/share/posim/underwater</shader_directory>
+<plugin filename="posim_underwater" name="posim::Underwater">
   <session_nonce>unique_session_id</session_nonce>
 </plugin>
 ```
 
-On macOS the libraries have the `.dylib` suffix. Use one instance per Gazebo process. The renderer extends the engine's PBS listener and restores it during render teardown.
+The helper library and shaders are found relative to the installed system library. Optional `renderer_library` and `shader_directory` entries override those paths. Native macOS libraries use `.dylib`. Use one renderer instance per Gazebo process. The renderer extends the engine's PBS listener and restores it during render teardown or scene destruction.
+
+The server system shades sensor images. To apply the same settings to Gazebo's world view, add this plugin alongside the world's existing `<gui>` plugins, using the same session nonce:
+
+```xml
+<plugin filename="posim_underwater_gui" name="posim::UnderwaterGui">
+  <session_nonce>unique_session_id</session_nonce>
+</plugin>
+```
+
+The GUI plugin reads the server's applied appearance state and updates its own rendering scene. The shallow underwater tutorial includes both plugins. Camera clipping remains a separate setting from optical attenuation.
 
 `/posim/appearance/<session_nonce>/set` accepts `gz.msgs.Double_V`. Its 13 values are schema (1), revision, water optics, seabed texture, grid, contours, haze, absorption, sunlight fading, caustics, specks, grid spacing and contour spacing. Boolean values are 0 or 1. Revision advances by exactly one; an identical retry is idempotent. `/state` accepts `gz.msgs.Empty` and returns those 13 values plus ready, camera count and renderer failed. Applied state is acknowledged after rendering.
 
@@ -56,7 +64,7 @@ Seabed visuals are named `seabed` or `shallow` (including Gazebo scoped names). 
 
 Build the `underwater-settings-test`, `underwater-render-test` and
 `underwater-particle-render-test` targets with a matching Gazebo/Ogre SDK.
-`ctest` runs the settings check. The rendering programs require a functioning
+`ctest` runs the settings and system-lifecycle checks. The rendering programs require a functioning
 Metal or headless Ogre2 context and run separately.
 
 ```sh

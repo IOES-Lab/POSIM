@@ -2,6 +2,14 @@
 
 Simula un WAM-V con oleaje de Wave Sim y control ArduRover en modo embarcación. El instalador POSIM y sus recetas Docker compilan las bibliotecas externas de oleaje.
 
+## Tutorial estándar
+
+La instalación estándar incluye un recorrido de boyas con WAM-V, cámara, lidar y una vista de RViz configurada. No necesita la imagen opcional de abajo. En la [terminal de POSIM preparada](terminals.md), ejecuta:
+
+{{CODE:quickstart:4}}
+
+Sigue [Primera simulación](quickstart.md) para la escena, la visualización del lidar y el vídeo y control con QGroundControl.
+
 ## Preparar el WAM-V
 
 Esta imagen opcional usa la distribución de escritorio ARM64. En un Mac con Apple Silicon, prepara [Docker y RDP](install-macos.md). Desde una copia del repositorio POSIM, ejecuta en la Terminal de macOS:

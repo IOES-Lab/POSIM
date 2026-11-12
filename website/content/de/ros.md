@@ -12,6 +12,8 @@ Messwerte gelangen zum ROS-Programm, Befehle zum Simulator. Ein Gazebo-Topic ist
 
 Folgen Sie der [Terminal-Einrichtung für Ihre Installation](terminals.md). Lassen Sie die [erste Simulation](quickstart.md) in A laufen und verwenden Sie B für die folgenden Befehle.
 
+Die Topic-Namen gelten für BlueROV2 ohne Sonar. Ersetzen Sie mit Sonar `bluerov2` durch `bluerov2_heavy_multibeam_sonar`, beim Oberflächenbeispiel durch `wamv`.
+
 ## Verbindungen untersuchen
 
 `--no-daemon` fragt ROS direkt ab und umgeht den Cache des CLI-Daemons.

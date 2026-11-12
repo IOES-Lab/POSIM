@@ -1,0 +1,70 @@
+Panels:
+  - Class: rviz_common/Displays
+    Name: Displays
+Visualization Manager:
+  Class: ""
+  Displays:
+    - Class: rviz_default_plugins/RobotModel
+      Name: BlueROV2
+      Enabled: true
+      Description Source: Topic
+      Description Topic:
+        Value: /robot_description
+        Durability Policy: Transient Local
+      TF Prefix: ROBOT
+      Visual Enabled: true
+      Collision Enabled: false
+    - Class: rviz_default_plugins/Grid
+      Name: Distance grid (1 m)
+      Enabled: true
+      Cell Size: 1
+      Plane Cell Count: 20
+      Color: 100; 110; 120
+      Alpha: 0.25
+    - Class: rviz_default_plugins/Image
+      Name: Camera
+      Enabled: true
+      Topic:
+        Value: /tutorial/camera
+        Reliability Policy: Best Effort
+        Depth: 2
+    - Class: rviz_default_plugins/Image
+      Name: Sonar
+      Enabled: true
+      Topic:
+        Value: /model/ROBOT/multibeam_sonar/sonar_image
+        Reliability Policy: Reliable
+        Depth: 2
+    - Class: rviz_default_plugins/PointCloud2
+      Name: Sonar point cloud
+      Enabled: true
+      Topic:
+        Value: /model/ROBOT/multibeam_sonar/point_cloud
+        Reliability Policy: Reliable
+        Depth: 2
+      Size (Pixels): 3
+      Style: Points
+      Color Transformer: AxisColor
+      Position Transformer: XYZ
+      Axis: Z
+  Global Options:
+    Fixed Frame: ROBOT/base_link
+    Frame Rate: 15
+    Background Color: 35; 42; 48
+  Enabled: true
+  Tools:
+    - Class: rviz_default_plugins/MoveCamera
+  Views:
+    Current:
+      Class: rviz_default_plugins/Orbit
+      Distance: 13
+      Focal Point:
+        X: 3
+        Y: 0
+        Z: 0
+      Pitch: 0.65
+      Yaw: 3.14
+      Target Frame: <Fixed Frame>
+Window Geometry:
+  Width: 1400
+  Height: 850

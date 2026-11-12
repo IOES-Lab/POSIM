@@ -1,6 +1,6 @@
 # 使用 Python 控制
 
-按照[第一次仿真](quickstart.md)启动 REXROV，并保持运行。在另一个[准备好的终端](terminals.md)中读取位置，再向一个推进器发送短时指令。
+在终端 A 启动 [REXROV 示例](rovs.md#start-rexrov)并保持运行。在[准备好的终端 B](terminals.md)中先读取位置，再向一个推进器发送短时指令。
 
 ## 订阅位置
 

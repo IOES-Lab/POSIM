@@ -14,6 +14,8 @@
 
 Docker 이미지는 자체 Ubuntu 환경을 포함하므로 Linux 호스트와 이미지의 Ubuntu 버전이 같을 필요는 없습니다. 호스트 운영 체제는 Docker의 지원 조건을 확인하세요. macOS 경로는 Apple silicon을 기준으로 하며, Intel Mac의 ARM64 에뮬레이션은 이 안내에 포함하지 않습니다.
 
+이번 릴리스에서는 macOS의 Docker·RDP 경로를 사용하세요. macOS 네이티브 설치는 아직 검증되지 않았습니다. 문서의 네이티브 Metal 지원은 개별 구성 요소에 대한 설명이며, 튜토리얼 전체 실행 환경을 지원한다는 뜻은 아닙니다.
+
 ## 시뮬레이션 환경의 소프트웨어
 
 모든 경로에서 **ROS 2 Lyrical**과 **Gazebo Sim — Gazebo Jetty**를 사용합니다. 네이티브 설치는 Ubuntu에 이들을 준비하고, Docker 이미지는 이들을 포함합니다. 호스트 그래픽 드라이버는 선택한 설치 가이드에서 안내합니다.

@@ -8,6 +8,8 @@ En la [terminal A preparada para tu instalación](terminals.md):
 
 {{CODE:dvl:0}}
 
+{{MEDIA:dvl:0}}
+
 En la terminal B preparada, consulta Gazebo, detén esa consulta con **Ctrl+C** y después consulta ROS:
 
 {{CODE:dvl:1}}
@@ -70,6 +72,9 @@ Consulta `ros2 interface show posim_interfaces/msg/DVL`. Comprueba velocidad, re
 
 ## Haces y salida DVL
 
-{{MEDIA:dvl}}
+{{MEDIA:dvl:1}}
+{{MEDIA:dvl:2}}
+{{MEDIA:dvl:3}}
+{{MEDIA:dvl:4}}
 
 Imágenes: wiki Notion de POSIM; atribución DAVE en [Citas y licencias](citation.md). Usa los comandos y topics de esta página.

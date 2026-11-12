@@ -12,6 +12,8 @@ Le paquet `posim_multibeam_sonar_demo` propose aussi un exemple autonome :
 
 {{CODE:sonar:1}}
 
+{{MEDIA:sonar:0}}
+
 Lancez un seul exemple à la fois. Remplacez `wgpu` par `cpu`, `cuda` ou `auto` pour changer de moteur de calcul. Pour un sonar embarqué, sélectionnez `bluerov2_heavy_multibeam_sonar` avec un monde adapté.
 
 ## Fonctionnement du capteur
@@ -99,7 +101,7 @@ Le lancement dédié accepte `compute_backend`. Les autres lancements lisent `PO
 1. Copiez `models/posim_sensor_models/description/blueview_p900/` sous un nouvel identifiant.
 2. Préparez le `config/<identifiant>/sensor_config.py` correspondant. Accordez les noms de modèle, de liens, de repères et les topics du pont.
 3. Réglez les échantillons, les angles et la portée. Chargez dans le monde les deux systèmes présentés plus haut ; consultez le [SDF du monde sonar](https://github.com/IOES-Lab/POSIM/blob/main/models/posim_worlds/worlds/posim_multibeam_sonar.world).
-4. Préparez le moteur de calcul et le rendu, recompilez l'espace de travail et chargez son environnement. Sélectionnez le capteur avec les [arguments de lancement](quickstart.md).
+4. Préparez le moteur de calcul et le rendu, recompilez l'espace de travail et chargez son environnement. Sélectionnez le capteur avec les [arguments de lancement](worlds.md).
 
 ## Enregistrer et tracer les données brutes
 
@@ -125,6 +127,11 @@ Les couleurs sont relatives au maximum de chaque image. Comparez les valeurs CSV
 
 ## Scènes et observations
 
-{{MEDIA:sonar}}
+{{MEDIA:sonar:1}}
+{{MEDIA:sonar:2}}
+{{MEDIA:sonar:3}}
+{{MEDIA:sonar:4}}
+{{MEDIA:sonar:5}}
+{{MEDIA:sonar:6}}
 
 Images et vidéos : POSIM Notion Wiki. Les [références et licences](citation.md) donnent les attributions de DAVE et du modèle sonar. Utilisez les commandes et les noms de topics des blocs de cette page.
