@@ -15,7 +15,7 @@ The `127.0.0.1` addresses in this guide refer to the environment where QGC is ru
 | Linux or Windows with Docker | Run the bundled application inside the POSIM container. |
 | macOS with Docker and RDP | Run the bundled application from a terminal inside the RDP desktop. |
 
-For native installations, follow the official [QGC download and installation instructions](https://docs.qgroundcontrol.com/master/en/qgc-user-guide/getting_started/download_and_install.html). Download the Linux build for your CPU architecture. On WSL, run it inside Ubuntu.
+This guide uses QGC **5.1.5**, which is bundled in the POSIM Docker images. For native installations, follow the official [installation instructions](https://docs.qgroundcontrol.com/master/en/qgc-user-guide/getting_started/download_and_install.html) and download the Linux AppImage for your CPU architecture from the [5.1.5 release](https://github.com/mavlink/qgroundcontrol/releases/tag/v5.1.5). On WSL, run it inside Ubuntu.
 
 In a Docker container, open QGC from terminal B:
 

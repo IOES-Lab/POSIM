@@ -15,7 +15,7 @@ Las direcciones `127.0.0.1` de esta guía corresponden al entorno donde se ejecu
 | Linux o Windows con Docker | Abre la aplicación incluida dentro del contenedor POSIM. |
 | macOS con Docker y RDP | Abre la aplicación desde una terminal del escritorio RDP. |
 
-Para una instalación nativa, sigue la [guía oficial de instalación de QGC](https://docs.qgroundcontrol.com/master/en/qgc-user-guide/getting_started/download_and_install.html) y elige la versión Linux para tu arquitectura. En Docker, utiliza la terminal B:
+Esta guía utiliza QGC **5.1.5**, incluido en las imágenes Docker de POSIM. Para una instalación nativa, sigue la [guía oficial de instalación](https://docs.qgroundcontrol.com/master/en/qgc-user-guide/getting_started/download_and_install.html) y descarga el AppImage de Linux para tu arquitectura desde la [página de la versión 5.1.5](https://github.com/mavlink/qgroundcontrol/releases/tag/v5.1.5). En Docker, utiliza la terminal B:
 
 {{CODE:qgroundcontrol:0}}
 

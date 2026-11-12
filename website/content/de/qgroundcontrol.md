@@ -15,7 +15,7 @@ Die Adressen `127.0.0.1` in dieser Anleitung beziehen sich auf die Umgebung, in 
 | Linux oder Windows mit Docker | Mitgelieferte Anwendung im POSIM-Container starten. |
 | macOS mit Docker und RDP | Anwendung in einem Terminal des RDP-Desktops starten. |
 
-Für native Installationen folgen Sie der [offiziellen QGC-Anleitung](https://docs.qgroundcontrol.com/master/en/qgc-user-guide/getting_started/download_and_install.html). Wählen Sie die Linux-Version für Ihre Prozessorarchitektur. Im Container verwenden Sie Terminal B:
+Diese Anleitung verwendet QGC **5.1.5**, das in den POSIM-Docker-Images enthalten ist. Für native Installationen folgen Sie der [offiziellen Installationsanleitung](https://docs.qgroundcontrol.com/master/en/qgc-user-guide/getting_started/download_and_install.html) und laden das Linux-AppImage für Ihre Prozessorarchitektur von der [Release-Seite für 5.1.5](https://github.com/mavlink/qgroundcontrol/releases/tag/v5.1.5) herunter. Im Container verwenden Sie Terminal B:
 
 {{CODE:qgroundcontrol:0}}
 

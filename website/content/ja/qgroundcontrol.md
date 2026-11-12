@@ -15,7 +15,7 @@ QGroundControl（QGC）を BlueROV2 に接続し、仮想ジョイスティッ�
 | Linux・Windows の Docker | POSIM コンテナ内の同梱アプリを実行します。 |
 | macOS の Docker・RDP | RDP デスクトップのターミナルから同梱アプリを実行します。 |
 
-ネイティブ環境では、[QGC 公式インストールガイド](https://docs.qgroundcontrol.com/master/en/qgc-user-guide/getting_started/download_and_install.html)に従って CPU アーキテクチャに合う Linux 版を入れます。Docker ではターミナル B で実行します。
+このガイドは、POSIM の Docker イメージに同梱されている QGC **5.1.5** を使用します。ネイティブ環境では、[公式インストールガイド](https://docs.qgroundcontrol.com/master/en/qgc-user-guide/getting_started/download_and_install.html)に従い、[5.1.5 リリース](https://github.com/mavlink/qgroundcontrol/releases/tag/v5.1.5)から CPU アーキテクチャに合う Linux AppImage を入手してください。Docker ではターミナル B で実行します。
 
 {{CODE:qgroundcontrol:0}}
 

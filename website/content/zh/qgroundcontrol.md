@@ -15,7 +15,7 @@
 | Linux 或 Windows Docker | 在 POSIM 容器内运行镜像自带的应用。 |
 | macOS Docker 与 RDP | 在 RDP 桌面的终端中运行自带的应用。 |
 
-原生安装请按照 [QGC 官方安装指南](https://docs.qgroundcontrol.com/master/en/qgc-user-guide/getting_started/download_and_install.html)，选择与 CPU 架构对应的 Linux 版本。在 Docker 中，从终端 B 启动：
+本指南使用 POSIM Docker 镜像中附带的 QGC **5.1.5**。原生安装请按照[官方安装指南](https://docs.qgroundcontrol.com/master/en/qgc-user-guide/getting_started/download_and_install.html)，从 [5.1.5 发布页面](https://github.com/mavlink/qgroundcontrol/releases/tag/v5.1.5)下载与 CPU 架构对应的 Linux AppImage。在 Docker 中，从终端 B 启动：
 
 {{CODE:qgroundcontrol:0}}
 

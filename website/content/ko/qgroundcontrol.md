@@ -15,7 +15,7 @@ QGroundControl(QGC)에서 시뮬레이션 중인 BlueROV2에 연결하고, 가�
 | Linux·Windows Docker | POSIM 컨테이너에 포함된 앱을 컨테이너 안에서 실행합니다. |
 | macOS Docker·RDP | RDP 데스크톱 안의 터미널에서 컨테이너에 포함된 앱을 실행합니다. |
 
-네이티브 설치에서는 공식 [QGC 다운로드·설치 안내](https://docs.qgroundcontrol.com/master/en/qgc-user-guide/getting_started/download_and_install.html)를 따르세요. CPU 아키텍처에 맞는 Linux 앱을 받습니다. WSL에서도 Ubuntu 안에서 실행합니다.
+이 안내는 POSIM Docker 이미지에 포함된 QGC **5.1.5**를 기준으로 합니다. 네이티브 설치에서는 공식 [설치 안내](https://docs.qgroundcontrol.com/master/en/qgc-user-guide/getting_started/download_and_install.html)를 따르고, [5.1.5 릴리스](https://github.com/mavlink/qgroundcontrol/releases/tag/v5.1.5)에서 CPU 아키텍처에 맞는 Linux AppImage를 받으세요. WSL에서도 Ubuntu 안에서 실행합니다.
 
 Docker에서는 터미널 B에 다음을 입력합니다.
 
