@@ -9,7 +9,7 @@ POSIM is an open-source maritime robotics simulation library maintained by
 It combines ocean environments, underwater and surface robots,
 simulated sensors, and ROS 2 control interfaces for Gazebo Sim.
 
-![GraphicalAbstract](docs/release/POSIM_Graphical_Abstract_Release1.0.0_FF.png)
+![GraphicalAbstract](docs/releases/POSIM_Graphical_Abstract_Release1.0.0_FF.png)
 
 ## Documentation
 
