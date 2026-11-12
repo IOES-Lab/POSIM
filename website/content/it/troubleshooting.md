@@ -68,9 +68,11 @@ Ferma i visualizzatori, premi Ctrl+C una volta nel terminale di avvio e attendi 
 
 ### RViz si arresta dopo Discard
 
-Su Ubuntu 26.04, RViz 15.2.6 può arrestarsi in modo intermittente quando chiudi la finestra e scegli **Discard**, anche se le viste dei sensori funzionano. Ferma i processi di avvio rimasti con Ctrl+C prima di ripartire. Indica versione di RViz e azione di chiusura nella segnalazione.
+Il programma di installazione POSIM per Ubuntu/WSL e le immagini Docker AMD64/ARM64 includono un [overlay RViz isolato](https://github.com/IOES-Lab/POSIM/tree/main/extras/rviz) per RViz 15.2.6. Arresta il timer di aggiornamento dopo la conferma della chiusura e libera le risorse ROS delle viste durante l'uscita. Scegliendo **Cancel**, gli aggiornamenti continuano. I pacchetti RViz di sistema restano invariati. Dopo aver caricato l'ambiente POSIM, `ros2 pkg prefix rviz_common` dovrebbe mostrare `/opt/posim/rviz-close/install`. Per le installazioni precedenti, segui le istruzioni di compilazione e attivazione al link.
 
-Con il rendering software, RViz può restare in esecuzione dopo la chiusura della finestra e consumare troppa memoria. Premi Ctrl+C nel terminale di avvio per arrestare i processi rimasti. Se RViz non si arresta normalmente, ROS launch ne forza la terminazione. Per eseguire il sonar senza il visualizzatore, aggiungi `rviz:=false` al comando `multibeam_sonar_demo.launch.py`. Le immagini restano disponibili in ROS.
+Senza l'overlay, RViz 15.2.6 su Ubuntu 26.04 può arrestarsi in modo intermittente quando chiudi la finestra e scegli **Discard**, anche se le viste dei sensori funzionano. L'overlay corregge problemi specifici del timer e del rilascio delle risorse, ma non copre tutti i renderer o tutti i percorsi di chiusura. Se il problema persiste, indica la versione di RViz, i percorsi delle librerie caricate e l'azione di chiusura nella segnalazione.
+
+Se RViz resta in esecuzione dopo la chiusura della finestra, può consumare troppa memoria, soprattutto con il rendering software. Prima di riavviare la simulazione, premi Ctrl+C nel terminale di avvio per arrestare i processi rimasti. Se RViz non si arresta normalmente, ROS launch ne forza la terminazione. Per eseguire il sonar senza il visualizzatore, aggiungi `rviz:=false` al comando `multibeam_sonar_demo.launch.py`. Le immagini restano disponibili in ROS.
 
 ## Ricreare telecamere di profondità con un SDK macOS nativo
 

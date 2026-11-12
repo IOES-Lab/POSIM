@@ -38,6 +38,9 @@ First stable release of POSIM, the Platform for Ocean Simulation.
   and speed with all arming checks enabled.
 - Scoped MAVROS Router, QGroundControl video and Ogre2 Terra corrections
   for the documented dependency versions.
+- An isolated RViz 15.2.6 overlay in the Ubuntu/WSL installer and both Docker
+  images stops updates after accepted close and releases view-owned ROS resources
+  during shutdown. Cancel keeps updates running; system RViz packages are unchanged.
 - QGroundControl 5.1.5 in both Docker images, with verified archive checksums.
 - A smaller calm-wave grid reduces rendering work in ocean demos. Local QGC
   streams send a keyframe for every image to reduce video startup and recovery

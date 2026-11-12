@@ -84,9 +84,11 @@ Stop data viewers, then press Ctrl+C once in the launch terminal and allow child
 
 ### RViz crashes after Discard
 
-On Ubuntu 26.04, RViz 15.2.6 can intermittently crash when you close its window and choose **Discard**, even while its sensor views work. Stop the remaining launch processes with Ctrl+C before starting again. Include the RViz version and the closing action in your issue report.
+The POSIM Ubuntu/WSL installer and AMD64/ARM64 Docker images include an isolated [RViz overlay](https://github.com/IOES-Lab/POSIM/tree/main/extras/rviz) for RViz 15.2.6. It stops the update timer after an accepted close and releases view-owned ROS resources during shutdown; **Cancel** keeps updates running. System RViz packages remain unchanged. After loading your POSIM environment, `ros2 pkg prefix rviz_common` should print `/opt/posim/rviz-close/install`. For older installations, follow the build and activation instructions at that link.
 
-With software rendering, RViz may keep running after its window closes and consume excessive memory. Press Ctrl+C in the launch terminal to stop the remaining processes. If RViz does not exit normally, ROS launch forcibly terminates it. For sonar runs that do not need the viewer, add `rviz:=false` to the `multibeam_sonar_demo.launch.py` command. ROS image output remains available.
+Without the overlay, RViz 15.2.6 on Ubuntu 26.04 can intermittently crash when you close its window and choose **Discard**, even while its sensor views work. The overlay addresses specific timer and resource-cleanup problems, not every renderer or shutdown path. If a problem persists, include the RViz version, loaded library paths and closing action in your issue report.
+
+If RViz keeps running after its window closes, it may consume excessive memory, especially with software rendering. Press Ctrl+C in the launch terminal to stop the remaining processes before starting again. If RViz does not exit normally, ROS launch forcibly terminates it. For sonar runs that do not need the viewer, add `rviz:=false` to the `multibeam_sonar_demo.launch.py` command. ROS image output remains available.
 
 ## Depth-camera recreation on macOS
 

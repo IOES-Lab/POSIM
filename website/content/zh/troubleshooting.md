@@ -68,9 +68,11 @@
 
 ### 选择 Discard 后 RViz 崩溃
 
-在 Ubuntu 26.04 上，RViz 15.2.6 即使能正常显示传感器数据，也可能在关闭窗口并选择 **Discard** 时偶发崩溃。重新运行前，先用 Ctrl+C 停止剩余启动进程。报告时注明 RViz 版本及关闭窗口时的操作。
+POSIM 的 Ubuntu/WSL 安装程序和 AMD64/ARM64 Docker 镜像包含适用于 RViz 15.2.6 的[独立 RViz 覆盖层](https://github.com/IOES-Lab/POSIM/tree/main/extras/rviz)。它在确认关闭后停止更新定时器，并在退出过程中释放视图拥有的 ROS 资源；选择 **Cancel** 时仍会继续更新。系统 RViz 软件包保持不变。加载 POSIM 环境后，`ros2 pkg prefix rviz_common` 应输出 `/opt/posim/rviz-close/install`。较早安装的环境可按链接中的步骤构建并启用覆盖层。
 
-使用软件渲染时，RViz 可能在窗口关闭后继续运行，并占用过多内存。在启动仿真的终端按 Ctrl+C，停止剩余进程。如果 RViz 未能正常退出，ROS launch 会强制终止它。运行声呐时若不需要查看器，可在 `multibeam_sonar_demo.launch.py` 命令中添加 `rviz:=false`。ROS 图像输出仍然可用。
+在未启用覆盖层的 Ubuntu 26.04 环境中，RViz 15.2.6 即使能正常显示传感器数据，也可能在关闭窗口并选择 **Discard** 时偶发崩溃。覆盖层修正了特定的定时器和资源清理问题，并不涵盖所有渲染器或退出路径。若问题仍然出现，请在报告中注明 RViz 版本、已加载的库路径及关闭窗口时的操作。
+
+如果 RViz 在窗口关闭后仍继续运行，可能会占用过多内存，使用软件渲染时尤其需要注意。重新运行前，在启动仿真的终端按 Ctrl+C，停止剩余进程。如果 RViz 未能正常退出，ROS launch 会强制终止它。运行声呐时若不需要查看器，可在 `multibeam_sonar_demo.launch.py` 命令中添加 `rviz:=false`。ROS 图像输出仍然可用。
 
 ## 在 macOS 原生 SDK 中重新创建深度相机
 
