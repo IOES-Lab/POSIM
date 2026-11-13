@@ -1,0 +1,29 @@
+---
+name: Release automation checks
+
+# yamllint disable-line rule:truthy
+on:
+  pull_request:
+    paths:
+      - "extras/release/**"
+      - ".github/release-candidate.json"
+      - ".github/workflows/*release*.yml"
+      - ".github/workflows/documentation.yml"
+      - "docs/releases/**"
+      - "CHANGELOG.md"
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    runs-on: ubuntu-26.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Test release and recovery behavior without external writes
+        run: python3 -m unittest discover -s extras/release -p 'test_*.py' -v

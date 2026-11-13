@@ -31,11 +31,18 @@ Release candidate; the publication date will be recorded when the release ships.
 - Run AMD64 Docker builds on GitHub-hosted Ubuntu 26.04, alongside the existing
   GitHub-hosted ARM64 builds. All POSIM workflows now use GitHub-hosted runners.
 - Pin the image builder versions and remove persistent-server image pruning.
+- Make Docker Hub's `latest` follow the latest published GitHub release.
+  Main-branch builds publish immutable commit tags without updating `latest`.
 
 ### Added
 
 - Versioned Docker publication that verifies the release commit in both
   architectures and aliases its existing image digest without rebuilding.
+- Automatic GitHub and Docker release publication after a labeled release
+  candidate is merged and its final commit passes CI.
+- A Draft follow-up release candidate when CI fails, with the failed runs linked
+  for review. Repeated notifications reuse the existing PR; no PR is approved
+  or merged automatically.
 - A graphical overview in all eight language editions of the project README.
 
 ### Tests

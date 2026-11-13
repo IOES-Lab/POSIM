@@ -51,7 +51,6 @@ jobs:
       sha: ${{ steps.source.outputs.sha }}
       tag: ${{ steps.source.outputs.tag }}
       publish: ${{ steps.source.outputs.publish }}
-      latest: ${{ steps.source.outputs.latest }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -69,19 +68,14 @@ jobs:
         run: |
           source_sha="$(git rev-parse HEAD)"
           publish=false
-          latest=false
           if [[ "$GITHUB_EVENT_NAME" != pull_request && "$PUBLISH_IMAGES" == true ]] &&
              [[ "$GITHUB_EVENT_NAME" != workflow_dispatch || "$SOURCE_BRANCH" == main ]]; then
             publish=true
-            if [[ "$GITHUB_EVENT_NAME" == workflow_dispatch || "$GITHUB_REF" == refs/heads/main ]]; then
-              latest=true
-            fi
           fi
           {
             echo "sha=$source_sha"
             echo "tag=sha-${source_sha:0:12}"
             echo "publish=$publish"
-            echo "latest=$latest"
           } >> "$GITHUB_OUTPUT"
 
   build:
@@ -188,12 +182,7 @@ jobs:
       - name: Publish the complete multi-platform image
         env:
           IMAGE_TAG: ${{ needs.revision.outputs.tag }}
-          UPDATE_LATEST: ${{ needs.revision.outputs.latest }}
         run: |
-          tags=(--tag "$IMAGE_NAME:$IMAGE_TAG")
-          if [[ "$UPDATE_LATEST" == true ]]; then
-            tags+=(--tag "$IMAGE_NAME:latest")
-          fi
-          docker buildx imagetools create "${tags[@]}" \
+          docker buildx imagetools create --tag "$IMAGE_NAME:$IMAGE_TAG" \
             "$IMAGE_NAME:$IMAGE_TAG-amd64" "$IMAGE_NAME:$IMAGE_TAG-arm64"
           docker buildx imagetools inspect "$IMAGE_NAME:$IMAGE_TAG"
