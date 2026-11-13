@@ -49,6 +49,8 @@ RUN useradd -s /bin/bash -m $USER && echo "$USER:$PASS" | chpasswd; \
         :; \
     chown $USER:$USER /home/$USER/.xsessionrc
 
+COPY .docker/rdp-runtime-env.sh /usr/local/share/posim/rdp-runtime-env.sh
+
 # Bypass the Debian Xsession wrapper. In a systemd-less container it can exit
 # before reaching ~/.xsession. Each RDP login gets its own DBus session.
 RUN printf '%s\n' \
@@ -63,6 +65,7 @@ RUN printf '%s\n' \
       'export DESKTOP_SESSION=xfce' \
       'export XDG_RUNTIME_DIR="/run/user/$(id -u)"' \
       'unset GNOME_SHELL_SESSION_MODE SESSION_MANAGER DBUS_SESSION_BUS_ADDRESS' \
+      'source /usr/local/share/posim/rdp-runtime-env.sh' \
       'exec /usr/bin/dbus-run-session -- /usr/bin/startxfce4' \
       > /etc/xrdp/startwm.sh && \
     chmod 0755 /etc/xrdp/startwm.sh

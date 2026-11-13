@@ -18,7 +18,6 @@ on:
       - "models/**"
   push:
     branches: [main]
-    tags: ["v*"]
 
 env:
   IMAGE_NAME: ioeslab/posim
@@ -45,7 +44,6 @@ jobs:
       tag: ${{ steps.source.outputs.tag }}
       publish: ${{ steps.source.outputs.publish }}
       latest: ${{ steps.source.outputs.latest }}
-      version: ${{ steps.source.outputs.version }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -61,15 +59,6 @@ jobs:
           source_sha="$(git rev-parse HEAD)"
           publish=false
           latest=false
-          version=''
-          if [[ "$GITHUB_EVENT_NAME" == push && "$GITHUB_REF" == refs/tags/v* ]]; then
-            version="${GITHUB_REF_NAME#v}"
-            expected_version="$(python3 -c 'import json; print(json.load(open("website/package.json"))["version"])')"
-            if [[ "$version" != "$expected_version" ]]; then
-              echo "Tag $GITHUB_REF_NAME does not match the documentation version $expected_version" >&2
-              exit 1
-            fi
-          fi
           if [[ "$GITHUB_EVENT_NAME" != pull_request && "$PUBLISH_IMAGES" == true ]]; then
             publish=true
             if [[ "$GITHUB_EVENT_NAME" == workflow_dispatch || "$GITHUB_REF" == refs/heads/main ]]; then
@@ -81,7 +70,6 @@ jobs:
             echo "tag=sha-${source_sha:0:12}"
             echo "publish=$publish"
             echo "latest=$latest"
-            echo "version=$version"
           } >> "$GITHUB_OUTPUT"
 
   build:
@@ -191,14 +179,10 @@ jobs:
         env:
           IMAGE_TAG: ${{ needs.revision.outputs.tag }}
           UPDATE_LATEST: ${{ needs.revision.outputs.latest }}
-          VERSION_TAG: ${{ needs.revision.outputs.version }}
         run: |
           tags=(--tag "$IMAGE_NAME:$IMAGE_TAG")
           if [[ "$UPDATE_LATEST" == true ]]; then
             tags+=(--tag "$IMAGE_NAME:latest")
-          fi
-          if [[ -n "$VERSION_TAG" ]]; then
-            tags+=(--tag "$IMAGE_NAME:$VERSION_TAG")
           fi
           docker buildx imagetools create "${tags[@]}" \
             "$IMAGE_NAME:$IMAGE_TAG-amd64" "$IMAGE_NAME:$IMAGE_TAG-arm64"

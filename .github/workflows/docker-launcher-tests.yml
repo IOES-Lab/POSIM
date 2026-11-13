@@ -35,5 +35,7 @@ jobs:
           bash -n .docker/qgroundcontrol.sh
           bash -n .docker/firefox.sh
           bash -n .docker/desktop-app.sh
+          bash -n .docker/rdp-runtime-env.sh
+          python3 .docker/tests/test_rdp_runtime_env.py
           python3 .docker/tests/test_qgroundcontrol_arm64.py
           python3 models/posim_robot_models/test/test_desktop_launch.py
