@@ -3,7 +3,7 @@
 Keep one release-note file per version. The root [changelog](../../CHANGELOG.md)
 records the history in reverse chronological order.
 
-- [1.0.0](v1.0.0.md): first stable release, in preparation.
+- [1.0.0](v1.0.0.md): first stable release.
 
 ## Prepare a release
 
@@ -28,10 +28,15 @@ records the history in reverse chronological order.
 
 ## Publish the qualified version
 
-Use the matching `v<version>` Git tag on the qualified commit. The Docker
-workflow checks the tag against the documentation version. Image publication
-requires the repository's `POSIM_ENABLE_DOCKER_CI` and `POSIM_PUBLISH_IMAGES`
-variables to be enabled and its Docker Hub credentials to be configured.
+Publish the GitHub release with the matching `v<version>` Git tag on the
+qualified commit. The Docker workflow checks the tag against the documentation
+version, builds and tests both architectures, and publishes
+`ioeslab/posim:<version>`. Image publication requires the repository's
+`POSIM_ENABLE_DOCKER_CI` and `POSIM_PUBLISH_IMAGES` variables to be enabled and its
+Docker Hub credentials to be configured.
+
+To build an image for an existing release, run **Build and publish POSIM Docker
+images** from `main` and enter its Git tag in `release_tag`.
 
 Confirm that the versioned multi-architecture image contains both AMD64 and
 ARM64 variants and that each variant's source-revision label matches the tag.
