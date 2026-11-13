@@ -1,0 +1,25 @@
+{
+  "format": 1,
+  "components": [
+    {
+      "name": "rendering",
+      "repository": "https://github.com/gazebosim/gz-rendering",
+      "revision": "574445fd7f614fcb70b6ea847ca8189485fdd09d",
+      "path": "ogre2/src/Ogre2DynamicRenderable.cc",
+      "patch": "gz-rendering.patch",
+      "before_sha256": "654886119ffacc7cb33192e8e703196c3fac361bb2459071603616b51649b2cd",
+      "after_sha256": "55165f38d3f6ff56b49b5ec56b794da36bbb7cbd812975e0c70b1316607df77d",
+      "patch_sha256": "ff5864a23e5ef0e496717c4e1be36557ea3697ede8114eaaedca54b3d8bd19b7"
+    },
+    {
+      "name": "waves",
+      "repository": "https://github.com/srmainwaring/asv_wave_sim",
+      "revision": "ee85b48bdcac5a2737709d6ea8170babd067f015",
+      "path": "gz-waves/src/systems/waves/Ogre2DynamicMesh.cc",
+      "patch": "waves.patch",
+      "before_sha256": "2f611633325708d49a4132e0c4045cd8e57771a8c436ed7d49a25a5b5162f166",
+      "after_sha256": "e0b34d2eb93827bed483fa9f2399c29c52ec016c445a1143aab95f3827204451",
+      "patch_sha256": "08c5a06d1f3c99e321d39e3c1f45e769db315f32f3e3480d5a6d470bce18f327"
+    }
+  ]
+}

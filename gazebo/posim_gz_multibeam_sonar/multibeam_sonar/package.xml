@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <package format="3">
   <name>multibeam_sonar</name>
-  <version>1.0.0</version>
+  <version>1.0.1</version>
   <description>POSIM multibeam sonar sensor</description>
   <maintainer email="woensug.choi@gmail.com">Woen-Sug Choi</maintainer>
   <maintainer email="helenamoyen@gmail.com">Helena Moyen</maintainer>

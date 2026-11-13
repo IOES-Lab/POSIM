@@ -3,6 +3,7 @@
 Keep one release-note file per version. The root [changelog](../../CHANGELOG.md)
 records the history in reverse chronological order.
 
+- [1.0.1](v1.0.1.md): RDP wave environment and dynamic geometry corrections.
 - [1.0.0](v1.0.0.md): first stable release.
 
 ## Prepare a release
@@ -27,6 +28,11 @@ records the history in reverse chronological order.
    Obtain the maintainer's release decision after reviewing the results.
 
 ## Publish the qualified version
+
+For a review build, run **Build and publish POSIM Docker images** with
+`source_branch` set to a branch in `IOES-Lab/POSIM`. Both architecture images
+are built and tested, but a manual build publishes images only for `main`.
+Fork pull requests remain excluded from the self-hosted runner.
 
 Publish the GitHub release with the matching `v<version>` Git tag on the
 qualified commit once its `ioeslab/posim:sha-<12-character-commit>` image is on

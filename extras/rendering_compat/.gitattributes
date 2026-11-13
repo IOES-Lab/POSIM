@@ -1,0 +1,2 @@
+# Preserve unified-diff blank context lines; apply.py checks patched whitespace.
+*.patch -whitespace

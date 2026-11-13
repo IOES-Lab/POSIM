@@ -13,7 +13,8 @@ PATHS = {
         "/opt/asv_wave_sim/gz-waves-models/world_models",
     ],
     "GZ_SIM_SYSTEM_PLUGIN_PATH": ["/opt/waves/lib"],
-    "LD_LIBRARY_PATH": ["/opt/waves/lib"],
+    "LD_LIBRARY_PATH": ["/opt/posim/rendering-compat/lib", "/opt/waves/lib"],
+    "GZ_RENDERING_PLUGIN_PATH": ["/opt/posim/rendering-compat/lib"],
     "GZ_RENDERING_RESOURCE_PATH": ["/opt/posim/terra"],
 }
 
@@ -77,7 +78,8 @@ class RuntimeEnvironmentTests(unittest.TestCase):
     def test_existing_entry_is_not_duplicated(self):
         path = str(self.fixture("/opt/waves/lib"))
         env = self.run_env({"LD_LIBRARY_PATH": "/custom:" + path})
-        self.assertEqual(env["LD_LIBRARY_PATH"], "/custom:" + path)
+        self.assertEqual(env["LD_LIBRARY_PATH"].split(":").count(path), 1)
+        self.assertTrue(env["LD_LIBRARY_PATH"].endswith("/custom:" + path))
 
     def test_missing_installation_is_not_exported(self):
         self.fixture("/opt/posim/terra").rmdir()

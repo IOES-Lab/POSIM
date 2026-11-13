@@ -5,6 +5,22 @@ versioned section and add the publication date when that version ships.
 
 ## Unreleased
 
+## 1.0.1 - 2026-11-13
+
+[Read the release notes](docs/releases/v1.0.1.md).
+
+### Fixed
+
+- Restore Wave Sim model/library paths and the terrain resource overlay in fresh
+  Apple Silicon RDP desktop sessions.
+- Preserve the active Ogre2 material when dynamic geometry buffers change, and
+  unmap persistent vertex buffers before releasing them in gz-rendering and Wave Sim.
+- Build and select the pinned rendering corrections in the normal Ubuntu/WSL
+  installer and both Docker architectures, retaining ROS-owned libraries.
+- Retain APT package indexes after Wave Sim installation so the next native
+  workspace dependency step can find its packages.
+- Exercise material transitions and the installed renderer in image acceptance tests.
+
 ## 1.0.0
 
 First stable release of POSIM, the Platform for Ocean Simulation.

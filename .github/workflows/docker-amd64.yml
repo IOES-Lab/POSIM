@@ -4,6 +4,12 @@ name: Build and publish POSIM Docker images
 # yamllint disable-line rule:truthy
 on:
   workflow_dispatch:
+    inputs:
+      source_branch:
+        description: "Branch in IOES-Lab/POSIM to build; only main publishes images"
+        type: string
+        default: main
+        required: true
   pull_request:
     branches: [main]
     paths:
@@ -28,7 +34,9 @@ permissions:
 concurrency:
   group: >-
     ${{ github.event_name == 'pull_request' &&
-    format('posim-images-pr-{0}', github.event.pull_request.number) || 'posim-images-public' }}
+    format('posim-images-pr-{0}', github.event.pull_request.number) ||
+    (github.event_name == 'workflow_dispatch' && inputs.source_branch != 'main' &&
+    format('posim-images-review-{0}', inputs.source_branch)) || 'posim-images-public' }}
   cancel-in-progress: true
 
 jobs:
@@ -47,19 +55,23 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
-          # Manual runs always build main, even when testing this workflow from a PR.
+          # Manual review builds resolve only branches in this repository.
+          # Fork PRs remain excluded from the self-hosted runner above.
           ref: >-
-            ${{ github.event_name == 'workflow_dispatch' && 'main' ||
+            ${{ github.event_name == 'workflow_dispatch' &&
+            format('refs/heads/{0}', inputs.source_branch) ||
             github.event.pull_request.head.sha || github.sha }}
       - name: Select source revision and publication tags
         id: source
         env:
           PUBLISH_IMAGES: ${{ vars.POSIM_PUBLISH_IMAGES }}
+          SOURCE_BRANCH: ${{ inputs.source_branch }}
         run: |
           source_sha="$(git rev-parse HEAD)"
           publish=false
           latest=false
-          if [[ "$GITHUB_EVENT_NAME" != pull_request && "$PUBLISH_IMAGES" == true ]]; then
+          if [[ "$GITHUB_EVENT_NAME" != pull_request && "$PUBLISH_IMAGES" == true ]] &&
+             [[ "$GITHUB_EVENT_NAME" != workflow_dispatch || "$SOURCE_BRANCH" == main ]]; then
             publish=true
             if [[ "$GITHUB_EVENT_NAME" == workflow_dispatch || "$GITHUB_REF" == refs/heads/main ]]; then
               latest=true
