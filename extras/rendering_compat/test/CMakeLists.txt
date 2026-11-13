@@ -25,3 +25,7 @@ target_compile_definitions(waves-material-test PRIVATE POSIM_TEST_WAVES)
 target_include_directories(waves-material-test
                            PRIVATE "${WAVE_SOURCE}/gz-waves/src/systems/waves")
 target_link_libraries(waves-material-test PRIVATE ${WAVES_OGRE2})
+# Resolve Wave Sim's indirect dependencies during a fresh native installation,
+# before its library directory has been added to the runtime environment.
+target_link_options(waves-material-test PRIVATE
+                    "LINKER:-rpath-link,${WAVE_PREFIX}/lib")
