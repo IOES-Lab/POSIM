@@ -1,88 +1,30 @@
 ---
-name: Build and publish POSIM Docker images
+name: GitHub AMD64 build and upload benchmark
 
+# Isolated manual experiment; never publishes latest or a release version.
 # yamllint disable-line rule:truthy
 on:
   workflow_dispatch:
-    inputs:
-      source_branch:
-        description: "Branch in IOES-Lab/POSIM to build; only main publishes images"
-        type: string
-        default: main
-        required: true
-  pull_request:
-    branches: [main]
-    paths:
-      - ".docker/**"
-      - ".dockerignore"
-      - ".github/workflows/docker-*.yml"
-      - ".github/actions/ubuntu-mirrors/**"
-      - "posim_interfaces/**"
-      - "examples/**"
-      - "extras/**"
-      - "gazebo/**"
-      - "models/**"
-  push:
-    branches: [main]
-
-env:
-  IMAGE_NAME: ioeslab/posim
 
 permissions:
   contents: read
 
-concurrency:
-  group: >-
-    ${{ github.event_name == 'pull_request' &&
-    format('posim-images-pr-{0}', github.event.pull_request.number) ||
-    (github.event_name == 'workflow_dispatch' && inputs.source_branch != 'main' &&
-    format('posim-images-review-{0}', inputs.source_branch)) || 'posim-images-public' }}
-  cancel-in-progress: true
+env:
+  IMAGE_NAME: ioeslab/posim
 
 jobs:
   revision:
-    # Fork code must never execute on the self-hosted AMD64 runner.
-    if: >-
-      vars.POSIM_ENABLE_DOCKER_CI == 'true' &&
-      (github.event_name != 'pull_request' ||
-       github.event.pull_request.head.repo.full_name == github.repository)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     outputs:
       sha: ${{ steps.source.outputs.sha }}
       tag: ${{ steps.source.outputs.tag }}
-      publish: ${{ steps.source.outputs.publish }}
-      latest: ${{ steps.source.outputs.latest }}
+      publish: 'true'
     steps:
-      - uses: actions/checkout@v7
-        with:
-          # Manual review builds resolve only branches in this repository.
-          # Fork PRs remain excluded from the self-hosted runner above.
-          ref: >-
-            ${{ github.event_name == 'workflow_dispatch' &&
-            format('refs/heads/{0}', inputs.source_branch) ||
-            github.event.pull_request.head.sha || github.sha }}
-      - name: Select source revision and publication tags
+      - name: Select fixed release source and isolated test tag
         id: source
-        env:
-          PUBLISH_IMAGES: ${{ vars.POSIM_PUBLISH_IMAGES }}
-          SOURCE_BRANCH: ${{ inputs.source_branch }}
         run: |
-          source_sha="$(git rev-parse HEAD)"
-          publish=false
-          latest=false
-          if [[ "$GITHUB_EVENT_NAME" != pull_request && "$PUBLISH_IMAGES" == true ]] &&
-             [[ "$GITHUB_EVENT_NAME" != workflow_dispatch || "$SOURCE_BRANCH" == main ]]; then
-            publish=true
-            if [[ "$GITHUB_EVENT_NAME" == workflow_dispatch || "$GITHUB_REF" == refs/heads/main ]]; then
-              latest=true
-            fi
-          fi
-          {
-            echo "sha=$source_sha"
-            echo "tag=sha-${source_sha:0:12}"
-            echo "publish=$publish"
-            echo "latest=$latest"
-          } >> "$GITHUB_OUTPUT"
+          echo 'sha=f9c7a399123328474293a55f04b28181c063f979' >> "$GITHUB_OUTPUT"
+          echo "tag=qa-github-runner-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT" >> "$GITHUB_OUTPUT"
 
   build:
     needs: revision
@@ -91,13 +33,10 @@ jobs:
       matrix:
         include:
           - arch: amd64
-            runner: [self-hosted, Linux, X64]
+            runner: ubuntu-26.04
             dockerfile: .docker/lyrical.amd64.dockerfile
-          - arch: arm64
-            runner: ubuntu-26.04-arm
-            dockerfile: .docker/lyrical.arm64v8.dockerfile
     runs-on: ${{ matrix.runner }}
-    timeout-minutes: 1440
+    timeout-minutes: 240
     steps:
       - uses: actions/checkout@v7
         with:
@@ -106,12 +45,23 @@ jobs:
         id: ubuntu-mirrors
         uses: ./.github/actions/ubuntu-mirrors
       - uses: docker/setup-buildx-action@v4
+        with:
+          version: v0.38.1
+          driver-opts: image=moby/buildkit:v0.34.2
       - name: Log in to Docker Hub
         if: needs.revision.outputs.publish == 'true'
         uses: docker/login-action@v4
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Record before-build resources
+        run: |
+          mkdir -p "$RUNNER_TEMP/amd64-benchmark"
+          date -u +%FT%TZ > "$RUNNER_TEMP/amd64-benchmark/before-build-time.txt"
+          df -B1 > "$RUNNER_TEMP/amd64-benchmark/before-build-disk.txt"
+          cat /proc/net/dev > "$RUNNER_TEMP/amd64-benchmark/before-build-network.txt"
+          ip route show default > "$RUNNER_TEMP/amd64-benchmark/before-build-route.txt"
+          df -h
       - name: Build and load the architecture image
         uses: docker/build-push-action@v7
         with:
@@ -124,6 +74,15 @@ jobs:
           labels: |
             org.opencontainers.image.source=https://github.com/IOES-Lab/POSIM
             org.opencontainers.image.revision=${{ needs.revision.outputs.sha }}
+      - name: Record after-build resources
+        if: always()
+        run: |
+          mkdir -p "$RUNNER_TEMP/amd64-benchmark"
+          date -u +%FT%TZ > "$RUNNER_TEMP/amd64-benchmark/after-build-time.txt"
+          df -B1 > "$RUNNER_TEMP/amd64-benchmark/after-build-disk.txt"
+          cat /proc/net/dev > "$RUNNER_TEMP/amd64-benchmark/after-build-network.txt"
+          ip route show default > "$RUNNER_TEMP/amd64-benchmark/after-build-route.txt"
+          df -h
       - name: Test the installed image
         timeout-minutes: 15
         env:
@@ -153,6 +112,14 @@ jobs:
             ${{ format('{0}/posim-image-tests-{1}-{2}-{3}',
             runner.temp, github.run_id, github.run_attempt, matrix.arch) }}
           if-no-files-found: ignore
+      - name: Record before-push resources
+        run: |
+          mkdir -p "$RUNNER_TEMP/amd64-benchmark"
+          date -u +%FT%TZ > "$RUNNER_TEMP/amd64-benchmark/before-push-time.txt"
+          df -B1 > "$RUNNER_TEMP/amd64-benchmark/before-push-disk.txt"
+          cat /proc/net/dev > "$RUNNER_TEMP/amd64-benchmark/before-push-network.txt"
+          ip route show default > "$RUNNER_TEMP/amd64-benchmark/before-push-route.txt"
+          df -h
       - name: Push the tested architecture image
         if: needs.revision.outputs.publish == 'true'
         uses: docker/build-push-action@v7
@@ -166,36 +133,24 @@ jobs:
           labels: |
             org.opencontainers.image.source=https://github.com/IOES-Lab/POSIM
             org.opencontainers.image.revision=${{ needs.revision.outputs.sha }}
+      - name: Record after-push resources
+        if: always()
+        run: |
+          mkdir -p "$RUNNER_TEMP/amd64-benchmark"
+          date -u +%FT%TZ > "$RUNNER_TEMP/amd64-benchmark/after-push-time.txt"
+          df -B1 > "$RUNNER_TEMP/amd64-benchmark/after-push-disk.txt"
+          cat /proc/net/dev > "$RUNNER_TEMP/amd64-benchmark/after-push-network.txt"
+          ip route show default > "$RUNNER_TEMP/amd64-benchmark/after-push-route.txt"
+          df -h
+      - name: Preserve resource measurements
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: github-amd64-resources
+          path: ${{ runner.temp }}/amd64-benchmark/**
+          if-no-files-found: error
       - name: Remove the loaded test image
         if: always()
         env:
           IMAGE_TAG: ${{ needs.revision.outputs.tag }}-${{ matrix.arch }}
         run: docker image rm "$IMAGE_NAME:$IMAGE_TAG" || true
-      - name: Remove unused POSIM images older than two days
-        if: always() && matrix.arch == 'amd64'
-        run: |
-          docker image prune --all --force --filter until=48h \
-            --filter label=org.opencontainers.image.source=https://github.com/IOES-Lab/POSIM
-
-  publish:
-    needs: [revision, build]
-    if: needs.revision.outputs.publish == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: docker/setup-buildx-action@v4
-      - uses: docker/login-action@v4
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Publish the complete multi-platform image
-        env:
-          IMAGE_TAG: ${{ needs.revision.outputs.tag }}
-          UPDATE_LATEST: ${{ needs.revision.outputs.latest }}
-        run: |
-          tags=(--tag "$IMAGE_NAME:$IMAGE_TAG")
-          if [[ "$UPDATE_LATEST" == true ]]; then
-            tags+=(--tag "$IMAGE_NAME:latest")
-          fi
-          docker buildx imagetools create "${tags[@]}" \
-            "$IMAGE_NAME:$IMAGE_TAG-amd64" "$IMAGE_NAME:$IMAGE_TAG-arm64"
-          docker buildx imagetools inspect "$IMAGE_NAME:$IMAGE_TAG"
