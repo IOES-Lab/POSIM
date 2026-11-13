@@ -4,13 +4,6 @@ name: Build and publish POSIM Docker images
 # yamllint disable-line rule:truthy
 on:
   workflow_dispatch:
-    inputs:
-      release_tag:
-        description: "Git release tag to build (e.g. v1.0.0). Leave empty to build main."
-        type: string
-        required: false
-  release:
-    types: [published]
   pull_request:
     branches: [main]
     paths:
@@ -35,11 +28,8 @@ permissions:
 concurrency:
   group: >-
     ${{ github.event_name == 'pull_request' &&
-    format('posim-images-pr-{0}', github.event.pull_request.number) ||
-    (github.event_name == 'release' || inputs.release_tag) &&
-    format('posim-images-release-{0}', github.event.release.tag_name || inputs.release_tag) ||
-    'posim-images-public' }}
-  cancel-in-progress: ${{ github.event_name != 'release' && !inputs.release_tag }}
+    format('posim-images-pr-{0}', github.event.pull_request.number) || 'posim-images-public' }}
+  cancel-in-progress: true
 
 jobs:
   revision:
@@ -57,45 +47,27 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
-          # An empty manual input keeps the regular main build.
+          # Manual runs always build main, even when testing this workflow from a PR.
           ref: >-
-            ${{ github.event_name == 'workflow_dispatch' &&
-            (inputs.release_tag && format('refs/tags/{0}', inputs.release_tag) || 'main') ||
+            ${{ github.event_name == 'workflow_dispatch' && 'main' ||
             github.event.pull_request.head.sha || github.sha }}
       - name: Select source revision and publication tags
         id: source
         env:
           PUBLISH_IMAGES: ${{ vars.POSIM_PUBLISH_IMAGES }}
-          RELEASE_TAG: ${{ github.event.release.tag_name || inputs.release_tag }}
         run: |
           source_sha="$(git rev-parse HEAD)"
           publish=false
           latest=false
-          version=''
-          if [[ "$GITHUB_EVENT_NAME" == release || -n "$RELEASE_TAG" ]]; then
-            if [[ "$RELEASE_TAG" != v* ]]; then
-              echo "Use a Git release tag with a v prefix" >&2
-              exit 1
-            fi
-            version="${RELEASE_TAG#v}"
-            expected_version="$(python3 -c \
-              'import json; print(json.load(open("website/package.json"))["version"])')"
-            if [[ "$version" != "$expected_version" ]]; then
-              echo "Tag $RELEASE_TAG does not match the documentation version $expected_version" >&2
-              exit 1
-            fi
-          fi
           if [[ "$GITHUB_EVENT_NAME" != pull_request && "$PUBLISH_IMAGES" == true ]]; then
             publish=true
-            if [[ -z "$version" ]] &&
-               [[ "$GITHUB_EVENT_NAME" == workflow_dispatch ||
-                  "$GITHUB_REF" == refs/heads/main ]]; then
+            if [[ "$GITHUB_EVENT_NAME" == workflow_dispatch || "$GITHUB_REF" == refs/heads/main ]]; then
               latest=true
             fi
           fi
           {
             echo "sha=$source_sha"
-            echo "tag=${version:-sha-${source_sha:0:12}}"
+            echo "tag=sha-${source_sha:0:12}"
             echo "publish=$publish"
             echo "latest=$latest"
           } >> "$GITHUB_OUTPUT"

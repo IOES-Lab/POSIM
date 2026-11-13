@@ -29,14 +29,14 @@ records the history in reverse chronological order.
 ## Publish the qualified version
 
 Publish the GitHub release with the matching `v<version>` Git tag on the
-qualified commit. The Docker workflow checks the tag against the documentation
-version, builds and tests both architectures, and publishes
-`ioeslab/posim:<version>`. Image publication requires the repository's
-`POSIM_ENABLE_DOCKER_CI` and `POSIM_PUBLISH_IMAGES` variables to be enabled and its
-Docker Hub credentials to be configured.
+qualified commit once its `ioeslab/posim:sha-<12-character-commit>` image is on
+Docker Hub. **Tag POSIM Docker release** verifies that both architectures match
+the tagged commit and adds `ioeslab/posim:<version>` to the same image digest.
+The workflow uses `POSIM_PUBLISH_IMAGES` and the configured Docker Hub
+credentials.
 
-To build an image for an existing release, run **Build and publish POSIM Docker
-images** from `main` and enter its Git tag in `release_tag`.
+To tag an image for an existing release, run **Tag POSIM Docker release**
+from `main` and enter its Git tag in `release_tag`.
 
 Confirm that the versioned multi-architecture image contains both AMD64 and
 ARM64 variants and that each variant's source-revision label matches the tag.
