@@ -5,7 +5,7 @@ versioned section and add the publication date when that version ships.
 
 ## Unreleased
 
-## 1.0.1
+## 1.0.1 - 2026-11-13
 
 [Read the release notes](docs/releases/v1.0.1.md).
 
