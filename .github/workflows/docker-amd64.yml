@@ -1,201 +1,71 @@
 ---
-name: Build and publish POSIM Docker images
+name: Native Ubuntu installation qualification
 
 # yamllint disable-line rule:truthy
 on:
   workflow_dispatch:
     inputs:
-      source_branch:
-        description: "Branch in IOES-Lab/POSIM to build; only main publishes images"
+      source_revision:
+        description: "Exact IOES-Lab/POSIM source revision to qualify"
         type: string
-        default: main
         required: true
-  pull_request:
-    branches: [main]
-    paths:
-      - ".docker/**"
-      - ".dockerignore"
-      - ".github/workflows/docker-*.yml"
-      - ".github/actions/ubuntu-mirrors/**"
-      - "posim_interfaces/**"
-      - "examples/**"
-      - "extras/**"
-      - "gazebo/**"
-      - "models/**"
-  push:
-    branches: [main]
-
-env:
-  IMAGE_NAME: ioeslab/posim
 
 permissions:
   contents: read
 
-concurrency:
-  group: >-
-    ${{ github.event_name == 'pull_request' &&
-    format('posim-images-pr-{0}', github.event.pull_request.number) ||
-    (github.event_name == 'workflow_dispatch' && inputs.source_branch != 'main' &&
-    format('posim-images-review-{0}', inputs.source_branch)) || 'posim-images-public' }}
-  cancel-in-progress: true
-
 jobs:
-  revision:
-    # Fork code must never execute on the self-hosted AMD64 runner.
-    if: >-
-      vars.POSIM_ENABLE_DOCKER_CI == 'true' &&
-      (github.event_name != 'pull_request' ||
-       github.event.pull_request.head.repo.full_name == github.repository)
-    runs-on: ubuntu-latest
-    outputs:
-      sha: ${{ steps.source.outputs.sha }}
-      tag: ${{ steps.source.outputs.tag }}
-      publish: ${{ steps.source.outputs.publish }}
-      latest: ${{ steps.source.outputs.latest }}
+  native-install:
+    runs-on: ubuntu-26.04
+    timeout-minutes: 180
+    env:
+      DEBIAN_FRONTEND: noninteractive
+      MAKEFLAGS: -j2
+      CMAKE_BUILD_PARALLEL_LEVEL: 2
+      POSIM_WAVE_JOBS: 2
+      GIT_CONFIG_COUNT: 2
+      GIT_CONFIG_KEY_0: gc.auto
+      GIT_CONFIG_VALUE_0: 0
+      GIT_CONFIG_KEY_1: maintenance.auto
+      GIT_CONFIG_VALUE_1: 'false'
+    defaults:
+      run:
+        shell: bash
     steps:
       - uses: actions/checkout@v7
         with:
-          # Manual review builds resolve only branches in this repository.
-          # Fork PRs remain excluded from the self-hosted runner above.
-          ref: >-
-            ${{ github.event_name == 'workflow_dispatch' &&
-            format('refs/heads/{0}', inputs.source_branch) ||
-            github.event.pull_request.head.sha || github.sha }}
-      - name: Select source revision and publication tags
-        id: source
-        env:
-          PUBLISH_IMAGES: ${{ vars.POSIM_PUBLISH_IMAGES }}
-          SOURCE_BRANCH: ${{ inputs.source_branch }}
+          ref: ${{ inputs.source_revision }}
+          path: workspace/src/posim
+          persist-credentials: false
+      - name: Install the documented native stack
         run: |
-          source_sha="$(git rev-parse HEAD)"
-          publish=false
-          latest=false
-          if [[ "$GITHUB_EVENT_NAME" != pull_request && "$PUBLISH_IMAGES" == true ]] &&
-             [[ "$GITHUB_EVENT_NAME" != workflow_dispatch || "$SOURCE_BRANCH" == main ]]; then
-            publish=true
-            if [[ "$GITHUB_EVENT_NAME" == workflow_dispatch || "$GITHUB_REF" == refs/heads/main ]]; then
-              latest=true
-            fi
-          fi
-          {
-            echo "sha=$source_sha"
-            echo "tag=sha-${source_sha:0:12}"
-            echo "publish=$publish"
-            echo "latest=$latest"
-          } >> "$GITHUB_OUTPUT"
-
-  build:
-    needs: revision
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - arch: amd64
-            runner: [self-hosted, Linux, X64]
-            dockerfile: .docker/lyrical.amd64.dockerfile
-          - arch: arm64
-            runner: ubuntu-26.04-arm
-            dockerfile: .docker/lyrical.arm64v8.dockerfile
-    runs-on: ${{ matrix.runner }}
-    timeout-minutes: 1440
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          ref: ${{ needs.revision.outputs.sha }}
-      - name: Resolve Ubuntu package mirrors for BuildKit
-        id: ubuntu-mirrors
-        uses: ./.github/actions/ubuntu-mirrors
-      - uses: docker/setup-buildx-action@v4
-      - name: Log in to Docker Hub
-        if: needs.revision.outputs.publish == 'true'
-        uses: docker/login-action@v4
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Build and load the architecture image
-        uses: docker/build-push-action@v7
-        with:
-          context: .
-          file: ${{ matrix.dockerfile }}
-          platforms: linux/${{ matrix.arch }}
-          add-hosts: ${{ steps.ubuntu-mirrors.outputs.hosts }}
-          load: true
-          tags: ${{ env.IMAGE_NAME }}:${{ needs.revision.outputs.tag }}-${{ matrix.arch }}
-          labels: |
-            org.opencontainers.image.source=https://github.com/IOES-Lab/POSIM
-            org.opencontainers.image.revision=${{ needs.revision.outputs.sha }}
-      - name: Test the installed image
-        timeout-minutes: 15
-        env:
-          IMAGE_TAG: ${{ needs.revision.outputs.tag }}-${{ matrix.arch }}
-          TEST_CONTAINER: >-
-            posim-test-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.arch }}
+          mkdir -p "$RUNNER_TEMP/native-results"
+          cd workspace
+          POSIM_EXTRAS_DIR="$PWD/src/posim/extras" \
+            bash src/posim/extras/ros-lyrical-gz-jetty-install.sh \
+            2>&1 | tee "$RUNNER_TEMP/native-results/install.log"
+      - name: Resolve and build the native workspace
         run: |
-          results="$RUNNER_TEMP/posim-image-tests-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
-          results+="-${{ matrix.arch }}"
-          mkdir -p "$results"
-          cleanup() {
-            docker rm -f "$TEST_CONTAINER" >/dev/null 2>&1 || true
-            docker run --rm --entrypoint chown \
-              --mount "type=bind,source=$results,target=/tmp/posim-image-tests" \
-              "$IMAGE_NAME:$IMAGE_TAG" -R "$(id -u):$(id -g)" /tmp/posim-image-tests
-          }
-          trap cleanup EXIT
-          docker run --rm --init --interactive --name "$TEST_CONTAINER" --shm-size=1g \
-            --mount "type=bind,source=$results,target=/tmp/posim-image-tests" \
-            --entrypoint bash "$IMAGE_NAME:$IMAGE_TAG" -s < .docker/test-image.sh
-      - name: Preserve image test results
+          source "$HOME/.ros_ardusub_env/env"
+          cd workspace
+          vcs import src --shallow --skip-existing \
+            --input src/posim/extras/repos/posim.lyrical.repos
+          rosdep install --rosdistro lyrical --from-paths src --ignore-src -y
+          colcon build --merge-install --executor sequential --symlink-install \
+            2>&1 | tee "$RUNNER_TEMP/native-results/build.log"
+      - name: Test installed rendering and sensors
+        run: |
+          source "$HOME/.ros_ardusub_env/env"
+          export POSIM_WS="$GITHUB_WORKSPACE/workspace"
+          export POSIM_RVIZ_OVERLAY=/opt/posim/rviz-close
+          bash workspace/src/posim/.docker/test-image.sh \
+            2>&1 | tee "$RUNNER_TEMP/native-results/tests.log"
+      - name: Preserve installation and test evidence
         if: always()
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
-          name: image-tests-${{ matrix.arch }}
-          path: >-
-            ${{ format('{0}/posim-image-tests-{1}-{2}-{3}',
-            runner.temp, github.run_id, github.run_attempt, matrix.arch) }}
-          if-no-files-found: ignore
-      - name: Push the tested architecture image
-        if: needs.revision.outputs.publish == 'true'
-        uses: docker/build-push-action@v7
-        with:
-          context: .
-          file: ${{ matrix.dockerfile }}
-          platforms: linux/${{ matrix.arch }}
-          add-hosts: ${{ steps.ubuntu-mirrors.outputs.hosts }}
-          push: true
-          tags: ${{ env.IMAGE_NAME }}:${{ needs.revision.outputs.tag }}-${{ matrix.arch }}
-          labels: |
-            org.opencontainers.image.source=https://github.com/IOES-Lab/POSIM
-            org.opencontainers.image.revision=${{ needs.revision.outputs.sha }}
-      - name: Remove the loaded test image
-        if: always()
-        env:
-          IMAGE_TAG: ${{ needs.revision.outputs.tag }}-${{ matrix.arch }}
-        run: docker image rm "$IMAGE_NAME:$IMAGE_TAG" || true
-      - name: Remove unused POSIM images older than two days
-        if: always() && matrix.arch == 'amd64'
-        run: |
-          docker image prune --all --force --filter until=48h \
-            --filter label=org.opencontainers.image.source=https://github.com/IOES-Lab/POSIM
-
-  publish:
-    needs: [revision, build]
-    if: needs.revision.outputs.publish == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: docker/setup-buildx-action@v4
-      - uses: docker/login-action@v4
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Publish the complete multi-platform image
-        env:
-          IMAGE_TAG: ${{ needs.revision.outputs.tag }}
-          UPDATE_LATEST: ${{ needs.revision.outputs.latest }}
-        run: |
-          tags=(--tag "$IMAGE_NAME:$IMAGE_TAG")
-          if [[ "$UPDATE_LATEST" == true ]]; then
-            tags+=(--tag "$IMAGE_NAME:latest")
-          fi
-          docker buildx imagetools create "${tags[@]}" \
-            "$IMAGE_NAME:$IMAGE_TAG-amd64" "$IMAGE_NAME:$IMAGE_TAG-arm64"
-          docker buildx imagetools inspect "$IMAGE_NAME:$IMAGE_TAG"
+          name: native-ubuntu-install
+          path: |
+            ${{ runner.temp }}/native-results/**
+            /tmp/posim-image-tests/**
+            workspace/log/**
+          if-no-files-found: warn
