@@ -5,7 +5,9 @@ versioned section and add the publication date when that version ships.
 
 ## Unreleased
 
-## 1.0.1 - 2026-11-13
+## 1.0.1 - Unreleased
+
+Release candidate; the publication date will be recorded when the release ships.
 
 [Read the release notes](docs/releases/v1.0.1.md).
 
@@ -17,8 +19,27 @@ versioned section and add the publication date when that version ships.
   unmap persistent vertex buffers before releasing them in gz-rendering and Wave Sim.
 - Build and select the pinned rendering corrections in the normal Ubuntu/WSL
   installer and both Docker architectures, retaining ROS-owned libraries.
+- Give the corrected renderer priority after sourcing ROS underlays, including
+  when an RDP session already contains its library paths.
 - Retain APT package indexes after Wave Sim installation so the next native
   workspace dependency step can find its packages.
+- Exclude standalone renderer tests from colcon package discovery and resolve
+  their Wave Sim library dependencies during native linking.
+
+### Changed
+
+- Run AMD64 Docker builds on GitHub-hosted Ubuntu 26.04, alongside the existing
+  GitHub-hosted ARM64 builds. All POSIM workflows now use GitHub-hosted runners.
+- Pin the image builder versions and remove persistent-server image pruning.
+
+### Added
+
+- Versioned Docker publication that verifies the release commit in both
+  architectures and aliases its existing image digest without rebuilding.
+- A graphical overview in all eight language editions of the project README.
+
+### Tests
+
 - Exercise material transitions and the installed renderer in image acceptance tests.
 
 ## 1.0.0
