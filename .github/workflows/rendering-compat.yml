@@ -7,11 +7,13 @@ on:
     branches: [main]
     paths:
       - "extras/rendering_compat/**"
+      - "gazebo/posim_gz_rendering/rendering_compat.sh"
       - ".github/workflows/rendering-compat.yml"
   push:
     branches: [main]
     paths:
       - "extras/rendering_compat/**"
+      - "gazebo/posim_gz_rendering/rendering_compat.sh"
       - ".github/workflows/rendering-compat.yml"
 
 permissions:
@@ -27,3 +29,5 @@ jobs:
           persist-credentials: false
       - name: Check source patch helper without simulator or network
         run: python3 extras/rendering_compat/test_apply.py
+      - name: Check inherited rendering path priority
+        run: python3 extras/rendering_compat/test_environment.py
