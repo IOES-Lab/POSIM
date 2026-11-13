@@ -42,6 +42,20 @@ matching package version and start `attempt` at `1` for a new version, or
 increment it for a follow-up. The manifest change ensures documentation checks
 run even when the follow-up only prepares another attempt.
 
+Wait for the candidate's Docker CI before merging. A labeled same-repository
+candidate publishes its tested AMD64/ARM64 image under a unique candidate tag
+and records its digest in the small `posim-image-receipt-<attempt>` artifact. It does not
+update a version tag or `latest`. The receipt is retained for 30 days; the image
+stays on Docker Hub. Image files are not uploaded as GitHub artifacts.
+
+On main, image CI compares the candidate and merge commits' complete Git trees,
+including Dockerfiles, tests and workflow settings. It reuses a candidate only
+after checking its successful CI run, exact attempt, receipt and both image
+architectures. Identical trees allow the image build/test jobs to be skipped;
+the recorded multi-architecture digest is promoted unchanged. A different tree,
+unfinished candidate CI, expired receipt or missing image falls back to a fresh
+build. Registry authentication and other service errors fail visibly.
+
 Review and merge the candidate after the required source and platform checks.
 **Publish merged release candidate** evaluates CI for that exact merge commit.
 It requires the Docker, lint, documentation and release-automation workflows,
@@ -50,11 +64,18 @@ completed workflow must succeed. A normal PR without the candidate branch,
 label and manifest change does not publish a release.
 
 After CI succeeds, the automation checks package versions and the AMD64/ARM64
-image revisions. It promotes the existing commit image, verifies the versioned
+image provenance. It promotes the existing commit image, verifies the versioned
 digest, creates the exact Git tag and a draft GitHub release, then publishes
 the release. It does not rebuild the image or depend on a release event to
 start another workflow. Existing tags or drafts pointing to a different
 commit are rejected. Repeating a successful run does not replace the release.
+
+The Git tag still identifies the final merge commit. A reused image retains its
+original PR build revision, tree and CI-run labels; the automation verifies the
+source trees match and the tested PR head was merged into that commit. The
+published notes record both commits and the successful image test run. A
+`sha-<merge-commit>` image tag can therefore alias a tree-identical candidate
+without claiming that the image was rebuilt from the merge commit.
 
 Once the GitHub release is public, its verified multi-architecture digest also
 becomes `ioeslab/posim:latest`, provided it is still GitHub's latest release.
@@ -113,7 +134,9 @@ To tag an image for an existing release, run **Tag POSIM Docker release**
 from `main` and enter its Git tag in `release_tag`.
 
 Confirm that the versioned multi-architecture image contains both AMD64 and
-ARM64 variants and that each variant's source-revision label matches the tag.
+ARM64 variants. Each image revision must either match the Git tag's commit or
+identify a successfully tested PR head with an identical source tree that was
+merged into that commit. The shared verifier checks this relationship.
 Record the immutable image digest in the GitHub release. Use the version's
 release notes for that release, converting repository-relative links to links
 under the source tag, replacing candidate status with the actual publication

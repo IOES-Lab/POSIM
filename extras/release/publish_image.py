@@ -6,6 +6,7 @@ import json
 import re
 import subprocess
 
+from image_provenance import verify_source
 
 IMAGE = "ioeslab/posim"
 
@@ -23,21 +24,16 @@ def inspect_digest(image):
     return digest
 
 
-def source_digest(sha):
+def source_image(sha, api=None):
     if not re.fullmatch(r"[0-9a-f]{40}", sha):
         raise ValueError("A full source commit SHA is required")
     digest = inspect_digest(f"{IMAGE}:sha-{sha[:12]}")
     images = json.loads(docker("inspect", f"{IMAGE}@{digest}", "--format", "{{json .Image}}"))
-    for arch in ("linux/amd64", "linux/arm64"):
-        revision = (
-            images.get(arch, {})
-            .get("config", {})
-            .get("Labels", {})
-            .get("org.opencontainers.image.revision")
-        )
-        if revision != sha:
-            raise ValueError(f"{arch} does not match source commit {sha}")
-    return digest
+    return {"digest": digest, **verify_source(images, sha, api)}
+
+
+def source_digest(sha):
+    return source_image(sha)["digest"]
 
 
 def promote(version, sha):

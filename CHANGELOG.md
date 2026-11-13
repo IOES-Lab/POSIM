@@ -40,6 +40,9 @@ Release candidate; the publication date will be recorded when the release ships.
   architectures and aliases its existing image digest without rebuilding.
 - Automatic GitHub and Docker release publication after a labeled release
   candidate is merged and its final commit passes CI.
+- Reuse the candidate's tested AMD64/ARM64 image after merging when the complete
+  source tree is identical. Preserve its digest and actual build revision;
+  rebuild when the source differs or the candidate image or receipt is missing.
 - A Draft follow-up release candidate when CI fails, with the failed runs linked
   for review. Repeated notifications reuse the existing PR; no PR is approved
   or merged automatically.

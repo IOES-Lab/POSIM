@@ -9,58 +9,15 @@ import os
 from pathlib import PurePosixPath
 import re
 import subprocess
-import urllib.error
-import urllib.parse
-import urllib.request
 import xml.etree.ElementTree as ET
 
-from publish_image import IMAGE, promote, promote_latest
+from github_api import GitHub
+from publish_image import IMAGE, promote, promote_latest, source_image
 
 
 MANIFEST = ".github/release-candidate.json"
 LABEL = "release-candidate"
 REQUIRED = {"docker-amd64.yml", "lint.yml", "documentation.yml", "release-checks.yml"}
-
-
-class GitHub:
-    def __init__(self, repo, token):
-        self.repo = repo
-        self.token = token
-
-    def api(self, path, data=None, method=None, missing=False):
-        request = urllib.request.Request(
-            f"https://api.github.com/repos/{self.repo}/{path}",
-            data=json.dumps(data).encode() if data is not None else None,
-            method=method or ("POST" if data is not None else "GET"),
-            headers={
-                "Authorization": f"Bearer {self.token}",
-                "Accept": "application/vnd.github+json",
-                "Content-Type": "application/json",
-                "X-GitHub-Api-Version": "2022-11-28",
-            },
-        )
-        try:
-            with urllib.request.urlopen(request, timeout=60) as response:
-                return json.load(response)
-        except urllib.error.HTTPError as error:
-            if missing and error.code == 404:
-                return None
-            raise RuntimeError(f"GitHub {method or 'GET'} {path}: HTTP {error.code}") from error
-
-    def pages(self, path, key=None):
-        separator = "&" if "?" in path else "?"
-        page = 1
-        while True:
-            result = self.api(f"{path}{separator}per_page=100&page={page}")
-            items = result[key] if key else result
-            yield from items
-            if len(items) < 100:
-                return
-            page += 1
-
-    def file(self, path, ref):
-        result = self.api(f"contents/{path}?ref={urllib.parse.quote(ref, safe='')}")
-        return base64.b64decode(result["content"]).decode(), result["sha"]
 
 
 def candidate(api, sha):
@@ -134,7 +91,7 @@ def validate_version(api, sha, version):
     return api.file(f"docs/releases/v{version}.md", sha)[0]
 
 
-def release_body(notes, repo, version, sha, digest):
+def release_body(notes, repo, version, sha, digest, provenance=None):
     date = datetime.now(timezone.utc).date().isoformat()
     notes = re.sub(
         r"^Status: release candidate.*$", f"Release date: {date} (UTC).", notes, flags=re.M
@@ -159,12 +116,19 @@ def release_body(notes, repo, version, sha, digest):
         return f"](https://github.com/{repo}/blob/v{version}/{'/'.join(parts)})"
 
     notes = re.sub(r"\]\(([^)]+)\)", link, notes)
-    return notes.rstrip() + (
+    provenance = provenance or {"build_sha": sha}
+    body = notes.rstrip() + (
         f"\n\n## Published image\n\n"
         f"- Docker: `{IMAGE}:{version}` (AMD64 and ARM64).\n"
         f"- Immutable image: `{IMAGE}@{digest}`.\n"
-        f"- Source commit: `{sha}`.\n"
+        f"- Release commit: `{sha}`.\n"
+        f"- Image build commit: `{provenance['build_sha']}`.\n"
     )
+    if provenance.get("source_tree"):
+        body += f"- Verified identical source tree: `{provenance['source_tree']}`.\n"
+    if provenance.get("build_run"):
+        body += f"- [Successful image build and tests]({provenance['build_run']}).\n"
+    return body
 
 
 def tag_sha(api, tag):
@@ -192,12 +156,15 @@ def publish(api, sha, version, notes, publisher=promote, latest_updater=None):
         raise ValueError("Published release has no verifiable source tag")
     # No release is made public before the two-architecture Docker alias is verified.
     digest = publisher(version, sha)
+    provenance = source_image(sha, api)
+    if provenance["digest"] != digest:
+        raise ValueError("Source image changed during release publication")
     if release and not release["draft"]:
         print(f"{tag} is already published at the verified source and image")
     else:
         if existing_sha is None:
             api.api("git/refs", {"ref": f"refs/tags/{tag}", "sha": sha})
-        body = release_body(notes, api.repo, version, sha, digest)
+        body = release_body(notes, api.repo, version, sha, digest, provenance)
         if release is None:
             release = api.api(
                 "releases",

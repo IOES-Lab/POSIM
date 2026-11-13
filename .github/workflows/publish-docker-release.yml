@@ -14,6 +14,7 @@ on:
 
 permissions:
   contents: read
+  actions: read
 
 concurrency:
   group: posim-release-publication
@@ -46,6 +47,8 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Publish the release tag for the existing image
         working-directory: release-source
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: python3 ../extras/release/publish_image.py --tag "$RELEASE_TAG"
       - name: Update latest only for the current published release
         working-directory: release-source

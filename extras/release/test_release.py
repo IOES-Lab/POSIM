@@ -292,6 +292,11 @@ class PublicationTests(unittest.TestCase):
         patcher = patch.object(rc, "promote_latest", return_value=DIGEST)
         self.latest = patcher.start()
         self.addCleanup(patcher.stop)
+        source = patch.object(
+            rc, "source_image", return_value={"digest": DIGEST, "build_sha": SHA}
+        )
+        self.source = source.start()
+        self.addCleanup(source.stop)
 
     def test_image_is_verified_before_tag_and_release_creation(self):
         api = FakeGitHub()
@@ -360,6 +365,19 @@ class PublicationTests(unittest.TestCase):
         rc.publish(api, SHA, VERSION, "notes", lambda *_: DIGEST)
         self.assertEqual(len(api.writes), writes)
         self.assertEqual(len(api.releases), 1)
+
+    def test_reused_image_records_actual_build_commit(self):
+        api = FakeGitHub()
+        self.source.return_value = {
+            "digest": DIGEST,
+            "build_sha": OTHER,
+            "source_tree": "d" * 40,
+            "build_run": "https://github.com/IOES-Lab/POSIM/actions/runs/123",
+        }
+        rc.publish(api, SHA, VERSION, "notes", lambda *_: DIGEST)
+        self.assertEqual(api.refs["tags/v1.0.1"], SHA)
+        self.assertIn(f"Release commit: `{SHA}`", api.releases[0]["body"])
+        self.assertIn(f"Image build commit: `{OTHER}`", api.releases[0]["body"])
 
     def test_conflicting_tag_or_draft_is_never_overwritten(self):
         for kind in ("tag", "draft"):

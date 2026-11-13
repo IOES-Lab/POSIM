@@ -12,7 +12,9 @@ on:
         required: true
   pull_request:
     branches: [main]
+    types: [opened, synchronize, reopened, labeled]
     paths:
+      - ".github/release-candidate.json"
       - ".docker/**"
       - ".dockerignore"
       - ".github/workflows/docker-*.yml"
@@ -30,6 +32,7 @@ env:
 
 permissions:
   contents: read
+  actions: read
 
 concurrency:
   group: >-
@@ -45,12 +48,17 @@ jobs:
     if: >-
       vars.POSIM_ENABLE_DOCKER_CI == 'true' &&
       (github.event_name != 'pull_request' ||
-       github.event.pull_request.head.repo.full_name == github.repository)
+       github.event.pull_request.head.repo.full_name == github.repository) &&
+      (github.event.action != 'labeled' || github.event.label.name == 'release-candidate')
     runs-on: ubuntu-latest
     outputs:
       sha: ${{ steps.source.outputs.sha }}
       tag: ${{ steps.source.outputs.tag }}
       publish: ${{ steps.source.outputs.publish }}
+      tree: ${{ steps.source.outputs.tree }}
+      kind: ${{ steps.source.outputs.kind }}
+      reuse: ${{ steps.reuse.outputs.reuse || 'false' }}
+      digest: ${{ steps.reuse.outputs.digest }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -65,21 +73,46 @@ jobs:
         env:
           PUBLISH_IMAGES: ${{ vars.POSIM_PUBLISH_IMAGES }}
           SOURCE_BRANCH: ${{ inputs.source_branch }}
+          CANDIDATE_PR: >-
+            ${{ github.event_name == 'pull_request' &&
+            contains(github.event.pull_request.labels.*.name, 'release-candidate') }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
           source_sha="$(git rev-parse HEAD)"
+          source_tree="$(git rev-parse 'HEAD^{tree}')"
+          image_tag="sha-${source_sha:0:12}"
           publish=false
+          kind=main
           if [[ "$GITHUB_EVENT_NAME" != pull_request && "$PUBLISH_IMAGES" == true ]] &&
              [[ "$GITHUB_EVENT_NAME" != workflow_dispatch || "$SOURCE_BRANCH" == main ]]; then
             publish=true
+          elif [[ "$CANDIDATE_PR" == true && "$PUBLISH_IMAGES" == true ]]; then
+            publish=true
+            kind=candidate
+            image_tag="candidate-pr$PR_NUMBER-${source_sha:0:12}-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
           fi
           {
             echo "sha=$source_sha"
-            echo "tag=sha-${source_sha:0:12}"
+            echo "tree=$source_tree"
+            echo "tag=$image_tag"
             echo "publish=$publish"
+            echo "kind=$kind"
           } >> "$GITHUB_OUTPUT"
+      - uses: docker/setup-buildx-action@v4
+        if: steps.source.outputs.publish == 'true' && steps.source.outputs.kind == 'main'
+        with:
+          version: v0.38.1
+      - name: Find a tested candidate with an identical source tree
+        id: reuse
+        if: steps.source.outputs.publish == 'true' && steps.source.outputs.kind == 'main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_SHA: ${{ steps.source.outputs.sha }}
+        run: python3 extras/release/reuse_image.py select --sha "$SOURCE_SHA"
 
   build:
     needs: revision
+    if: needs.revision.outputs.reuse != 'true'
     strategy:
       fail-fast: false
       matrix:
@@ -121,6 +154,9 @@ jobs:
           labels: |
             org.opencontainers.image.source=https://github.com/IOES-Lab/POSIM
             org.opencontainers.image.revision=${{ needs.revision.outputs.sha }}
+            ioeslab.posim.source-tree=${{ needs.revision.outputs.tree }}
+            ioeslab.posim.build-run-id=${{ github.run_id }}
+            ioeslab.posim.build-run-attempt=${{ github.run_attempt }}
       - name: Test the installed image
         timeout-minutes: 15
         env:
@@ -145,7 +181,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v6
         with:
-          name: image-tests-${{ matrix.arch }}
+          name: image-tests-${{ matrix.arch }}-${{ github.run_attempt }}
           path: >-
             ${{ format('{0}/posim-image-tests-{1}-{2}-{3}',
             runner.temp, github.run_id, github.run_attempt, matrix.arch) }}
@@ -163,6 +199,9 @@ jobs:
           labels: |
             org.opencontainers.image.source=https://github.com/IOES-Lab/POSIM
             org.opencontainers.image.revision=${{ needs.revision.outputs.sha }}
+            ioeslab.posim.source-tree=${{ needs.revision.outputs.tree }}
+            ioeslab.posim.build-run-id=${{ github.run_id }}
+            ioeslab.posim.build-run-attempt=${{ github.run_attempt }}
       - name: Remove the loaded test image
         if: always()
         env:
@@ -171,9 +210,17 @@ jobs:
 
   publish:
     needs: [revision, build]
-    if: needs.revision.outputs.publish == 'true'
+    if: >-
+      always() && needs.revision.result == 'success' &&
+      needs.revision.outputs.publish == 'true' &&
+      (needs.build.result == 'success' ||
+       (needs.build.result == 'skipped' && needs.revision.outputs.reuse == 'true'))
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.revision.outputs.sha }}
+          persist-credentials: false
       - uses: docker/setup-buildx-action@v4
       - uses: docker/login-action@v4
         with:
@@ -182,7 +229,47 @@ jobs:
       - name: Publish the complete multi-platform image
         env:
           IMAGE_TAG: ${{ needs.revision.outputs.tag }}
+          REUSE_DIGEST: ${{ needs.revision.outputs.digest }}
         run: |
-          docker buildx imagetools create --tag "$IMAGE_NAME:$IMAGE_TAG" \
-            "$IMAGE_NAME:$IMAGE_TAG-amd64" "$IMAGE_NAME:$IMAGE_TAG-arm64"
+          if [[ -n "$REUSE_DIGEST" ]]; then
+            if existing="$(docker buildx imagetools inspect "$IMAGE_NAME:$IMAGE_TAG" \
+              --format '{{.Manifest.Digest}}' 2>&1)"; then
+              if [[ "$existing" != "$REUSE_DIGEST" ]]; then
+                echo "Commit image already points to a different digest" >&2
+                exit 1
+              fi
+            elif [[ "$existing" == *": not found" ]]; then
+              docker buildx imagetools create --tag "$IMAGE_NAME:$IMAGE_TAG" "$IMAGE_NAME@$REUSE_DIGEST"
+            else
+              echo "$existing" >&2
+              exit 1
+            fi
+            actual="$(docker buildx imagetools inspect "$IMAGE_NAME:$IMAGE_TAG" \
+              --format '{{.Manifest.Digest}}')"
+            if [[ "$actual" != "$REUSE_DIGEST" ]]; then
+              echo "Reused image digest changed during promotion" >&2
+              exit 1
+            fi
+          else
+            docker buildx imagetools create --tag "$IMAGE_NAME:$IMAGE_TAG" \
+              "$IMAGE_NAME:$IMAGE_TAG-amd64" "$IMAGE_NAME:$IMAGE_TAG-arm64"
+          fi
           docker buildx imagetools inspect "$IMAGE_NAME:$IMAGE_TAG"
+      - name: Record the tested image and its build provenance
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_SHA: ${{ needs.revision.outputs.sha }}
+          SOURCE_TREE: ${{ needs.revision.outputs.tree }}
+          IMAGE_TAG: ${{ needs.revision.outputs.tag }}
+          PUBLICATION_KIND: ${{ needs.revision.outputs.kind }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          python3 extras/release/reuse_image.py record --sha "$SOURCE_SHA" \
+            --tree "$SOURCE_TREE" --tag "$IMAGE_TAG" --kind "$PUBLICATION_KIND" \
+            --output "$RUNNER_TEMP/image-receipt.json"
+      - uses: actions/upload-artifact@v6
+        with:
+          name: posim-image-receipt-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/image-receipt.json
+          if-no-files-found: error
+          retention-days: 30
