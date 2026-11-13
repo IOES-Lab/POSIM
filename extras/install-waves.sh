@@ -26,7 +26,8 @@ apt-get update
 apt-get install -y --no-install-recommends \
     ca-certificates curl git build-essential cmake pkg-config python3 libgtest-dev \
     libcgal-dev libfftw3-dev libboost-iostreams-dev libboost-system-dev
-rm -rf /var/lib/apt/lists/*
+# Native workspace dependency resolution still needs these package indexes.
+# Docker recipes clean their own APT lists after dependency installation.
 
 if [[ ! -d "$WAVE_SOURCE/.git" ]]; then
     if [[ -e "$WAVE_SOURCE" ]]; then

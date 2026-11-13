@@ -17,6 +17,8 @@ versioned section and add the publication date when that version ships.
   unmap persistent vertex buffers before releasing them in gz-rendering and Wave Sim.
 - Build and select the pinned rendering corrections in the normal Ubuntu/WSL
   installer and both Docker architectures, retaining ROS-owned libraries.
+- Retain APT package indexes after Wave Sim installation so the next native
+  workspace dependency step can find its packages.
 - Exercise material transitions and the installed renderer in image acceptance tests.
 
 ## 1.0.0
