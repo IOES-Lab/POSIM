@@ -1,0 +1,26 @@
+--- a/src/cpp/fastdds/builtin/type_lookup_service/TypeLookupManager.cpp
++++ b/src/cpp/fastdds/builtin/type_lookup_service/TypeLookupManager.cpp
+@@ -76,6 +76,12 @@
+
+ TypeLookupManager::~TypeLookupManager()
+ {
++    // Join the request worker before deleting the writer and history it uses.
++    if (nullptr != request_listener_)
++    {
++        request_listener_->stop_request_processor_thread();
++    }
++
+     if (nullptr != builtin_reply_reader_)
+     {
+         participant_->deleteUserEndpoint(builtin_reply_reader_->getGuid());
+--- a/src/cpp/fastdds/builtin/type_lookup_service/TypeLookupRequestListener.hpp
++++ b/src/cpp/fastdds/builtin/type_lookup_service/TypeLookupRequestListener.hpp
+@@ -92,6 +92,8 @@
+     virtual ~TypeLookupRequestListener() override;
+
+ protected:
++
++    friend class TypeLookupManager;
+
+     /**
+      * @brief Starts the thread that process the received requests.

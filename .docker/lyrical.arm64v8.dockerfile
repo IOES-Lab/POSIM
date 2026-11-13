@@ -124,6 +124,11 @@ RUN curl --fail --show-error --location --retry 5 --retry-delay 2 \
       python3-rosdep python3-vcstool python3-colcon-common-extensions \
       python3-colcon-override-check
 
+# Backport the Fast DDS participant shutdown ordering correction.
+COPY extras/fastdds /tmp/posim-fastdds
+RUN apt-get update && apt-get install -y --no-install-recommends libasio-dev && \
+    bash /tmp/posim-fastdds/build.sh
+
 # Build the tested Router backport before POSIM so its setup records this underlay.
 ENV POSIM_MAVROS_OVERLAY=/opt/posim/mavros-router
 COPY extras/mavros /tmp/posim-mavros
@@ -250,7 +255,7 @@ ENV GZ_RENDERING_RESOURCE_PATH=/opt/posim/terra
 # Waves are built during the normal POSIM image build. The upstream checkout
 # and GPL notices stay separate from POSIM under /opt/asv_wave_sim.
 RUN bash $POSIM_UNDERLAY/src/posim/extras/install-waves.sh
-ENV LD_LIBRARY_PATH=/opt/posim/rendering-compat/lib:/opt/waves/lib
+ENV LD_LIBRARY_PATH=/opt/posim/rendering-compat/lib:/opt/posim/fastdds/lib:/opt/waves/lib
 ENV GZ_RENDERING_PLUGIN_PATH=/opt/posim/rendering-compat/lib
 ENV GZ_SIM_SYSTEM_PLUGIN_PATH=/opt/waves/lib:/home/$USER/ardupilot_gazebo/build
 ENV GZ_SIM_RESOURCE_PATH=/opt/asv_wave_sim/gz-waves-models/models:/opt/asv_wave_sim/gz-waves-models/world_models:/home/$USER/ardupilot_gazebo/models:/home/$USER/ardupilot_gazebo/worlds

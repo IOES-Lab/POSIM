@@ -13,7 +13,11 @@ PATHS = {
         "/opt/asv_wave_sim/gz-waves-models/world_models",
     ],
     "GZ_SIM_SYSTEM_PLUGIN_PATH": ["/opt/waves/lib"],
-    "LD_LIBRARY_PATH": ["/opt/posim/rendering-compat/lib", "/opt/waves/lib"],
+    "LD_LIBRARY_PATH": [
+        "/opt/posim/rendering-compat/lib",
+        "/opt/posim/fastdds/lib",
+        "/opt/waves/lib",
+    ],
     "GZ_RENDERING_PLUGIN_PATH": ["/opt/posim/rendering-compat/lib"],
     "GZ_RENDERING_RESOURCE_PATH": ["/opt/posim/terra"],
 }

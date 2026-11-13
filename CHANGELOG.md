@@ -13,6 +13,8 @@ Release candidate; the publication date will be recorded when the release ships.
 
 ### Fixed
 
+- Prevent a Fast DDS 3.6.2 participant shutdown crash in both Docker images by
+  joining the TypeLookup worker before releasing its reply writer and history.
 - Restore Wave Sim model/library paths and the terrain resource overlay in fresh
   Apple Silicon RDP desktop sessions.
 - Preserve the active Ogre2 material when dynamic geometry buffers change, and
@@ -50,6 +52,8 @@ Release candidate; the publication date will be recorded when the release ships.
 
 ### Tests
 
+- Exercise concurrent ROS participant creation and teardown with the corrected
+  Fast DDS library selected by the installed workspace.
 - Exercise material transitions and the installed renderer in image acceptance tests.
 
 ## 1.0.0
