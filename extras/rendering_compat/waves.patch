@@ -1,0 +1,52 @@
+diff --git a/gz-waves/src/systems/waves/Ogre2DynamicMesh.cc b/gz-waves/src/systems/waves/Ogre2DynamicMesh.cc
+index 87ee451..2c58dec 100644
+--- a/gz-waves/src/systems/waves/Ogre2DynamicMesh.cc
++++ b/gz-waves/src/systems/waves/Ogre2DynamicMesh.cc
+@@ -55,6 +55,7 @@
+ #ifdef _MSC_VER
+   #pragma warning(push, 0)
+ #endif
++#include <OgreHlms.h>
+ #include <OgreItem.h>
+ #include <OgreMesh2.h>
+ #include <OgreMeshManager2.h>
+@@ -254,6 +255,13 @@ void Ogre2DynamicMesh::DestroyBuffer()
+   if (!vaoManager)
+     return;
+ 
++  // Release persistent mappings before Ogre destroys the backing VAO/buffer.
++  if (this->dataPtr->vertexBuffer &&
++      this->dataPtr->vertexBuffer->getMappingState() != Ogre::MS_UNMAPPED)
++  {
++    this->dataPtr->vertexBuffer->unmap(Ogre::UO_UNMAP_ALL);
++  }
++
+   if (this->dataPtr->subMesh)
+   {
+     if (!this->dataPtr->subMesh->mVao[Ogre::VpNormal].empty())
+@@ -490,12 +498,23 @@ void Ogre2DynamicMesh::UpdateBuffer()
+   if (this->dataPtr->ogreItem)
+   {
+     bool castShadows = this->dataPtr->ogreItem->getCastShadows();
+-    auto lowLevelMat = this->dataPtr->ogreItem->getSubItem(0)->getMaterial();
++    // getMaterial() can look up a same-named legacy material even when the
++    // renderable uses PBS. Only restore it when it was actually active;
++    // otherwise setMaterial() replaces the PBS datablock with an unshaded pass.
++    auto subItem = this->dataPtr->ogreItem->getSubItem(0);
++    const auto *datablock = subItem->getDatablock();
++    const bool lowLevelActive = datablock &&
++        datablock->getCreator()->getType() == Ogre::HLMS_LOW_LEVEL;
++    auto lowLevelMat = lowLevelActive ? subItem->getMaterial() : Ogre::MaterialPtr();
+ 
+     // need to rebuild ogre [sub]item because the vao was destroyed
+     // this updates the item's bounding box and fixes occasional crashes
+     // from invalid access to old vao
+-    this->dataPtr->ogreItem->_initialise(true);
++    // Rebind the exact saved material below. Forced reinitialisation in older
++    // Ogre versions restores by material name, which can select a legacy
++    // material instead of the PBS datablock (or fail to find that name).
++    this->dataPtr->ogreItem->_deinitialise();
++    this->dataPtr->ogreItem->_initialise();
+ 
+     // set material
+     if (this->dataPtr->material)

@@ -1,0 +1,29 @@
+---
+name: Rendering compatibility source checks
+
+# yamllint disable-line rule:truthy
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "extras/rendering_compat/**"
+      - ".github/workflows/rendering-compat.yml"
+  push:
+    branches: [main]
+    paths:
+      - "extras/rendering_compat/**"
+      - ".github/workflows/rendering-compat.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  source-safety:
+    runs-on: ubuntu-26.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Check source patch helper without simulator or network
+        run: python3 extras/rendering_compat/test_apply.py
