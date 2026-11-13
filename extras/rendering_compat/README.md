@@ -1,14 +1,16 @@
 # Dynamic-mesh source compatibility patches
 
-This directory is an **opt-in source candidate**, not an enabled POSIM runtime
-feature. The normal installers and Dockerfiles do not apply it. The helper
-changes only the two source files in the external checkouts supplied by the
-caller; it does not build, install, load or replace any library.
+The Ubuntu/WSL installer and both Docker builds apply these pinned corrections
+through [`../install-waves.sh`](../install-waves.sh). The rebuilt gz-rendering
+core and Ogre2 engine live in `/opt/posim/rendering-compat`; ROS-owned files
+remain unchanged. Wave Sim is rebuilt from its retained source in
+`/opt/asv_wave_sim` and installed under `/opt/waves`.
 
-Use separate dependency checkouts and a disposable test image. Do not run this
-procedure against a working installation or assume that applying the source
-patches changes a running Gazebo process. Build and loader integration must be
-reviewed before this candidate can become a default image dependency.
+The build requires gz-rendering **10.0.2** and Ogre-Next **2.3.3**. It rejects
+other versions and unknown source bytes. The renderer archive is checked by
+SHA-256, and its source and build recipe remain beside the installed libraries.
+The POSIM environment selects this renderer after sourcing ROS underlays.
+The RDP desktop restores the same paths before starting XFCE.
 
 ## What changes
 
@@ -73,36 +75,34 @@ new dependency revision; review the upstream changes first.
 
 ## Build and runtime acceptance
 
-Source application alone is not runtime acceptance. In a separate test image:
+On the supported Ubuntu 26.04 / ROS Lyrical stack, run the normal installer or
+build either POSIM Dockerfile. The helper builds the renderer against the
+installed dependencies and builds the upstream Ogre2 `lidar_visual`, `gpu_rays`
+and `load_unload` tests. It also builds material regressions for gz-rendering
+and Wave Sim covering a PBS/legacy name collision, buffer growth and shrinkage,
+legacy material restoration, return to PBS, and destruction.
 
-1. Build both patched sources against the image's installed ROS/Gazebo/Ogre
-   dependency versions. Use isolated build directories and staging prefixes;
-   do not overwrite the host or an existing development container's ROS files.
-2. Configure the candidate image's loader paths explicitly. Verify the actual
-   engine and Wave libraries in both Gazebo server and GUI process maps and
-   compare their hashes with the rebuilt outputs. Do not rely on build success
-   or `LD_LIBRARY_PATH` alone as proof that the correction is loaded.
-3. Run the upstream Ogre2 `lidar_visual`, `gpu_rays` and `load_unload`
-   integration tests against those same libraries. Inspect test XML, not just
-   the test launcher exit code.
-4. Open a new desktop session with the required Wave model and library paths.
-   Run the documented demos separately, keeping the GUI enabled:
-   ```bash
-   ros2 launch posim_demos surface_tutorial.launch.py
-   # Stop this run before starting the other demo.
-   ros2 launch posim_demos underwater_tutorial.launch.py
-   ```
-5. Check scene rendering, `/clock` progression, sensor output, simulated vehicle
-   response and shutdown. Record child-process failures separately from the ROS
-   launcher's exit code. Retain periodic Ogre logs: a shared GUI/server log may
-   be overwritten, so a clean final file is not proof of a warning-free run.
+After sourcing the installed POSIM workspace, run:
 
-Existing general integration tests do not cover every material transition.
-A targeted material regression and a clean image build/loader recipe remain
-necessary before default activation. Software-rendered ARM64 Docker results do
-not establish native macOS/Metal, NVIDIA, Windows or AMD64 compatibility, or
-video latency/FPS. Residual material and UV/tangent errors must be tracked
-separately rather than hidden or counted as resolved by this patch.
+```bash
+bash extras/rendering_compat/test.sh /tmp/posim-rendering-results
+```
+
+The checks verify the loaded rendering library paths and hashes, reject failed
+or skipped upstream tests, and preserve logs and XML results. Both architecture
+image tests run this command. The helper does not repair the caller's environment
+to make a missing overlay pass.
+
+Run the surface and underwater tutorials separately with their GUIs enabled.
+Check scene rendering, camera and lidar output, clock progression, vehicle
+response, QGC video and shutdown. Inspect both server and GUI library mappings;
+a successful build alone does not prove that a running process uses it.
+Keep validation evidence outside the product repository.
+
+These corrections do not remove every Ogre material, UV/tangent or shutdown
+warning. Software-rendered Docker tests do not qualify native macOS/Metal,
+Windows graphics drivers or video latency/FPS. Apple Silicon uses the documented
+Linux ARM64 Docker/RDP installation; Windows uses Ubuntu under WSL 2.
 
 ## Offline helper checks
 
@@ -111,12 +111,16 @@ python3 extras/rendering_compat/test_apply.py
 ```
 
 These tests exercise source-file safety and idempotence, not a GPU or simulator.
-The matching CI job makes no runtime-rendering claim.
+The source-safety CI job makes no runtime-rendering claim; image tests provide
+the separate runtime checks.
 
 ## Retirement and rollback
 
 When the pinned dependencies contain an equivalent upstream correction, compare
 the source and runtime behaviour before advancing the pin and removing its
-patch. Unknown source hashes intentionally stop the helper. Roll back a test
-by using a fresh unpatched checkout/build or the previous image digest, not by
-editing installed package files. Existing environments are not migrated.
+patch. Unknown source hashes intentionally stop the helper.
+
+Use the previous qualified image digest to roll back the complete stack. Keep
+its source and test evidence. Do not copy individual libraries between ROS,
+Ogre or architecture versions. Existing containers are not migrated by a new
+image build.

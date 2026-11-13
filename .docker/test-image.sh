@@ -9,6 +9,8 @@ mkdir -p "$results"
 source "$workspace/install/setup.bash"
 cd "$workspace"
 
+bash "$workspace/src/posim/extras/rendering_compat/test.sh" "$results/rendering-compat"
+
 # Validate the final workspace setup selects the corrected RViz library and that
 # Cancel keeps real render updates alive, accepted close stops them, and teardown
 # releases the view manager and DDS participant resources.

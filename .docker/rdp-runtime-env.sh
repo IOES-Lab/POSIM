@@ -17,6 +17,8 @@ _posim_prepend_existing GZ_SIM_RESOURCE_PATH /opt/asv_wave_sim/gz-waves-models/w
 _posim_prepend_existing GZ_SIM_RESOURCE_PATH /opt/asv_wave_sim/gz-waves-models/models
 _posim_prepend_existing GZ_SIM_SYSTEM_PLUGIN_PATH /opt/waves/lib
 _posim_prepend_existing LD_LIBRARY_PATH /opt/waves/lib
+_posim_prepend_existing LD_LIBRARY_PATH /opt/posim/rendering-compat/lib
+_posim_prepend_existing GZ_RENDERING_PLUGIN_PATH /opt/posim/rendering-compat/lib
 # Restore the image's already-installed pre-merge terrain shader overlay too.
 # Ogre2 expects a single directory here, not a colon-separated search path.
 # Leave an explicit user overlay intact; only restore the image default if empty.

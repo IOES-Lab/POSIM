@@ -170,8 +170,12 @@ if [[ -n "${POSIM_EXTRAS_DIR:-}" && -f "${POSIM_EXTRAS_DIR}/install-waves.sh" ]]
 else
     # The one-liner installer may run without a local POSIM checkout.
     WAVE_HELPERS="$(mktemp -d)"
-    mkdir -p "$WAVE_HELPERS/surface"
-    for WAVE_HELPER in install-waves.sh surface/dependency.json surface/patch_external_waves.py; do
+    mkdir -p "$WAVE_HELPERS/surface" "$WAVE_HELPERS/rendering_compat/test"
+    for WAVE_HELPER in install-waves.sh surface/dependency.json surface/patch_external_waves.py \
+        rendering_compat/build.sh rendering_compat/test.sh rendering_compat/apply.py rendering_compat/manifest.json \
+        rendering_compat/gz-rendering.patch rendering_compat/waves.patch \
+        rendering_compat/COPYING.WaveSim rendering_compat/test/CMakeLists.txt \
+        rendering_compat/test/dynamic_material.cc; do
         curl -fsSL "https://raw.githubusercontent.com/IOES-Lab/POSIM/main/extras/$WAVE_HELPER" \
             -o "$WAVE_HELPERS/$WAVE_HELPER"
     done
@@ -216,7 +220,8 @@ export PATH=/opt/ardusub_ws/ardupilot/build/sitl/bin:\$PATH
 export GEOGRAPHICLIB_GEOID_PATH=/usr/share/GeographicLib/geoids
 export GZ_VERSION=jetty
 export GZ_RENDERING_RESOURCE_PATH=/opt/posim/terra
-export LD_LIBRARY_PATH=/opt/waves/lib:\${LD_LIBRARY_PATH:-}
+export LD_LIBRARY_PATH=/opt/posim/rendering-compat/lib:/opt/waves/lib:\${LD_LIBRARY_PATH:-}
+export GZ_RENDERING_PLUGIN_PATH=/opt/posim/rendering-compat/lib:\${GZ_RENDERING_PLUGIN_PATH:-}
 export GZ_SIM_SYSTEM_PLUGIN_PATH=/opt/waves/lib:/opt/ardusub_ws/ardupilot_gazebo/build:\${GZ_SIM_SYSTEM_PLUGIN_PATH:-}
 export GZ_SIM_RESOURCE_PATH=/opt/asv_wave_sim/gz-waves-models/models:/opt/asv_wave_sim/gz-waves-models/world_models:/opt/ardusub_ws/ardupilot_gazebo/models:/opt/ardusub_ws/ardupilot_gazebo/worlds:\${GZ_SIM_RESOURCE_PATH:-}
 EOF

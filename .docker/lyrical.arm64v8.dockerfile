@@ -250,7 +250,8 @@ ENV GZ_RENDERING_RESOURCE_PATH=/opt/posim/terra
 # Waves are built during the normal POSIM image build. The upstream checkout
 # and GPL notices stay separate from POSIM under /opt/asv_wave_sim.
 RUN bash $POSIM_UNDERLAY/src/posim/extras/install-waves.sh
-ENV LD_LIBRARY_PATH=/opt/waves/lib
+ENV LD_LIBRARY_PATH=/opt/posim/rendering-compat/lib:/opt/waves/lib
+ENV GZ_RENDERING_PLUGIN_PATH=/opt/posim/rendering-compat/lib
 ENV GZ_SIM_SYSTEM_PLUGIN_PATH=/opt/waves/lib:/home/$USER/ardupilot_gazebo/build
 ENV GZ_SIM_RESOURCE_PATH=/opt/asv_wave_sim/gz-waves-models/models:/opt/asv_wave_sim/gz-waves-models/world_models:/home/$USER/ardupilot_gazebo/models:/home/$USER/ardupilot_gazebo/worlds
 
