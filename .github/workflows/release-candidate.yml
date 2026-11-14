@@ -1,0 +1,61 @@
+---
+name: Publish merged release candidate
+
+# yamllint disable-line rule:truthy
+on:
+  workflow_run:
+    workflows:
+      - Build and publish POSIM Docker images
+      - Code Formatting Lint
+      - Documentation
+      - Release automation checks
+      - Desktop launcher checks
+      - MAVROS Router backport
+      - Pre-merge backport safety checks
+      - Rendering compatibility source checks
+      - RViz close overlay
+      - SITL sensor resampling
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      source_sha:
+        description: "Full merge commit SHA of the release candidate to retry"
+        type: string
+        required: true
+
+permissions:
+  contents: write
+  pull-requests: write
+  actions: read
+
+# Serialize automated and manual promotion, without dropping completion events.
+concurrency:
+  group: posim-release-publication
+  queue: max
+
+jobs:
+  release:
+    if: >-
+      vars.POSIM_PUBLISH_IMAGES == 'true' &&
+      ((github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') ||
+       (github.event.workflow_run.event == 'push' &&
+        github.event.workflow_run.head_repository.full_name == github.repository))
+    runs-on: ubuntu-26.04
+    timeout-minutes: 15
+    steps:
+      # Never execute code or artifacts from the triggering PR/run.
+      - uses: actions/checkout@v7
+        with:
+          ref: main
+          persist-credentials: false
+      - uses: docker/setup-buildx-action@v4
+        with:
+          version: v0.38.1
+      - name: Reconcile candidate CI and release state
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_SHA: ${{ github.event.workflow_run.head_sha || inputs.source_sha }}
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+        run: python3 extras/release/release_candidate.py --sha "$SOURCE_SHA"

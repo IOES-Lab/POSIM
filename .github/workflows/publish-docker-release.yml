@@ -14,10 +14,11 @@ on:
 
 permissions:
   contents: read
+  actions: read
 
 concurrency:
-  group: posim-docker-release-${{ github.event.release.tag_name || inputs.release_tag }}
-  cancel-in-progress: false
+  group: posim-release-publication
+  queue: max
 
 jobs:
   tag:
@@ -30,6 +31,11 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
+          ref: main
+          persist-credentials: false
+      - uses: actions/checkout@v7
+        with:
+          path: release-source
           ref: >-
             ${{ github.event_name == 'release' && github.sha ||
             format('refs/tags/{0}', inputs.release_tag) }}
@@ -40,53 +46,16 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Publish the release tag for the existing image
+        working-directory: release-source
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 ../extras/release/publish_image.py --tag "$RELEASE_TAG"
+      - name: Update latest only for the current published release
+        working-directory: release-source
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          if [[ ! "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z][0-9A-Za-z.-]*)?$ ]]; then
-            echo "Use a version tag such as v1.0.0" >&2
-            exit 1
+          latest_tag="$(gh api "repos/$GITHUB_REPOSITORY/releases/latest" --jq .tag_name)"
+          if [[ "$latest_tag" == "$RELEASE_TAG" ]]; then
+            python3 ../extras/release/publish_image.py --tag "$RELEASE_TAG" --latest
           fi
-          version="${RELEASE_TAG#v}"
-          expected_version="$(python3 -c \
-            'import json; print(json.load(open("website/package.json"))["version"])')"
-          if [[ "$version" != "$expected_version" ]]; then
-            echo "Tag $RELEASE_TAG does not match the documentation version $expected_version" >&2
-            exit 1
-          fi
-
-          sha="$(git rev-parse HEAD)"
-          source="$IMAGE_NAME:sha-${sha:0:12}"
-          target="$IMAGE_NAME:$version"
-          digest_format='{{.Manifest.Digest}}'
-          if ! digest="$(docker buildx imagetools inspect "$source" \
-            --format "$digest_format")"; then
-            echo "Could not resolve $source. Publish the image for $sha before tagging." >&2
-            exit 1
-          fi
-          if ! docker buildx imagetools inspect "$IMAGE_NAME@$digest" \
-            --format '{{json .Image}}' |
-            jq -e --arg sha "$sha" '. as $images |
-              all(["linux/amd64", "linux/arm64"][];
-                $images[.].config.Labels["org.opencontainers.image.revision"] == $sha)' >/dev/null; then
-            echo "$source must contain AMD64 and ARM64 images built from $sha" >&2
-            exit 1
-          fi
-
-          if existing="$(docker buildx imagetools inspect "$target" \
-            --format "$digest_format" 2>&1)"; then
-            if [[ "$existing" != "$digest" ]]; then
-              echo "$target already points to a different digest ($existing)" >&2
-              exit 1
-            fi
-          elif [[ "$existing" == *": not found" ]]; then
-            docker buildx imagetools create --tag "$target" "$IMAGE_NAME@$digest"
-          else
-            echo "$existing" >&2
-            exit 1
-          fi
-
-          actual="$(docker buildx imagetools inspect "$target" --format "$digest_format")"
-          if [[ "$actual" != "$digest" ]]; then
-            echo "$target resolved to $actual, expected $digest" >&2
-            exit 1
-          fi
-          echo "Published $target at $digest"

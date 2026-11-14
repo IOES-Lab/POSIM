@@ -16,8 +16,11 @@ RUN apt-get update && \
 COPY extras /tmp/posim-extras
 RUN POSIM_EXTRAS_DIR=/tmp/posim-extras \
     bash /tmp/posim-extras/ros-lyrical-gz-jetty-install.sh
+# Backport the Fast DDS participant shutdown ordering correction.
+RUN apt-get update && apt-get install -y --no-install-recommends libasio-dev && \
+    bash /tmp/posim-extras/fastdds/build.sh
 ENV GZ_RENDERING_RESOURCE_PATH=/opt/posim/terra
-ENV LD_LIBRARY_PATH=/opt/posim/rendering-compat/lib:/opt/waves/lib
+ENV LD_LIBRARY_PATH=/opt/posim/rendering-compat/lib:/opt/posim/fastdds/lib:/opt/waves/lib
 ENV GZ_RENDERING_PLUGIN_PATH=/opt/posim/rendering-compat/lib
 ENV GZ_SIM_SYSTEM_PLUGIN_PATH=/opt/waves/lib:/opt/ardusub_ws/ardupilot_gazebo/build
 ENV GZ_SIM_RESOURCE_PATH=/opt/asv_wave_sim/gz-waves-models/models:/opt/asv_wave_sim/gz-waves-models/world_models:/opt/ardusub_ws/ardupilot_gazebo/models:/opt/ardusub_ws/ardupilot_gazebo/worlds

@@ -26,6 +26,8 @@ export AMENT_CPPCHECK_ALLOW_SLOW_VERSIONS=1 CTEST_PARALLEL_LEVEL=2
 export RMW_IMPLEMENTATION=rmw_fastrtps_cpp
 export FASTDDS_DEFAULT_PROFILES_FILE="$workspace/install/share/multibeam_sonar/config/fastdds_macos_local.xml"
 
+bash "$workspace/src/posim/extras/fastdds/test.sh" "$results/fastdds"
+
 status=0
 colcon --log-base "$results/colcon" test --merge-install --base-paths src/posim \
   --return-code-on-test-failure || status=1

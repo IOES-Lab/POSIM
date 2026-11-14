@@ -6,6 +6,9 @@ on:
   workflow_dispatch:
   pull_request:
     paths:
+      - ".github/release-candidate.json"
+      - "docs/releases/**"
+      - "CHANGELOG.md"
       - "website/**"
       - "gazebo/**"
       - "extras/**"
@@ -17,6 +20,9 @@ on:
   push:
     branches: [main]
     paths:
+      - ".github/release-candidate.json"
+      - "docs/releases/**"
+      - "CHANGELOG.md"
       - "website/**"
       - "gazebo/**"
       - "extras/**"
