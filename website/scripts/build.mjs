@@ -58,6 +58,11 @@ const objectRows = objectFiles.map(f => `- [\`${f}\`](https://github.com/IOES-La
 await rm(output, { recursive: true, force: true });
 for (const { directory } of languages) await mkdir(path.join(output, directory), { recursive: true });
 await cp(path.join(root, 'public'), path.join(output, 'assets'), { recursive: true });
+// Search engines request these unmodified ownership proofs at the site root.
+for (const name of ['google1e0649bfc916a91f.html', 'BingSiteAuth.xml']) {
+  await cp(path.join(root, 'site-verification', name), path.join(output, name));
+}
+
 
 for (const { code: lang, directory } of languages) {
   const nested = lang !== 'en';
@@ -116,6 +121,11 @@ for (const { code: lang, directory } of languages) {
       body += `<script type="application/json" id="docs-anchor-redirects">${JSON.stringify(redirects).replaceAll('<', '\\u003c')}</script>`;
     }
     const title = page[lang];
+    const rootPreview = lang === 'en' && page.slug === 'index';
+    const browserTitle = rootPreview ? 'Platform for Ocean Simulation' : `${title} · POSIM`;
+    const previewImage = new URL('assets/posim-documentation-og.png', (process.env.SITE_URL || 'https://ioes-lab.github.io/POSIM').replace(/\/$/, '') + '/').href;
+    const previewMeta = rootPreview ? `<meta property="og:type" content="website"><meta property="og:title" content="Platform for Ocean Simulation"><meta property="og:image" content="${esc(previewImage)}"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="POSIM · Platform for Ocean Simulation"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Platform for Ocean Simulation"><meta name="twitter:image" content="${esc(previewImage)}"><meta name="twitter:image:alt" content="POSIM · Platform for Ocean Simulation">` : '';
+
     const firstParagraph = body.match(/<p>([\s\S]*?)<\/p>/)?.[1] || title;
     const description = plain(firstParagraph).slice(0, 220);
     const nav = sections.map(section => `<section><h2>${esc(section[lang])}</h2>${section.pages.map(([slug]) => `<a href="${slug}.html"${slug === page.slug ? ' aria-current="page"' : ''}>${esc(messages[lang].pages[slug])}</a>`).join('')}</section>`).join('');
@@ -126,7 +136,7 @@ for (const { code: lang, directory } of languages) {
     const navigation = `<nav class="docs-page-nav" aria-label="${ui.previousNext}">${previous ? `<a href="${previous.slug}.html"><small>${ui.previous}</small>${esc(previous[lang])}</a>` : '<span></span>'}${next ? `<a href="${next.slug}.html"><small>${ui.next}</small>${esc(next[lang])}</a>` : ''}</nav>`;
     const languageOptions = languages.map(locale => `<option value="${nested ? '../' : ''}${locale.directory}${page.slug}.html" lang="${locale.code}"${locale.code === lang ? ' selected' : ''}>${locale.label}</option>`).join('');
     const controls = `<span class="docs-control-wrap"><select class="docs-control" data-language-select aria-label="${ui.documentationLanguage}">${languageOptions}</select></span><span class="docs-control-wrap"><select class="docs-control" data-theme-select aria-label="${ui.colorTheme}"><option value="system">${ui.system}</option><option value="light">${ui.light}</option><option value="dark">${ui.dark}</option></select></span>`;
-    const html = `<!doctype html><html lang="${lang}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="${esc(description)}"><meta name="document-audience" content="public-posim-library"><title>${esc(title)} · POSIM</title><link rel="icon" type="image/svg+xml" href="${asset}favicon.svg">${alternateLinks}<script type="application/json" id="docs-localization">${JSON.stringify({ ui, languages: languages.map(locale => locale.code) }).replaceAll('<', '\\u003c')}</script><script src="${asset}theme.js"></script><link rel="stylesheet" href="${asset}docs.css"><script defer src="${asset}docs.js"></script></head><body data-search-index="${asset}search.${lang}.json"><a class="skip-link" href="#main">${ui.skip}</a>
+    const html = `<!doctype html><html lang="${lang}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="${esc(description)}"><meta name="document-audience" content="public-posim-library"><title>${esc(browserTitle)}</title>${previewMeta}<link rel="icon" type="image/svg+xml" href="${asset}favicon.svg">${alternateLinks}<script type="application/json" id="docs-localization">${JSON.stringify({ ui, languages: languages.map(locale => locale.code) }).replaceAll('<', '\\u003c')}</script><script src="${asset}theme.js"></script><link rel="stylesheet" href="${asset}docs.css"><script defer src="${asset}docs.js"></script></head><body data-search-index="${asset}search.${lang}.json"><a class="skip-link" href="#main">${ui.skip}</a>
 <header class="docs-header"><a class="docs-brand" href="index.html"><img src="${asset}app-icon.svg" width="28" height="28" alt="" aria-hidden="true"><span class="docs-wordmark">POSIM <small class="docs-version">v${esc(version)}</small></span></a><span class="docs-product">${ui.product}</span><nav aria-label="${ui.utility}">${controls}<a href="https://github.com/IOES-Lab/POSIM">GitHub</a></nav></header>
 <details class="docs-mobile-menu"><summary>${ui.menu}</summary><label class="docs-search">${ui.search}<input type="search" placeholder="${ui.placeholder}" autocomplete="off"></label><label class="docs-search-other"><input type="checkbox" data-search-other>${ui.otherLanguages}</label><div class="docs-search-results" aria-live="polite" hidden></div><nav aria-label="${ui.mobileNavigation}">${nav}</nav></details>
 <div class="docs-layout"><aside class="docs-sidebar"><label class="docs-search">${ui.search}<input type="search" placeholder="${ui.placeholder}" autocomplete="off"></label><label class="docs-search-other"><input type="checkbox" data-search-other>${ui.otherLanguages}</label><div class="docs-search-results" aria-live="polite" hidden></div><nav aria-label="${ui.documentation}">${nav}</nav></aside>
