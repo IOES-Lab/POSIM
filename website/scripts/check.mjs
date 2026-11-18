@@ -35,6 +35,19 @@ if (haveSource) {
 for (const file of htmlFiles) {
   const html = await readFile(path.join(output, file), 'utf8');
   documents.set(file, html);
+  if (file === 'index.html') {
+    for (const tag of ['<title>Platform for Ocean Simulation</title>',
+      '<meta property="og:title" content="Platform for Ocean Simulation">',
+      '<meta name="twitter:card" content="summary_large_image">']) {
+      if (!html.includes(tag)) fail(`Root link preview missing: ${tag}`);
+    }
+    const image = await readFile(path.join(output, 'assets/posim-documentation-og.png'));
+    if (image.subarray(0, 8).toString('hex') !== '89504e470d0a1a0a' ||
+        image.readUInt32BE(16) !== 1200 || image.readUInt32BE(20) !== 630) fail('Invalid root preview PNG');
+    const expected = new URL('assets/posim-documentation-og.png', (process.env.SITE_URL || 'https://ioes-lab.github.io/POSIM').replace(/\/$/, '') + '/').href;
+    if (!html.includes(`<meta property="og:image" content="${expected}">`)) fail('Root preview image URL differs from deployment base');
+  }
+
   const lang = languageOf(file);
   if (!html.includes(`<html lang="${lang}">`)) fail(`${file}: wrong language`);
   if (!html.includes(`<small class="docs-version">v${version}</small>`)) fail(`${file}: missing release version`);
