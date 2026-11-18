@@ -58,6 +58,11 @@ const objectRows = objectFiles.map(f => `- [\`${f}\`](https://github.com/IOES-La
 await rm(output, { recursive: true, force: true });
 for (const { directory } of languages) await mkdir(path.join(output, directory), { recursive: true });
 await cp(path.join(root, 'public'), path.join(output, 'assets'), { recursive: true });
+// Search engines request these unmodified ownership proofs at the site root.
+for (const name of ['google1e0649bfc916a91f.html', 'BingSiteAuth.xml']) {
+  await cp(path.join(root, 'site-verification', name), path.join(output, name));
+}
+
 
 for (const { code: lang, directory } of languages) {
   const nested = lang !== 'en';

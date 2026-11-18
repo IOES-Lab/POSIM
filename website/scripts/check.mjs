@@ -10,6 +10,12 @@ const root = fileURLToPath(new URL('../', import.meta.url));
 const repository = path.resolve(root, '..');
 const output = path.join(root, 'dist');
 const fail = message => { throw new Error(message); };
+for (const name of ['google1e0649bfc916a91f.html', 'BingSiteAuth.xml']) {
+  const original = await readFile(path.join(root, 'site-verification', name));
+  const published = await readFile(path.join(output, name));
+  if (!original.equals(published)) fail(`${name}: site verification bytes changed`);
+}
+
 const exists = async file => access(file).then(() => true).catch(() => false);
 const htmlFiles = languages.flatMap(({ directory }) => pages.map(page => directory + page.slug + '.html'));
 const languageOf = file => file.includes('/') ? file.split('/')[0] : 'en';
