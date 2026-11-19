@@ -34,18 +34,76 @@ permissions:
   contents: read
   actions: read
 
+# Public runs publish immutable commit tags, so a documentation event must not
+# cancel or replace an active/pending image run before classification. Keep the
+# existing PR and non-main manual review grouping; isolate public runs by run ID.
 concurrency:
   group: >-
     ${{ github.event_name == 'pull_request' &&
     format('posim-images-pr-{0}', github.event.pull_request.number) ||
     (github.event_name == 'workflow_dispatch' && inputs.source_branch != 'main' &&
-    format('posim-images-review-{0}', inputs.source_branch)) || 'posim-images-public' }}
+    format('posim-images-review-{0}', inputs.source_branch)) ||
+    format('posim-images-public-{0}', github.run_id) }}
   cancel-in-progress: true
 
 jobs:
+  changes:
+    # Do not use push.paths-ignore: GitHub path filters inspect at most 300 files.
+    # Read the complete before..after tree diff, including deletions and both
+    # sides of renames. Unknown paths or unavailable history require a build.
+    runs-on: ubuntu-latest
+    outputs:
+      docs_only: ${{ steps.classify.outputs.docs_only }}
+    steps:
+      - uses: actions/checkout@v7
+        if: github.event_name == 'push'
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Classify documentation-only pushes
+        id: classify
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BEFORE_SHA: ${{ github.event.before }}
+          AFTER_SHA: ${{ github.sha }}
+        shell: python
+        run: |
+          import os
+          import re
+          import subprocess
+
+          def docs_path(path):
+              # website is excluded from both image contexts by .dockerignore.
+              # Root README editions are documentation, not executable inputs.
+              return path.startswith(b"website/") or bool(re.fullmatch(
+                  rb"README(?:\.(?:de|es|fr|it|ja|ko|zh))?\.md", path))
+
+          docs_only = False
+          if os.environ["EVENT_NAME"] == "push":
+              before = os.environ.get("BEFORE_SHA", "")
+              after = os.environ.get("AFTER_SHA", "")
+              if all(re.fullmatch(r"[0-9a-f]{40}", sha) and
+                     sha != "0" * 40 for sha in (before, after)):
+                  try:
+                      # --no-renames makes a cross-boundary rename two paths.
+                      changed = subprocess.check_output([
+                          "git", "diff", "--no-renames", "--name-only", "-z",
+                          before, after, "--"], stderr=subprocess.DEVNULL)
+                      paths = [p for p in changed.split(b"\0") if p]
+                      docs_only = bool(paths) and all(map(docs_path, paths))
+                  except (OSError, subprocess.CalledProcessError):
+                      pass
+          with open(os.environ["GITHUB_OUTPUT"], "a") as output:
+              output.write(f"docs_only={str(docs_only).lower()}\n")
+          print("Documentation-only push: image build and publication skipped."
+                if docs_only else "Image workflow retained (non-doc or unknown change).")
+
   revision:
+    needs: changes
+    # A failed classifier must never silently suppress an image build.
     # Keep full image builds limited to branches in this repository.
     if: >-
+      always() && !cancelled() && needs.changes.outputs.docs_only != 'true' &&
       vars.POSIM_ENABLE_DOCKER_CI == 'true' &&
       (github.event_name != 'pull_request' ||
        github.event.pull_request.head.repo.full_name == github.repository) &&
