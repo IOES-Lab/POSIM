@@ -1,6 +1,6 @@
 # Spherical coordinates
 
-The `SphericalCoords` ROS plugin provides services for the world's geographic origin and transformations between local Cartesian positions and latitude/longitude/altitude.
+The `SphericalCoords` ROS plugin provides services to query or update the world's geographic origin and to transform coordinates between local Cartesian positions and latitude, longitude and altitude.
 
 ## Start a configured world
 
@@ -57,9 +57,9 @@ Keep an explicit origin in your world. See [the source](https://github.com/IOES-
 | `transform_to_spherical_coordinates` | `TransformToSphericalCoord` | `input: {x, y, z}` |
 | `transform_from_spherical_coordinates` | `TransformFromSphericalCoord` | `latitude_deg`, `longitude_deg`, `altitude` |
 
-Types live in `posim_interfaces/srv`. Angles are degrees; local coordinates and altitude are meters.
+The service types live in `posim_interfaces/srv`. Angles are in degrees; local coordinates and altitude are in meters.
 
-Requests must contain finite numbers. Geographic latitude must be within −90° to 90° and longitude within −180° to 180°. An invalid origin update returns `success: false` and preserves the origin. Failed transformations return `NaN` coordinates; check the result before using it in a controller.
+Requests must contain finite numbers. Geographic latitude must be within −90° to 90° and longitude within −180° to 180°. An invalid origin update returns `success: false` and preserves the current origin. Failed transformations return `NaN` coordinates; check the result before using it in a controller.
 
 ## Convert a local position
 
@@ -69,7 +69,7 @@ ros2 service call /gz/transform_to_spherical_coordinates \
   '{input: {x: 100.0, y: 200.0, z: 3.0}}'
 ```
 
-The response contains latitude, longitude and altitude. Use those returned values with the inverse service and compare the resulting `output` to the original vector. This checks your configured origin and frame convention.
+The response contains latitude, longitude and altitude. Pass those returned values to the inverse service and compare the resulting `output` to the original vector to verify your configured origin and frame convention.
 
 ## Change the origin
 
@@ -79,6 +79,6 @@ ros2 service call /gz/set_origin_spherical_coordinates \
   '{latitude_deg: 35.074823, longitude_deg: 129.084798, altitude: 0.0}'
 ```
 
-Changing the origin updates how local positions map to latitude/longitude. Align terrain, world orientation, altitude reference and controllers with that coordinate system.
+Changing the origin updates how local positions map to latitude and longitude. Align terrain, world orientation, altitude reference and controllers with that coordinate system.
 
-Gazebo's spherical-coordinate transformations are used internally. Keep the SDF's heading/orientation in mind rather than assuming every world has the same local axes.
+The plugin uses Gazebo's spherical-coordinate transformations internally. Keep the SDF's heading and orientation in mind rather than assuming every world uses the same local axes.
