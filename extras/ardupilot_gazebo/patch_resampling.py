@@ -40,6 +40,23 @@ replace(
     throw std::invalid_argument("sitl_sensor_rate requires lock_step and a rate in [0, 2000] Hz");""",
 )
 replace(
+    "            if (this->dataPtr->isLockStep)\n"
+    "            {\n"
+    "                while (!this->ReceiveServoPacket() &&",
+    """            if (this->dataPtr->isLockStep)
+            {
+                // Acknowledge the first servo frame only when PostUpdate can
+                // produce a sensor reply. Otherwise its resends stall physics
+                // before the IMU can publish its first sample.
+                if (this->dataPtr->json_str.empty())
+                {
+                    std::lock_guard<std::mutex> lock(this->dataPtr->imuMsgMutex);
+                    if (!this->dataPtr->imuMsgValid)
+                        return;
+                }
+                while (!this->ReceiveServoPacket() &&""",
+)
+replace(
     "        this->CreateStateJSON(t, _ecm);\n        this->SendState();",
     """        this->CreateStateJSON(t, _ecm);
         const auto samples = this->dataPtr->sensorResampler.Samples(
